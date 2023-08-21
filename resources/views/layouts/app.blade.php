@@ -22,7 +22,7 @@
 
         <div class="min-h-screen bg-gray-100">
             @livewire('navigation-menu')
-
+            
             <!-- Page Heading -->
             @if (isset($header))
                 <header class="bg-white shadow">
@@ -34,7 +34,13 @@
 
             <!-- Page Content -->
             <main>
-                {{ $slot }}
+                {{-- <div class="relative flex min-h-screen"> --}}
+                {{-- <div class="grid grid-cols-6 gap-4"> --}}
+                    <div>@livewire('side-bar')</div>
+                    <div class="ml-64 absolute top-20">{{ $slot }}</div>
+                    
+                {{-- </div> --}}
+                
             </main>
         </div>
 
