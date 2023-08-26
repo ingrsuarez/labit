@@ -20,7 +20,7 @@
     <body class="font-sans antialiased">
         <x-banner />
 
-        <div class="min-h-screen bg-gray-100">
+        <div class="min-h-fit h-max bg-gray-300">
             @livewire('navigation-menu')
             
             <!-- Page Heading -->
@@ -33,11 +33,11 @@
             @endif
 
             <!-- Page Content -->
-            <main>
+            <main class="h-screen">
                 {{-- <div class="relative flex min-h-screen"> --}}
                 {{-- <div class="grid grid-cols-6 gap-4"> --}}
                     <div>@livewire('side-bar')</div>
-                    <div class="ml-64 absolute top-20">{{ $slot }}</div>
+                    <div class="absolute top-20 md:ml-64">{{ $slot }}</div>
                     
                 {{-- </div> --}}
                 
