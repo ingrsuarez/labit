@@ -18,8 +18,8 @@ return new class extends Migration
             $table->string('low')->nullable();
             $table->string('high')->nullable();
             $table->string('instructions')->nullable();
-            $table->bigint('parent')->nullable();
-            $table->int('decimals')->nullable();
+            $table->unsignedBigInteger('parent')->nullable();
+            $table->integer('decimals')->nullable();
             $table->string('negative')->nullable();
             $table->string('positive')->nullable();
             $table->string('questions')->nullable();
@@ -28,10 +28,10 @@ return new class extends Migration
             $table->float('price')->nullable();
             $table->float('cost')->nullable();
             $table->string('work_sheet')->nullable();
-            $table->bigint('material')->nullable();
+            $table->unsignedBigInteger('material')->nullable();
             $table->string('formula')->nullable();
-            $table->bigint('box')->nullable();
-            $table->int('nbu')->nullable();
+            $table->unsignedBigInteger('box')->nullable();
+            $table->integer('nbu')->nullable();
             $table->timestamps();
         });
     }

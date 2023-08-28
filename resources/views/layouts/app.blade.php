@@ -37,7 +37,7 @@
                 {{-- <div class="relative flex min-h-screen"> --}}
                 {{-- <div class="grid grid-cols-6 gap-4"> --}}
                     <div>@livewire('side-bar')</div>
-                    <div class="absolute top-20 md:ml-64">{{ $slot }}</div>
+                    <div class="absolute top-20 md:ml-64 w-fit">{{ $slot }}</div>
                     
                 {{-- </div> --}}
                 

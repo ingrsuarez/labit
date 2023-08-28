@@ -5,7 +5,7 @@
     @csrf
       {{-- <div class="space-y-10 ">       --}}
     <div class="bg-white pb-4 px-2 rounded-lg shadow-lg ">
-      <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Datos del paciente:</h2>
+      <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Nuevo paciente:</h2>
       <p class="mt-1 text-sm leading-6 text-gray-600">Complete los datos del paciente:</p>
     
       <div class="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-6">
@@ -62,6 +62,16 @@
               class="w-2/5 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
           </div>
         </div>
+
+        <div class="sm:col-span-3">
+          <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
+              <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Sexo:</span>
+              <select id="sex" name="sex" autocomplete="off" class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 h-full focus:ring-2 focus:ring-inset focus:ring-indigo-600">
+                  <option value="m">Masculino</option>
+                  <option value="f">Femenino</option>
+              </select>
+          </div>
+      </div>
 
         <div class="sm:col-span-3 ">
          

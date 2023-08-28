@@ -22,6 +22,7 @@ class PatientController extends Controller
         $patient->email = $request->email;
         $patient->phone = $request->phone;
         $patient->birth = $request->birth;
+        $patient->sex = $request->sex;
         $patient->type = 'active';
         $patient->address = strtolower($request->address);
         $patient->country = $request->country;
