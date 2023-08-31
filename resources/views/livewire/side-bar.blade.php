@@ -2,166 +2,142 @@
     <!-- Sidenav -->
     <nav
     id="sidenav-8"
-    class="absolute left-0 top-16 z-[1035] h-full w-60 -translate-x-full overflow-hidden invisible md:visible bg-zinc-800 shadow-[0_4px_12px_0_rgba(0,0,0,0.07),_0_2px_4px_rgba(0,0,0,0.05)] data-[te-sidenav-hidden='false']:translate-x-0 dark:bg-zinc-800"
+    class="absolute left-0 top-16 z-[1035] h-full w-50 -translate-x-full overflow-hidden invisible md:visible bg-zinc-800 shadow-[0_4px_12px_0_rgba(0,0,0,0.07),_0_2px_4px_rgba(0,0,0,0.05)] data-[te-sidenav-hidden='false']:translate-x-0 dark:bg-zinc-800"
     data-te-sidenav-init
     data-te-sidenav-hidden="false"
     data-te-sidenav-position="absolute"
     data-te-sidenav-accordion="true">
-    {{-- <a
-    class="mb-3 flex items-center justify-center border-b-2 border-solid border-gray-100 py-6 outline-none"
-    href="#!"
-    data-te-ripple-init
-    data-te-ripple-color="primary"> --}}
-    {{-- <a class="mr-2 w-6" href="{{ route('dashboard') }}">
-        <x-application-mark class="h-9 w-auto" />
-    </a> --}}
-    {{-- <img
-        id="te-logo"
-        class="mr-2 w-16 h-16"
-        src="{{url('/images/logo.png')}}"
-        alt="TE Logo"
-        draggable="false" />
-    <span>MENU</span>
-    </a> --}}
     <ul
     class="relative m-0 list-none px-[0.2rem] pb-12"
     data-te-sidenav-menu-ref>
-    {{-- <li class="relative">
-        <a
-        class="flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem] text-gray-300 outline-none transition duration-300 ease-linear focus:bg-slate-50 focus:text-inherit focus:outline-none active:bg-slate-50 active:text-inherit active:outline-none data-[te-sidenav-state-active]:text-inherit data-[te-sidenav-state-focus]:outline-none motion-reduce:transition-none dark:text-gray-300 dark:hover:bg-white/10 dark:focus:bg-white/10 dark:active:bg-white/10"
-        data-te-sidenav-link-ref>
-        <span
-            class="mr-4 [&>svg]:h-3.5 [&>svg]:w-3.5 [&>svg]:text-gray-400 dark:[&>svg]:text-gray-300">
-            <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            class="h-3.5 w-3.5">
-            <path
-                d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" />
-            <path
-                d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" />
-            </svg>
-        </span>
-        <span>Menu</span>
-        </a>
-    </li> --}}
+    
     <li class="relative pt-4">
-        <span class="px-6 py-4 text-[0.8rem] font-bold uppercase text-gray-300 dark:text-gray-400">
+        <button onclick="showMenu1(true)" class="focus:outline-none focus:text-indigo-400 text-left  text-white flex justify-between items-center w-full space-x-14 ">
+            <span class="px-6 text-[0.8rem] font-bold uppercase text-gray-300 dark:text-gray-400">
             INGRESO:</span>
-        {{-- 
-        active:bg-slate-50 active:text-inherit  active:outline-none 
-        data-[te-sidenav-state-active]:text-inherit data-[te-sidenav-state-focus]:outline-none motion-reduce:transition-none 
-        dark:text-gray-300 dark:hover:bg-white/10 dark:focus:bg-white/10 dark:active:bg-white/10"
-        data-te-sidenav-link-ref data-active="{{ Route::currentRouteName()=='patient.index'}}" href="{{ route('patient.index') }}"> --}}
-        <a class="text-gray-300 flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem]
-        data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
-        hover:bg-slate-50 hover:text-inherit hover:outline-none
-        focus:bg-slate-50 focus:text-inherit focus:outline-none"
-        data-active="{{ Route::currentRouteName()=='patient.index' ? 'active' : ''}}"
-        href="{{ route('patient.index') }}">
+            <svg id="icon1" class="transform" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 15L12 9L6 15" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        </button>
+        <div id="menu1" class="flex justify-start  flex-col w-full md:w-auto">
+            <a class="text-gray-300 flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem]
+            data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
+            hover:bg-slate-50 hover:text-inherit hover:outline-none
+            focus:bg-slate-50 focus:text-inherit focus:outline-none"
+            data-active="{{ Route::currentRouteName()=='patient.index' ? 'active' : ''}}"
+            href="{{ route('patient.index') }}">
+                
+                <span
+                    class="mr-4 [&>svg]:h-5 [&>svg]:w-5 [&>svg]:text-gray-400 dark:[&>svg]:text-gray-300">
+                    <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="h-5 w-5">
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                </span>
+                <span>Nuevo Paciente </span>
+            </a>
 
-        <span
-            class="mr-4 [&>svg]:h-5 [&>svg]:w-5 [&>svg]:text-gray-400 dark:[&>svg]:text-gray-300">
-            <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="h-5 w-5">
-            <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-        </span>
-        <span>Nuevo Paciente </span>
-        </a>
+            <a class="text-gray-300 flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem]
+            data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
+            hover:bg-slate-50 hover:text-inherit hover:outline-none
+            focus:bg-slate-50 focus:text-inherit focus:outline-none"
+            data-active="{{ Route::currentRouteName()=='admission.index' ? 'active' : ''}}"
+            href="{{ route('admission.index') }}">
+                <span
+                    class="mr-4 [&>svg]:h-5 [&>svg]:w-5 [&>svg]:text-gray-300 dark:[&>svg]:text-gray-300">
+                    <svg fill="currentColor" height="800px" width="800px" version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" xmlns:xlink="http://www.w3.org/1999/xlink" enable-background="new 0 0 512 512">
+                        <g>
+                        <path d="m495,396c-8-8-20.9-8-28.9,0l-20.6,20.6-25.5-25.5 68.3-68.3c8-8 8-20.9 0-28.9-8-8-20.9-8-28.9,0l-16.4,16.4-168.9-169c-17.7-17.7-63-44.9-116.7-12.9l-111.5-111.4c-8-8-20.9-8-28.9,0-8,8-8,20.9 0,28.9l111.5,111.5c-23.1,36.3-18.8,85 12.9,116.7l169.1,168.9-16.4,16.3c-8,8-8,20.9 0,28.9 4,4 17.7,11.2 28.9,0l30.8-30.8 37.5-37.5 25.5,25.5-20.7,20.6c-8,8-8,20.9 0,28.9 4,4 17.4,11.5 28.9,0l70-70c8-8 8-20.9 0-28.9zm-155.7,18.2l-43-42.9 25.4-25.4c8-8 8-20.9 0-28.9-8-8-20.9-8-28.9,0l-25.4,25.4-19.7-19.7 25.4-25.4c8-8 8-20.9 0-28.9-8-8-20.9-8-28.9,0l-25.4,25.4-19.6-19.8 25.4-25.4c8-8 8-20.9 0-28.9-8-8-20.9-8-28.9,0l-25.4,25.4-.1-.1c-20.7-20.7-20.7-54.3 0-74.9 14.7-14.7 49-25.9 75,0l169.1,169-75,75.1z"/>
+                        </g>
+                    </svg>
+                </span>
+                <span>Nuevo Pedido</span>
+            </a>
+        </div>
     </li>
-    <li class="relative">
-        <a class="text-gray-300 flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem]
-        data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
-        hover:bg-slate-50 hover:text-inherit hover:outline-none
-        focus:bg-slate-50 focus:text-inherit focus:outline-none"
-        data-active="{{ Route::currentRouteName()=='admission.index' ? 'active' : ''}}"
-        href="{{ route('admission.index') }}">
-        <span
-            class="mr-4 [&>svg]:h-5 [&>svg]:w-5 [&>svg]:text-gray-300 dark:[&>svg]:text-gray-300">
-            <svg fill="currentColor" height="800px" width="800px" version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" xmlns:xlink="http://www.w3.org/1999/xlink" enable-background="new 0 0 512 512">
-                <g>
-                  <path d="m495,396c-8-8-20.9-8-28.9,0l-20.6,20.6-25.5-25.5 68.3-68.3c8-8 8-20.9 0-28.9-8-8-20.9-8-28.9,0l-16.4,16.4-168.9-169c-17.7-17.7-63-44.9-116.7-12.9l-111.5-111.4c-8-8-20.9-8-28.9,0-8,8-8,20.9 0,28.9l111.5,111.5c-23.1,36.3-18.8,85 12.9,116.7l169.1,168.9-16.4,16.3c-8,8-8,20.9 0,28.9 4,4 17.7,11.2 28.9,0l30.8-30.8 37.5-37.5 25.5,25.5-20.7,20.6c-8,8-8,20.9 0,28.9 4,4 17.4,11.5 28.9,0l70-70c8-8 8-20.9 0-28.9zm-155.7,18.2l-43-42.9 25.4-25.4c8-8 8-20.9 0-28.9-8-8-20.9-8-28.9,0l-25.4,25.4-19.7-19.7 25.4-25.4c8-8 8-20.9 0-28.9-8-8-20.9-8-28.9,0l-25.4,25.4-19.6-19.8 25.4-25.4c8-8 8-20.9 0-28.9-8-8-20.9-8-28.9,0l-25.4,25.4-.1-.1c-20.7-20.7-20.7-54.3 0-74.9 14.7-14.7 49-25.9 75,0l169.1,169-75,75.1z"/>
-                </g>
-            </svg>
-        </span>
-        <span>Nuevo Pedido</span>
-        </a>
-    </li>
+
 
     <li class="relative pt-4">
-        <span class="px-6 py-4 text-[0.8rem] font-bold uppercase text-gray-600 dark:text-gray-400">
-        Laboratorio</span>
-        <a class="text-gray-300 flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem]
-        data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
-        hover:bg-slate-50 hover:text-inherit hover:outline-none
-        focus:bg-slate-50 focus:text-inherit focus:outline-none"
-        data-active="{{ Route::currentRouteName()=='tests.index' ? 'active' : ''}}"
-        href="{{ route('tests.index') }}">
-        <span
-            class="mr-4 [&>svg]:h-3.5 [&>svg]:w-3.5 [&>svg]:text-gray-300 dark:[&>svg]:text-gray-300">
-            <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            class="h-3.5 w-3.5">
-            <path fill="none" d="M0 0H24V24H0z"/> 
-            <path d="M17 2v2h-1v14c0 2.21-1.79 4-4 4s-4-1.79-4-4V4H7V2h10zm-3 8h-4v8c0 1.105.895 2 2 2s2-.895 2-2v-8zm-1 5c.552 0 1 .448 1 1s-.448 1-1 1-1-.448-1-1 .448-1 1-1zm-2-3c.552 0 1 .448 1 1s-.448 1-1 1-1-.448-1-1 .448-1 1-1zm3-8h-4v4h4V4z"/> 
-    
+        <button onclick="showMenu2(true)" class="focus:outline-none focus:text-indigo-400 text-left  text-white flex justify-between items-center w-full space-x-14 ">
+            <span class="px-6 text-[0.8rem] font-bold uppercase text-gray-300 dark:text-gray-400">
+            Laboratorio</span>
+            <svg id="icon2" class="transform" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 15L12 9L6 15" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
-        </span>
-        <span>Análisis</span>
-        </a>
+        </button>
+        <div id="menu2" class="flex justify-start  flex-col w-full md:w-auto">
+            <a class="text-gray-300 flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem]
+            data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
+            hover:bg-slate-50 hover:text-inherit hover:outline-none
+            focus:bg-slate-50 focus:text-inherit focus:outline-none"
+            data-active="{{ Route::currentRouteName()=='tests.index' ? 'active' : ''}}"
+            href="{{ route('tests.index') }}">
+            <span
+                class="mr-4 [&>svg]:h-3.5 [&>svg]:w-3.5 [&>svg]:text-gray-300 dark:[&>svg]:text-gray-300">
+                <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                class="h-3.5 w-3.5">
+                <path fill="none" d="M0 0H24V24H0z"/> 
+                <path d="M17 2v2h-1v14c0 2.21-1.79 4-4 4s-4-1.79-4-4V4H7V2h10zm-3 8h-4v8c0 1.105.895 2 2 2s2-.895 2-2v-8zm-1 5c.552 0 1 .448 1 1s-.448 1-1 1-1-.448-1-1 .448-1 1-1zm-2-3c.552 0 1 .448 1 1s-.448 1-1 1-1-.448-1-1 .448-1 1-1zm3-8h-4v4h4V4z"/> 
+        
+                </svg>
+            </span>
+            <span>Análisis</span>
+            </a>
+
+            <a
+            class="flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem] text-gray-600 outline-none transition duration-300 ease-linear hover:bg-slate-50 hover:text-inherit hover:outline-none focus:bg-slate-50 focus:text-inherit focus:outline-none active:bg-slate-50 active:text-inherit active:outline-none data-[te-sidenav-state-active]:text-inherit data-[te-sidenav-state-focus]:outline-none motion-reduce:transition-none dark:text-gray-300 dark:hover:bg-white/10 dark:focus:bg-white/10 dark:active:bg-white/10"
+            data-te-sidenav-link-ref>
+            <span
+                class="mr-4 [&>svg]:h-3.5 [&>svg]:w-3.5 [&>svg]:text-gray-400 dark:[&>svg]:text-gray-300">
+                <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                class="h-3.5 w-3.5">
+                <path
+                    fill-rule="evenodd"
+                    d="M4.755 10.059a7.5 7.5 0 0112.548-3.364l1.903 1.903h-3.183a.75.75 0 100 1.5h4.992a.75.75 0 00.75-.75V4.356a.75.75 0 00-1.5 0v3.18l-1.9-1.9A9 9 0 003.306 9.67a.75.75 0 101.45.388zm15.408 3.352a.75.75 0 00-.919.53 7.5 7.5 0 01-12.548 3.364l-1.902-1.903h3.183a.75.75 0 000-1.5H2.984a.75.75 0 00-.75.75v4.992a.75.75 0 001.5 0v-3.18l1.9 1.9a9 9 0 0015.059-4.035.75.75 0 00-.53-.918z"
+                    clip-rule="evenodd" />
+                </svg>
+            </span>
+            <span>Backups</span>
+            </a>
+
+            <a
+            class="flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem] text-gray-600 outline-none transition duration-300 ease-linear hover:bg-slate-50 hover:text-inherit hover:outline-none focus:bg-slate-50 focus:text-inherit focus:outline-none active:bg-slate-50 active:text-inherit active:outline-none data-[te-sidenav-state-active]:text-inherit data-[te-sidenav-state-focus]:outline-none motion-reduce:transition-none dark:text-gray-300 dark:hover:bg-white/10 dark:focus:bg-white/10 dark:active:bg-white/10"
+            data-te-sidenav-link-ref>
+            <span
+                class="mr-4 [&>svg]:h-3.5 [&>svg]:w-3.5 [&>svg]:text-gray-400 dark:[&>svg]:text-gray-300">
+                <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                class="h-3.5 w-3.5">
+                <path
+                    fill-rule="evenodd"
+                    d="M12.516 2.17a.75.75 0 00-1.032 0 11.209 11.209 0 01-7.877 3.08.75.75 0 00-.722.515A12.74 12.74 0 002.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.749.749 0 00.374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 00-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08zm3.094 8.016a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
+                    clip-rule="evenodd" />
+                </svg>
+            </span>
+            <span>Security</span>
+            </a>
+        </div>
     </li>
     
+
     <li class="relative">
-        <a
-        class="flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem] text-gray-600 outline-none transition duration-300 ease-linear hover:bg-slate-50 hover:text-inherit hover:outline-none focus:bg-slate-50 focus:text-inherit focus:outline-none active:bg-slate-50 active:text-inherit active:outline-none data-[te-sidenav-state-active]:text-inherit data-[te-sidenav-state-focus]:outline-none motion-reduce:transition-none dark:text-gray-300 dark:hover:bg-white/10 dark:focus:bg-white/10 dark:active:bg-white/10"
-        data-te-sidenav-link-ref>
-        <span
-            class="mr-4 [&>svg]:h-3.5 [&>svg]:w-3.5 [&>svg]:text-gray-400 dark:[&>svg]:text-gray-300">
-            <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            class="h-3.5 w-3.5">
-            <path
-                fill-rule="evenodd"
-                d="M4.755 10.059a7.5 7.5 0 0112.548-3.364l1.903 1.903h-3.183a.75.75 0 100 1.5h4.992a.75.75 0 00.75-.75V4.356a.75.75 0 00-1.5 0v3.18l-1.9-1.9A9 9 0 003.306 9.67a.75.75 0 101.45.388zm15.408 3.352a.75.75 0 00-.919.53 7.5 7.5 0 01-12.548 3.364l-1.902-1.903h3.183a.75.75 0 000-1.5H2.984a.75.75 0 00-.75.75v4.992a.75.75 0 001.5 0v-3.18l1.9 1.9a9 9 0 0015.059-4.035.75.75 0 00-.53-.918z"
-                clip-rule="evenodd" />
-            </svg>
-        </span>
-        <span>Backups</span>
-        </a>
-    </li>
-    <li class="relative">
-        <a
-        class="flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem] text-gray-600 outline-none transition duration-300 ease-linear hover:bg-slate-50 hover:text-inherit hover:outline-none focus:bg-slate-50 focus:text-inherit focus:outline-none active:bg-slate-50 active:text-inherit active:outline-none data-[te-sidenav-state-active]:text-inherit data-[te-sidenav-state-focus]:outline-none motion-reduce:transition-none dark:text-gray-300 dark:hover:bg-white/10 dark:focus:bg-white/10 dark:active:bg-white/10"
-        data-te-sidenav-link-ref>
-        <span
-            class="mr-4 [&>svg]:h-3.5 [&>svg]:w-3.5 [&>svg]:text-gray-400 dark:[&>svg]:text-gray-300">
-            <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            class="h-3.5 w-3.5">
-            <path
-                fill-rule="evenodd"
-                d="M12.516 2.17a.75.75 0 00-1.032 0 11.209 11.209 0 01-7.877 3.08.75.75 0 00-.722.515A12.74 12.74 0 002.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.749.749 0 00.374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 00-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08zm3.094 8.016a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
-                clip-rule="evenodd" />
-            </svg>
-        </span>
-        <span>Security</span>
-        </a>
+        
     </li>
 
     <li class="relative pt-4">
@@ -468,4 +444,27 @@
     </button>
     <!-- Toggler -->
 
+
+    <script>
+        let icon1 = document.getElementById("icon1");
+        let menu1 = document.getElementById("menu1");
+        const showMenu1 = (flag) => {
+          if (flag) {
+            icon1.classList.toggle("rotate-180");
+            menu1.classList.toggle("hidden");
+          }
+        };
+
+        let icon2 = document.getElementById("icon2");
+        let menu2 = document.getElementById("menu2");
+        const showMenu2 = (flag) => {
+          if (flag) {
+            icon2.classList.toggle("rotate-180");
+            menu2.classList.toggle("hidden");
+          }
+        };
+
+
+
+    </script>
 </div>
