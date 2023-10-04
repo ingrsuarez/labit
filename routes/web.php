@@ -29,6 +29,9 @@ Route::middleware([
 
     // PATIENTS ROUTES
     Route::get('/patient/new',[App\Http\Controllers\PatientController::class, 'index'])->name('patient.index');
+    Route::get('/patient/show',[App\Http\Controllers\PatientController::class, 'show'])->name('patient.show');
+    Route::get('/patient/edit',[App\Http\Controllers\PatientController::class, 'edit'])->name('patient.edit');
+    Route::post('/patient/edit',[App\Http\Controllers\PatientController::class, 'save_changes'])->name('patient.save');
 
     Route::post('/patient/store',[App\Http\Controllers\PatientController::class, 'store'])->name('patient.store');
 
@@ -52,4 +55,7 @@ Route::middleware([
     Route::get('/group/new/{current_patient?}',[App\Http\Controllers\GroupController::class, 'index'])->name('group.index');
 
     Route::post('group/store',[App\Http\Controllers\GroupController::class, 'store'])->name('group.store');
+
+    //MANAGMENT
+    Route::get('manage/index',[App\Http\Controllers\ManageController::class, 'index'])->name('manage.index');
 });

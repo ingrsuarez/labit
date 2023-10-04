@@ -24,6 +24,23 @@
             data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
             hover:bg-slate-50 hover:text-inherit hover:outline-none
             focus:bg-slate-50 focus:text-inherit focus:outline-none"
+            data-active="{{ Route::currentRouteName()=='admission.index' ? 'active' : ''}}"
+            href="{{ route('admission.index') }}">
+                <span
+                    class="mr-4 [&>svg]:h-5 [&>svg]:w-5 [&>svg]:text-gray-300 dark:[&>svg]:text-gray-300">
+                    <svg fill="currentColor" height="800px" width="800px" version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" xmlns:xlink="http://www.w3.org/1999/xlink" enable-background="new 0 0 512 512">
+                        <g>
+                        <path d="m495,396c-8-8-20.9-8-28.9,0l-20.6,20.6-25.5-25.5 68.3-68.3c8-8 8-20.9 0-28.9-8-8-20.9-8-28.9,0l-16.4,16.4-168.9-169c-17.7-17.7-63-44.9-116.7-12.9l-111.5-111.4c-8-8-20.9-8-28.9,0-8,8-8,20.9 0,28.9l111.5,111.5c-23.1,36.3-18.8,85 12.9,116.7l169.1,168.9-16.4,16.3c-8,8-8,20.9 0,28.9 4,4 17.7,11.2 28.9,0l30.8-30.8 37.5-37.5 25.5,25.5-20.7,20.6c-8,8-8,20.9 0,28.9 4,4 17.4,11.5 28.9,0l70-70c8-8 8-20.9 0-28.9zm-155.7,18.2l-43-42.9 25.4-25.4c8-8 8-20.9 0-28.9-8-8-20.9-8-28.9,0l-25.4,25.4-19.7-19.7 25.4-25.4c8-8 8-20.9 0-28.9-8-8-20.9-8-28.9,0l-25.4,25.4-19.6-19.8 25.4-25.4c8-8 8-20.9 0-28.9-8-8-20.9-8-28.9,0l-25.4,25.4-.1-.1c-20.7-20.7-20.7-54.3 0-74.9 14.7-14.7 49-25.9 75,0l169.1,169-75,75.1z"/>
+                        </g>
+                    </svg>
+                </span>
+                <span>Nuevo Pedido</span>
+            </a>
+
+            <a class="text-gray-300 flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem]
+            data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
+            hover:bg-slate-50 hover:text-inherit hover:outline-none
+            focus:bg-slate-50 focus:text-inherit focus:outline-none"
             data-active="{{ Route::currentRouteName()=='patient.index' ? 'active' : ''}}"
             href="{{ route('patient.index') }}">
                 
@@ -49,17 +66,23 @@
             data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
             hover:bg-slate-50 hover:text-inherit hover:outline-none
             focus:bg-slate-50 focus:text-inherit focus:outline-none"
-            data-active="{{ Route::currentRouteName()=='admission.index' ? 'active' : ''}}"
-            href="{{ route('admission.index') }}">
+            data-active="{{ Route::currentRouteName()=='patient.show' ? 'active' : ''}}"
+            href="{{ route('patient.show') }}">
+                
                 <span
-                    class="mr-4 [&>svg]:h-5 [&>svg]:w-5 [&>svg]:text-gray-300 dark:[&>svg]:text-gray-300">
-                    <svg fill="currentColor" height="800px" width="800px" version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" xmlns:xlink="http://www.w3.org/1999/xlink" enable-background="new 0 0 512 512">
-                        <g>
-                        <path d="m495,396c-8-8-20.9-8-28.9,0l-20.6,20.6-25.5-25.5 68.3-68.3c8-8 8-20.9 0-28.9-8-8-20.9-8-28.9,0l-16.4,16.4-168.9-169c-17.7-17.7-63-44.9-116.7-12.9l-111.5-111.4c-8-8-20.9-8-28.9,0-8,8-8,20.9 0,28.9l111.5,111.5c-23.1,36.3-18.8,85 12.9,116.7l169.1,168.9-16.4,16.3c-8,8-8,20.9 0,28.9 4,4 17.7,11.2 28.9,0l30.8-30.8 37.5-37.5 25.5,25.5-20.7,20.6c-8,8-8,20.9 0,28.9 4,4 17.4,11.5 28.9,0l70-70c8-8 8-20.9 0-28.9zm-155.7,18.2l-43-42.9 25.4-25.4c8-8 8-20.9 0-28.9-8-8-20.9-8-28.9,0l-25.4,25.4-19.7-19.7 25.4-25.4c8-8 8-20.9 0-28.9-8-8-20.9-8-28.9,0l-25.4,25.4-19.6-19.8 25.4-25.4c8-8 8-20.9 0-28.9-8-8-20.9-8-28.9,0l-25.4,25.4-.1-.1c-20.7-20.7-20.7-54.3 0-74.9 14.7-14.7 49-25.9 75,0l169.1,169-75,75.1z"/>
-                        </g>
+                    class="mr-4 [&>svg]:h-5 [&>svg]:w-5 [&>svg]:text-gray-400 dark:[&>svg]:text-gray-300">
+                    <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        fill="none" 
+                        width="800px" 
+                        height="800px" 
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor">
+                        <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                     </svg>
                 </span>
-                <span>Nuevo Pedido</span>
+                <span>Buscar Paciente </span>
             </a>
         </div>
     </li>
