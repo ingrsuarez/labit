@@ -58,4 +58,10 @@ Route::middleware([
 
     //MANAGMENT
     Route::get('manage/index',[App\Http\Controllers\ManageController::class, 'index'])->name('manage.index');
+
+
+    //EMPLOYEES
+    Route::get('employee/new',[App\Http\Controllers\EmployeeController::class, 'new'])->name('employee.new');
+
+    Route::post('employee/store',[App\Http\Controllers\EmployeeController::class, 'store'])->name('employee.store');
 });
