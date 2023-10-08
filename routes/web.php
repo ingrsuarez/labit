@@ -64,4 +64,7 @@ Route::middleware([
     Route::get('employee/new',[App\Http\Controllers\EmployeeController::class, 'new'])->name('employee.new');
 
     Route::post('employee/store',[App\Http\Controllers\EmployeeController::class, 'store'])->name('employee.store');
+
+    Route::get('employee/edit',[App\Http\Controllers\EmployeeController::class, 'edit'])->name('employee.edit');
+    Route::post('employee/save',[App\Http\Controllers\EmployeeController::class, 'save'])->name('employee.save');
 });
