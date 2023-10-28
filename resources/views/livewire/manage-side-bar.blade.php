@@ -74,7 +74,7 @@
             hover:bg-slate-50 hover:text-inherit hover:outline-none
             focus:bg-slate-50 focus:text-inherit focus:outline-none"
             data-active="{{ Route::currentRouteName()=='positions.new' ? 'active' : ''}}"
-            href="{{ route('employee.new') }}">
+            href="{{ route('job.new') }}">
                 
                 <span
                     

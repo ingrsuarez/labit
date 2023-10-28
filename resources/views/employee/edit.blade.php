@@ -5,7 +5,7 @@
             @csrf
               {{-- <div class="space-y-10 ">       --}}
             
-                <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Nuevo empleado:</h2>
+                <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Editar empleado:</h2>
                 <p class="mt-1 text-sm leading-6 text-gray-600">Complete los datos:</p>
                 <input type="hidden" name="id" value="{{$employee->id}}">
                 <div class="mx-2 mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-8">
@@ -89,6 +89,10 @@
                           <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Puesto:</span>
                           <select id="position" name="position" autocomplete="off" class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 h-full focus:ring-2 focus:ring-inset focus:ring-indigo-600">
                             <option value="">Ninguno</option>
+                            @foreach ($jobs as $job)
+
+                            <option value="{{$job->id}}">{{ucwords($job->name)}}</option>
+                            @endforeach
                           </select>
                         </div>
                     </div>

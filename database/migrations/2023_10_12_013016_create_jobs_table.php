@@ -16,12 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->integer('order');
             $table->unsignedBigInteger('parent_id')->nullable();
-                $table->foreign('parent')
-                    ->references('id')
-                    ->on('jobs')
-                    ->onUpdate('cascade');
             $table->string('department')->nullable();
-            $table->longText('responsabilities')->nullable();
+            $table->longText('responsibilities')->nullable();
             $table->string('email')->nullable();
             $table->timestamps();
         });

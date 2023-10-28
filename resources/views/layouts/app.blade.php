@@ -36,7 +36,7 @@
             <main class="h-screen">
 
                     <div>@livewire('side-bar')</div>
-                    <div class="absolute top-20 md:ml-64 w-fit">{{ $slot }}</div>
+                    <div class="absolute top-20 md:ml-64 w-full">{{ $slot }}</div>
                     
                 {{-- </div> --}}
                 

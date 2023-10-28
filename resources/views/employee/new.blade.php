@@ -79,6 +79,10 @@
                           <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Puesto:</span>
                           <select id="position" name="position" autocomplete="off" class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 h-full focus:ring-2 focus:ring-inset focus:ring-indigo-600">
                             <option value="">Ninguno</option>
+                            @foreach ($jobs as $job)
+
+                            <option value="{{$job->id}}">{{ucwords($job->name)}}</option>
+                            @endforeach
                           </select>
                         </div>
                     </div>
@@ -137,7 +141,7 @@
                             <th class="bg-blue-300 px-2 border border-slate-300">Horas Semanales</th>
                             <th class="bg-blue-300 px-2 border border-slate-300">Teléfono</th>
                             <th class="bg-blue-300 px-2 border border-slate-300">Fecha de nacimiento</th>
-                            <th class="bg-blue-300 px-2 border border-slate-300">Puesto</th>
+                            <th class="bg-blue-300 px-2 border border-slate-300">Puestos</th>
                             <th class="bg-blue-300 px-2 border border-slate-300"></th>
         
                         </thead>
@@ -150,7 +154,13 @@
                             <td class="px-2 text-center border border-slate-300">{{$employee->weekly_hours}}</td>
                             <td class="px-2 border border-slate-300">{{$employee->phone}}</td>
                             <td class="px-2 text-center border border-slate-300">{{$employee->birth}}</td>
-                            <td class="px-2 border border-slate-300">{{$employee->position}}</td>
+                            <td class="px-2 border border-slate-300">
+                                @foreach($employee->jobs() as $job)
+                                    @if($job)
+                                        {{$job->name." - "}}
+                                    @endif
+                                @endforeach
+                            </td>
                             <td class="px-2 py-2 border border-slate-300">
                                 <a href="{{route('employee.edit',['employee'=>$employee->id])}}" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                                     Editar

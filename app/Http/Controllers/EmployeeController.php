@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Employee;
+use App\Models\Job;
 
 
 class EmployeeController extends Controller
@@ -12,7 +13,8 @@ class EmployeeController extends Controller
     public function new()
     {
         $employees = Employee::all();
-        return view('employee.new',compact('employees'));
+        $jobs = Job::all();
+        return view('employee.new',compact('employees','jobs'));
     }
 
     public function store(Request $request)
@@ -24,7 +26,7 @@ class EmployeeController extends Controller
         $employee->employeeId = $request->employeeId;
         $employee->email =$request->email;
         $employee->bank_account = $request->bank_account;
-        $employee->position = $request->position;
+        $employee->jobs()->syncWithoutDetaching($request->position, ['user_id' => '1']);
         $employee->sex = $request->sex;
         $employee->phone = $request->phone;
         $employee->weekly_hours = $request->weekly_hours;
@@ -44,10 +46,10 @@ class EmployeeController extends Controller
     public function edit(Request $request)
     {
         $employee = Employee::find($request->employee);
+        $jobs = Job::all();
 
 
-
-        return view('employee.edit',compact('employee'));
+        return view('employee.edit',compact('employee','jobs'));
     }
 
     public function save(Request $request)
@@ -60,7 +62,7 @@ class EmployeeController extends Controller
         $employee->employeeId = $request->employeeId;
         $employee->email =$request->email;
         $employee->bank_account = $request->bank_account;
-        $employee->position = $request->position;
+        $employee->jobs()->syncWithoutDetaching($request->position, ['user_id' => '1']);
         $employee->sex = $request->sex;
         $employee->phone = $request->phone;
         $employee->weekly_hours = $request->weekly_hours;
