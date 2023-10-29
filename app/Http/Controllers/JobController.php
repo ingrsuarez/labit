@@ -38,28 +38,23 @@ class JobController extends Controller
     public function edit(Request $request)
     {
         $job = Job::find($request->job);
+        $jobs = Job::all();
 
 
-
-        return view('job.edit',compact('job'));
+        return view('job.edit',compact('job','jobs'));
     }
 
     public function save(Request $request)
     {
-        
+        // return $request;
         $job = Job::find($request->id);
 
         $job->name = strtolower($request->name);
-        $job->lastName = strtolower($request->last_name);
-        $job->jobId = $request->jobId;
+        $job->order = $request->order;
         $job->email =$request->email;
-        $job->bank_account = $request->bank_account;
-        $job->position = $request->position;
-        $job->sex = $request->sex;
-        $job->phone = $request->phone;
-        $job->weekly_hours = $request->weekly_hours;
-        $job->birth = $request->birth;
-        $job->address = $request->address;
+        $job->parent_id = $request->parent;
+        $job->department = strtolower($request->department);
+        $job->responsibilities = $request->responsibilities;
 
         try {
             $job->save();

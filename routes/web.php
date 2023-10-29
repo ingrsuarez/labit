@@ -74,5 +74,6 @@ Route::middleware([
     Route::post('job/store',[App\Http\Controllers\JobController::class, 'store'])->name('job.store');
 
     Route::get('job/edit',[App\Http\Controllers\JobController::class, 'edit'])->name('job.edit');
+    Route::post('job/save',[App\Http\Controllers\JobController::class, 'save'])->name('job.save');
 
 });

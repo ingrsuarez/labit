@@ -11,8 +11,8 @@
                     <div class="text-center">
                         <div class="flex flex-col justify-center items-center">
                             <div class="w-16">
-                                <img class="block rounded-full m-auto shadow-md bg-gray-300" alt="CEO"
-                                    src=""/>
+                                {{-- <img class="block rounded-full m-auto shadow-md bg-gray-300" alt="CEO" --}}
+                                    {{-- src=""/> --}}
                             </div>
                             <div class="text-gray-600">
                                 <p></p>

@@ -18,7 +18,7 @@ return new class extends Migration
                 ->references('id')
                 ->on('employees')
                 ->onUpdate('cascade');
-            $table->unsignedBigInteger('job_id')->primary();
+            $table->unsignedBigInteger('job_id');
             $table->foreign('job_id')
                 ->references('id')
                 ->on('jobs')
