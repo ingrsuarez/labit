@@ -1,7 +1,7 @@
 <div>
-    <div class="bg-white mt-2 pb-4 px-2 rounded-lg shadow-lg">
-        <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Listado de empleados:</h2>
-        <p class="mt-1 text-sm leading-6 text-gray-600">Complete los datos:</p>    
+    {{-- <div class="bg-white mt-2 pb-4 px-2 rounded-lg shadow-lg"> --}}
+        {{-- <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Listado de empleados:</h2> --}}
+        <p class="mt-1 text-sm leading-6 text-gray-600">Listado de empleados activos:</p>    
 
         
             @if (empty($employees[0]))
@@ -51,5 +51,5 @@
                 </div>  
             @endif
         
-    </div>
+    {{-- </div> --}}
 </div>

@@ -11,8 +11,8 @@ class ManageController extends Controller
     //
     public function index()
     {
-        $jobs = Job::all();
+        $job = Job::whereNotNull('parent_id')->first();
         $employees = Employee::all();
-        return view('manage.index',compact('jobs','employees'));
+        return view('manage.index',compact('job','employees'));
     }
 }

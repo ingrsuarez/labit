@@ -68,6 +68,8 @@ Route::middleware([
     Route::get('employee/edit',[App\Http\Controllers\EmployeeController::class, 'edit'])->name('employee.edit');
     Route::post('employee/save',[App\Http\Controllers\EmployeeController::class, 'save'])->name('employee.save');
 
+    Route::get('employee/show', [EmployeeController::class, 'show'])->name('employee.show');
+
     //JOBS
     Route::get('job/new',[App\Http\Controllers\JobController::class, 'new'])->name('job.new');
 
@@ -75,5 +77,17 @@ Route::middleware([
 
     Route::get('job/edit',[App\Http\Controllers\JobController::class, 'edit'])->name('job.edit');
     Route::post('job/save',[App\Http\Controllers\JobController::class, 'save'])->name('job.save');
+
+    Route::get('job/delete',[App\Http\Controllers\JobController::class, 'delete'])->name('job.delete');
+    Route::get('job/detach/{job}/{employee}',[App\Http\Controllers\JobController::class, 'detach'])->name('job.detach');
+
+    Route::get('category/new',[App\Http\Controllers\JobController::class, 'newCategory'])->name('category.new');
+
+    Route::post('category/store',[App\Http\Controllers\JobController::class, 'storeCategory'])->name('category.store');
+
+    Route::get('category/edit',[App\Http\Controllers\JobController::class, 'editCategory'])->name('category.edit');
+    Route::post('category/save',[App\Http\Controllers\JobController::class, 'saveCategory'])->name('category.save');
+
+    Route::get('category/delete',[App\Http\Controllers\JobController::class, 'deleteCategory'])->name('category.delete');
 
 });

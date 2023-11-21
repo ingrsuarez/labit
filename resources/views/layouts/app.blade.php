@@ -17,7 +17,7 @@
         <!-- Styles -->
         @livewireStyles
     </head>
-    <body class="font-sans antialiased">
+    <body class="font-sans antialiased bg-gray-300">
         <x-banner />
 
         <div class="min-h-fit h-max bg-gray-300">
@@ -33,10 +33,10 @@
             @endif
 
             <!-- Page Content -->
-            <main class="h-screen">
+            <main class="h-full">
 
                     <div>@livewire('side-bar')</div>
-                    <div class="absolute top-20 md:ml-64 w-full">{{ $slot }}</div>
+                    <div class="absolute top-20 md:ml-64">{{ $slot }}</div>
                     
                 {{-- </div> --}}
                 

@@ -133,4 +133,58 @@
                 </div>
         </form>
     </div>
+
+
+    <div class="bg-white mt-2 pb-4 px-2 w-fit lg:w-fit rounded-lg shadow-lg ">
+        <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Listado de puestos:</h2>
+        <p class="mt-1 text-sm leading-6 text-gray-600">Puestos actuales:</p>    
+
+        
+            @if (empty($jobs[0]))
+                <div class="mt-6 flex items-center justify-end gap-x-6">
+                    No existen puestos de trabajo!
+                    <a href="" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Nuevo</a>
+                </div>
+            
+                
+            @else
+                <div>
+                    <table class="border-collapse border border-slate-400 table-auto mt-6 rounded">
+                        <thead class="border border-slate-300">
+                            <th class="bg-blue-300 px-2 border border-slate-300">Nombre</th>
+                            <th class="bg-blue-300 px-2 border border-slate-300">Categoría</th>
+                            <th class="bg-blue-300 px-2 border border-slate-300">Sector</th>
+                            <th class="bg-blue-300 px-2 border border-slate-300">Email</th>
+                            <th class="bg-blue-300 px-2 border border-slate-300" colspan="2"></th>
+        
+                        </thead>
+                        <tbody>
+                        @foreach ($employee_jobs as $job)
+                            @if($job)
+                                <tr class="">
+                                    <td class="px-2 border border-slate-300">{{ucwords($job->name)}}</td>
+                                    <td class="px-2 border border-slate-300">{{ucwords($job->order)}}</td>
+                                    
+                                    <td class="px-2 text-center border border-slate-300">{{$job->department}}</td>
+                                    <td class="px-2 border border-slate-300">{{$job->email}}</td>
+                                    <td class="px-2 py-2 border border-slate-300">
+                                        <a href="{{route('job.edit',['job'=>$job->id])}}" class="rounded-md bg-green-600 mx-2 px-2 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                                            Editar
+                                        </a>
+                                    </td>
+                                    <td class="px-2 py-2 border border-slate-300">
+                                        <a href="{{route('job.detach',[$job, $employee])}}" class="rounded-md bg-red-600 mx-2 px-2 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                                            Eliminar
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endif
+                        
+                        @endforeach  
+                        </tbody>
+                    </table>
+                </div>  
+            @endif
+        
+    </div>
 </x-manage>

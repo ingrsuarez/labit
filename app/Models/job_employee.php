@@ -7,6 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class job_employee extends Model
 {
-    protected  $primaryKey = 'job_id';
     use HasFactory;
 }

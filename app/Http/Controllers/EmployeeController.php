@@ -19,6 +19,7 @@ class EmployeeController extends Controller
 
     public function store(Request $request)
     {
+
         $employee = new Employee;
 
         $employee->name = strtolower($request->name);
@@ -26,15 +27,15 @@ class EmployeeController extends Controller
         $employee->employeeId = $request->employeeId;
         $employee->email =$request->email;
         $employee->bank_account = $request->bank_account;
-        $employee->jobs()->syncWithoutDetaching([$request->position => ['user_id' => '1']]);
         $employee->sex = $request->sex;
         $employee->phone = $request->phone;
         $employee->weekly_hours = $request->weekly_hours;
         $employee->birth = $request->birth;
         $employee->address = $request->address;
-
+        
         try {
             $employee->save();
+            $employee->jobs()->syncWithoutDetaching([$request->position => ['user_id' => '1']]);
             return redirect()->back();
         }
         catch(Exception $e) {
@@ -47,9 +48,9 @@ class EmployeeController extends Controller
     {
         $employee = Employee::find($request->employee);
         $jobs = Job::all();
-
-
-        return view('employee.edit',compact('employee','jobs'));
+        $employee_jobs = $employee->jobs;
+        
+        return view('employee.edit',compact('employee','jobs','employee_jobs'));
     }
 
     public function save(Request $request)
@@ -77,6 +78,12 @@ class EmployeeController extends Controller
             echo 'Error: ',  $e->getMessage(), "\n";
 
         }
+
+    }
+
+    public function show()
+    {
+
 
     }
 }

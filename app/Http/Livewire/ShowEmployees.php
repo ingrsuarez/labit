@@ -5,7 +5,6 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\Employee;
 
-
 class ShowEmployees extends Component
 {
     public $employees;
