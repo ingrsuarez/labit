@@ -75,7 +75,7 @@
                     <div class="sm:col-span-4">
                         <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
                             <span class="w-1/5 px-2 items-center flex bg-gray-300 rounded-l-lg">Convenio:</span>
-                            <input type="text" name="email" id="email" autocomplete="off" 
+                            <input type="text" name="agreement" id="agreement" autocomplete="off" 
                             class="w-4/5 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400
                              sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
                              value="{{$job->agreement}}">

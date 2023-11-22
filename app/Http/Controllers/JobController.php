@@ -125,4 +125,37 @@ class JobController extends Controller
 
         }
     }
+
+    public function editCategory(Request $request)
+    {
+        $category = Category::find($request->category);
+        $jobs = Job::all();
+        $categories = Category::all();
+
+
+        return view('category.edit',compact('category','jobs','categories'));
+
+    }
+
+    public function saveCategory(Request $request)
+    {
+        
+        $category = Category::find($request->id);
+
+        $category->name = strtolower($request->name);
+        $category->agreement = $request->agreement;
+        $category->wage = $request->wage;
+        $category->union_name = strtolower($request->union_name);
+
+        try {
+            $category->save();
+            return redirect()->action([JobController::class, 'newCategory']);
+        }
+        catch(Exception $e) {
+            echo 'Error: ',  $e->getMessage(), "\n";
+
+        }
+
+    }
+
 }

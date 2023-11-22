@@ -63,7 +63,9 @@ class EmployeeController extends Controller
         $employee->employeeId = $request->employeeId;
         $employee->email =$request->email;
         $employee->bank_account = $request->bank_account;
-        $employee->jobs()->syncWithoutDetaching([$request->position => ['user_id' => '1']]);
+        if(!empty($request->position)){
+            $employee->jobs()->syncWithoutDetaching([$request->position => ['user_id' => '1']]);
+        }   
         $employee->sex = $request->sex;
         $employee->phone = $request->phone;
         $employee->weekly_hours = $request->weekly_hours;
