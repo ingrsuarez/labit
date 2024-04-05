@@ -5,14 +5,14 @@
             @csrf
               {{-- <div class="space-y-10 ">       --}}
                 <input type="hidden" name="id" value="{{$job->id}}">
-                <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Nuevo puesto:</h2>
+                <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Editar puesto:</h2>
                 <p class="mt-1 text-sm leading-6 text-gray-600">Complete los datos:</p>
               
                 <div class="mx-2 mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-8">
-                    <div class="sm:col-span-4 border-slate-400 border-2 rounded-lg  ">
+                    <div class="sm:col-span-4">
                         
-                        <div class="justify-items-stretch flex flex-wrap">
-                            <span class="w-2/6 px-4 items-center flex text-base bg-gray-300 rounded-l-lg  ">Nombre</span>
+                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
+                            <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Nombre</span>
                             <input type="text" name="name" id="name" autocomplete="off" required autofocus
                                 class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 
                                 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
@@ -43,9 +43,10 @@
                             @foreach ($jobs as $parent)
                                 @if($parent->id == $job->parent_id)
                                     <option value="{{$parent->id}}" selected>{{ucwords($parent->name)}}</option>
-                                @elseif($parent->order < $job->order)
+                                @else
                                     <option value="{{$parent->id}}">{{ucwords($parent->name)}}</option>
                                 @endif
+                                {{-- if($parent->order < $job->order) --}}
                             @endforeach
                           </select>
                         </div>
@@ -78,7 +79,7 @@
                             <input type="text" name="agreement" id="agreement" autocomplete="off" 
                             class="w-4/5 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400
                              sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                             value="{{$job->agreement}}">
+                             value="{{ucfirst($job->agreement)}}">
                         </div>
                     </div>
                     
@@ -129,7 +130,11 @@
                         @foreach ($jobs as $job)
                         <tr class="">
                             <td class="px-2 border border-slate-300">{{ucwords($job->name)}}</td>
-                            <td class="px-2 border border-slate-300">{{ucwords($job->category)}}</td>
+                            <td class="px-2 border border-slate-300">
+                                @if(!empty($job->category))
+                                    {{ucwords($job->category->name)}}
+                                @endif
+                            </td>
                             
                             <td class="px-2 text-center border border-slate-300">{{$job->department}}</td>
                             <td class="px-2 border border-slate-300">{{$job->email}}</td>

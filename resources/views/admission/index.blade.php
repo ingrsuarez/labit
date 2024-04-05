@@ -34,7 +34,7 @@
         
                         <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
                             <span class="w-1/3 px-4 items-center flex bg-gray-300 rounded-l-lg">Fecha:</span>
-                            <input type="date" name="birth" id="birth" autocomplete="off" value="<?php echo date("Y-m-d");?>"
+                            <input type="date" name="birth" id="birth" autocomplete="off" value="<?php echo date("Y-m-d");?>" autofocus
                              class="w-2/3 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
                         </div>
                     </div>    
@@ -82,8 +82,10 @@
                 </div>
                 
                 <div class="flex"> 
-                        
-                    <table id="table_test" class="table-auto border-collapse border border-slate-400 mt-6 rounded">
+                    
+                    @livewire('show-analisis') {{--,['employees'=>$employees]--}}
+
+                    {{-- <table id="table_test" class="table-auto border-collapse border border-slate-400 mt-6 rounded">
                         <thead class="border border-slate-300">
                             <th class="bg-blue-300 px-2 border border-slate-300">Código</th>
                             <th class="bg-blue-300 px-2 border border-slate-300">Nombre</th>
@@ -95,14 +97,14 @@
                         <tbody>
                        
                             <tr id="tr1" class="">
-                                <td class="px-2 border border-slate-300"><input autofocus type="text" class="flex rounded-md border-0 text-gray-900 placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"></td>
+                                <td class="px-2 border border-slate-300"><input type="text" id="codeAna" class="flex rounded-md border-0 text-gray-900 placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"></td>
                                 <td class="px-2 border border-slate-300"><input type="text" class="flex rounded-md border-0 text-gray-900"></td>
                                 <td class="px-2 border border-slate-300"><input type="text"></td>
                                 <td class="px-2 border border-slate-300"><input wire:keydown.tab="addRow"></td>
                                 <td id="last_row" class="px-2 py-2 border border-slate-300"><a href="#" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Seleccionar</a></td>
                             </tr>
                         </tbody>
-                    </table>
+                    </table> --}}
                 
                 
                     
@@ -129,27 +131,40 @@
     <script>
         let table_test = document.getElementById("table_test");    
         let last_row = document.getElementById("last_row");
+        var codAna = document.getElementById("codeAna");
         
-        last_row.addEventListener("keydown", (e) => {  
+        last_row.addEventListener("keydown", (e) => { 
+            codAna.focus(); 
             if(e.key === "Tab"){
+                console.log(codAna.value);
+                var input = document.createElement('input');
+                input.type = "text";
+                input.value = codAna.value;
+                input.classList.add('flex', 'rounded-md', 'border-0', 'text-gray-900');
                 var row = table_test.insertRow(2);
                 var cell1 = row.insertCell(0);
                 var cell2 = row.insertCell(1);
                 var cell3 = row.insertCell(2);
                 var cell4 = row.insertCell(3);
                 var cell4 = row.insertCell(3);
-                cell1.innerHTML = "NEW CELL1";
+                cell1.innerHTML;
                 cell1.classList.add('px-2','border','border-slate-300');
+                
+                
+                cell1.appendChild(input);
                 cell2.innerHTML = "NEW CELL2";
                 cell2.classList.add('px-2','border','border-slate-300');
                 cell3.innerHTML = "NEW CELL3";
                 cell3.classList.add('px-2','border','border-slate-300');
                 cell4.innerHTML = "NEW CELL4";
                 cell4.classList.add('px-2','border','border-slate-300');
-                cell5.innerHTML = "NEW CELL5";
-                cell5.classList.add('px-2','border','border-slate-300');
+                
+                // codAna.value = "";
+                codAna.focus();
             }
+            
         });
+        
     </script>
                   
   

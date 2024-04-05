@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="bg-[#7aa5d2] border-b border-gray-100 shadow-lg sticky top-0 z-50">
+<nav x-data="{ open: false }" class="bg-indigo-700 border-b border-gray-100 shadow-lg sticky top-0 z-50">
     <!-- Primary Navigation Menu -->
     <div class="px-4 sm:px-6">
         <div class="flex justify-between h-16">
@@ -13,7 +13,7 @@
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex  lg:px-36">
                     <x-nav-link class="text-white active:bg-slate-100" href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
-                        Inicio
+                        Laboratorio
                     </x-nav-link>
                     <x-nav-link class="text-white" href="{{ route('manage.index') }}" :active="request()->routeIs('nuevoPedido')">
                         Administración

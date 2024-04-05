@@ -97,7 +97,7 @@ class JobController extends Controller
     public function detach(Job $job, Employee $employee)
     {
         $employee->jobs()->detach($job->id);
-        return $employee->jobs;
+        return redirect()->back();
     }
 
     public function newCategory()

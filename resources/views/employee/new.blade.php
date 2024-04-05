@@ -73,6 +73,18 @@
                                     class="w-4/5 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
                                 </div>
                             </div>
+                            <div class="sm:col-span-3">
+                                <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
+                                    <span class="w-2/5 px-2 items-center flex bg-gray-300 rounded-l-lg">Categoría:</span>
+                                    <select id="category" name="category" autocomplete="off" class="w-3/5 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 h-full focus:ring-2 focus:ring-inset focus:ring-indigo-600">
+                                        <option value="">Ninguno</option>
+                                        @foreach ($categories as $category)
+                                            
+                                            <option value="{{$category->name}}">{{ucwords($category->name)}}</option>
+                                        @endforeach
+                                      </select>
+                                </div>
+                            </div>
                     
                             <div class="sm:col-span-4">
                             

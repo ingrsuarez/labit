@@ -38,6 +38,18 @@
                             value="{{$employee->employeeId}}">
                         </div>
                     </div>
+                    <div class="sm:col-span-3">
+                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
+                            <span class="w-2/5 px-2 items-center flex bg-gray-300 rounded-l-lg">Categoría:</span>
+                            <select id="category" name="category" autocomplete="off" class="w-3/5 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 h-full focus:ring-2 focus:ring-inset focus:ring-indigo-600">
+                                <option value="">Ninguno</option>
+                                @foreach ($categories as $category)
+                                    
+                                    <option value="{{$category->name}}">{{ucwords($category->name)}}</option>
+                                @endforeach
+                              </select>
+                        </div>
+                    </div>
               
                     <div class="sm:col-span-4">
                     
@@ -49,8 +61,7 @@
                         </div>
                     </div>
 
-                    <div class="sm:col-span-4">
-                    
+                    <div class="sm:col-span-3">
                         <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
                             <span class="w-1/4 px-4 items-center flex bg-gray-300 rounded-l-lg">CBU:</span>
                             <input type="text" name="bank_account" id="bank_account" autocomplete="off" 
@@ -59,13 +70,20 @@
                         </div>
                     </div>
 
-                    <div class="sm:col-span-4">
-                    
+                    <div class="sm:col-span-3">
                         <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
                             <span class="w-1/3 px-4 items-center flex bg-gray-300 rounded-l-lg">Teléfono:</span>
                             <input type="text" name="phone" id="phone" autocomplete="off" 
                             class="w-2/3 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
                             value="{{$employee->phone}}">
+                        </div>
+                    </div>
+                    <div class="sm:col-span-3">
+                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
+                            <span class="w-2/4 px-4 items-center flex bg-gray-300 rounded-l-lg">Fecha de inicio:</span>
+                            <input type="date" name="start_date" id="start_date" autocomplete="off" 
+                            class="w-2/4 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
+                            value="{{$employee->start_date}}">
                         </div>
                     </div>
 

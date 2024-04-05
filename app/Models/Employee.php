@@ -15,5 +15,9 @@ class Employee extends Model
         return $this->belongsToMany('App\Models\Job','job_employee','employee_id', 'job_id')->withTimestamps();
     }
 
+    public function leaves()
+    {
+        return $this->hasMany('App\Models\Leave','employee_id');
+    }
 
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Employee;
+use App\Models\Category;
 use App\Models\Job;
 
 
@@ -14,7 +15,8 @@ class EmployeeController extends Controller
     {
         $employees = Employee::all();
         $jobs = Job::all();
-        return view('employee.new',compact('employees','jobs'));
+        $categories = Category::all();
+        return view('employee.new',compact('employees','jobs','categories'));
     }
 
     public function store(Request $request)
@@ -29,6 +31,7 @@ class EmployeeController extends Controller
         $employee->bank_account = $request->bank_account;
         $employee->sex = $request->sex;
         $employee->phone = $request->phone;
+        $employee->position =$request->category;
         $employee->weekly_hours = $request->weekly_hours;
         $employee->birth = $request->birth;
         $employee->address = $request->address;
@@ -48,9 +51,10 @@ class EmployeeController extends Controller
     {
         $employee = Employee::find($request->employee);
         $jobs = Job::all();
+        $categories = Category::all();
         $employee_jobs = $employee->jobs;
         
-        return view('employee.edit',compact('employee','jobs','employee_jobs'));
+        return view('employee.edit',compact('employee','jobs','employee_jobs','categories'));
     }
 
     public function save(Request $request)
@@ -63,9 +67,11 @@ class EmployeeController extends Controller
         $employee->employeeId = $request->employeeId;
         $employee->email =$request->email;
         $employee->bank_account = $request->bank_account;
+        $employee->position =$request->category;
         if(!empty($request->position)){
             $employee->jobs()->syncWithoutDetaching([$request->position => ['user_id' => '1']]);
-        }   
+        }  
+        $employee->start_date = $request->start_date; 
         $employee->sex = $request->sex;
         $employee->phone = $request->phone;
         $employee->weekly_hours = $request->weekly_hours;

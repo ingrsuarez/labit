@@ -90,4 +90,74 @@ Route::middleware([
 
     Route::get('category/delete',[App\Http\Controllers\JobController::class, 'deleteCategory'])->name('category.delete');
 
+    //LEAVES
+    Route::get('leave/resume',[App\Http\Controllers\LeaveController::class, 'resume'])->name('leave.resume');
+    Route::get('leave/new',[App\Http\Controllers\LeaveController::class, 'new'])->name('leave.new');
+
+    Route::post('leave/store',[App\Http\Controllers\LeaveController::class, 'store'])->name('leave.store');
+
+    Route::post('leave/update',[App\Http\Controllers\LeaveController::class, 'update'])->name('leave.update');
+
+    Route::get('leave/edit/{leave}',[App\Http\Controllers\LeaveController::class, 'edit'])->name('leave.edit');
+
+    Route::get('leave/delete/{leave?}',[App\Http\Controllers\LeaveController::class, 'delete'])->name('leave.delete');
+
+    // USERS
+
+    Route::get('users/index',[App\Http\Controllers\UserController::class, 'index'])
+        // ->middleware('can:role.new')
+        ->name('user.index');
+
+    Route::get('users/edit',[App\Http\Controllers\UserController::class, 'edit'])
+        // ->middleware('can:role.new')
+        ->name('user.edit');
+
+    Route::post('users/save',[App\Http\Controllers\UserController::class, 'save'])
+        // ->middleware('can:role.new')
+        ->name('user.save');
+        
+
+    Route::get('users/attach/role',[App\Http\Controllers\UserController::class, 'attachRole'])
+        // ->middleware('can:role.new')
+        ->name('role.attach');
+    Route::get('users/detach/role',[App\Http\Controllers\UserController::class, 'detachRole'])
+        // ->middleware('can:role.new')
+        ->name('role.detach');
+
+    //ROLES
+
+    Route::get('role/new',[App\Http\Controllers\RoleController::class, 'new'])
+        ->middleware('can:role.new')
+        ->name('role.new');
+
+    Route::post('role/store',[App\Http\Controllers\RoleController::class, 'store'])
+        ->middleware('can:role.store')
+        ->name('role.store');
+
+    Route::post('role/update',[App\Http\Controllers\RoleController::class, 'update'])
+        ->middleware('can:role.store')
+        ->name('role.update');
+
+    Route::get('role/edit/{role}',[App\Http\Controllers\RoleController::class, 'edit'])->name('role.edit');
+    
+    Route::get('role/permission/attach/{role}/{permission}',[App\Http\Controllers\RoleController::class, 'attachPermission'])
+        ->middleware('can:role.attachPermission')
+        ->name('role.attachPermission');
+    
+    Route::get('role/permission/detach/{role}/{permission}',[App\Http\Controllers\RoleController::class, 'detachPermission'])
+        ->middleware('can:role.detachPermission')
+        ->name('role.detachPermission');
+    //PERMISSION
+
+    Route::get('permission/new',[App\Http\Controllers\PermissionController::class, 'new'])
+        ->middleware('can:permission.new')
+        ->name('permission.new');
+
+    Route::post('permission/store',[App\Http\Controllers\PermissionController::class, 'store'])
+        ->middleware('can:permission.store')
+        ->name('permission.store');
+
+    Route::get('permission/edit/{permission}',[App\Http\Controllers\PermissionController::class, 'edit'])
+        ->middleware('can:permission.new')
+        ->name('permission.edit');    
 });
