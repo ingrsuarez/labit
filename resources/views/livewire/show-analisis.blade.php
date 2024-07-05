@@ -12,12 +12,12 @@
             @foreach($data as $row)
                 <tr>
                 @foreach($row as $index => $cell)
-                    <td><input wire:model.debounce.500ms="input" type="text"></td>
+                    <td><input wire:model.live.debounce.500ms="input" type="text"></td>
                 @endforeach
                 </tr>
             @endforeach
                 <tr>
-                    <td colspan="2"><a class="cursor-pointer" wire:click="addRow">Add Row</a></td>
+                    <td colspan="2"><a class="cursor-pointer bg-slate-400" wire:click="addRow">Add Row</a></td>
                 </tr>
             {{-- <tr id="tr1" class="">
                 

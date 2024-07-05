@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{{-- <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
@@ -137,4 +137,48 @@
             </div>
         </div>
     </body>
-</html>
+</html> --}}
+
+
+<x-guest-layout>
+    <x-slot name="header">
+        @if (Route::has('login'))
+        
+            <div class="container mx-auto">
+                <nav class="mx-3 flex justify-end opacity-100">
+                    <h1 class="absolute left-8 text-4xl font-bold font-roboto text-blue-600">
+                        LABIT
+                    </h1>
+                    <div class="flex justify-end">
+                        @auth
+                            <a
+                                href="{{ url('/dashboard') }}"
+                                class="mx-2 rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] bg-white"
+                            >
+                                Inicio
+                            </a>
+                        @else
+                            <a
+                                href="{{ route('login') }}" 
+                                class="mx-2 rounded-md px-3 py-2 bg-blue-500 text-white opacity-100"
+                            >
+                                Ingresar
+                            </a>
+        
+                            @if (Route::has('register'))
+                                <a
+                                    href="{{ route('register') }}"
+                                    class="rounded-md mx-2 px-3 py-2 bg-blue-500 text-white opacity-100"
+                                >
+                                    Registrarse
+                                </a>
+                            @endif
+                        @endauth
+                    </div>
+                    
+                </nav>
+            </div>
+
+        @endif
+    </x-slot>
+</x-guest-layout>
