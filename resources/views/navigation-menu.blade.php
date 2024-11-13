@@ -1,7 +1,7 @@
-<nav x-data="{ open: false }" class="bg-indigo-700 border-b border-gray-100 shadow-lg sticky top-0 z-50">
+<nav x-data="{ open: false }" class="fixed w-full bg-indigo-700 border-0 shadow-lg top-0 z-50">
     <!-- Primary Navigation Menu -->
     <div class="px-4 sm:px-6">
-        <div class="flex justify-between h-16">
+        <div class="flex justify-between h-16 ">
             <div class="flex place-content-start">
                 <!-- Logo -->
                 <div class="shrink-0 flex">

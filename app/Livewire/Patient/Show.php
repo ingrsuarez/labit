@@ -11,27 +11,39 @@ class Show extends Component
     public $dni;
     public $lastName;
     public $current_patient;
+    public $patients;
     
-    public function render()
+    // public function mount()
+    // {
+    //     $this->patients = Patient::all();
+        
+    // }
+
+    public function updateDni()
     {
         if($this->name <> ''){    
-            $patients = Patient::whereRaw('lower(name) LIKE "'.strtolower($this->name).'%"')->paginate(3); 
-            return view('livewire.patient.show',compact('patients'));
+            $this->patients = Patient::whereRaw('lower(name) LIKE "%'.strtolower($this->name).'%"')->limit(15)->get(); 
+            return view('livewire.patient.show');
         }elseif($this->lastName <> ''){
-            $patients = Patient::whereRaw('lower(lastName) LIKE "'.strtolower($this->lastName).'%"')->paginate(3); 
-            return view('',compact('patients'));
+            $this->patients = Patient::whereRaw('lower(lastName) LIKE "%'.strtolower($this->lastName).'%"')->limit(15)->get(); 
+            return view('livewire.patient.show');
 
         }elseif($this->dni <> ''){
-            $patients = Patient::where('patientId','LIKE',$this->dni.'%')->paginate(3); 
-            return view('',compact('patients'));
+
+            $this->patients = Patient::where('patientId','LIKE',$this->dni.'%')->limit(15)->get(); 
+            return view('livewire.patient.show');
 
         }else
         {
-
-            $patients = [];
-            return view('',compact('patients'));
+            // $this->patients = "";
+            return view('livewire.patient.show');
         
         }
-        return view('');
+
+
+    }
+    public function render()
+    {
+        return view('livewire.patient.show');
     }
 }

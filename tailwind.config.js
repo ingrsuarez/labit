@@ -14,10 +14,14 @@ export default {
     theme: {
         extend: {
             fontFamily: {
+                roboto: ['Roboto', 'sans-serif'],
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
         },
     },
 
-    plugins: [forms, typography],
+    plugins: [
+        forms,
+        // typography,
+    ],
 };

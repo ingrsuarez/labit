@@ -1,17 +1,17 @@
 <div>
     <div class="inline-flex">
-        <input wire:model.live="dni" class="flex rounded-md text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
+        <input wire:model="dni" wire:keyup="updateDni" class="flex rounded-md text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
          name="dni" type="search" placeholder="DNI" autocomplete="off" autofocus>
-        <input wire:model.live="name" class="flex rounded-md mx-2 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
+        <input wire:model="name" wire:keyup="updateDni" class="flex rounded-md mx-2 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
          name="nombre" type="search" placeholder="Nombre" autocomplete="off">
-        <input wire:model.live="lastName" class="flex rounded-md text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
+        <input wire:model="lastName" wire:keyup="updateDni" class="flex rounded-md text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
          name="apellido" type="search" placeholder="Apellido" aria-label="Search" autocomplete="off">
         
                        
     </div>
     <br>
     <div class="inline-flex">
-        @if (empty($patients[0]))
+        @if (empty($patients))
             <div class="mt-6 flex items-center justify-end gap-x-6">
                 No existen Pacientes con ese criterio de búsqueda!
                 <a href="{{route('patient.index')}}" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Nuevo</a>

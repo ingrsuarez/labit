@@ -15,12 +15,14 @@ class AdmissionController extends Controller
     {
         $current_patient = Patient::where('patientId',$request->current_patient)->first();   
         $insurances = Insurance::all();     
-        return view('admission.index',compact('current_patient','insurances'));
+        $analisis = Test::select('code', 'name')->get();
+        return view('admission.index',compact('current_patient','insurances','analisis'));
     
     }
 
     public function store(Request $request)
     {
+        return $request;
         $insurance = new Insurance;
         $insurance->name = strtolower($request->name);
         $insurance->tax_id = $request->tax_id;

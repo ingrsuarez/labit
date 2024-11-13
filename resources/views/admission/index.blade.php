@@ -5,7 +5,7 @@
       @csrf
         {{-- Selected Patient --}}
         @isset($current_patient)
-            <div class="bg-white pb-4 px-2 rounded-lg shadow-lg">
+            <div class="bg-white pb-4 px-2 max-w-sm rounded-lg shadow-lg">
                 <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">
                     Paciente: 
                     
@@ -29,15 +29,25 @@
                 {{-- <p class="mt-1 text-sm leading-6 text-gray-600">Agregar análisis a la base de datos:</p> --}}
               
                 <div class="text-sm mt-4 grid grid-cols-1 gap-x-6 gap-y-2 md:grid-cols-7">
-                    
-                    <div class="sm:col-span-2 ">
-        
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                            <span class="w-1/3 px-4 items-center flex bg-gray-300 rounded-l-lg">Fecha:</span>
-                            <input type="date" name="birth" id="birth" autocomplete="off" value="<?php echo date("Y-m-d");?>" autofocus
-                             class="w-2/3 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                        </div>
-                    </div>    
+                    <div class="w-full">
+                        <label for="name" class="mb-2 text-sm font-medium text-gray-900">Fecha:</label>
+                        <input type="date" placeholder="Fecha" name="date" autocomplete="off" value="<?php echo date("Y-m-d");?>" autofocus required 
+                        class="w-full bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block">
+                    </div>
+                    <div class="w-full">
+                        <label for="name" class="mb-2 text-sm font-medium text-gray-900">Nombre:</label>
+                        <input type="text" placeholder="Nombre" name="name" autocomplete="off" autofocus required 
+                        class="w-full bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block">
+                    </div>
+                    <div class="w-full">
+                        <label for="client" class="mb-2 text-sm font-medium text-gray-900">Cliente:</label>
+                        <select id="client_id" name="client_id" autocomplete="off" class="w-full form-input px-8 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-sm transition duration-150 ease-in-out">
+                            <option disabled selected value="">Seleccionar</option>
+                            @foreach ($insurances as $insurance)
+                            <option value="{{$insurance->id}}">{{strtoupper($insurance->name)}}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="sm:col-span-3 ">
                         <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
                             <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Cobertura médica:</span>
@@ -77,13 +87,12 @@
                             class="w-3/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
                         </div>
                     </div>
-                
                     
                 </div>
                 
                 <div class="flex"> 
                     
-                    @livewire('show-analisis') {{--,['employees'=>$employees]--}}
+                    {{--@livewire('show-analisis'),['employees'=>$employees]--}}
 
                     {{-- <table id="table_test" class="table-auto border-collapse border border-slate-400 mt-6 rounded">
                         <thead class="border border-slate-300">
@@ -105,9 +114,55 @@
                             </tr>
                         </tbody>
                     </table> --}}
-                
-                
+                </div>
+                <div class="col-span-2 bg-white p-6 shadow-lg rounded-lg">
+                    <h1 class="text-2xl font-bold mb-4">Análisis:</h1>
+                    @livewire('admission-analysis-table')
+                    {{-- <table class="w-full divide-y divide-gray-200" id="tablaAnalisis">
+                        <thead class="bg-gray-200">
+                        <tr>
+                            <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
+                            <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                            <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"> Valor</th>
+                            <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Particular</th>
+                            <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                        </tr>
+                        </thead>
+                        <tbody id="analisis" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td>
+                                    @livewire('analysis-search')
+                                </td>
+                                <td>
+                                    
+                                </td>
+                                <td>
+                                    
+                                </td>
+                                <td>
+                                    
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table> --}}
                     
+                    
+                    {{-- <div id="movimientos" class="mb-4">
+                        <div class="mb-4">
+                            <label for="item_id" class="block text-sm font-medium text-gray-700">Item</label>
+                            <select name="movimientos[0][item_id]" id="item_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                @foreach ($items as $item)
+                                    <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div> --}}
+                    {{-- <div class="my-2">
+                        <button type="button" onclick="addAnalisis()" class="bg-blue-500 text-white px-4 py-2 rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mb-4">Agregar análisis</button>
+                        
+                        <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Guardar</button>
+                    </div> --}}
+                </div>   
                 
             </div>
                 
@@ -128,43 +183,28 @@
         @endif
 
     </form>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <script>
-        let table_test = document.getElementById("table_test");    
-        let last_row = document.getElementById("last_row");
-        var codAna = document.getElementById("codeAna");
-        
-        last_row.addEventListener("keydown", (e) => { 
-            codAna.focus(); 
-            if(e.key === "Tab"){
-                console.log(codAna.value);
-                var input = document.createElement('input');
-                input.type = "text";
-                input.value = codAna.value;
-                input.classList.add('flex', 'rounded-md', 'border-0', 'text-gray-900');
-                var row = table_test.insertRow(2);
-                var cell1 = row.insertCell(0);
-                var cell2 = row.insertCell(1);
-                var cell3 = row.insertCell(2);
-                var cell4 = row.insertCell(3);
-                var cell4 = row.insertCell(3);
-                cell1.innerHTML;
-                cell1.classList.add('px-2','border','border-slate-300');
-                
-                
-                cell1.appendChild(input);
-                cell2.innerHTML = "NEW CELL2";
-                cell2.classList.add('px-2','border','border-slate-300');
-                cell3.innerHTML = "NEW CELL3";
-                cell3.classList.add('px-2','border','border-slate-300');
-                cell4.innerHTML = "NEW CELL4";
-                cell4.classList.add('px-2','border','border-slate-300');
-                
-                // codAna.value = "";
-                codAna.focus();
-            }
-            
-        });
-        
+        function addAnalisis() {
+            const table = document.getElementById('tablaAnalisis').getElementsByTagName('tbody')[0];
+            const newRow = table.insertRow();
+    
+            const cellCode = newRow.insertCell(0);
+            const cellName = newRow.insertCell(1);
+            const cellValue = newRow.insertCell(2);
+            const cellParticular = newRow.insertCell(3);
+            const cellActions = newRow.insertCell(4);
+    
+            // Campos de entrada vacíos para el nuevo análisis
+            cellCode.innerHTML = `<input type="text" name="code[]" class="w-full text-gray-900 rounded-md">`;
+            cellName.innerHTML = `<input type="text" name="name[]" class="w-full text-gray-900 rounded-md">`;
+            cellValue.innerHTML = `<input type="text" name="value[]" class="w-full text-gray-900 rounded-md">`;
+            cellParticular.innerHTML = `<input type="text" name="particular_price[]" class="w-full text-gray-900 rounded-md">`;
+    
+            // Botón de acción para eliminar el análisis de la fila
+            cellActions.innerHTML = `<button type="button" onclick="removeRow(this)" class="bg-red-500 text-white px-2 py-1 rounded">Eliminar</button>`;
+        }
     </script>
                   
   
