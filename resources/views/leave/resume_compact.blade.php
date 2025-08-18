@@ -7,7 +7,7 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Empleado</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CUIL/Legajo</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CUIL</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ingreso</th>
                         <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Horas sem.</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
