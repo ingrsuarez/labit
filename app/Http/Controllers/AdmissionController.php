@@ -15,36 +15,14 @@ class AdmissionController extends Controller
     {
         $current_patient = Patient::where('patientId',$request->current_patient)->first();   
         $insurances = Insurance::all();     
-        $analisis = Test::select('code', 'name')->get();
+        $analisis = Test::select('id','code', 'name')->get();
         return view('admission.index',compact('current_patient','insurances','analisis'));
     
     }
 
     public function store(Request $request)
     {
-        return $request;
-        $insurance = new Insurance;
-        $insurance->name = strtolower($request->name);
-        $insurance->tax_id = $request->tax_id;
-        $insurance->tax = $request->tax;
-        $insurance->group = $request->group;
-        $insurance->email = $request->email;
-        $insurance->phone = $request->phone;
-        $insurance->address = $request->address;
-        $insurance->price = $request->price;
-        $insurance->nbu = $request->nbu;
-        $insurance->instructions = strtolower($request->instructions);;
-        $insurance->address = strtolower($request->address);
-        $insurance->country = $request->country;
-        $insurance->state = $request->state;
         
-        try {
-            $insurance->save();
-            return redirect()->back();
-        }
-        catch(Exception $e) {
-            echo 'Error: ',  $e->getMessage(), "\n";
 
-        }
     }
 }

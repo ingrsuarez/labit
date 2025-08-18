@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\Employee;
 use App\Models\Category;
 use App\Models\Job;
-
+use App\Models\User;
 
 class EmployeeController extends Controller
 {
@@ -16,35 +17,48 @@ class EmployeeController extends Controller
         $employees = Employee::all();
         $jobs = Job::all();
         $categories = Category::all();
-        return view('employee.new',compact('employees','jobs','categories'));
+        $users = User::all();
+        return view('employee.new',compact('employees','jobs','categories','users'));
     }
 
     public function store(Request $request)
     {
+        $data = $request->validate([
+            'name'                => ['required','string','max:255'],
+            'lastName'            => ['required','string','max:255'],
+            'employeeId'          => ['required','string','max:255'],
+            'user_id'             => ['nullable','integer','exists:users,id'],
+            'email'               => ['nullable','email','max:255'],
+            'start_date'          => ['nullable','date'],
+            'vacation_days'       => ['nullable','integer'],
+            'bank_account'        => ['nullable','string','max:255'],
+            'position'            => ['nullable','string','max:255'],
+            'health_registration' => ['nullable','string','max:255'],
+            'sex'                 => ['required','string','max:255'],
+            'weekly_hours'        => ['nullable','integer'],
+            'birth'               => ['nullable','date'],
+            'phone'               => ['nullable','string','max:255'],
+            'address'             => ['nullable','string','max:255'],
+            'city'                => ['nullable','string','max:255'],
+            'state'               => ['nullable','string','max:255'],
+            'country'             => ['nullable','string','max:255'],
+            'status'              => ['nullable','string','max:255'],
+            'job_id'              => ['nullable','integer','exists:jobs,id'],
+        ]);
 
-        $employee = new Employee;
+        // crear empleado directamente
+        $employee = Employee::create($data);
 
-        $employee->name = strtolower($request->name);
-        $employee->lastName = strtolower($request->last_name);
-        $employee->employeeId = $request->employeeId;
-        $employee->email =$request->email;
-        $employee->bank_account = $request->bank_account;
-        $employee->sex = $request->sex;
-        $employee->phone = $request->phone;
-        $employee->position =$request->category;
-        $employee->weekly_hours = $request->weekly_hours;
-        $employee->birth = $request->birth;
-        $employee->address = $request->address;
-        
-        try {
-            $employee->save();
-            $employee->jobs()->syncWithoutDetaching([$request->position => ['user_id' => '1']]);
-            return redirect()->back();
+        // asociar job sólo si hay valor
+        if (!empty($data['job_id'])) {
+            $employee->jobs()->syncWithoutDetaching([
+                (int)$data['job_id'] => ['user_id' => auth()->id() ?? 1],
+            ]);
         }
-        catch(Exception $e) {
-            echo 'Error: ',  $e->getMessage(), "\n";
 
-        }
+        return redirect()
+            ->route('employee.show', $employee)
+            ->with('success', 'Empleado creado correctamente');
     }
 
     public function edit(Request $request)
@@ -89,9 +103,66 @@ class EmployeeController extends Controller
 
     }
 
-    public function show()
+    public function show(Request $request)
     {
+        // Filtros
+        $q       = trim($request->input('q', ''));
+        $status  = $request->input('status', '');
+        $jobId   = $request->input('job_id', '');
 
+        // Query base con relaciones
+        $employees = Employee::query()
+            ->with(['jobs:id,name,department']) // para mostrar puestos y departamento
+            ->when($q !== '', function($qBuilder) use ($q) {
+                $qBuilder->where(function($w) use ($q) {
+                    $w->where('name', 'like', "%{$q}%")
+                    ->orWhere('lastName', 'like', "%{$q}%")
+                    ->orWhere('employeeId', 'like', "%{$q}%")
+                    ->orWhere('email', 'like', "%{$q}%");
+                });
+            })
+            ->when($status !== '', fn($qb) => $qb->where('status', $status))
+            ->when($jobId !== '', function($qb) use ($jobId) {
+                $qb->whereHas('jobs', fn($j) => $j->where('jobs.id', $jobId));
+            })
+            ->orderByDesc('created_at')
+            ->paginate(15)
+            ->withQueryString();
+
+        // Resúmenes
+        $total        = Employee::count();
+        $activos      = Employee::where('status', 'active')->count();
+        $inactivos    = Employee::where('status', 'inactive')->count();
+        $promHoras    = round((float) Employee::avg('weekly_hours'), 1);
+
+        // Top 5 puestos por cantidad de empleados
+        $topJobs = DB::table('job_employee')
+            ->join('jobs', 'jobs.id', '=', 'job_employee.job_id')
+            ->select('jobs.id', 'jobs.name', DB::raw('COUNT(job_employee.employee_id) as total'))
+            ->groupBy('jobs.id', 'jobs.name')
+            ->orderByDesc('total')
+            ->limit(5)
+            ->get();
+
+        // Para el select de puestos en filtros
+        $jobs = Job::orderBy('name')->get(['id','name']);
+
+        return view('employee.index', [
+            'employees' => $employees,
+            'summary'   => [
+                'total'     => $total,
+                'activos'   => $activos,
+                'inactivos' => $inactivos,
+                'promHoras' => $promHoras,
+                'topJobs'   => $topJobs,
+            ],
+            'filters'   => [
+                'q'      => $q,
+                'status' => $status,
+                'job_id' => $jobId,
+            ],
+            'jobs'      => $jobs,
+        ]);
 
     }
 }

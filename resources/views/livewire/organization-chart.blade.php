@@ -1,6 +1,6 @@
 
 <div class="flex flex-col ml-2 justify-center items-center">
-    <h1 class="text-3xl mt-4 py-2 px-4 bg-orange-100 top-0 absolute shadow-md rounded">Organigrama</h1>
+    <h1 class="text-3xl mt-4 py-2 px-4 bg-orange-100 shadow-md rounded">Organigrama</h1>
     <div class="container mx-auto text-center pt-24">
         @isset($job)
         <div class="items-center justify-center flex">

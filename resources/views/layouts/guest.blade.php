@@ -14,9 +14,10 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="bg-no-repeat bg-cover bg-fixed " style="background-image:  url('{{ asset('images/LaboratorioTeam.webp') }}')">
+   <body class="bg-no-repeat bg-center bg-cover bg-fixed" style="background-image: url('{{ asset('images/RRHH02.png') }}'); background-size: 100% auto;">
+
         @if (isset($header))
-            <header class="bg-white">
+            <nav class="w-full fixed top-0 left-0 bg-white shadow">
                 <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
                     {{ $header }}
                 </div>

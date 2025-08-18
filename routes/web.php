@@ -23,9 +23,7 @@ Route::middleware([
     'verified',
 ])->group(function () {
     
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     // PATIENTS ROUTES
     Route::get('/patient/new',[App\Http\Controllers\PatientController::class, 'index'])->name('patient.index');
@@ -68,7 +66,7 @@ Route::middleware([
     Route::get('employee/edit',[App\Http\Controllers\EmployeeController::class, 'edit'])->name('employee.edit');
     Route::post('employee/save',[App\Http\Controllers\EmployeeController::class, 'save'])->name('employee.save');
 
-    Route::get('employee/show', [EmployeeController::class, 'show'])->name('employee.show');
+    Route::get('employee/show', [App\Http\Controllers\EmployeeController::class, 'show'])->name('employee.show');
 
     //JOBS
     Route::get('job/new',[App\Http\Controllers\JobController::class, 'new'])->name('job.new');
@@ -102,6 +100,8 @@ Route::middleware([
 
     Route::get('leave/delete/{leave?}',[App\Http\Controllers\LeaveController::class, 'delete'])->name('leave.delete');
 
+    Route::get('leave/resume-compact', [App\Http\Controllers\LeaveController::class, 'resumeCompact'])
+     ->name('leave.resume.compact');
     // USERS
 
     Route::get('users/index',[App\Http\Controllers\UserController::class, 'index'])

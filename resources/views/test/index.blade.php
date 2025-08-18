@@ -1,112 +1,73 @@
 <x-app-layout>
   
     
-    <form class="ml-2 w-fit" action="{{route('test.store')}}" method="POST">
+    <form class="mx-4 w-fit" action="{{route('test.store')}}" method="POST">
         @csrf
         <div class="bg-white pb-4 px-2 rounded-lg shadow-lg ">
             <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Agregar Análisis:</h2>
             <p class="mt-1 text-sm leading-6 text-gray-600">Agregar análisis a la base de datos:</p>
-          
-            <div class="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-6">
-                <div class="sm:col-span-4 border-slate-400 border-2 rounded-lg  ">
-                
-                    <div class="justify-items-stretch flex flex-wrap">
-                        <span class="w-2/6 px-4 items-center flex text-base bg-gray-300 rounded-l-lg  ">Nombre</span>
-                        <input type="text" name="name" id="name" autocomplete="off" required autofocus
-                        class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                    </div>
+            <div class="text-sm mt-4 grid grid-cols-1 gap-x-6 gap-y-2 md:grid-cols-7">
+                <div class="w-full">
+                    <label for="name" class="mb-2 text-sm font-medium text-gray-900">Código</label>
+                    <input type="text" placeholder="Código" name="code" id="code" autocomplete="off" required
+                    class="w-full bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block">
                 </div>
-            
-                <div class="sm:col-span-2">
-                    
-                    <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap ">
-                        <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Unidad</span>
-                        <input type="text" name="unit" id="unit" autocomplete="off"
-                        class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                    </div>
+                <div class="w-full">
+                    <label for="name" class="mb-2 text-sm font-medium text-gray-900">Nombre</label>
+                    <input type="text" placeholder="Nombre" name="name" id="name" autocomplete="off" required autofocus
+                    class="w-full bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block">
                 </div>
-
-                <div class="sm:col-span-2">
-                    
-                    <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap ">
-                        <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">NBU:</span>
-                        <input type="text" name="nbu" id="nbu" autocomplete="off" required
-                        class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                    </div>
+                <div class="w-full">
+                    <label for="name" class="mb-2 text-sm font-medium text-gray-900">Unidad</label>
+                    <input type="text" placeholder="Unidad" name="unit" id="unit" autocomplete="off" required
+                    class="w-full bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block">
                 </div>
-
-                <div class="sm:col-span-2">
-                    
-                    <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap ">
-                        <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Código:</span>
-                        <input type="text" name="code" id="code" autocomplete="off"
-                        class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                    </div>
+                <div class="w-full">
+                    <label for="name" class="mb-2 text-sm font-medium text-gray-900">NBU</label>
+                    <input type="text" placeholder="NBU" name="nbu" id="nbu" autocomplete="off" required
+                    class="w-full bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block">
                 </div>
-            
-                <div class="sm:col-span-6">
-                    
-                    <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap ">
-                        <span class="w-1/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Instrucciones:</span>
-                        <input type="text" name="instructions" id="instructions" autocomplete="off"
-                        class="w-5/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                    </div>
+                <div class="w-full">
+                    <label for="name" class="mb-2 text-sm font-medium text-gray-900">Decimales</label>
+                    <input type="number" placeholder="Decimales" name="decimals" id="decimals" autocomplete="off" required
+                    class="w-full bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block">
                 </div>
-            
-                <div class="sm:col-span-2">
-                    
-                    <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                        <span class="w-3/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Decimales:</span>
-                        <input type="number" name="decimals" id="decimals" autocomplete="off" 
-                        class="w-3/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                    </div>
+                <div class="w-full">
+                    <label for="name" class="mb-2 text-sm font-medium text-gray-900">Instrucciones</label>
+                    <input type="text" placeholder="Instrucciones" name="instructions" id="instructions" autocomplete="off" required
+                    class="w-full bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block">
                 </div>
-            
-                <div class="sm:col-span-4 ">
-                    
-                    <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                        <span class="w-1/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Método:</span>
-                        <input type="text" name="method" id="method" autocomplete="off" 
-                        class="w-5/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                    </div>
+                <div class="w-full">
+                    <label for="name" class="mb-2 text-sm font-medium text-gray-900">Método</label>
+                    <input type="text" placeholder="Método" name="method" id="method" autocomplete="off" required
+                    class="w-full bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block">
                 </div>
-                
-                <div class="sm:col-span-6">
-                    
-                    <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap ">
-                        <span class="w-1/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Cuestionario:</span>
-                        <input type="text" name="questions" id="questions" autocomplete="off"
-                        class="w-5/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                    </div>
+                <div class="w-full">
+                    <label for="name" class="mb-2 text-sm font-medium text-gray-900">Cuestionario</label>
+                    <input type="text" placeholder="Cuestionario" name="questions" id="questions" autocomplete="off" 
+                    class="w-full bg-white border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block">
+                </div>
+                <div class="w-full">
+                    <label for="material" class="mb-2 text-sm font-medium text-gray-900">Material:</label>
+                    <select id="material" name="material" autocomplete="off" class="w-full form-input px-8 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-sm transition duration-150 ease-in-out">
+                        <option disabled selected value="">Seleccionar</option>
+                        <option value="1">EDTA</option>
+                        <option value="2">SUERO</option>
+                        <option value="3">ORINA</option>
+                        <option value="4">CITRATO</option>
+                        <option value="5">EPARINA</option>
+                    </select>
+                </div>
+                <div class="w-full">
+                    <label for="material" class="mb-2 text-sm font-medium text-gray-900">Padres:</label>
+                    <select id="material" name="material" autocomplete="off" class="w-full form-input px-8 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-sm transition duration-150 ease-in-out">
+                        <option selected value=""> Ninguno </option>
+                        @foreach ($parents as $parent)
+                            <option value="{{$parent->id}}">{{$parent->code.' '.strtoupper($parent->name)}}</option>
+                        @endforeach
+                    </select>
                 </div>
 
-                
-        
-                <div class="sm:col-span-3">
-                    <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                        <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Material:</span>
-                        <select id="material" name="material" autocomplete="off" class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 h-full focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                            <option value="1">EDTA</option>
-                            <option value="2">SUERO</option>
-                            <option value="3">ORINA</option>
-                            <option value="4">CITRATO</option>
-                            <option value="5">EPARINA</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="sm:col-span-3">
-                    <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                        <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Padres:</span>
-                        <select id="parent" name="parent" autocomplete="off" class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 h-full focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                            <option value=""> Ninguno </option>
-                            @foreach ($parents as $parent)
-                            <option value="{{$parent->id}}">{{strtoupper($parent->name)}}</option>
-                            @endforeach
-
-                        </select>
-                    </div>
-                </div>
-    
             </div>
       
       

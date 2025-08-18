@@ -1,12 +1,13 @@
 <div>
     
     <div class="inline-flex">
-        <input wire:model="dni" wire:keyup="updateDni" class="flex rounded-md text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-         name="dni" type="search" placeholder="DNI" autofocus>
+        <input type="text" wire:model="dni" wire:keyup="updateDni" class="flex rounded-md text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
+         placeholder="DNI" autofocus>
+         
         <input wire:model="name" wire:keyup="updateDni" class="flex rounded-md mx-2 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-         name="nombre" type="search" placeholder="Nombre">
+        type="search" placeholder="Nombre">
         <input wire:model="lastName" wire:keyup="updateDni" class="flex rounded-md text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-         name="apellido" type="search" placeholder="Apellido" aria-label="Search" >
+        type="search" placeholder="Apellido" aria-label="Search" >
         
                        
     </div>

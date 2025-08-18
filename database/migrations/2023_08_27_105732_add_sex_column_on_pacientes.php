@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('patients', function (Blueprint $table) {
-            $table->string('sex',1)->after('birth');
-            
-        });
+        if (!Schema::hasColumn('patients', 'sex')) {
+            Schema::table('patients', function (Blueprint $table) {
+                $table->string('sex',1)->after('birth');
+                
+            });
+        }
     }
 
     /**

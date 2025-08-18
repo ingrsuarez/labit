@@ -1,153 +1,109 @@
 <x-manage>
     <div class="flex flex-col justify-start">
-        <div class="bg-white pb-4 px-2 rounded-lg shadow-lg">
-            <form class="" action="{{route('leave.store')}}" method="POST">
+        <div class="bg-slate-200 max-w-4xl mx-auto p-6">
+            <h1 class="text-2xl font-bold text-gray-900 mb-6">Nueva licencia</h1>
+
+            {{-- Errores de validación --}}
+            @if ($errors->any())
+                <div class="mb-6 rounded-xl bg-red-50 border border-red-200 p-4 text-red-700">
+                    <ul class="list-disc pl-5 space-y-1">
+                        @foreach ($errors->all() as $error)
+                            <li class="text-sm">{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form action="{{ route('leave.store') }}" method="POST" enctype="multipart/form-data"
+                class="bg-white rounded-2xl shadow p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 @csrf
-                {{-- <div class="space-y-10 ">       --}}
-                
-                    <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Nueva licencia:</h2>
-                    <p class="mt-1 text-sm leading-6 text-gray-600">Complete los datos:</p>
-                
-                    <div class="mx-2 mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-8">
-                        <div class="sm:col-span-2">    
-                            <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                                <span class="w-2/6 px-4 items-center flex text-base bg-gray-300 rounded-l-lg  ">Inicio</span>
-                                <input type="date" name="start" id="start" autocomplete="off" required autofocus
-                                    class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 
-                                    sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
 
-                            </div>
-                        </div>
-                        <div class="sm:col-span-2">    
-                            <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                                <span class="w-2/6 px-4 items-center flex text-base bg-gray-300 rounded-l-lg  ">Fin</span>
-                                <input type="date" name="end" id="end" autocomplete="off" required autofocus
-                                    class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 
-                                    sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
+                {{-- Empleado --}}
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700">Empleado</label>
+                    <select name="employee" required
+                            class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">— Seleccione —</option>
+                        @foreach($employees as $emp)
+                            <option value="{{ $emp->id }}" @selected(old('employee') == $emp->id)>
+                                {{ ucfirst($emp->lastName) }}, {{ ucfirst($emp->name) }} — #{{ $emp->employeeId }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
-                            </div>
-                        </div>
-                        <div class="sm:col-span-4">
-                            <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap ">
-                                <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Empleado:</span>
-                                <select id="category" name="employee" autocomplete="off" class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 h-full focus:ring-2 focus:ring-inset focus:ring-indigo-600">   
-                                        @foreach ($employees as $employee)
-                                        <option value="{{$employee->id}}">{{ucwords($employee->name.' '.$employee->lastName)}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                
-                        <div class="sm:col-span-4">
-                            <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                            <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Causa:</span>
-                            <select id="type" name="type" autocomplete="off" class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 h-full focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                                <option value="Vacaciones">VACACIONES</option>
-                                <option value="Enfermedad">DIA ENFERMEDAD</option>
-                                <option value="Licencia especial">LIC ESPECIAL </option>
-                                <option value="Inasistencia">INASISTENCIA</option>
-                                <option value="Suspension">SUSPENSION</option>
-                                <option value="Maternidad">MATERNIDAD</option>
-                                <option value="horas_extra">HORAS EXTRA</option>
-                            </select>
-                            </div>
-                        </div>
-                
-                        <div class="sm:col-span-4">
-                        
-                            <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                                <span class="w-1/5 px-2 items-center flex bg-gray-300 rounded-l-lg">Médico:</span>
-                                <input type="text" name="doctor" id="doctor" autocomplete="off" 
-                                class="w-4/5 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                            </div>
-                        </div>
+                {{-- Tipo --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Tipo</label>
+                    <select name="type" required
+                            class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">— Seleccione —</option>
+                        @foreach(['enfermedad','vacaciones','embarazo','capacitacion','horas extra'] as $t)
+                            <option value="{{ $t }}" @selected(old('type') === $t)>{{ ucfirst($t) }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-                        <div class="sm:col-span-3">
-                            <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                                <span class="w-2/4 px-4 items-center flex bg-gray-300 rounded-l-lg">Horas al 50%:</span>
-                                <input type="number" name="hour_50" id="hour_50" autocomplete="off" 
-                                class="w-2/4 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 
-                                    sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                            </div>
-                        </div>
+                {{-- Médico (opcional) --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Médico</label>
+                    <input type="text" name="doctor" value="{{ old('doctor') }}"
+                        class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Dr./Dra. ...">
+                </div>
 
-                        <div class="sm:col-span-3">
-                            <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                                <span class="w-2/4 px-4 items-center flex bg-gray-300 rounded-l-lg">Horas al 100%:</span>
-                                <input type="number" name="hour_100" id="hour_100" autocomplete="off" 
-                                class="w-2/4 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400
-                                sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                            </div>
-                        </div>
-                        
-                        <div class="sm:col-span-9">
-                        
-                            <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                                <span class="w-1/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Descripción:</span>
-                                <textarea id="description" name="description" rows="4" cols="50" name="phone" id="phone" autocomplete="off" 
-                                class="w-5/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                                </textarea>
-                            </div>
-                        </div>
+                {{-- Desde / Hasta --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Desde</label>
+                    <input type="date" name="start" value="{{ old('start') }}" required
+                        class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Hasta</label>
+                    <input type="date" name="end" value="{{ old('end') }}" required
+                        class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
 
-                    </div>
-                    <div class="mt-6 flex items-center justify-end gap-x-6">
-                        <button type="button" class="text-sm font-semibold leading-6 text-gray-900">Cancelar</button>
-                        <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Guardar</button>
-                    </div>
+                {{-- Horas 50% / 100% (opcionales) --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Horas 50%</label>
+                    <input type="number" name="hour_50" value="{{ old('hour_50') }}" min="0"
+                        class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Horas 100%</label>
+                    <input type="number" name="hour_100" value="{{ old('hour_100') }}" min="0"
+                        class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                {{-- Descripción --}}
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700">Descripción</label>
+                    <input type="text" name="description" value="{{ old('description') }}" required
+                        class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Motivo, observaciones, etc.">
+                </div>
+
+                {{-- Certificado (imagen) --}}
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700">Certificado (imagen)</label>
+                    <input type="file" name="file" accept="image/*"
+                        class="mt-1 block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4
+                                file:rounded-md file:border-0 file:text-sm file:font-semibold
+                                file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    <p class="text-xs text-gray-500 mt-1">Formatos: JPG, PNG, WEBP. Tamaño máx. 5MB.</p>
+                </div>
+
+                {{-- Botón --}}
+                <div class="md:col-span-2 flex justify-end">
+                    <button class="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">
+                        Guardar licencia
+                    </button>
+                </div>
             </form>
         </div>
 
-        <div class="bg-white mt-2 pb-4 px-2 w-fit lg:w-fit rounded-lg shadow-lg ">
-            <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Listado de licencias:</h2>
-            <p class="mt-1 text-sm leading-6 text-gray-600">Licencias:</p>    
 
-            
-                @if (empty($leaves[0]))
-                    <div class="mt-6 flex items-center justify-end gap-x-6">
-                        No existen licencias!
-                        <a href="" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Nuevo</a>
-                    </div>
-                
-                    
-                @else
-                    <div>
-                        <table class="border-collapse border border-slate-400 table-auto mt-6 rounded">
-                            <thead class="border border-slate-300">
-                                <th class="bg-blue-300 px-2 border border-slate-300">Comienzo</th>
-                                <th class="bg-blue-300 px-2 border border-slate-300">Final</th>
-                                <th class="bg-blue-300 px-2 border border-slate-300">Descripción</th>
-                                <th class="bg-blue-300 px-2 border border-slate-300">Nombre</th>
-                                <th class="bg-blue-300 px-2 border border-slate-300" colspan="2"></th>
-            
-                            </thead>
-                            <tbody>
-                            @foreach ($leaves as $leave)
-                            <tr class="">
-                                <td class="px-2 border border-slate-300">{{ucwords($leave->start)}}</td>
-                                <td class="px-2 border border-slate-300">{{ucwords($leave->end)}}</td>
-                                
-                                <td class="px-2 border border-slate-300">{{ucwords($leave->description)}}</td>
-                                <td class="px-2 border border-slate-300">{{$leave->employee->name}}</td>
-                                <td class="px-2 py-2 border border-slate-300">
-                                    <a href="{{route('leave.edit',$leave->id)}}" class="rounded-md bg-green-600 mx-2 px-2 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                                        Editar
-                                    </a>
-                                </td>
-                                <td class="px-2 py-2 border border-slate-300">
-                                    <a href="{{route('leave.edit',['leave'=>$leave->id])}}" class="rounded-md bg-red-600 mx-2 px-2 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                                        Eliminar
-                                    </a>
-                                </td>
-                            </tr>
-                            
-                            @endforeach  
-                            </tbody>
-                        </table>
-                    </div>  
-                @endif
-            
-        </div>
 
     </div>
 </x-manage>

@@ -10,9 +10,33 @@ class Employee extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'name',
+        'lastName',
+        'employeeId',
+        'user_id',
+        'email',
+        'start_date',
+        'vacation_days',
+        'bank_account',
+        'position',
+        'health_registration',
+        'sex',
+        'weekly_hours',
+        'birth',
+        'phone',
+        'address',
+        'city',
+        'state',
+        'country',
+        'status',
+    ];
+
     public function jobs()
     {
-        return $this->belongsToMany('App\Models\Job','job_employee','employee_id', 'job_id')->withTimestamps();
+        return $this->belongsToMany(\App\Models\Job::class, 'job_employee', 'employee_id', 'job_id')
+            ->withPivot('user_id')
+            ->withTimestamps();
     }
 
     public function leaves()

@@ -53,9 +53,9 @@ return [
     | Examples: "/assets", "myurl.com/app".
     |
     */
-
-    'asset_url' => "/labit/public",
-
+    // 'asset_url' => env('APP_URL', 'http://127.0.0.1:8000/labit'),
+    // 'asset_url' => "/labit/public",
+    'asset_url' => "",
     /*
     |--------------------------------------------------------------------------
     | Livewire App URL
@@ -68,7 +68,7 @@ return [
     |
     */
 
-    'app_url' => "http://localhost/labit/public",
+    'app_url' => "",
 
     /*
     |--------------------------------------------------------------------------
