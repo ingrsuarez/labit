@@ -64,8 +64,14 @@ class EmployeeController extends Controller
     public function edit(Request $request)
     {
         $employee = Employee::find($request->employee);
+
+        if (!$employee) {
+            // Manejo del error: empleado no encontrado
+            return redirect()->back()->withErrors(['Empleado no encontrado']);
+        }
         $jobs = Job::all();
         $categories = Category::all();
+        
         $employee_jobs = $employee->jobs;
         
         return view('employee.edit',compact('employee','jobs','employee_jobs','categories'));

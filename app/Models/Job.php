@@ -9,6 +9,8 @@ use App\Models\Employee;
 class Job extends Model
 {
     use HasFactory;
+    
+    protected $fillable = ['name','parent_id','department','agreement','category_id','responsibilities','email'];
 
     public function employees()
     {
@@ -23,4 +25,5 @@ class Job extends Model
     {
         return $this->belongsTo('App\Models\Category','category_id')->withDefault();
     }
+
 }

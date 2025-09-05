@@ -22,24 +22,20 @@ class JobController extends Controller
     public function store(Request $request)
     {
         
-        $job = new Job;
+        $data = $request->validate([
+            'name'         => ['required','string','max:255'],
+            'parent_id'    => ['nullable','integer','exists:jobs,id'],
+            'department'   => ['nullable','string','max:255'],
+            'agreement'    => ['nullable','string','max:255'],
+            'category_id'  => ['required','integer','exists:categories,id'], // <-- clave
+            'responsibilities' => ['nullable','string'],
+            'email'        => ['nullable','email','max:255'],
+        ]);
 
-        $job->name = strtolower($request->name);
-        $job->category_id = $request->category;
-        $job->agreement = $request->agreement;
-        $job->email =$request->email;
-        $job->parent_id = $request->parent;
-        $job->department = strtolower($request->department);
-        $job->responsibilities = $request->responsibilities;
+        $job = Job::create($data);
 
-        try {
-            $job->save();
-            return redirect()->back();
-        }
-        catch(Exception $e) {
-            echo 'Error: ',  $e->getMessage(), "\n";
-
-        }
+        return redirect()->route('job.edit', ['id' => $job->id])
+                ->with('success', 'Puesto creado correctamente');
     }
 
     public function edit(Request $request)
@@ -47,7 +43,6 @@ class JobController extends Controller
         $job = Job::find($request->job);
         $jobs = Job::all();
         $categories = Category::all();
-
 
         return view('job.edit',compact('job','jobs','categories'));
     }

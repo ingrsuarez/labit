@@ -33,7 +33,7 @@
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
                                 <div class="font-medium text-gray-900 capitalize">{{ $e->lastName }}, {{ $e->name }}</div>
-                                <div class="text-xs text-gray-500">#{{ $e->id }}</div>
+                                {{-- <div class="text-xs text-gray-500">#{{ $e->id }}</div> --}}
                             </td>
                             <td class="px-4 py-3 text-gray-700">
                                 {{ $e->employeeId ?? '—' }} {{-- reemplazar por $e->cuil si existe --}}
