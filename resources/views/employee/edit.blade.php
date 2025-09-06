@@ -1,208 +1,243 @@
 <x-manage>
-    
-    <div class="bg-white pb-4 px-2 max-w-4xl rounded-lg shadow-lg ">
-        <form class="" action="{{route('employee.save')}}" method="POST">
-            @csrf
-              {{-- <div class="space-y-10 ">       --}}
-            
-                <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Editar empleado:</h2>
-                <p class="mt-1 text-sm leading-6 text-gray-600">Complete los datos:</p>
-                <input type="hidden" name="id" value="{{$employee->id}}">
-                <div class="mx-2 mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-8">
-                    <div class="sm:col-span-4 border-slate-400 border-2 rounded-lg  ">
-                        
-                        <div class="justify-items-stretch flex flex-wrap">
-                            <span class="w-2/6 px-4 items-center flex text-base bg-gray-300 rounded-l-lg  ">Nombre</span>
-                            <input type="text" name="name" id="name" autocomplete="off" required autofocus
-                                class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                                value="{{ucwords($employee->name)}}">
-                        </div>
-                    </div>
+<div class="max-w-5xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">Editar Empleado</h2>
 
-                    <div class="sm:col-span-4">
-          
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap ">
-                            <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Apellido</span>
-                            <input type="text" name="last_name" id="last-name" autocomplete="off" required
-                            class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                            value="{{ucwords($employee->lastName)}}">
-                        </div>
-                    </div>
-              
-                    <div class="sm:col-span-4">
-                    
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap ">
-                            <span class="w-1/5 px-2 items-center flex bg-gray-300 rounded-l-lg">DNI:</span>
-                            <input type="text" name="employeeId" id="employeeId" autocomplete="off" required
-                            class="w-4/5 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                            value="{{$employee->employeeId}}">
-                        </div>
-                    </div>
-                    <div class="sm:col-span-3">
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                            <span class="w-2/5 px-2 items-center flex bg-gray-300 rounded-l-lg">Categoría:</span>
-                            <select id="category" name="category" autocomplete="off" class="w-3/5 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 h-full focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                                <option value="">Ninguno</option>
-                                @foreach ($categories as $category)
-                                    
-                                    <option value="{{$category->name}}">{{ucwords($category->name)}}</option>
-                                @endforeach
-                              </select>
-                        </div>
-                    </div>
-              
-                    <div class="sm:col-span-4">
-                    
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                            <span class="w-1/5 px-2 items-center flex bg-gray-300 rounded-l-lg">Email:</span>
-                            <input type="email" name="email" id="email" autocomplete="off" 
-                            class="w-4/5 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                            value="{{$employee->email}}">
-                        </div>
-                    </div>
+    <form action="{{ route('employee.update') }}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        @csrf
+        <input type="hidden" name="id" id="id" value="{{ $employee->id }}">
+        <!-- Name -->
+        <div>
+            <label for="name" class="block text-sm font-medium text-gray-700">Nombre</label>
+            <input type="text" name="name" id="name" 
+                value="{{ old('name', $employee->name) }}"
+                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+        </div>
 
-                    <div class="sm:col-span-3">
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                            <span class="w-1/4 px-4 items-center flex bg-gray-300 rounded-l-lg">CBU:</span>
-                            <input type="text" name="bank_account" id="bank_account" autocomplete="off" 
-                            class="w-3/4 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                            value="{{$employee->bank_account}}">
-                        </div>
-                    </div>
+        <!-- Last Name -->
+        <div>
+            <label for="lastName" class="block text-sm font-medium text-gray-700">Apellido</label>
+            <input type="text" name="lastName" id="lastName" 
+                value="{{ old('lastName', $employee->lastName) }}"
+                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+        </div>
 
-                    <div class="sm:col-span-3">
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                            <span class="w-1/3 px-4 items-center flex bg-gray-300 rounded-l-lg">Teléfono:</span>
-                            <input type="text" name="phone" id="phone" autocomplete="off" 
-                            class="w-2/3 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                            value="{{$employee->phone}}">
-                        </div>
-                    </div>
-                    <div class="sm:col-span-3">
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                            <span class="w-2/4 px-4 items-center flex bg-gray-300 rounded-l-lg">Fecha de inicio:</span>
-                            <input type="date" name="start_date" id="start_date" autocomplete="off" 
-                            class="w-2/4 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                            value="{{$employee->start_date}}">
-                        </div>
-                    </div>
+        <!-- Employee ID -->
+        <div>
+            <label for="employeeId" class="block text-sm font-medium text-gray-700">ID Empleado</label>
+            <input type="text" name="employeeId" id="employeeId"
+                value="{{ old('employeeId', $employee->employeeId) }}"
+                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+        </div>
 
-                    <div class="sm:col-span-2">
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                          <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Sexo:</span>
-                          <select id="sex" name="sex" autocomplete="off" class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 h-full focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                            @if ($employee->sex == 'm')
-                                <option value="f">Femenino</option>
-                                <option value="m" selected>Masculino</option>
-                            @else
-                                <option value="f" selected>Femenino</option>
-                                <option value="m">Masculino</option>
-                            @endif
-                          </select>
-                        </div>
-                    </div>
-
-                    <div class="sm:col-span-3">
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                          <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Puesto:</span>
-                          <select id="position" name="position" autocomplete="off" class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 h-full focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                            <option value="">Ninguno</option>
-                            @foreach ($jobs as $job)
-
-                            <option value="{{$job->id}}">{{ucwords($job->name)}}</option>
-                            @endforeach
-                          </select>
-                        </div>
-                    </div>
-
-                    <div class="sm:col-span-3">
-                    
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                            <span class="w-2/3 px-4 items-center flex bg-gray-300 rounded-l-lg">Horas semanales:</span>
-                            <input type="number" name="weekly_hours" id="weekly_hours" autocomplete="off" 
-                            class="w-1/3 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                            value="{{$employee->weekly_hours}}">
-                        </div>
-                    </div>
-
-                    <div class="sm:col-span-4">
-                    
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                            <span class="w-1/2 px-4 items-center flex bg-gray-300 rounded-l-lg">Fecha nacimiento:</span>
-                            <input type="date" name="birth" id="birth" autocomplete="off" 
-                            class="w-1/2 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                            value="{{$employee->birth}}">
-                        </div>
-                    </div>
-
-                    <div class="sm:col-span-4">
-                    
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                            <span class="w-1/4 px-4 items-center flex bg-gray-300 rounded-l-lg">Domicilio:</span>
-                            <input type="text" name="address" id="address" autocomplete="off" 
-                            class="w-3/4 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                            value="{{$employee->address}}">
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-6 flex items-center justify-end gap-x-6">
-                    <button type="button" class="text-sm font-semibold leading-6 text-gray-900">Cancelar</button>
-                    <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Guardar</button>
-                </div>
-        </form>
-    </div>
+        <!-- User ID -->
+        <div>
+            <label for="user_id" class="block text-sm font-medium text-gray-700">Usuario asociado</label>
+            <select name="user_id" id="user_id" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                <option value="">— Sin usuario —</option>
+                @foreach($users as $user)
+                    <option value="{{ $user->id }}" {{ old('user_id', $employee->user_id) == $user->id ? 'selected' : '' }}>
+                        {{ $user->name }} ({{ $user->email }})
+                    </option>
+                @endforeach
+            </select>
+        </div>
 
 
-    <div class="bg-white mt-2 pb-4 px-2 w-fit lg:w-fit rounded-lg shadow-lg ">
-        <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Listado de puestos:</h2>
-        <p class="mt-1 text-sm leading-6 text-gray-600">Puestos actuales:</p>    
+        <!-- Email -->
+        <div>
+            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+            <input type="email" name="email" id="email"
+                value="{{ old('email', $employee->email) }}"
+                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <!-- Start Date -->
+        <div>
+            <label for="start_date" class="block text-sm font-medium text-gray-700">Fecha de inicio</label>
+            <input type="date" name="start_date" id="start_date"
+                value="{{ old('start_date', $employee->start_date) }}"
+                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <!-- Vacation Days -->
+        <div>
+            <label for="vacation_days" class="block text-sm font-medium text-gray-700">Días de vacaciones</label>
+            <input type="number" name="vacation_days" id="vacation_days"
+                value="{{ old('vacation_days', $employee->vacation_days) }}"
+                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <!-- Bank Account -->
+        <div>
+            <label for="bank_account" class="block text-sm font-medium text-gray-700">Cuenta bancaria</label>
+            <input type="text" name="bank_account" id="bank_account"
+            value="{{ old('bank_account', $employee->bank_account) }}"
+                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+        </div>
 
         
-            @if (empty($jobs[0]))
-                <div class="mt-6 flex items-center justify-end gap-x-6">
-                    No existen puestos de trabajo!
-                    <a href="" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Nuevo</a>
-                </div>
-            
-                
-            @else
-                <div>
-                    <table class="border-collapse border border-slate-400 table-auto mt-6 rounded">
-                        <thead class="border border-slate-300">
-                            <th class="bg-blue-300 px-2 border border-slate-300">Nombre</th>
-                            <th class="bg-blue-300 px-2 border border-slate-300">Categoría</th>
-                            <th class="bg-blue-300 px-2 border border-slate-300">Sector</th>
-                            <th class="bg-blue-300 px-2 border border-slate-300">Email</th>
-                            <th class="bg-blue-300 px-2 border border-slate-300" colspan="2"></th>
-        
-                        </thead>
-                        <tbody>
-                        @foreach ($employee_jobs as $job)
-                            @if($job)
-                                <tr class="">
-                                    <td class="px-2 border border-slate-300">{{ucwords($job->name)}}</td>
-                                    <td class="px-2 border border-slate-300">{{ucwords($job->order)}}</td>
-                                    
-                                    <td class="px-2 text-center border border-slate-300">{{$job->department}}</td>
-                                    <td class="px-2 border border-slate-300">{{$job->email}}</td>
-                                    <td class="px-2 py-2 border border-slate-300">
-                                        <a href="{{route('job.edit',['job'=>$job->id])}}" class="rounded-md bg-green-600 mx-2 px-2 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                                            Editar
-                                        </a>
-                                    </td>
-                                    <td class="px-2 py-2 border border-slate-300">
-                                        <a href="{{route('job.detach',[$job, $employee])}}" class="rounded-md bg-red-600 mx-2 px-2 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                                            Eliminar
-                                        </a>
-                                    </td>
-                                </tr>
-                            @endif
-                        
-                        @endforeach  
-                        </tbody>
-                    </table>
-                </div>  
-            @endif
-        
-    </div>
+        <!-- Puestos asignados -->
+        <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700">Puestos actuales</label>
+
+            <div id="job-list" class="flex flex-wrap gap-2 mt-2">
+                @foreach($employee->jobs as $job)
+                    <div class="flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full job-item" data-id="{{ $job->id }}">
+                        <span>{{ $job->name }}</span>
+                        <button type="button" class="ml-2 text-red-500 hover:text-red-700 remove-job" data-id="{{ $job->id }}">×</button>
+                        <input type="hidden" name="job_ids[]" value="{{ $job->id }}">
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Agregar nuevo puesto -->
+        <div class="md:col-span-2">
+            <label for="add_job" class="block text-sm font-medium text-gray-700">Agregar puesto</label>
+            <div class="flex items-center gap-4 mt-1">
+                <select id="add_job" class="flex-1 rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">— Seleccionar —</option>
+                    @foreach($jobs as $job)
+                        <option value="{{ $job->id }}">{{ $job->name }}</option>
+                    @endforeach
+                </select>
+                <button type="button" id="add_job_btn"
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 focus:ring-2 focus:ring-green-500">
+                    Agregar
+                </button>
+            </div>
+        </div>
+        <!-- Health Registration -->
+        <div>
+            <label for="health_registration" class="block text-sm font-medium text-gray-700">Registro de salud</label>
+            <input type="text" name="health_registration" id="health_registration"
+                    value="{{ old('health_registration', $employee->health_registration) }}"
+                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <!-- Sex -->
+        <div>
+            <label for="sex" class="block text-sm font-medium text-gray-700">Sexo</label>
+            <select name="sex" id="sex" 
+                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                <option value="">Seleccione...</option>
+                <option value="M" {{ old('sex', $employee->sex) === 'M' ? 'selected' : '' }}>Masculino</option>
+                <option value="F" {{ old('sex', $employee->sex) === 'F' ? 'selected' : '' }}>Femenino</option>
+                <option value="O" {{ old('sex', $employee->sex) === 'O' ? 'selected' : '' }}>Otro</option>
+            </select>
+        </div>
+
+        <!-- Weekly Hours -->
+        <div>
+            <label for="weekly_hours" class="block text-sm font-medium text-gray-700">Horas semanales</label>
+            <input type="number" name="weekly_hours" id="weekly_hours"
+                value="{{ old('weekly_hours', $employee->weekly_hours) }}"
+                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <!-- Birth -->
+        <div>
+            <label for="birth" class="block text-sm font-medium text-gray-700">Fecha de nacimiento</label>
+            <input type="date" name="birth" id="birth"
+                value="{{ old('birth', $employee->birth) }}"
+                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <!-- Phone -->
+        <div>
+            <label for="phone" class="block text-sm font-medium text-gray-700">Teléfono</label>
+            <input type="text" name="phone" id="phone"
+            value="{{ old('phone', $employee->phone) }}"
+                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <!-- Address -->
+        <div class="md:col-span-2">
+            <label for="address" class="block text-sm font-medium text-gray-700">Dirección</label>
+            <input type="text" name="address" id="address"
+                value="{{ old('address', $employee->address) }}"
+                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <!-- City -->
+        <div>
+            <label for="city" class="block text-sm font-medium text-gray-700">Ciudad</label>
+            <input type="text" name="city" id="city"
+                value="{{ old('city', $employee->city) }}"
+                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <!-- State -->
+        <div>
+            <label for="state" class="block text-sm font-medium text-gray-700">Provincia/Estado</label>
+            <input type="text" name="state" id="state"
+                value="{{ old('state', $employee->state) }}"
+                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <!-- Country -->
+        <div>
+            <label for="country" class="block text-sm font-medium text-gray-700">País</label>
+            <input type="text" name="country" id="country"
+                value="{{ old('country', $employee->country) }}"
+                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <!-- Status -->
+        <div>
+            <label for="status" class="block text-sm font-medium text-gray-700">Estado</label>
+            <select name="status" id="status"
+                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Seleccione...</option>
+                <option value="active" {{ old('status', $employee->status) === 'active' ? 'selected' : '' }}>Activo</option>
+                <option value="inactive" {{ old('status', $employee->status) === 'inactive' ? 'selected' : '' }}>Inactivo</option>
+            </select>
+        </div>
+
+        <!-- Botón -->
+        <div class="md:col-span-2 flex justify-end mt-6">
+            <button type="submit" 
+                    class="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">
+                Guardar empleado
+            </button>
+        </div>
+    </form>
+</div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const jobList = document.getElementById('job-list');
+            const addJobBtn = document.getElementById('add_job_btn');
+            const addJobSelect = document.getElementById('add_job');
+
+            // Quitar puesto
+            jobList.addEventListener('click', function (e) {
+                if (e.target.classList.contains('remove-job')) {
+                    const jobId = e.target.dataset.id;
+                    const item = document.querySelector(`.job-item[data-id="${jobId}"]`);
+                    if (item) {
+                        item.remove();
+                    }
+                }
+            });
+
+            // Agregar puesto
+            addJobBtn.addEventListener('click', function () {
+                const jobId = addJobSelect.value;
+                const jobName = addJobSelect.options[addJobSelect.selectedIndex].text;
+
+                // Evitar duplicados
+                if (!jobId || document.querySelector(`.job-item[data-id="${jobId}"]`)) return;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = "flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full job-item";
+                wrapper.dataset.id = jobId;
+                wrapper.innerHTML = `
+                    <span>${jobName}</span>
+                    <button type="button" class="ml-2 text-red-500 hover:text-red-700 remove-job" data-id="${jobId}">×</button>
+                    <input type="hidden" name="job_ids[]" value="${jobId}">
+                `;
+                jobList.appendChild(wrapper);
+            });
+        });
+    </script>
 </x-manage>

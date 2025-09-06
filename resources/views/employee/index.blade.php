@@ -128,7 +128,7 @@
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <div class="inline-flex gap-2">
-                                    <a href="{{ route('employee.edit') }}?id={{ $e->id }}"
+                                    <a href="{{ route('employee.edit',$e )}}"
                                     class="text-blue-600 hover:text-blue-800 text-sm">Editar</a>
                                     <a href="{{ route('employee.show') }}?id={{ $e->id }}"
                                     class="text-gray-600 hover:text-gray-800 text-sm">Ver</a>

@@ -63,8 +63,9 @@ Route::middleware([
 
     Route::post('employee/store',[App\Http\Controllers\EmployeeController::class, 'store'])->name('employee.store');
 
-    Route::get('employee/edit',[App\Http\Controllers\EmployeeController::class, 'edit'])->name('employee.edit');
-    Route::post('employee/save',[App\Http\Controllers\EmployeeController::class, 'save'])->name('employee.save');
+    Route::get('employee/edit/{employee}',[App\Http\Controllers\EmployeeController::class, 'edit'])->name('employee.edit');
+
+    Route::post('employee/save',[App\Http\Controllers\EmployeeController::class, 'save'])->name('employee.update');
 
     Route::get('employee/show', [App\Http\Controllers\EmployeeController::class, 'show'])->name('employee.show');
 

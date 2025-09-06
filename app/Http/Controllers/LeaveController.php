@@ -115,13 +115,21 @@ class LeaveController extends Controller
 
         // Traer empleados con sus puestos (para mostrar "puesto" y "categoría").
         // Usamos la relación "jobs" y tomamos el último por fecha del pivot en la vista.
-        $employees = Employee::with(['jobs.category'])
+        $employees = Employee::query()
+        ->with([
+            'jobs' => function ($q) {
+                // Trae lo necesario y ordena por fecha del pivot (último puesto primero)
+                $q->select('jobs.id','jobs.name','jobs.category_id')
+                ->with('category')
+                ->orderByDesc('job_employee.created_at');
+                }
+            ])
             ->orderBy('lastName')
             ->get([
-                'id','name','lastName','employeeId', // usa 'cuil' si tenés esa columna
-                'start_date','weekly_hours','position' // 'position' como fallback de categoría
-            ]);
-
+                'id','name','lastName','employeeId',
+                'start_date','weekly_hours','position'
+        ]);
+        
         // Armar metadatos de meses para cabecera de tabla
         $monthsMeta = $months->map(function($c){
             return [

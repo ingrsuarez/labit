@@ -39,7 +39,7 @@
                                 @endforeach
                             </td>
                             <td class="px-2 py-2 border border-slate-300">
-                                <a href="{{route('employee.edit',['employee'=>$employee->id])}}" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                                <a href="{{route('employee.edit',$employee)}}" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                                     Editar
                                 </a>
                             </td>

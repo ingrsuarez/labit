@@ -61,10 +61,10 @@ class EmployeeController extends Controller
             ->with('success', 'Empleado creado correctamente');
     }
 
-    public function edit(Request $request)
+    public function edit(Employee $employee)
     {
-        $employee = Employee::find($request->employee);
-
+        
+        
         if (!$employee) {
             // Manejo del error: empleado no encontrado
             return redirect()->back()->withErrors(['Empleado no encontrado']);
@@ -73,39 +73,63 @@ class EmployeeController extends Controller
         $categories = Category::all();
         
         $employee_jobs = $employee->jobs;
-        
-        return view('employee.edit',compact('employee','jobs','employee_jobs','categories'));
+        $users = User::all();
+        return view('employee.edit',compact('employee','jobs','employee_jobs','categories','users'));
     }
 
     public function save(Request $request)
     {
         
-        $employee = Employee::find($request->id);
+         $employee = Employee::find($request->id);
 
-        $employee->name = strtolower($request->name);
-        $employee->lastName = strtolower($request->last_name);
-        $employee->employeeId = $request->employeeId;
-        $employee->email =$request->email;
-        $employee->bank_account = $request->bank_account;
-        $employee->position =$request->category;
-        if(!empty($request->position)){
-            $employee->jobs()->syncWithoutDetaching([$request->position => ['user_id' => '1']]);
-        }  
-        $employee->start_date = $request->start_date; 
-        $employee->sex = $request->sex;
-        $employee->phone = $request->phone;
-        $employee->weekly_hours = $request->weekly_hours;
-        $employee->birth = $request->birth;
-        $employee->address = $request->address;
-
-        try {
-            $employee->save();
-            return redirect()->action([EmployeeController::class, 'new']);
+        if (!$employee) {
+            return redirect()->back()->withErrors(['Empleado no encontrado']);
         }
-        catch(Exception $e) {
-            echo 'Error: ',  $e->getMessage(), "\n";
 
+
+
+        $data = $request->validate([
+            'name'                => ['required','string','max:255'],
+            'lastName'            => ['required','string','max:255'],
+            'employeeId'          => ['required','string','max:255'],
+            'user_id'             => ['nullable','integer','exists:users,id'],
+            'email'               => ['nullable','email','max:255'],
+            'start_date'          => ['nullable','date'],
+            'vacation_days'       => ['nullable','integer'],
+            'bank_account'        => ['nullable','string','max:255'],
+            'position'            => ['nullable','string','max:255'],
+            'health_registration' => ['nullable','string','max:255'],
+            'sex'                 => ['required','string','max:255'],
+            'weekly_hours'        => ['nullable','integer'],
+            'birth'               => ['nullable','date'],
+            'phone'               => ['nullable','string','max:255'],
+            'address'             => ['nullable','string','max:255'],
+            'city'                => ['nullable','string','max:255'],
+            'state'               => ['nullable','string','max:255'],
+            'country'             => ['nullable','string','max:255'],
+            'status'              => ['nullable','string','max:255'],
+            'job_id'              => ['nullable','integer','exists:jobs,id'],
+        ]);
+
+        $employee->update($data);
+
+        $jobIds = $request->input('job_ids', []); // array directamente
+        $syncData = [];
+
+        foreach ($jobIds as $jobId) {
+            $syncData[$jobId] = ['user_id' => auth()->id() ?? 1];
         }
+
+        $employee->jobs()->sync($syncData);
+        if (!empty($data['job_id'])) {
+            $employee->jobs()->syncWithoutDetaching([
+                (int)$data['job_id'] => ['user_id' => auth()->id() ?? 1],
+            ]);
+        }
+
+        return redirect()
+            ->route('employee.show', $employee)
+            ->with('success', 'Empleado actualizado correctamente');
 
     }
 
