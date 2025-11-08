@@ -14,8 +14,8 @@
                                 <img class="block rounded-full m-auto shadow-md" alt="Leo Six"
                                     src="https://randomuser.me/api/portraits/men/83.jpg" />
                             </div> --}}
-                            <div class="text-gray-600">
-                                <p class="text-xl font-bold">{{ucwords($child->name)}}</p>
+                            <div class="text-gray-600 ">
+                                <p class="text-xl font-bold border p-2 border-gray-400 bg-slate-300 rounded">{{ucwords($child->name)}}</p>
                                 <div class="border-2">
                                     @foreach($child->employees as $employee)
                                         <p>{{ucwords($employee->name." ".$employee->lastName)}}</p>
@@ -41,9 +41,9 @@
                                 <img class="block rounded-full m-auto shadow-md" alt="Leo Six"
                                     src="https://randomuser.me/api/portraits/men/83.jpg" />
                             </div> --}}
-                            <div class="text-gray-600">
-                                <p class="text-xl font-bold">{{ucwords($child->name)}}</p>
-                                <div class="border-2">
+                            <div class="text-gray-600 ">
+                                <p class="text-xl font-bold border p-2 border-gray-400 bg-slate-300 rounded">{{ucwords($child->name)}}</p>
+                                <div class="border-2 ">
                                     @foreach($child->employees as $employee)
                                         <p>{{ucwords($employee->name." ".$employee->lastName)}}</p>
                                     @endforeach
@@ -63,8 +63,8 @@
                     <div class="-mt-6 border-l-2 absolute h-6 border-gray-400 top-0"></div>
                     <div class="text-center">
                         <div class="flex flex-col justify-center items-center">
-                            <div class="text-gray-600">
-                                <p class="text-xl font-bold">{{ucwords($child->name)}}</p>
+                            <div class="text-gray-600 ">
+                                <p class="text-xl font-bold border p-2 border-gray-400 bg-slate-300 rounded">{{ucwords($child->name)}}</p>
                                 <div class="border-2">
                                     @foreach($child->employees as $employee)
                                     <p>{{ucwords($employee->name." ".$employee->lastName)}}</p>    
@@ -92,7 +92,7 @@
                     <div class="flex flex-col justify-center items-center">
                         
                         <div class="text-gray-600">
-                            <p class="text-xl font-bold">{{ucwords($child->name)}}</p>
+                            <p class="text-xl font-bold border p-2 border-gray-400 bg-slate-300 rounded">{{ucwords($child->name)}}</p>
                             <div class="border-2">
                                 @foreach($child->employees as $employee)
                                     {{-- <div class="w-16">

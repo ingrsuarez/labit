@@ -1,160 +1,181 @@
 <x-manage>
-    <div class="flex flex-col justify-start">
-    <div class="bg-white pb-4 px-2 w-fit lg:w-full rounded-lg shadow-lg">
-        <form class="" action="{{route('job.save')}}" method="POST">
-            @csrf
-              {{-- <div class="space-y-10 ">       --}}
-                <input type="hidden" name="id" value="{{$job->id}}">
-                <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Editar puesto:</h2>
-                <p class="mt-1 text-sm leading-6 text-gray-600">Complete los datos:</p>
-              
-                <div class="mx-2 mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-8">
-                    <div class="sm:col-span-4">
-                        
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                            <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Nombre</span>
-                            <input type="text" name="name" id="name" autocomplete="off" required autofocus
-                                class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 
-                                sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                                value="{{ucwords($job->name)}}">
-                            
-                        </div>
-                    </div>
-
-                    <div class="sm:col-span-4">
-          
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap ">
-                            <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Categoría:</span>
-                            <select id="category" name="category" autocomplete="off" class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 h-full focus:ring-2 focus:ring-inset focus:ring-indigo-600">   
-                                <option value="">Ninguna</option>
-                                @foreach ($categories as $category)
-
-                                    <option value="{{$category->id}}">{{ucwords($category->name)}}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-              
-                    <div class="sm:col-span-4">
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                          <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Supervisor:</span>
-                          <select id="parent" name="parent" autocomplete="off" class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 h-full focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                            
-                            @foreach ($jobs as $parent)
-                                @if($parent->id == $job->parent_id)
-                                    <option value="{{$parent->id}}" selected>{{ucwords($parent->name)}}</option>
-                                @else
-                                    <option value="{{$parent->id}}">{{ucwords($parent->name)}}</option>
-                                @endif
-                                {{-- if($parent->order < $job->order) --}}
-                            @endforeach
-                          </select>
-                        </div>
-                    </div>
-              
-                    <div class="sm:col-span-4">
-                    
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                            <span class="w-1/5 px-2 items-center flex bg-gray-300 rounded-l-lg">Email:</span>
-                            <input type="email" name="email" id="email" autocomplete="off" 
-                            class="w-4/5 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400
-                             sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                             value="{{$job->email}}">
-                        </div>
-                    </div>
-
-                    <div class="sm:col-span-4">
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                            <span class="w-1/4 px-4 items-center flex bg-gray-300 rounded-l-lg">Sector:</span>
-                            <input type="text" name="department" id="department" autocomplete="off" 
-                            class="w-3/4 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400
-                             sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                             value="{{$job->department}}">
-                        </div>
-                    </div>
-
-                    <div class="sm:col-span-4">
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                            <span class="w-1/5 px-2 items-center flex bg-gray-300 rounded-l-lg">Convenio:</span>
-                            <input type="text" name="agreement" id="agreement" autocomplete="off" 
-                            class="w-4/5 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400
-                             sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                             value="{{ucfirst($job->agreement)}}">
-                        </div>
-                    </div>
-                    
-                    <div class="sm:col-span-9">
-                    
-                        <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                            <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Responsabilidades:</span>
-                            <textarea id="responsibilities" name="responsibilities" rows="4" cols="50" name="phone" id="phone" autocomplete="off" 
-                            class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 
-                            sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                            >{{$job->responsibilities}}
-                            </textarea>
-                        </div>
-                    </div>
-
-                </div>
-                <div class="mt-6 flex items-center justify-end gap-x-6">
-                    <button type="button" class="text-sm font-semibold leading-6 text-gray-900">Cancelar</button>
-                    <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Guardar</button>
-                </div>
-        </form>
-    </div>
-
-    <div class="bg-white mt-2 pb-4 px-2 w-fit lg:w-fit rounded-lg shadow-lg ">
-        <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Listado de puestos:</h2>
-        <p class="mt-1 text-sm leading-6 text-gray-600">Puestos actuales:</p>    
-
-        
-            @if (empty($jobs[0]))
-                <div class="mt-6 flex items-center justify-end gap-x-6">
-                    No existen puestos de trabajo!
-                    <a href="" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Nuevo</a>
-                </div>
-            
-                
-            @else
+    <div class="mx-auto max-w-5xl p-4 lg:p-6">
+        <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+            {{-- Header --}}
+            <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4">
                 <div>
-                    <table class="border-collapse border border-slate-400 table-auto mt-6 rounded">
-                        <thead class="border border-slate-300">
-                            <th class="bg-blue-300 px-2 border border-slate-300">Nombre</th>
-                            <th class="bg-blue-300 px-2 border border-slate-300">Categoría</th>
-                            <th class="bg-blue-300 px-2 border border-slate-300">Sector</th>
-                            <th class="bg-blue-300 px-2 border border-slate-300">Email</th>
-                            <th class="bg-blue-300 px-2 border border-slate-300" colspan="2"></th>
-        
-                        </thead>
-                        <tbody>
-                        @foreach ($jobs as $job)
-                        <tr class="">
-                            <td class="px-2 border border-slate-300">{{ucwords($job->name)}}</td>
-                            <td class="px-2 border border-slate-300">
-                                @if(!empty($job->category))
-                                    {{ucwords($job->category->name)}}
-                                @endif
-                            </td>
-                            
-                            <td class="px-2 text-center border border-slate-300">{{$job->department}}</td>
-                            <td class="px-2 border border-slate-300">{{$job->email}}</td>
-                            <td class="px-2 py-2 border border-slate-300">
-                                <a href="{{route('job.edit',['job'=>$job->id])}}" class="rounded-md bg-green-600 mx-2 px-2 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                                    Editar
-                                </a>
-                            </td>
-                            <td class="px-2 py-2 border border-slate-300">
-                                <a href="{{route('job.delete',['job'=>$job->id])}}" class="rounded-md bg-red-600 mx-2 px-2 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                                    Eliminar
-                                </a>
-                            </td>
-                        </tr>
-                        
-                        @endforeach  
-                        </tbody>
-                    </table>
-                </div>  
-            @endif
-        
+                    <h2 class="text-lg font-semibold text-gray-900">Editar puesto</h2>
+                    <p class="text-sm text-gray-500">Completá o actualizá los datos del puesto.</p>
+                </div>
+                <a href="{{ url()->previous() }}"
+                class="inline-flex items-center rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Cancelar
+                </a>
+            </div>
+
+            <form
+                class="px-5 pb-6 pt-4"
+                action="{{ route('job.save') }}"
+                method="POST"
+            >
+                @csrf
+                {{-- Si usás resource:
+                @method('PUT')
+                <input type="hidden" name="id" value="{{ $job->id }}">
+                --}}
+                <input type="hidden" name="id" value="{{ $job->id ?? '' }}">
+
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {{-- Nombre --}}
+                    <div>
+                        <label for="name" class="mb-1 block text-sm font-medium text-gray-700">Nombre</label>
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            required
+                            autofocus
+                            autocomplete="off"
+                            value="{{ old('name', $job->name ?? '') }}"
+                            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="Ej.: Secretaria Administrativa"
+                        >
+                        @error('name')
+                            <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Categoría --}}
+                    <div>
+                        <label for="category" class="mb-1 block text-sm font-medium text-gray-700">Categoría</label>
+                        <select
+                            id="category"
+                            name="category"
+                            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                            <option value="">Ninguna</option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->id }}"
+                                    @selected( old('category', $job->category_id ?? '') == $category->id )>
+                                    {{ ucwords($category->name) }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('category')
+                            <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Supervisor --}}
+                    <div>
+                        <label for="parent" class="mb-1 block text-sm font-medium text-gray-700">Supervisor</label>
+                        <select
+                            id="parent"
+                            name="parent"
+                            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                            <option value="">Sin supervisor</option>
+                            @foreach ($jobs as $parent)
+                                @continue( isset($job->id) && $parent->id === $job->id ) {{-- evita ser su propio supervisor --}}
+                                <option value="{{ $parent->id }}"
+                                    @selected( old('parent', $job->parent_id ?? '') == $parent->id )>
+                                    {{ ucwords($parent->name) }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('parent')
+                            <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Email --}}
+                    <div>
+                        <label for="email" class="mb-1 block text-sm font-medium text-gray-700">Email</label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            autocomplete="off"
+                            value="{{ old('email', $job->email ?? '') }}"
+                            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="ejemplo@clinic.com"
+                        >
+                        @error('email')
+                            <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Sector --}}
+                    <div>
+                        <label for="department" class="mb-1 block text-sm font-medium text-gray-700">Sector</label>
+                        <input
+                            type="text"
+                            id="department"
+                            name="department"
+                            autocomplete="off"
+                            value="{{ old('department', $job->department ?? '') }}"
+                            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="Recepción, Administración, Laboratorio, etc."
+                        >
+                        @error('department')
+                            <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Convenio --}}
+                    <div>
+                        <label for="agreement" class="mb-1 block text-sm font-medium text-gray-700">Convenio</label>
+                        <input
+                            type="text"
+                            id="agreement"
+                            name="agreement"
+                            autocomplete="off"
+                            value="{{ old('agreement', $job->agreement ?? '') }}"
+                            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="Sanidad 108/75, etc."
+                        >
+                        @error('agreement')
+                            <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Responsabilidades (ocupa 2 col) --}}
+                    <div class="md:col-span-2">
+                        <div class="flex items-center justify-between">
+                            <label for="responsibilities" class="mb-1 block text-sm font-medium text-gray-700">Responsabilidades</label>
+                            <span class="text-xs text-gray-500">Podés pegar texto con viñetas.</span>
+                        </div>
+                        <textarea
+                            id="responsibilities"
+                            name="responsibilities"
+                            rows="5"
+                            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="• Atención a pacientes
+    • Gestión de turnos
+    • Facturación y liquidación de obras sociales
+    • Archivo y documentación, etc."
+                        >{{ old('responsibilities', $job->responsibilities ?? '') }}</textarea>
+                        @error('responsibilities')
+                            <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                {{-- Footer acciones --}}
+                <div class="mt-6 flex items-center justify-end gap-3">
+                    <a href="{{ url()->previous() }}"
+                    class="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Cancelar
+                    </a>
+                    <button type="submit"
+                            class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
+
+
+
 </x-manage>

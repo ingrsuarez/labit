@@ -57,6 +57,9 @@ Route::middleware([
     //MANAGMENT
     Route::get('manage/index',[App\Http\Controllers\ManageController::class, 'index'])->name('manage.index');
 
+    Route::get('manage/organization',[App\Http\Controllers\ManageController::class, 'chart'])
+        ->middleware('can:view.chart')
+        ->name('manage.chart');
 
     //EMPLOYEES
     Route::get('employee/new',[App\Http\Controllers\EmployeeController::class, 'new'])->name('employee.new');
@@ -72,9 +75,11 @@ Route::middleware([
     //JOBS
     Route::get('job/new',[App\Http\Controllers\JobController::class, 'new'])->name('job.new');
 
+    Route::get('job/list',[App\Http\Controllers\JobController::class, 'list'])->name('job.list');
+
     Route::post('job/store',[App\Http\Controllers\JobController::class, 'store'])->name('job.store');
 
-    Route::get('job/edit',[App\Http\Controllers\JobController::class, 'edit'])->name('job.edit');
+    Route::get('job/edit/{job}',[App\Http\Controllers\JobController::class, 'edit'])->name('job.edit');
     Route::post('job/save',[App\Http\Controllers\JobController::class, 'save'])->name('job.save');
 
     Route::get('job/delete',[App\Http\Controllers\JobController::class, 'delete'])->name('job.delete');
@@ -119,10 +124,10 @@ Route::middleware([
         
 
     Route::get('users/attach/role',[App\Http\Controllers\UserController::class, 'attachRole'])
-        // ->middleware('can:role.new')
+        ->middleware('can:role.new')
         ->name('role.attach');
     Route::get('users/detach/role',[App\Http\Controllers\UserController::class, 'detachRole'])
-        // ->middleware('can:role.new')
+        ->middleware('can:role.new')
         ->name('role.detach');
 
     //ROLES

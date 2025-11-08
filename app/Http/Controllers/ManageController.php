@@ -72,4 +72,30 @@ class ManageController extends Controller
             'jobs'      => $jobs,
         ]);
     }
+
+    public function chart(Request $request)
+    {
+        $q       = trim($request->input('q', ''));
+        $status  = $request->input('status', '');
+        $jobId   = $request->input('job_id', '');
+        $employees = Employee::query()
+            ->with(['jobs:id,name,department']) // para mostrar puestos y departamento
+            ->when($q !== '', function($qBuilder) use ($q) {
+                $qBuilder->where(function($w) use ($q) {
+                    $w->where('name', 'like', "%{$q}%")
+                    ->orWhere('lastName', 'like', "%{$q}%")
+                    ->orWhere('employeeId', 'like', "%{$q}%")
+                    ->orWhere('email', 'like', "%{$q}%");
+                });
+            })
+            ->when($status !== '', fn($qb) => $qb->where('status', $status))
+            ->when($jobId !== '', function($qb) use ($jobId) {
+                $qb->whereHas('jobs', fn($j) => $j->where('jobs.id', $jobId));
+            })
+            ->orderByDesc('created_at')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('manage.index',compact('employees'));
+    }
 }

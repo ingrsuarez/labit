@@ -10,8 +10,8 @@
                         {{-- <img class="block rounded-full m-auto shadow-md bg-gray-300" alt="CEO" --}}
                             {{-- src=""/> --}}
                     </div>
-                    <div class="text-gray-600">
-                        <p class="text-xl font-bold">{{ucwords($job->name)}}</p>
+                    <div class="text-gray-600 ">
+                        <p class="text-xl font-bold border p-2 border-gray-400 bg-slate-300 rounded">{{ucwords($job->name)}}</p>
                         <div class="border-2">
                         @foreach($job->employees as $employee)
                             <p>{{ucwords($employee->name." ".$employee->lastName)}}</p>

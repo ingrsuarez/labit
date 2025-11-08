@@ -11,6 +11,14 @@ use App\Models\Category;
 
 class JobController extends Controller
 {
+    public function list()
+    {
+        $jobs = Job::with('category')->get();
+        $categories = Category::all();
+
+        return view('job.list',compact('jobs','categories'));
+    }
+
     public function new()
     {
         $jobs = Job::with('category')->get();
@@ -34,7 +42,7 @@ class JobController extends Controller
 
         $job = Job::create($data);
 
-        return redirect()->route('job.edit', ['id' => $job->id])
+        return redirect()->route('job.new')
                 ->with('success', 'Puesto creado correctamente');
     }
 

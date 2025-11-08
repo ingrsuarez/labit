@@ -78,7 +78,7 @@
 
         <div class="p-6 lg:p-8 bg-white border-b border-gray-200">
         
-            @livewire('organization-chart', ['employees' => $employees, 'job' => $job ?? null])
+            {{-- @livewire('organization-chart', ['employees' => $employees, 'job' => $job ?? null]) --}}
             <!-- component -->
             {{-- @livewire('organization-chart',['employees'=>$employees, 'job'=>$job]) --}}
 
