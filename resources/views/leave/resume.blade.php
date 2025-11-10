@@ -19,7 +19,7 @@
                     @endfor
                 </select>
             </div>
-            <div class="md:col-span-2">
+            <div class="">
                 <label class="block text-sm font-medium text-gray-700">Empleado</label>
                 <select name="employee_id"
                         class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
@@ -31,10 +31,21 @@
                     @endforeach
                 </select>
             </div>
-            <div class="flex items-end justify-end">
+            <div class="flex gap-3">
                 <a href="{{ route('leave.resume') }}"
-                class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 mr-2">Limpiar</a>
-                <button class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Filtrar</button>
+                class="px-4 py-2 my-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Limpiar</a>
+                <button class="px-4 my-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Filtrar</button>
+                
+            {{-- Botón que abre la vista de 4 meses centrada en este mes --}}
+                @php
+                    $year = request('year') ?? now()->year;
+                    $month = request('month') ?? now()->month;
+                    $ym = sprintf('%04d-%02d', $year, $month);
+                @endphp
+                <a href="{{ route('leave.resume.compact', array_merge(request()->only(['employee_id','year','month']), ['anchor' => $ym])) }}"
+                class="px-4 py-2 my-3 border border-green-500 rounded-lg bg-green-200 text-gray-800 hover:bg-green-300">
+                    Últimos 
+                </a>
             </div>
         </form>
 
@@ -51,11 +62,7 @@
                         <div class="text-lg font-semibold text-gray-900">{{ $ym }}</div>
                     </div>
 
-                    {{-- Botón que abre la vista de 4 meses centrada en este mes --}}
-                    <a href="{{ route('leave.resume.compact', array_merge(request()->only(['employee_id','year','month']), ['anchor' => $ym])) }}"
-                    class="inline-flex items-center px-3 py-1.5 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700">
-                        Ver 4 meses desde {{ $ym }}
-                    </a>
+                    
                 </div>
 
                 <div class="overflow-x-auto">

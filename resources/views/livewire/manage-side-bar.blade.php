@@ -182,6 +182,16 @@
             data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
             hover:bg-slate-50 hover:text-inherit hover:outline-none
             focus:bg-slate-50 focus:text-inherit focus:outline-none"
+            data-active="{{ Route::currentRouteName()=='documents.index' ? 'active' : ''}}"
+            href="{{ route('documents.index') }}">
+                
+                
+                <span><i class="bi bi-file-earmark-text mr-2"></i>Documentos </span>
+            </a>
+            <a class="text-gray-300 flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem]
+            data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
+            hover:bg-slate-50 hover:text-inherit hover:outline-none
+            focus:bg-slate-50 focus:text-inherit focus:outline-none"
             data-active="{{ Route::currentRouteName()=='manage.chart' ? 'active' : ''}}"
             href="{{ route('manage.chart') }}">
                 

@@ -44,7 +44,7 @@
         </div>
 
         @stack('modals')
-
-        @livewireScripts
+        <script src="/livewire/livewire.js" data-turbo-eval="false" data-turbolinks-eval="false"></script>
+        {{-- @livewireScripts --}}
     </body>
 </html>

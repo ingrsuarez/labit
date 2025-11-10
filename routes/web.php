@@ -61,6 +61,35 @@ Route::middleware([
         ->middleware('can:view.chart')
         ->name('manage.chart');
 
+    //DOCUMENTS
+    Route::get('documents/index',[App\Http\Controllers\DocumentController::class, 'index'])
+        ->middleware('can:documentos.index')
+        ->name('documents.index');
+    
+    Route::get('documents/create',[App\Http\Controllers\DocumentController::class, 'create'])
+        ->middleware('can:documentos.index')
+        ->name('documents.create');
+    
+    Route::post('documents/store',[App\Http\Controllers\DocumentController::class, 'store'])
+        ->middleware('can:documentos.index')
+        ->name('documents.store');
+
+    Route::get('documents/edit/{document}',[App\Http\Controllers\DocumentController::class, 'edit'])
+        ->middleware('can:documentos.index')
+        ->name('documents.edit');
+
+    Route::post('documents/update/{document}',[App\Http\Controllers\DocumentController::class, 'update'])
+        ->middleware('can:documentos.index')
+        ->name('documents.update');
+    
+    Route::delete('documents/destroy/{document}',[App\Http\Controllers\DocumentController::class, 'destroy'])
+        ->middleware('can:documentos.index')
+        ->name('documents.destroy');
+
+    Route::delete('documents/file/destroy/{file}',[App\Http\Controllers\DocumentController::class, 'file_destroy'])
+        ->middleware('can:documentos.index')
+        ->name('documents.files.destroy');
+
     //EMPLOYEES
     Route::get('employee/new',[App\Http\Controllers\EmployeeController::class, 'new'])->name('employee.new');
 
