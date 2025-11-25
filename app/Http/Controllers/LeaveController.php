@@ -19,6 +19,17 @@ class LeaveController extends Controller
         return view('leave.new',compact('leaves','employees'));
     }
 
+    public function index(Request $request)
+    {
+        $leaves = Leave::with('employee')
+            ->orderByRaw("YEAR(start) DESC, MONTH(start) DESC")
+            ->orderBy('employee_id')
+            ->orderBy('start')
+            ->get();
+
+        return view('leave.index', compact('leaves'));
+    }
+
     public function resume(Request $request)
     {
         $year       = $request->input('year');
@@ -28,6 +39,7 @@ class LeaveController extends Controller
         $query = \App\Models\Leave::query()
             ->join('employees', 'leaves.employee_id', '=', 'employees.id')
             ->selectRaw("
+                MIN(leaves.id) AS id,
                 YEAR(leaves.start)  AS year,
                 MONTH(leaves.start) AS month,
                 employees.id        AS employee_id,
@@ -188,37 +200,81 @@ class LeaveController extends Controller
 
     public function edit(Leave $leave)
     {
-
-        return view('leave.edit',compact('leave'));
+        $employees = Employee::orderBy('lastName')->get(['id', 'name', 'lastName', 'employeeId']);
+        return view('leave.edit',compact('leave', 'employees'));
     }
 
-    public function update(Request $request)
+    public function update(Request $request, Leave $leave)
     {
-        $user = Auth::user();
 
-        $leave = Leave::where('id',$request->leave_id)->first();
+        $validated = $request->validate([
+            'employee'    => ['required', 'exists:employees,id'],
+            'type'        => ['required', 'string', 'max:255'],
+            'doctor'      => ['nullable', 'string', 'max:255'],
+            'start'       => ['required', 'date'],
+            'end'         => ['required', 'date', 'after_or_equal:start'],
+            'hour_50'     => ['nullable', 'integer', 'min:0'],
+            'hour_100'    => ['nullable', 'integer', 'min:0'],
+            'description' => ['required', 'string', 'max:255'],
+            'file'        => ['nullable', 'image', 'max:5120'], // 5MB
+        ]);
 
-        $leave->description = strtolower($request->description);
-        $leave->start = $request->start;
-        $leave->end = $request->end;
-        $leave->employee_id =$request->employee_id;
-        $leave->type = $request->type;
-        $leave->user_id = $user->id;
-        $leave->doctor = $request->doctor;
-        $leave->hour_50 = $request->hour_50;
-        $leave->hour_100 = $request->hour_100;
-        
-        
+        // Actualiza los campos básicos
+        $leave->employee_id = $validated['employee'];
+        $leave->type        = $validated['type'];
+        $leave->doctor      = $validated['doctor'] ?? null;
+        $leave->status      = 'pendiente';
+        $leave->start       = $validated['start'];
+        $leave->end         = $validated['end'];
+        $leave->hour_50     = $validated['hour_50'] ?? 0;
+        $leave->hour_100    = $validated['hour_100'] ?? 0;
+        $leave->description = $validated['description'];
+        $leave->user_id = auth()->id();
 
-        try {
-            $leave->save();
-            return redirect()->back();
+        // Si se sube un nuevo archivo, lo reemplaza
+        if ($request->hasFile('file')) {
+            // Opcional: eliminar el archivo anterior
+            if ($leave->file && \Storage::disk('public')->exists($leave->file)) {
+                \Storage::disk('public')->delete($leave->file);
+            }
+
+            $path = $request->file('file')->store('leaves', 'public');
+            $leave->file = $path;
         }
-        catch(Exception $e) {
-            echo 'Error: ',  $e->getMessage(), "\n";
 
-        }
+        $leave->save();
+
+        return redirect()->route('leave.index')
+            ->with('success', 'Licencia actualizada correctamente.');
     }
+
+    // public function update(Request $request)
+    // {
+    //     $user = Auth::user();
+
+    //     $leave = Leave::where('id',$request->leave_id)->first();
+
+    //     $leave->description = strtolower($request->description);
+    //     $leave->start = $request->start;
+    //     $leave->end = $request->end;
+    //     $leave->employee_id =$request->employee_id;
+    //     $leave->type = $request->type;
+    //     $leave->user_id = $user->id;
+    //     $leave->doctor = $request->doctor;
+    //     $leave->hour_50 = $request->hour_50;
+    //     $leave->hour_100 = $request->hour_100;
+        
+        
+
+    //     try {
+    //         $leave->save();
+    //         return redirect()->back();
+    //     }
+    //     catch(Exception $e) {
+    //         echo 'Error: ',  $e->getMessage(), "\n";
+
+    //     }
+    // }
 
     public function delete(Leave $leave)
     {

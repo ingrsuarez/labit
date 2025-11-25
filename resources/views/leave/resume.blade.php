@@ -72,13 +72,13 @@
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Empleado</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CUIL</th>
                                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Horas sem.</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
                                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Cantidad</th>
                                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total días</th>
                                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Horas 50%</th>
                                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Horas 100%</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Certificados</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 bg-white">
@@ -94,7 +94,7 @@
                                     </td>
                                     <td class="px-4 py-3 text-gray-700">{{ $r->cuil ?? '—' }}</td>
                                     <td class="px-4 py-3 text-right text-gray-700">{{ (int)($r->weekly_hours ?? 0) }}</td>
-                                    <td class="px-4 py-3 text-gray-700">{{ $r->category ?? '—' }}</td>
+                                    
                                     
                                     <td class="px-4 py-3 text-gray-700 capitalize">{{ $r->type }}</td>
                                     <td class="px-4 py-3 text-right text-gray-700">{{ $r->cantidad }}</td>
@@ -114,6 +114,13 @@
                                                 @endforeach
                                             </div>
                                         @endif
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <a href="{{ route('leave.edit', $r) }}"
+                                            class="text-blue-600 text-sm hover:underline">
+                                            Editar
+                                        </a>
+                                     
                                     </td>
                                 </tr>
                             @endforeach

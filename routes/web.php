@@ -126,10 +126,11 @@ Route::middleware([
     //LEAVES
     Route::get('leave/resume',[App\Http\Controllers\LeaveController::class, 'resume'])->name('leave.resume');
     Route::get('leave/new',[App\Http\Controllers\LeaveController::class, 'new'])->name('leave.new');
+    Route::get('leave/index',[App\Http\Controllers\LeaveController::class, 'index'])->name('leave.index');
 
     Route::post('leave/store',[App\Http\Controllers\LeaveController::class, 'store'])->name('leave.store');
 
-    Route::post('leave/update',[App\Http\Controllers\LeaveController::class, 'update'])->name('leave.update');
+    Route::post('leave/update/{leave}',[App\Http\Controllers\LeaveController::class, 'update'])->name('leave.update');
 
     Route::get('leave/edit/{leave}',[App\Http\Controllers\LeaveController::class, 'edit'])->name('leave.edit');
 

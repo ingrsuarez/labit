@@ -1,119 +1,110 @@
 <x-manage>
     <div class="flex flex-col justify-start">
-        <div class="bg-white pb-4 px-2 rounded-lg shadow-lg">
-            <form class="" action="{{route('leave.update')}}" method="POST">
+        <div class="bg-slate-200 max-w-4xl mx-auto p-6">
+            <h1 class="text-2xl font-bold text-gray-900 mb-6">Editar licencia</h1>
+
+            {{-- Errores de validación --}}
+            @if ($errors->any())
+                <div class="mb-6 rounded-xl bg-red-50 border border-red-200 p-4 text-red-700">
+                    <ul class="list-disc pl-5 space-y-1">
+                        @foreach ($errors->all() as $error)
+                            <li class="text-sm">{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form action="{{ route('leave.update', $leave) }}" method="POST" enctype="multipart/form-data"
+                class="bg-white rounded-2xl shadow p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 @csrf
-                {{-- <div class="space-y-10 ">       --}}
-                
-                    <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Nueva licencia:</h2>
-                    <p class="mt-1 text-sm leading-6 text-gray-600">Editar:</p>
-                
-                    <div class="mx-2 mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-8">
-                        <div class="sm:col-span-2">    
-                            <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                                <span class="w-2/6 px-4 items-center flex text-base bg-gray-300 rounded-l-lg  ">Inicio</span>
-                                <input type="date" name="start" id="start" autocomplete="off" required autofocus
-                                    class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 
-                                    sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600" value="{{$leave->start}}">
-                                <input type="hidden" name="leave_id" id="leave_id" value="{{$leave->id}}">
-                            </div>
-                        </div>
-                        <div class="sm:col-span-2">    
-                            <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                                <span class="w-2/6 px-4 items-center flex text-base bg-gray-300 rounded-l-lg  ">Fin</span>
-                                <input type="date" name="end" id="end" autocomplete="off" required 
-                                    class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 
-                                    sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600" value="{{$leave->end}}">
+                @method('POST')
 
-                            </div>
-                        </div>
-                        <div class="sm:col-span-4">
-                            <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap ">
-                                <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Empleado:</span>
-                                <input type="text" readonly class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 
-                                    sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600" value="{{ucfirst($leave->employee->name)}}">
-                                <input type="hidden" name="employee_id" id="employee_id" value="{{$leave->employee_id}}">
-                            </div>
-                        </div>
-                
-                        <div class="sm:col-span-4">
-                            <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                                <span class="w-2/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Causa:</span>
-                                <select id="type" name="type" autocomplete="off" class="w-4/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 h-full focus:ring-2 focus:ring-inset focus:ring-indigo-600">
+                {{-- Empleado --}}
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700">Empleado</label>
+                    <select name="employee" required
+                        class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        @foreach($employees as $emp)
+                            <option value="{{ $emp->id }}" @selected($emp->id == $leave->employee_id)>
+                                {{ ucfirst($emp->lastName) }}, {{ ucfirst($emp->name) }} — #{{ $emp->employeeId }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <input type="hidden" name="employee" value="{{ $leave->employee_id }}">
+                </div>
 
-                                    <option value="{{$leave->type}}" selected>{{strtoupper($leave->type)}}</option>
-                                    @if(strtoupper($leave->type) != "VACACIONES")
-                                        <option value="Vacaciones">VACACIONES</option>
-                                    @endif
-                                    @if(strtoupper($leave->type) != "ENFERMEDAD")
-                                        <option value="Enfermedad">DIA ENFERMEDAD</option>
-                                    @endif
-                                    @if(strtoupper($leave->type) != "ESPECIAL")
-                                        <option value="Licencia especial">LIC ESPECIAL </option>
-                                    @endif
-                                    @if(strtoupper($leave->type) != "INASISTENCIA")
-                                        <option value="Inasistencia">INASISTENCIA</option>
-                                    @endif
-                                    @if(strtoupper($leave->type) != "SUSPENSION")
-                                        <option value="Suspension">SUSPENSION</option>
-                                    @endif
-                                    @if(strtoupper($leave->type) != "MATERNIDAD")
-                                        <option value="Maternidad">MATERNIDAD</option>
-                                    @endif
-                                    @if(strtoupper($leave->type) != "HORAS_EXTRA")
-                                        <option value="horas_extra">HORAS EXTRA</option>
-                                    @endif
-                                    
-                                </select>
-                            </div>
-                        </div>
-                
-                        <div class="sm:col-span-4">
-                        
-                            <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                                <span class="w-1/5 px-2 items-center flex bg-gray-300 rounded-l-lg">Médico:</span>
-                                <input type="text" name="doctor" id="doctor" autocomplete="off" value="{{$leave->doctor}}" 
-                                class="w-4/5 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                            </div>
-                        </div>
+                {{-- Tipo --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Tipo</label>
+                    <select name="type" required
+                        class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        @foreach(['enfermedad','vacaciones','embarazo','capacitacion','horas extra'] as $t)
+                            <option value="{{ $t }}" @selected($leave->type === $t)>{{ ucfirst($t) }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-                        <div class="sm:col-span-3">
-                            <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                                <span class="w-2/4 px-4 items-center flex bg-gray-300 rounded-l-lg">Horas al 50%:</span>
-                                <input type="number" name="hour_50" id="hour_50" autocomplete="off" value="{{$leave->hour_50}}"
-                                class="w-2/4 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 
-                                    sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                            </div>
-                        </div>
+                {{-- Médico --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Médico</label>
+                    <input type="text" name="doctor" value="{{ old('doctor', $leave->doctor) }}"
+                        class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Dr./Dra. ...">
+                </div>
 
-                        <div class="sm:col-span-3">
-                            <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                                <span class="w-2/4 px-4 items-center flex bg-gray-300 rounded-l-lg">Horas al 100%:</span>
-                                <input type="number" name="hour_100" id="hour_100" autocomplete="off" value="{{$leave->hour_100}}" 
-                                class="w-2/4 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400
-                                sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                            </div>
-                        </div>
-                        
-                        <div class="sm:col-span-9">
-                        
-                            <div class="border-slate-400 border-2 rounded-lg justify-items-stretch flex flex-wrap">
-                                <span class="w-1/6 px-4 items-center flex bg-gray-300 rounded-l-lg">Descripción:</span>
-                                <textarea id="description" name="description" rows="4" cols="50" name="phone" id="phone" autocomplete="off" 
-                                class="w-5/6 flex rounded-r-md border-0 text-gray-900 shadow-sm  placeholder:text-gray-400 
-                                sm:text-sm focus:ring-2 focus:ring-inset focus:ring-indigo-600">
-                                {{$leave->description}}
-                                </textarea>
-                            </div>
-                        </div>
+                {{-- Desde / Hasta --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Desde</label>
+                    <input type="date" name="start" value="{{ old('start', $leave->start) }}" required
+                        class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Hasta</label>
+                    <input type="date" name="end" value="{{ old('end', $leave->end) }}" required
+                        class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
 
-                    </div>
-                    <div class="mt-6 flex items-center justify-end gap-x-6">
-                        <button type="button" class="text-sm font-semibold leading-6 text-gray-900">Cancelar</button>
-                        <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Guardar</button>
-                    </div>
+                {{-- Horas --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Horas 50%</label>
+                    <input type="number" name="hour_50" value="{{ old('hour_50', $leave->hour_50) }}" min="0"
+                        class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Horas 100%</label>
+                    <input type="number" name="hour_100" value="{{ old('hour_100', $leave->hour_100) }}" min="0"
+                        class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                {{-- Descripción --}}
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700">Descripción</label>
+                    <input type="text" name="description" value="{{ old('description', $leave->description) }}" required
+                        class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Motivo, observaciones, etc.">
+                </div>
+
+                {{-- Certificado --}}
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700">Reemplazar certificado</label>
+                    <input type="file" name="file" accept="image/*"
+                        class="mt-1 block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4
+                                file:rounded-md file:border-0 file:text-sm file:font-semibold
+                                file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    @if ($leave->file)
+                        <p class="text-xs mt-2">
+                            Actual: <a href="{{ asset('storage/'.$leave->file) }}" target="_blank" class="text-blue-600 underline">Ver certificado</a>
+                        </p>
+                    @endif
+                </div>
+
+                {{-- Botón --}}
+                <div class="md:col-span-2 flex justify-end">
+                    <button class="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">
+                        Actualizar licencia
+                    </button>
+                </div>
             </form>
         </div>
     </div>
 </x-manage>
-

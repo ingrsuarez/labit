@@ -49,7 +49,7 @@
             hover:bg-slate-50 hover:text-inherit hover:outline-none
             focus:bg-slate-50 focus:text-inherit focus:outline-none"
             data-active="{{ Route::currentRouteName()=='patient.index' ? 'active' : ''}}"
-            href="{{ route('leave.new') }}">
+            href="{{ route('leave.index') }}">
                 
                 <span
                     class="mr-4 [&>svg]:h-5 [&>svg]:w-5 [&>svg]:text-gray-400 dark:[&>svg]:text-gray-300">
