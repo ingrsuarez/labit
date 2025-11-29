@@ -73,23 +73,52 @@
             data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
             hover:bg-slate-50 hover:text-inherit hover:outline-none
             focus:bg-slate-50 focus:text-inherit focus:outline-none"
-            data-active="{{ Route::currentRouteName()=='employee.new' ? 'active' : ''}}"
-            href="{{ route('employee.new') }}">
+            data-active="{{ in_array(Route::currentRouteName(), ['salary.index', 'salary.create', 'salary.edit']) ? 'active' : ''}}"
+            href="{{ route('salary.index') }}">
+                <span
+                    class="mr-4 [&>svg]:h-4 [&>svg]:w-4 [&>svg]:text-gray-400 dark:[&>svg]:text-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" />
+                    </svg>
+                </span>
+                <span>Conceptos</span>
+            </a>
+
+            <a class="text-gray-300 flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem]
+            data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
+            hover:bg-slate-50 hover:text-inherit hover:outline-none
+            focus:bg-slate-50 focus:text-inherit focus:outline-none"
+            data-active="{{ in_array(Route::currentRouteName(), ['payroll.index', 'payroll.bulk']) ? 'active' : ''}}"
+            href="{{ route('payroll.index') }}">
+                <span
+                    class="mr-4 [&>svg]:h-4 [&>svg]:w-4 [&>svg]:text-gray-400 dark:[&>svg]:text-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                    </svg>
+                </span>
+                <span>Liquidación</span>
+            </a>
+
+            <a class="text-gray-300 flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem]
+            data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
+            hover:bg-slate-50 hover:text-inherit hover:outline-none
+            focus:bg-slate-50 focus:text-inherit focus:outline-none"
+            data-active="{{ in_array(Route::currentRouteName(), ['employee.show', 'employee.new', 'employee.edit']) ? 'active' : ''}}"
+            href="{{ route('employee.show') }}">
                 
                 <span
                     class="mr-4 [&>svg]:h-5 [&>svg]:w-5 [&>svg]:text-gray-400 dark:[&>svg]:text-gray-300">
                     <svg 
                         xmlns="http://www.w3.org/2000/svg" 
                         fill="none" 
-                        width="800px" 
-                        height="800px" 
                         viewBox="0 0 24 24"
                         stroke-width="1.5"
                         stroke="currentColor">
-                        <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
                     </svg>
                 </span>
-                <span>Nuevo Empleado </span>
+                <span>Empleados</span>
             </a>
 
             <a class="text-gray-300 flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem]
@@ -115,68 +144,17 @@
             data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
             hover:bg-slate-50 hover:text-inherit hover:outline-none
             focus:bg-slate-50 focus:text-inherit focus:outline-none"
-            data-active="{{ Route::currentRouteName()=='positions.new' ? 'active' : ''}}"
-            href="{{ route('category.new') }}">
+            data-active="{{ in_array(Route::currentRouteName(), ['category.index', 'category.new', 'category.edit']) ? 'active' : ''}}"
+            href="{{ route('category.index') }}">
                 
                 <span
-                    class="mr-4 [&>svg]:h-3.5 [&>svg]:w-3.5 [&>svg]:fill-gray-400 dark:[&>svg]:fill-gray-300">
-                    <svg fill="#000000" height="800px" width="800px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
-                    viewBox="0 0 512 512" xml:space="preserve">
-                    <g>
-                        <path d="M80,352c4.418,0,8-3.582,8-8v-48c0-13.233,10.767-24,24-24h136v72c0,4.418,3.582,8,8,8s8-3.582,8-8v-72h136
-                            c13.233,0,24,10.767,24,24v48c0,4.418,3.582,8,8,8s8-3.582,8-8v-48c0-22.056-17.944-40-40-40H264v-24c0-4.418-3.582-8-8-8
-                            s-8,3.582-8,8v24H112c-22.056,0-40,17.944-40,40v48C72,348.418,75.582,352,80,352z"/>
-                        <path d="M144,208h224c4.418,0,8-3.582,8-8s-3.582-8-8-8h-8V32c0-4.418-3.582-8-8-8H160c-4.418,0-8,3.582-8,8v160h-8
-                            c-4.418,0-8,3.582-8,8S139.582,208,144,208z M168,40h176v152H168V40z"/>
-                        <path d="M224,120c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C232,123.582,228.418,120,224,120z"/>
-                        <path d="M256,120c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C264,123.582,260.418,120,256,120z"/>
-                        <path d="M288,120c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C296,123.582,292.418,120,288,120z"/>
-                        <path d="M320,120c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C328,123.582,324.418,120,320,120z"/>
-                        <path d="M192,120c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C200,123.582,196.418,120,192,120z"/>
-                        <path d="M224,152c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C232,155.582,228.418,152,224,152z"/>
-                        <path d="M256,152c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C264,155.582,260.418,152,256,152z"/>
-                        <path d="M288,152c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C296,155.582,292.418,152,288,152z"/>
-                        <path d="M320,152c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C328,155.582,324.418,152,320,152z"/>
-                        <path d="M192,152c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C200,155.582,196.418,152,192,152z"/>
-                        <path d="M328,472v-96c0-4.418-3.582-8-8-8H192c-4.418,0-8,3.582-8,8v96c-4.418,0-8,3.582-8,8s3.582,8,8,8h144c4.418,0,8-3.582,8-8
-                            S332.418,472,328,472z M200,384h112v88H200V384z"/>
-                        <path d="M224,400c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C232,403.582,228.418,400,224,400z"/>
-                        <path d="M256,400c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C264,403.582,260.418,400,256,400z"/>
-                        <path d="M288,400c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C296,403.582,292.418,400,288,400z"/>
-                        <path d="M224,432c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C232,435.582,228.418,432,224,432z"/>
-                        <path d="M256,432c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C264,435.582,260.418,432,256,432z"/>
-                        <path d="M288,432c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C296,435.582,292.418,432,288,432z"/>
-                        <path d="M224,88c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C232,91.582,228.418,88,224,88z"/>
-                        <path d="M256,88c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C264,91.582,260.418,88,256,88z"/>
-                        <path d="M288,88c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C296,91.582,292.418,88,288,88z"/>
-                        <path d="M320,88c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C328,91.582,324.418,88,320,88z"/>
-                        <path d="M192,88c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C200,91.582,196.418,88,192,88z"/>
-                        <path d="M224,56c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C232,59.582,228.418,56,224,56z"/>
-                        <path d="M256,56c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C264,59.582,260.418,56,256,56z"/>
-                        <path d="M288,56c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C296,59.582,292.418,56,288,56z"/>
-                        <path d="M320,56c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C328,59.582,324.418,56,320,56z"/>
-                        <path d="M192,56c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C200,59.582,196.418,56,192,56z"/>
-                        <path d="M152,472v-96c0-4.418-3.582-8-8-8H16c-4.418,0-8,3.582-8,8v96c-4.418,0-8,3.582-8,8s3.582,8,8,8h144c4.418,0,8-3.582,8-8
-                            S156.418,472,152,472z M24,384h112v88H24V384z"/>
-                        <path d="M48,400c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C56,403.582,52.418,400,48,400z"/>
-                        <path d="M80,400c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C88,403.582,84.418,400,80,400z"/>
-                        <path d="M112,400c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C120,403.582,116.418,400,112,400z"/>
-                        <path d="M48,432c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C56,435.582,52.418,432,48,432z"/>
-                        <path d="M80,432c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C88,435.582,84.418,432,80,432z"/>
-                        <path d="M112,432c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C120,435.582,116.418,432,112,432z"/>
-                        <path d="M504,472v-96c0-4.418-3.582-8-8-8H368c-4.418,0-8,3.582-8,8v96c-4.418,0-8,3.582-8,8s3.582,8,8,8h144c4.418,0,8-3.582,8-8
-                            S508.418,472,504,472z M376,384h112v88H376V384z"/>
-                        <path d="M400,400c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C408,403.582,404.418,400,400,400z"/>
-                        <path d="M432,400c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C440,403.582,436.418,400,432,400z"/>
-                        <path d="M464,400c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C472,403.582,468.418,400,464,400z"/>
-                        <path d="M400,432c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C408,435.582,404.418,432,400,432z"/>
-                        <path d="M432,432c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C440,435.582,436.418,432,432,432z"/>
-                        <path d="M464,432c-4.418,0-8,3.582-8,8v8c0,4.418,3.582,8,8,8s8-3.582,8-8v-8C472,435.582,468.418,432,464,432z"/>
-                    </g>
+                    class="mr-4 [&>svg]:h-4 [&>svg]:w-4 [&>svg]:text-gray-400 dark:[&>svg]:text-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" />
                     </svg>
-
                 </span>
-                <span>Categorías </span>
+                <span>Categorías</span>
             </a>
             <a class="text-gray-300 flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem]
             data-[active=active]:bg-slate-50  data-[active=active]:text-inherit

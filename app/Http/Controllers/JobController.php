@@ -103,6 +103,12 @@ class JobController extends Controller
         return redirect()->back();
     }
 
+    public function indexCategory()
+    {
+        $categories = Category::withCount('jobs')->orderBy('name')->get();
+        return view('category.index', compact('categories'));
+    }
+
     public function newCategory()
     {
         $categories = Category::all();

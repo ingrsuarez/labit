@@ -1,6 +1,16 @@
 <x-manage>
     <div class="max-w-7xl mx-auto p-6">
-        <h1 class="text-2xl font-bold text-gray-900 mb-6">Empleados</h1>
+        {{-- Encabezado con título y botón --}}
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">Empleados</h1>
+            <a href="{{ route('employee.new') }}" 
+               class="mt-3 sm:mt-0 inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Nuevo Empleado
+            </a>
+        </div>
 
         {{-- Filtros --}}
         <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-4 rounded-xl shadow mb-6">

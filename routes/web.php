@@ -114,6 +114,8 @@ Route::middleware([
     Route::get('job/delete',[App\Http\Controllers\JobController::class, 'delete'])->name('job.delete');
     Route::get('job/detach/{job}/{employee}',[App\Http\Controllers\JobController::class, 'detach'])->name('job.detach');
 
+    Route::get('category/index',[App\Http\Controllers\JobController::class, 'indexCategory'])->name('category.index');
+
     Route::get('category/new',[App\Http\Controllers\JobController::class, 'newCategory'])->name('category.new');
 
     Route::post('category/store',[App\Http\Controllers\JobController::class, 'storeCategory'])->name('category.store');
@@ -122,6 +124,19 @@ Route::middleware([
     Route::post('category/save',[App\Http\Controllers\JobController::class, 'saveCategory'])->name('category.save');
 
     Route::get('category/delete',[App\Http\Controllers\JobController::class, 'deleteCategory'])->name('category.delete');
+
+    //SALARY ITEMS (Conceptos de Sueldo)
+    Route::get('salary/index', [App\Http\Controllers\SalaryItemController::class, 'index'])->name('salary.index');
+    Route::get('salary/create', [App\Http\Controllers\SalaryItemController::class, 'create'])->name('salary.create');
+    Route::post('salary/store', [App\Http\Controllers\SalaryItemController::class, 'store'])->name('salary.store');
+    Route::get('salary/edit/{salaryItem}', [App\Http\Controllers\SalaryItemController::class, 'edit'])->name('salary.edit');
+    Route::post('salary/update/{salaryItem}', [App\Http\Controllers\SalaryItemController::class, 'update'])->name('salary.update');
+    Route::get('salary/toggle/{salaryItem}', [App\Http\Controllers\SalaryItemController::class, 'toggle'])->name('salary.toggle');
+    Route::delete('salary/destroy/{salaryItem}', [App\Http\Controllers\SalaryItemController::class, 'destroy'])->name('salary.destroy');
+
+    // PAYROLL (Liquidación de Sueldos)
+    Route::get('payroll/index', [App\Http\Controllers\PayrollController::class, 'index'])->name('payroll.index');
+    Route::get('payroll/bulk', [App\Http\Controllers\PayrollController::class, 'bulk'])->name('payroll.bulk');
 
     //LEAVES
     Route::get('leave/resume',[App\Http\Controllers\LeaveController::class, 'resume'])->name('leave.resume');
