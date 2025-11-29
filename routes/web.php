@@ -133,6 +133,11 @@ Route::middleware([
     Route::post('salary/update/{salaryItem}', [App\Http\Controllers\SalaryItemController::class, 'update'])->name('salary.update');
     Route::get('salary/toggle/{salaryItem}', [App\Http\Controllers\SalaryItemController::class, 'toggle'])->name('salary.toggle');
     Route::delete('salary/destroy/{salaryItem}', [App\Http\Controllers\SalaryItemController::class, 'destroy'])->name('salary.destroy');
+    
+    // Asignaciones de conceptos a empleados
+    Route::get('salary/assignments/{salaryItem}', [App\Http\Controllers\SalaryItemController::class, 'assignments'])->name('salary.assignments');
+    Route::post('salary/assignments/{salaryItem}', [App\Http\Controllers\SalaryItemController::class, 'saveAssignments'])->name('salary.assignments.save');
+    Route::get('salary/toggle-assignment/{salaryItem}/{employee}', [App\Http\Controllers\SalaryItemController::class, 'toggleAssignment'])->name('salary.toggle-assignment');
 
     // PAYROLL (Liquidación de Sueldos)
     Route::get('payroll/index', [App\Http\Controllers\PayrollController::class, 'index'])->name('payroll.index');

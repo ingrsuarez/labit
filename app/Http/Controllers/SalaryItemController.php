@@ -57,6 +57,7 @@ class SalaryItemController extends Controller
 
         $validated['is_remunerative'] = $request->has('is_remunerative');
         $validated['is_active'] = $request->has('is_active');
+        $validated['requires_assignment'] = $request->has('requires_assignment');
         $validated['base'] = $validated['base'] ?? 'basic_salary';
         $validated['order'] = $validated['order'] ?? SalaryItem::max('order') + 1;
 
@@ -108,6 +109,7 @@ class SalaryItemController extends Controller
 
         $validated['is_remunerative'] = $request->has('is_remunerative');
         $validated['is_active'] = $request->has('is_active');
+        $validated['requires_assignment'] = $request->has('requires_assignment');
 
         // Procesar período de aplicación
         $periodType = $request->input('period_type', 'all_year');
@@ -147,6 +149,54 @@ class SalaryItemController extends Controller
 
         return redirect()->route('salary.index')
             ->with('success', 'Concepto de sueldo eliminado correctamente.');
+    }
+
+    /**
+     * Mostrar vista de asignaciones de empleados
+     */
+    public function assignments(SalaryItem $salaryItem)
+    {
+        $employees = \App\Models\Employee::orderBy('lastName')->orderBy('name')->get();
+        $assignedIds = $salaryItem->employees()->pluck('employee_id')->toArray();
+        
+        return view('salary.assignments', compact('salaryItem', 'employees', 'assignedIds'));
+    }
+
+    /**
+     * Guardar asignaciones de empleados
+     */
+    public function saveAssignments(Request $request, SalaryItem $salaryItem)
+    {
+        $employeeIds = $request->input('employees', []);
+        
+        // Sincronizar empleados asignados
+        $syncData = [];
+        foreach ($employeeIds as $employeeId) {
+            $syncData[$employeeId] = ['is_active' => true];
+        }
+        
+        $salaryItem->employees()->sync($syncData);
+
+        return redirect()->route('salary.edit', $salaryItem)
+            ->with('success', 'Asignaciones actualizadas correctamente.');
+    }
+
+    /**
+     * Toggle asignación de un empleado específico
+     */
+    public function toggleAssignment(SalaryItem $salaryItem, \App\Models\Employee $employee)
+    {
+        $exists = $salaryItem->employees()->where('employee_id', $employee->id)->exists();
+        
+        if ($exists) {
+            $salaryItem->employees()->detach($employee->id);
+            $message = "Concepto removido de {$employee->name} {$employee->lastName}";
+        } else {
+            $salaryItem->employees()->attach($employee->id, ['is_active' => true]);
+            $message = "Concepto asignado a {$employee->name} {$employee->lastName}";
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 }
 

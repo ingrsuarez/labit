@@ -68,6 +68,9 @@
                             <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Salario Básico
                             </th>
+                            <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Hs/Sem
+                            </th>
                             <th class="w-16 px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Puestos
                             </th>
@@ -101,6 +104,9 @@
                                     <div class="text-sm font-semibold text-gray-900">
                                         ${{ number_format($category->wage ?? 0, 2, ',', '.') }}
                                     </div>
+                                </td>
+                                <td class="px-3 py-3 text-center">
+                                    <span class="text-sm text-gray-700">{{ $category->base_weekly_hours ?? 48 }} hs</span>
                                 </td>
                                 <td class="px-3 py-3 text-center">
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium 

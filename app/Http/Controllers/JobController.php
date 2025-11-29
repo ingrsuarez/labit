@@ -123,11 +123,12 @@ class JobController extends Controller
         $categories->name = strtolower($request->name);
         $categories->agreement = strtolower($request->agreement);
         $categories->union_name = strtolower($request->union_name);
-        $categories->wage =$request->wage;
+        $categories->wage = $request->wage;
+        $categories->base_weekly_hours = $request->base_weekly_hours ?? 48;
 
         try {
             $categories->save();
-            return redirect()->back();
+            return redirect()->route('category.index');
         }
         catch(Exception $e) {
             echo 'Error: ',  $e->getMessage(), "\n";
@@ -154,11 +155,12 @@ class JobController extends Controller
         $category->name = strtolower($request->name);
         $category->agreement = $request->agreement;
         $category->wage = $request->wage;
+        $category->base_weekly_hours = $request->base_weekly_hours ?? 48;
         $category->union_name = strtolower($request->union_name);
 
         try {
             $category->save();
-            return redirect()->action([JobController::class, 'newCategory']);
+            return redirect()->route('category.index');
         }
         catch(Exception $e) {
             echo 'Error: ',  $e->getMessage(), "\n";

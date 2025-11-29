@@ -69,6 +69,27 @@
                         </select>
                     </div>
 
+                    {{-- Base de Cálculo (solo para Haberes) --}}
+                    <div id="calculation_base_wrapper">
+                        <label for="calculation_base" class="block text-sm font-medium text-gray-700">Base de Cálculo *</label>
+                        <select name="calculation_base" id="calculation_base"
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="basic" {{ old('calculation_base') === 'basic' ? 'selected' : '' }}>Sueldo Básico</option>
+                            <option value="basic_antiguedad" {{ old('calculation_base', 'basic_antiguedad') === 'basic_antiguedad' ? 'selected' : '' }}>Básico + Antigüedad</option>
+                            <option value="basic_hours" {{ old('calculation_base') === 'basic_hours' ? 'selected' : '' }}>Básico + Horas Extras</option>
+                            <option value="basic_hours_antiguedad" {{ old('calculation_base') === 'basic_hours_antiguedad' ? 'selected' : '' }}>Básico + Horas + Antigüedad</option>
+                        </select>
+                        <p class="mt-1 text-xs text-gray-500">Sobre qué monto se calcula el porcentaje</p>
+                    </div>
+                    
+                    {{-- Info para Deducciones --}}
+                    <div id="deduccion_info" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700">Base de Cálculo</label>
+                        <div class="mt-1 px-4 py-3 bg-gray-100 rounded-lg text-sm text-gray-600">
+                            <span class="font-medium">Bruto Total</span> - Las deducciones siempre se calculan sobre el total de haberes
+                        </div>
+                    </div>
+
                     {{-- Valor --}}
                     <div>
                         <label for="value" class="block text-sm font-medium text-gray-700">Valor *</label>
@@ -110,6 +131,14 @@
                                    {{ old('is_remunerative', true) ? 'checked' : '' }}
                                    class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
                             <span class="ml-2 text-sm text-gray-700">Remunerativo</span>
+                        </label>
+
+                        <label class="flex items-center">
+                            <input type="checkbox" name="requires_assignment" value="1" 
+                                   {{ old('requires_assignment') ? 'checked' : '' }}
+                                   class="rounded border-gray-300 text-amber-600 shadow-sm focus:ring-amber-500">
+                            <span class="ml-2 text-sm text-gray-700">Requiere asignación individual</span>
+                            <span class="ml-1 text-xs text-gray-500" title="Solo aplica a empleados específicos">(ej: Puesto Jerárquico, Adicional Título)</span>
                         </label>
                     </div>
 
@@ -187,6 +216,25 @@
     </div>
 
     <script>
+        // Mostrar/ocultar base de cálculo según tipo (haber/deducción)
+        function toggleCalculationBase() {
+            const type = document.getElementById('type').value;
+            const baseWrapper = document.getElementById('calculation_base_wrapper');
+            const deduccionInfo = document.getElementById('deduccion_info');
+            
+            if (type === 'deduccion') {
+                baseWrapper.classList.add('hidden');
+                deduccionInfo.classList.remove('hidden');
+            } else {
+                baseWrapper.classList.remove('hidden');
+                deduccionInfo.classList.add('hidden');
+            }
+        }
+        
+        document.getElementById('type').addEventListener('change', toggleCalculationBase);
+        // Ejecutar al cargar
+        toggleCalculationBase();
+
         // Actualizar sufijo y ayuda según tipo de cálculo
         document.getElementById('calculation_type').addEventListener('change', function() {
             const suffix = document.getElementById('value_suffix');

@@ -44,4 +44,25 @@ class Employee extends Model
         return $this->hasMany('App\Models\Leave','employee_id');
     }
 
+    /**
+     * Conceptos de sueldo asignados a este empleado
+     */
+    public function salaryItems()
+    {
+        return $this->belongsToMany(SalaryItem::class, 'employee_salary_item')
+                    ->withPivot('is_active', 'custom_value')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Verificar si el empleado tiene asignado un concepto
+     */
+    public function hasSalaryItem(int $salaryItemId): bool
+    {
+        return $this->salaryItems()
+                    ->where('salary_item_id', $salaryItemId)
+                    ->where('employee_salary_item.is_active', true)
+                    ->exists();
+    }
+
 }

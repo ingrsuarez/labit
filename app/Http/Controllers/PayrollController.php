@@ -52,7 +52,17 @@ class PayrollController extends Controller
     {
         // Obtener categoría y salario básico del empleado
         $category = $this->getEmployeeCategory($employee);
-        $basicSalary = $category ? (float)$category->wage : 0;
+        $basicoCategoria = $category ? (float)$category->wage : 0;
+        
+        // Calcular básico proporcional según horas semanales del empleado
+        // Horas base de la categoría (jornada completa)
+        $horasBaseCategoria = $category ? ($category->base_weekly_hours ?? 48) : 48;
+        $horasSemanalesEmpleado = $employee->weekly_hours ?? $horasBaseCategoria;
+        
+        // Básico proporcional = básico categoría × (horas empleado / horas base categoría)
+        $basicSalary = $horasBaseCategoria > 0 
+            ? $basicoCategoria * ($horasSemanalesEmpleado / $horasBaseCategoria)
+            : $basicoCategoria;
 
         // Obtener novedades del período
         $leaves = $this->getEmployeeLeaves($employee->id, $year, $month);
@@ -63,7 +73,7 @@ class PayrollController extends Controller
 
         // Calcular haberes
         $haberesCalculados = [];
-        $basicoOriginal = $basicSalary; // Guardamos el original para referencia
+        $basicoOriginal = $basicSalary; // Guardamos el básico proporcional como referencia
         
         // Obtener días de licencias
         $diasVacaciones = $leaves['dias_vacaciones'] ?? 0;
@@ -180,10 +190,24 @@ class PayrollController extends Controller
         $totalNoRemunerativo = 0;
 
         foreach ($haberes as $haber) {
+            // Si el concepto requiere asignación, verificar que el empleado lo tenga
+            if ($haber->requires_assignment && !$employee->hasSalaryItem($haber->id)) {
+                continue; // Saltar este concepto si no está asignado al empleado
+            }
+            
             // Obtener la base correcta para este concepto
             $baseCalculo = $bases[$haber->calculation_base] ?? $bases['basic_antiguedad'];
             
-            $importe = $this->calculateItem($haber, $baseCalculo, $leaves);
+            // Verificar si hay un valor personalizado para este empleado
+            $customValue = null;
+            if ($haber->requires_assignment) {
+                $assignment = $employee->salaryItems()->where('salary_item_id', $haber->id)->first();
+                if ($assignment && $assignment->pivot->custom_value) {
+                    $customValue = $assignment->pivot->custom_value;
+                }
+            }
+            
+            $importe = $customValue ?? $this->calculateItem($haber, $baseCalculo, $leaves);
             if ($importe > 0) {
                 $haberesCalculados[] = [
                     'nombre' => $haber->name,
@@ -210,13 +234,18 @@ class PayrollController extends Controller
         // Subtotal total (incluye no remunerativo)
         $subtotal = $totalHaberes;
 
-        // Calcular deducciones SOLO sobre el subtotal remunerativo
+        // Calcular deducciones - SIEMPRE sobre el BRUTO (total de haberes)
         $deduccionesCalculadas = [];
         $totalDeducciones = 0;
 
         foreach ($deducciones as $deduccion) {
-            // Las deducciones se calculan sobre el subtotal REMUNERATIVO únicamente
-            $importe = $this->calculateItem($deduccion, $subtotalRemunerativo, $leaves);
+            // Si el concepto requiere asignación, verificar que el empleado lo tenga
+            if ($deduccion->requires_assignment && !$employee->hasSalaryItem($deduccion->id)) {
+                continue;
+            }
+            
+            // Las deducciones siempre se calculan sobre el BRUTO (total haberes)
+            $importe = $this->calculateItem($deduccion, $subtotal, $leaves);
             if ($importe > 0) {
                 $deduccionesCalculadas[] = [
                     'nombre' => $deduccion->name,

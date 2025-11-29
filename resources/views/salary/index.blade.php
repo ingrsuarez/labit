@@ -73,7 +73,17 @@
                             @foreach($haberes as $item)
                                 <tr class="hover:bg-gray-50 {{ !$item->is_active ? 'opacity-50' : '' }}">
                                     <td class="px-4 py-3">
-                                        <div class="font-medium text-gray-900 capitalize">{{ $item->name }}</div>
+                                        <div class="font-medium text-gray-900 capitalize flex items-center gap-2">
+                                            {{ $item->name }}
+                                            @if($item->requires_assignment)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800" title="Requiere asignación individual">
+                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+                                                    </svg>
+                                                    {{ $item->employees()->wherePivot('is_active', true)->count() }}
+                                                </span>
+                                            @endif
+                                        </div>
                                         <div class="text-xs text-gray-500">
                                             {{ $item->calculation_type_name }}
                                             @if(!$item->is_remunerative)
@@ -147,7 +157,17 @@
                             @foreach($deducciones as $item)
                                 <tr class="hover:bg-gray-50 {{ !$item->is_active ? 'opacity-50' : '' }}">
                                     <td class="px-4 py-3">
-                                        <div class="font-medium text-gray-900 capitalize">{{ $item->name }}</div>
+                                        <div class="font-medium text-gray-900 capitalize flex items-center gap-2">
+                                            {{ $item->name }}
+                                            @if($item->requires_assignment)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800" title="Requiere asignación individual">
+                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+                                                    </svg>
+                                                    {{ $item->employees()->wherePivot('is_active', true)->count() }}
+                                                </span>
+                                            @endif
+                                        </div>
                                         <div class="text-xs text-gray-500">{{ $item->calculation_type_name }}</div>
                                     </td>
                                     <td class="px-4 py-3 text-right">

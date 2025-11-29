@@ -19,6 +19,7 @@ class SalaryItem extends Model
         'base',
         'is_remunerative',
         'is_active',
+        'requires_assignment', // Si requiere asignación individual a empleados
         'applies_all_year',
         'recurrent_month',
         'specific_month',
@@ -31,8 +32,19 @@ class SalaryItem extends Model
         'value' => 'decimal:2',
         'is_remunerative' => 'boolean',
         'is_active' => 'boolean',
+        'requires_assignment' => 'boolean',
         'applies_all_year' => 'boolean',
     ];
+
+    /**
+     * Empleados que tienen asignado este concepto
+     */
+    public function employees()
+    {
+        return $this->belongsToMany(Employee::class, 'employee_salary_item')
+                    ->withPivot('is_active', 'custom_value')
+                    ->withTimestamps();
+    }
 
     /**
      * Scope para obtener solo haberes
