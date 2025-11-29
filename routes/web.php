@@ -138,6 +138,12 @@ Route::middleware([
 
     Route::get('leave/resume-compact', [App\Http\Controllers\LeaveController::class, 'resumeCompact'])
      ->name('leave.resume.compact');
+
+    Route::get('leave/export/excel', [App\Http\Controllers\LeaveController::class, 'exportExcel'])
+        ->name('leave.export.excel');
+    
+    Route::get('leave/export/pdf', [App\Http\Controllers\LeaveController::class, 'exportPdf'])
+        ->name('leave.export.pdf');
     // USERS
 
     Route::get('users/index',[App\Http\Controllers\UserController::class, 'index'])

@@ -8,6 +8,9 @@ use Illuminate\Support\Carbon;
 use App\Models\Leave;
 use App\Models\Job;
 use App\Models\Employee;
+use App\Exports\LeavesExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class LeaveController extends Controller
 {
@@ -280,5 +283,144 @@ class LeaveController extends Controller
     {
         $leave->delete();
         return redirect()->back();
+    }
+
+    /**
+     * Exportar novedades a Excel
+     */
+    public function exportExcel(Request $request)
+    {
+        $year       = $request->input('year');
+        $month      = $request->input('month');
+        $employeeId = $request->input('employee_id');
+
+        // Obtener novedades del período
+        $resumes = $this->getResumesQuery($year, $month, $employeeId)->get();
+
+        // Obtener todos los empleados (o uno específico si se filtró)
+        $employeesQuery = Employee::query()->orderBy('lastName')->orderBy('name');
+        if ($employeeId) {
+            $employeesQuery->where('id', $employeeId);
+        }
+        $allEmployees = $employeesQuery->get();
+
+        // Combinar empleados con sus novedades (o valores en 0 si no tienen)
+        $exportData = $this->combineEmployeesWithLeaves($allEmployees, $resumes, $year, $month);
+
+        $filename = 'novedades_liquidacion';
+        if ($year && $month) {
+            $monthName = str_pad($month, 2, '0', STR_PAD_LEFT);
+            $filename .= "_{$year}-{$monthName}";
+        } elseif ($year) {
+            $filename .= "_{$year}";
+        }
+        $filename .= '.xlsx';
+
+        return Excel::download(new LeavesExport($exportData, $year, $month), $filename);
+    }
+
+    /**
+     * Combinar todos los empleados con sus novedades
+     */
+    private function combineEmployeesWithLeaves($employees, $resumes, $year, $month)
+    {
+        $result = collect();
+
+        // Agrupar novedades por empleado
+        $resumesByEmployee = $resumes->groupBy('employee_id');
+
+        foreach ($employees as $employee) {
+            $employeeResumes = $resumesByEmployee->get($employee->id, collect());
+
+            if ($employeeResumes->isEmpty()) {
+                // Empleado sin novedades - agregar con valores en 0
+                $result->push((object)[
+                    'year' => $year ?? now()->year,
+                    'month' => $month ?? now()->month,
+                    'employee_id' => $employee->id,
+                    'employee' => trim($employee->lastName . ' ' . $employee->name),
+                    'cuil' => $employee->employeeId,
+                    'weekly_hours' => $employee->weekly_hours ?? 0,
+                    'category' => $employee->position ?? '-',
+                    'type' => '-',
+                    'cantidad' => 0,
+                    'total_dias' => 0,
+                    'horas_50' => 0,
+                    'horas_100' => 0,
+                    'dias_vacaciones' => 0,
+                    'dias_enfermedad' => 0,
+                    'dias_embarazo' => 0,
+                ]);
+            } else {
+                // Empleado con novedades - agregar cada tipo
+                foreach ($employeeResumes as $resume) {
+                    $result->push($resume);
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Exportar novedades a PDF
+     */
+    public function exportPdf(Request $request)
+    {
+        $year       = $request->input('year');
+        $month      = $request->input('month');
+        $employeeId = $request->input('employee_id');
+
+        $resumes = $this->getResumesQuery($year, $month, $employeeId)->get();
+
+        $filename = 'novedades_liquidacion';
+        if ($year && $month) {
+            $monthName = str_pad($month, 2, '0', STR_PAD_LEFT);
+            $filename .= "_{$year}-{$monthName}";
+        } elseif ($year) {
+            $filename .= "_{$year}";
+        }
+        $filename .= '.pdf';
+
+        $pdf = Pdf::loadView('leave.resume_pdf', [
+            'resumes' => $resumes,
+            'filters' => ['year' => $year, 'month' => $month, 'employee_id' => $employeeId],
+        ]);
+
+        $pdf->setPaper('A4', 'landscape');
+
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Query reutilizable para obtener resúmenes de novedades
+     */
+    private function getResumesQuery($year = null, $month = null, $employeeId = null)
+    {
+        return \App\Models\Leave::query()
+            ->join('employees', 'leaves.employee_id', '=', 'employees.id')
+            ->selectRaw("
+                MIN(leaves.id) AS id,
+                YEAR(leaves.start)  AS year,
+                MONTH(leaves.start) AS month,
+                employees.id        AS employee_id,
+                CONCAT(MIN(employees.lastName), ' ', MIN(employees.name)) AS employee,
+                MIN(employees.employeeId) AS cuil,
+                MIN(employees.weekly_hours) AS weekly_hours,
+                MIN(employees.position)     AS category,
+                leaves.type         AS type,
+                COUNT(*)            AS cantidad,
+                SUM(COALESCE(leaves.days, DATEDIFF(leaves.end, leaves.start) + 1)) AS total_dias,
+                SUM(COALESCE(leaves.hour_50, 0))  AS horas_50,
+                SUM(COALESCE(leaves.hour_100, 0)) AS horas_100,
+                GROUP_CONCAT(COALESCE(leaves.file,'' ) SEPARATOR '|') AS files
+            ")
+            ->when($year,  fn($q) => $q->whereYear('leaves.start', $year))
+            ->when($month, fn($q) => $q->whereMonth('leaves.start', $month))
+            ->when($employeeId, fn($q) => $q->where('employees.id', $employeeId))
+            ->groupByRaw('YEAR(leaves.start), MONTH(leaves.start), employees.id, leaves.type')
+            ->orderBy('year', 'desc')
+            ->orderBy('month', 'desc')
+            ->orderBy('employee');
     }
 }
