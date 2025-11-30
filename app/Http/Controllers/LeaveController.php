@@ -33,6 +33,31 @@ class LeaveController extends Controller
         return view('leave.index', compact('leaves'));
     }
 
+    /**
+     * Ver licencias del empleado logueado
+     */
+    public function myLeaves(Request $request)
+    {
+        $user = Auth::user();
+        $employee = $user->employee ?? null;
+
+        if (! $employee) {
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Tu usuario no tiene un empleado asociado.');
+        }
+
+        $leaves = Leave::where('employee_id', $employee->id)
+            ->orderByRaw("YEAR(start) DESC, MONTH(start) DESC")
+            ->orderBy('start', 'desc')
+            ->get();
+
+        return view('leave.my', [
+            'leaves'   => $leaves,
+            'employee' => $employee,
+        ]);
+    }
+
     public function resume(Request $request)
     {
         $year       = $request->input('year');

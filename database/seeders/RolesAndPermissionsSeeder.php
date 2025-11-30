@@ -118,7 +118,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // 6) Crear/asegurar usuario admin (lee de .env con defaults)
         $email    = env('ADMIN_EMAIL', 'admin@admin');
-        $password = env('ADMIN_PASSWORD', 'Rodrigoo'); // cambia en prod
+        $password = env('ADMIN_PASSWORD', '20102010'); // cambia en prod
 
         $user = User::firstOrCreate(
             ['email' => $email],

@@ -15,6 +15,9 @@
                     <x-nav-link class="text-white" href="{{ route('manage.index') }}" :active="request()->routeIs('nuevoPedido')">
                         Administración
                     </x-nav-link>
+                    <x-nav-link class="text-white" href="{{ route('leave.my') }}" :active="request()->routeIs('leave.my')">
+                        Mis licencias
+                    </x-nav-link>
                     {{-- <x-nav-link class="text-white active:bg-slate-100" href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                         Laboratorio
                     </x-nav-link> --}}
@@ -154,6 +157,9 @@
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('leave.my') }}" :active="request()->routeIs('leave.my')">
+                Mis licencias
             </x-responsive-nav-link>
         </div>
 

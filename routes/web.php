@@ -90,16 +90,26 @@ Route::middleware([
         ->middleware('can:documentos.index')
         ->name('documents.files.destroy');
 
-    //EMPLOYEES
-    Route::get('employee/new',[App\Http\Controllers\EmployeeController::class, 'new'])->name('employee.new');
+    //EMPLOYEES (solo RRHH / admin via permisos)
+    Route::get('employee/new',[App\Http\Controllers\EmployeeController::class, 'new'])
+        ->middleware('can:employee.new')
+        ->name('employee.new');
 
-    Route::post('employee/store',[App\Http\Controllers\EmployeeController::class, 'store'])->name('employee.store');
+    Route::post('employee/store',[App\Http\Controllers\EmployeeController::class, 'store'])
+        ->middleware('can:employee.store')
+        ->name('employee.store');
 
-    Route::get('employee/edit/{employee}',[App\Http\Controllers\EmployeeController::class, 'edit'])->name('employee.edit');
+    Route::get('employee/edit/{employee}',[App\Http\Controllers\EmployeeController::class, 'edit'])
+        ->middleware('can:employee.edit')
+        ->name('employee.edit');
 
-    Route::post('employee/save',[App\Http\Controllers\EmployeeController::class, 'save'])->name('employee.update');
+    Route::post('employee/save',[App\Http\Controllers\EmployeeController::class, 'save'])
+        ->middleware('can:employee.save')
+        ->name('employee.update');
 
-    Route::get('employee/show', [App\Http\Controllers\EmployeeController::class, 'show'])->name('employee.show');
+    Route::get('employee/show', [App\Http\Controllers\EmployeeController::class, 'show'])
+        ->middleware('can:employee.show')
+        ->name('employee.show');
 
     //JOBS
     Route::get('job/new',[App\Http\Controllers\JobController::class, 'new'])->name('job.new');
@@ -123,26 +133,48 @@ Route::middleware([
 
     Route::get('category/delete',[App\Http\Controllers\JobController::class, 'deleteCategory'])->name('category.delete');
 
-    //LEAVES
-    Route::get('leave/resume',[App\Http\Controllers\LeaveController::class, 'resume'])->name('leave.resume');
-    Route::get('leave/new',[App\Http\Controllers\LeaveController::class, 'new'])->name('leave.new');
-    Route::get('leave/index',[App\Http\Controllers\LeaveController::class, 'index'])->name('leave.index');
+    //LEAVES (gestión RRHH); los empleados usan solo leave.my
+    Route::get('leave/resume',[App\Http\Controllers\LeaveController::class, 'resume'])
+        ->middleware('can:leave.resume')
+        ->name('leave.resume');
 
-    Route::post('leave/store',[App\Http\Controllers\LeaveController::class, 'store'])->name('leave.store');
+    Route::get('leave/new',[App\Http\Controllers\LeaveController::class, 'new'])
+        ->middleware('can:leave.new')
+        ->name('leave.new');
 
-    Route::post('leave/update/{leave}',[App\Http\Controllers\LeaveController::class, 'update'])->name('leave.update');
+    Route::get('leave/index',[App\Http\Controllers\LeaveController::class, 'index'])
+        ->middleware('can:leave.resume')
+        ->name('leave.index');
 
-    Route::get('leave/edit/{leave}',[App\Http\Controllers\LeaveController::class, 'edit'])->name('leave.edit');
+    Route::get('mis-licencias',[App\Http\Controllers\LeaveController::class, 'myLeaves'])
+        ->name('leave.my');
 
-    Route::get('leave/delete/{leave?}',[App\Http\Controllers\LeaveController::class, 'delete'])->name('leave.delete');
+    Route::post('leave/store',[App\Http\Controllers\LeaveController::class, 'store'])
+        ->middleware('can:leave.store')
+        ->name('leave.store');
+
+    Route::post('leave/update/{leave}',[App\Http\Controllers\LeaveController::class, 'update'])
+        ->middleware('can:leave.update')
+        ->name('leave.update');
+
+    Route::get('leave/edit/{leave}',[App\Http\Controllers\LeaveController::class, 'edit'])
+        ->middleware('can:leave.edit')
+        ->name('leave.edit');
+
+    Route::get('leave/delete/{leave?}',[App\Http\Controllers\LeaveController::class, 'delete'])
+        ->middleware('can:leave.delete')
+        ->name('leave.delete');
 
     Route::get('leave/resume-compact', [App\Http\Controllers\LeaveController::class, 'resumeCompact'])
-     ->name('leave.resume.compact');
+        ->middleware('can:leave.resume')
+        ->name('leave.resume.compact');
 
     Route::get('leave/export/excel', [App\Http\Controllers\LeaveController::class, 'exportExcel'])
+        ->middleware('can:leave.resume')
         ->name('leave.export.excel');
     
     Route::get('leave/export/pdf', [App\Http\Controllers\LeaveController::class, 'exportPdf'])
+        ->middleware('can:leave.resume')
         ->name('leave.export.pdf');
     // USERS
 

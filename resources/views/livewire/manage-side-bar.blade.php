@@ -11,6 +11,7 @@
     class="relative m-0 list-none px-[0.2rem] pb-12"
     data-te-sidenav-menu-ref>
     
+    @can('leave.resume')
     <li class="relative pt-4">
         <button onclick="showMenu1(true)" class="focus:outline-none focus:text-indigo-400 text-left  text-white flex justify-between items-center w-full space-x-14 ">
             <span class="px-6 text-[0.8rem] font-bold uppercase text-gray-300 dark:text-gray-400">
@@ -201,9 +202,35 @@
             
         </div>
     </li>
+    @endcan
+
+    {{-- Menú básico para empleados: visible para cualquier usuario autenticado
+         (por ejemplo, rol "empleado" que solo usa la ruta leave.my) --}}
+    @auth
+    <li class="relative pt-4">
+        <span class="px-6 text-[0.8rem] font-bold uppercase text-gray-300 dark:text-gray-400">
+            Empleado
+        </span>
+        <a class="mt-2 text-gray-300 flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem]
+            data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
+            hover:bg-slate-50 hover:text-inherit hover:outline-none
+            focus:bg-slate-50 focus:text-inherit focus:outline-none"
+           data-active="{{ Route::currentRouteName()=='leave.my' ? 'active' : ''}}"
+           href="{{ route('leave.my') }}">
+            <span
+                class="mr-4 [&>svg]:h-4 [&>svg]:w-4 [&>svg]:text-gray-400 dark:[&>svg]:text-gray-300">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
+                    <path d="M6.75 3A2.25 2.25 0 0 0 4.5 5.25v13.5A2.25 2.25 0 0 0 6.75 21h10.5A2.25 2.25 0 0 0 19.5 18.75V8.25L14.25 3H6.75z"/>
+                    <path d="M9 12.75a.75.75 0 0 1 .75-.75h5.25a.75.75 0 0 1 0 1.5H9.75A.75.75 0 0 1 9 12.75zM9 15.75a.75.75 0 0 1 .75-.75h3.75a.75.75 0 0 1 0 1.5H9.75a.75.75 0 0 1-.75-.75z"/>
+                </svg>
+            </span>
+            <span>Mis licencias</span>
+        </a>
+    </li>
+    @endauth
 
 
-    {{-- @can('system') --}}
+    @can('role.new')
         <li class="relative pt-4">
             <button onclick="showMenu2(true)" class="focus:outline-none focus:text-indigo-400 text-left  text-white flex justify-between items-center w-full space-x-14 ">
                 <span class="px-6 text-[0.8rem] font-bold uppercase text-gray-300 dark:text-gray-400">
@@ -284,10 +311,32 @@
                 </span>
                 <span>Usuarios</span>
                 </a>
+
+                <a class="text-gray-300 flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem]
+                    data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
+                    hover:bg-slate-50 hover:text-inherit hover:outline-none
+                    focus:bg-slate-50 focus:text-inherit focus:outline-none"
+                    data-active="{{ Route::currentRouteName()=='employee.show' ? 'active' : ''}}"
+                    href="{{route('employee.show')}}">
+                    <span
+                        class="mr-4 [&>svg]:h-3.5 [&>svg]:w-3.5 [&>svg]:text-gray-400 dark:[&>svg]:text-gray-300">
+                        <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        class="h-3.5 w-3.5">
+                        <path
+                            fill-rule="evenodd"
+                            d="M8.25 6.75a3.75 3.75 0 117.5 0 3.75 3.75 0 01-7.5 0zM4.5 18.75A5.25 5.25 0 0115 18.75v.75a.75.75 0 01-.75.75H5.25A.75.75 0 014.5 19.5v-.75zm10.5-7.5a3 3 0 100 6 3 3 0 000-6zm0 7.5a4.49 4.49 0 00-3.295 1.455.75.75 0 00.555 1.245h5.48a.75.75 0 00.555-1.245A4.49 4.49 0 0015 18.75z"
+                            clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    <span>Empleados</span>
+                </a>
             </div>
 
         </li>
-    {{-- @endcan    --}}
+    @endcan
     
 
 
