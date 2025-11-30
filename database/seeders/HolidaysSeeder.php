@@ -31,6 +31,24 @@ class HolidaysSeeder extends Seeder
             ['date' => '2025-12-08', 'name' => 'Inmaculada Concepción de María', 'type' => 'fijo'],
             ['date' => '2025-12-25', 'name' => 'Navidad', 'type' => 'fijo'],
             
+            // 2026 - Feriados nacionales
+            ['date' => '2026-01-01', 'name' => 'Año Nuevo', 'type' => 'fijo'],
+            ['date' => '2026-02-16', 'name' => 'Carnaval', 'type' => 'fijo'],
+            ['date' => '2026-02-17', 'name' => 'Carnaval', 'type' => 'fijo'],
+            ['date' => '2026-03-24', 'name' => 'Día Nacional de la Memoria', 'type' => 'fijo'],
+            ['date' => '2026-04-02', 'name' => 'Día del Veterano y de los Caídos en Malvinas', 'type' => 'fijo'],
+            ['date' => '2026-04-03', 'name' => 'Viernes Santo', 'type' => 'fijo'],
+            ['date' => '2026-05-01', 'name' => 'Día del Trabajador', 'type' => 'fijo'],
+            ['date' => '2026-05-25', 'name' => 'Día de la Revolución de Mayo', 'type' => 'fijo'],
+            ['date' => '2026-06-15', 'name' => 'Paso a la Inmortalidad del Gral. Güemes', 'type' => 'movil'],
+            ['date' => '2026-06-20', 'name' => 'Paso a la Inmortalidad del Gral. Belgrano', 'type' => 'fijo'],
+            ['date' => '2026-07-09', 'name' => 'Día de la Independencia', 'type' => 'fijo'],
+            ['date' => '2026-08-17', 'name' => 'Paso a la Inmortalidad del Gral. San Martín', 'type' => 'movil'],
+            ['date' => '2026-10-12', 'name' => 'Día del Respeto a la Diversidad Cultural', 'type' => 'fijo'],
+            ['date' => '2026-11-23', 'name' => 'Día de la Soberanía Nacional', 'type' => 'movil'],
+            ['date' => '2026-12-08', 'name' => 'Inmaculada Concepción de María', 'type' => 'fijo'],
+            ['date' => '2026-12-25', 'name' => 'Navidad', 'type' => 'fijo'],
+
             // 2024 - Para vacaciones ya tomadas
             ['date' => '2024-01-01', 'name' => 'Año Nuevo', 'type' => 'fijo'],
             ['date' => '2024-02-12', 'name' => 'Carnaval', 'type' => 'fijo'],
@@ -62,7 +80,7 @@ class HolidaysSeeder extends Seeder
             );
         }
 
-        $this->command->info('Feriados de Argentina 2024-2025 cargados correctamente.');
+        $this->command->info('Feriados de Argentina 2024-2026 cargados correctamente.');
     }
 }
 
