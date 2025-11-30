@@ -100,6 +100,8 @@ Route::middleware([
     Route::post('employee/save',[App\Http\Controllers\EmployeeController::class, 'save'])->name('employee.update');
 
     Route::get('employee/show', [App\Http\Controllers\EmployeeController::class, 'show'])->name('employee.show');
+    
+    Route::get('employee/profile/{employee}', [App\Http\Controllers\EmployeeController::class, 'profile'])->name('employee.profile');
 
     //JOBS
     Route::get('job/new',[App\Http\Controllers\JobController::class, 'new'])->name('job.new');
@@ -142,6 +144,15 @@ Route::middleware([
     // PAYROLL (Liquidación de Sueldos)
     Route::get('payroll/index', [App\Http\Controllers\PayrollController::class, 'index'])->name('payroll.index');
     Route::get('payroll/bulk', [App\Http\Controllers\PayrollController::class, 'bulk'])->name('payroll.bulk');
+
+    //VACATIONS (Gestión de Vacaciones)
+    Route::get('vacation/index', [App\Http\Controllers\VacationController::class, 'index'])->name('vacation.index');
+    Route::post('vacation/store', [App\Http\Controllers\VacationController::class, 'store'])->name('vacation.store');
+    Route::get('vacation/approval', [App\Http\Controllers\VacationController::class, 'approvalPanel'])->name('vacation.approval');
+    Route::post('vacation/approve/{leave}', [App\Http\Controllers\VacationController::class, 'approve'])->name('vacation.approve');
+    Route::post('vacation/reject/{leave}', [App\Http\Controllers\VacationController::class, 'reject'])->name('vacation.reject');
+    Route::get('vacation/pdf/{leave}', [App\Http\Controllers\VacationController::class, 'generatePdf'])->name('vacation.pdf');
+    Route::get('vacation/calendar', [App\Http\Controllers\VacationController::class, 'calendar'])->name('vacation.calendar');
 
     //LEAVES
     Route::get('leave/resume',[App\Http\Controllers\LeaveController::class, 'resume'])->name('leave.resume');

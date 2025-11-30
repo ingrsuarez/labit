@@ -73,6 +73,21 @@
             data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
             hover:bg-slate-50 hover:text-inherit hover:outline-none
             focus:bg-slate-50 focus:text-inherit focus:outline-none"
+            data-active="{{ in_array(Route::currentRouteName(), ['vacation.index', 'vacation.approval', 'vacation.calendar']) ? 'active' : ''}}"
+            href="{{ route('vacation.index') }}">
+                <span
+                    class="mr-4 [&>svg]:h-5 [&>svg]:w-5 [&>svg]:text-gray-400 dark:[&>svg]:text-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                    </svg>
+                </span>
+                <span>Vacaciones</span>
+            </a>
+
+            <a class="text-gray-300 flex cursor-pointer items-center truncate rounded-[5px] px-6 py-[0.45rem] text-[0.85rem]
+            data-[active=active]:bg-slate-50  data-[active=active]:text-inherit
+            hover:bg-slate-50 hover:text-inherit hover:outline-none
+            focus:bg-slate-50 focus:text-inherit focus:outline-none"
             data-active="{{ in_array(Route::currentRouteName(), ['salary.index', 'salary.create', 'salary.edit']) ? 'active' : ''}}"
             href="{{ route('salary.index') }}">
                 <span

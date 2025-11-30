@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Job;
+use Carbon\Carbon;
 
 class Employee extends Model
 {
@@ -63,6 +64,96 @@ class Employee extends Model
                     ->where('salary_item_id', $salaryItemId)
                     ->where('employee_salary_item.is_active', true)
                     ->exists();
+    }
+
+    /**
+     * Calcular años de antigüedad del empleado
+     */
+    public function getAntiquityYearsAttribute(): int
+    {
+        if (!$this->start_date) {
+            return 0;
+        }
+        return Carbon::parse($this->start_date)->diffInYears(now());
+    }
+
+    /**
+     * Calcular días de vacaciones según ley argentina (Art. 150 LCT)
+     * - Hasta 5 años: 14 días corridos
+     * - De 5 a 10 años: 21 días corridos
+     * - De 10 a 20 años: 28 días corridos
+     * - Más de 20 años: 35 días corridos
+     */
+    public function getVacationDaysByLawAttribute(): int
+    {
+        $years = $this->antiquity_years;
+
+        if ($years < 5) {
+            return 14;
+        } elseif ($years < 10) {
+            return 21;
+        } elseif ($years < 20) {
+            return 28;
+        } else {
+            return 35;
+        }
+    }
+
+    /**
+     * Días de vacaciones usados en un año específico
+     */
+    public function getUsedVacationDays(int $year = null): int
+    {
+        $year = $year ?? now()->year;
+
+        return $this->leaves()
+            ->where('type', 'vacaciones')
+            ->where('status', 'aprobado')
+            ->whereYear('start', $year)
+            ->sum('days');
+    }
+
+    /**
+     * Días de vacaciones pendientes (solicitadas pero no aprobadas)
+     */
+    public function getPendingVacationDays(int $year = null): int
+    {
+        $year = $year ?? now()->year;
+
+        return $this->leaves()
+            ->where('type', 'vacaciones')
+            ->where('status', 'pendiente')
+            ->whereYear('start', $year)
+            ->sum('days');
+    }
+
+    /**
+     * Días de vacaciones disponibles en un año
+     */
+    public function getAvailableVacationDays(int $year = null): int
+    {
+        $year = $year ?? now()->year;
+        $totalDays = $this->vacation_days_by_law;
+        $usedDays = $this->getUsedVacationDays($year);
+
+        return max(0, $totalDays - $usedDays);
+    }
+
+    /**
+     * Resumen completo de vacaciones del año
+     */
+    public function getVacationSummary(int $year = null): array
+    {
+        $year = $year ?? now()->year;
+
+        return [
+            'year' => $year,
+            'total_by_law' => $this->vacation_days_by_law,
+            'used' => $this->getUsedVacationDays($year),
+            'pending' => $this->getPendingVacationDays($year),
+            'available' => $this->getAvailableVacationDays($year),
+            'antiquity_years' => $this->antiquity_years,
+        ];
     }
 
 }

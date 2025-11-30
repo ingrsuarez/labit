@@ -133,6 +133,55 @@ class EmployeeController extends Controller
 
     }
 
+    /**
+     * Mostrar perfil/resumen completo de un empleado
+     */
+    public function profile(Employee $employee)
+    {
+        $employee->load(['jobs.category', 'leaves', 'salaryItems']);
+        
+        // Calcular antigüedad
+        $startDate = $employee->start_date ? \Carbon\Carbon::parse($employee->start_date) : null;
+        $antiguedad = $startDate ? $startDate->diffInYears(now()) : 0;
+        $antiguedadMeses = $startDate ? $startDate->diff(now())->format('%y años, %m meses') : '—';
+        
+        // Obtener categoría del empleado
+        $category = $employee->jobs->first()?->category;
+        
+        // Resumen de licencias del año actual
+        $currentYear = now()->year;
+        $leavesThisYear = $employee->leaves()
+            ->whereYear('start', $currentYear)
+            ->get();
+        
+        $leavesSummary = [
+            'vacaciones' => $leavesThisYear->where('type', 'vacaciones')->sum('days'),
+            'enfermedad' => $leavesThisYear->where('type', 'enfermedad')->sum('days'),
+            'otros' => $leavesThisYear->whereNotIn('type', ['vacaciones', 'enfermedad'])->sum('days'),
+            'total' => $leavesThisYear->sum('days'),
+        ];
+        
+        // Conceptos de sueldo asignados
+        $assignedConcepts = $employee->salaryItems()->wherePivot('is_active', true)->get();
+        
+        // Últimas licencias
+        $recentLeaves = $employee->leaves()
+            ->orderByDesc('start')
+            ->limit(5)
+            ->get();
+        
+        return view('employee.profile', compact(
+            'employee', 
+            'antiguedad',
+            'antiguedadMeses',
+            'category',
+            'leavesSummary',
+            'assignedConcepts',
+            'recentLeaves',
+            'currentYear'
+        ));
+    }
+
     public function show(Request $request)
     {
         // Filtros
