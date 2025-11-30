@@ -179,7 +179,7 @@
                                                 </span>
                                             </div>
                                             <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
-                                                {{ $leave->days ?? 1 }} días
+                                                {{ $leave->working_days }} días
                                             </span>
                                         </div>
                                     @endforeach

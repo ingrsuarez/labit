@@ -250,7 +250,7 @@
     @endforelse
 
     <div class="footer">
-        Sistema de Gestión de Recursos Humanos - {{ config('app.name', 'LABIT') }}
+        Sistema de Gestión de Recursos Humanos - {{ config('app.name', 'IPAC') }}
     </div>
 </body>
 </html>

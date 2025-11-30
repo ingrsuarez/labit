@@ -153,6 +153,8 @@ Route::middleware([
     Route::post('vacation/reject/{leave}', [App\Http\Controllers\VacationController::class, 'reject'])->name('vacation.reject');
     Route::get('vacation/pdf/{leave}', [App\Http\Controllers\VacationController::class, 'generatePdf'])->name('vacation.pdf');
     Route::get('vacation/calendar', [App\Http\Controllers\VacationController::class, 'calendar'])->name('vacation.calendar');
+    Route::get('vacation/calculate-days', [App\Http\Controllers\VacationController::class, 'calculateWorkingDays'])->name('vacation.calculate-days');
+    Route::get('vacation/holidays', [App\Http\Controllers\VacationController::class, 'holidays'])->name('vacation.holidays');
 
     //LEAVES
     Route::get('leave/resume',[App\Http\Controllers\LeaveController::class, 'resume'])->name('leave.resume');

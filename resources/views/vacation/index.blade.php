@@ -8,6 +8,14 @@
                     <p class="text-sm text-gray-500 mt-1">Panel de solicitudes y aprobaciones</p>
                 </div>
                 <div class="flex gap-3 mt-4 sm:mt-0">
+                    <a href="{{ route('vacation.holidays') }}" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                       title="Ver feriados">
+                        <svg class="w-5 h-5 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                        </svg>
+                        Feriados
+                    </a>
                     <a href="{{ route('vacation.calendar') }}" 
                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,7 +135,7 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Desde *</label>
-                                    <input type="date" name="start" id="start_date" required min="{{ now()->format('Y-m-d') }}"
+                                    <input type="date" name="start" id="start_date" required
                                            onchange="calculateDays()"
                                            class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
                                 </div>
@@ -139,10 +147,27 @@
                                 </div>
                             </div>
                             
-                            {{-- Días a solicitar --}}
-                            <div id="days_info" class="hidden text-center p-2 bg-gray-100 rounded-lg">
-                                <span class="text-sm text-gray-600">Días a solicitar:</span>
-                                <span id="days_count" class="font-bold text-gray-900 ml-1">0</span>
+                            {{-- Aviso de fecha pasada --}}
+                            <div id="past_date_notice" class="hidden p-3 bg-green-50 border border-green-200 rounded-lg">
+                                <div class="flex items-center text-sm text-green-700">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    Fecha pasada: se registrará como <strong class="ml-1">aprobada</strong>
+                                </div>
+                            </div>
+                            
+                            {{-- Días a solicitar (hábiles) --}}
+                            <div id="days_info" class="hidden p-3 bg-gray-100 rounded-lg">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-600">Días hábiles a solicitar:</span>
+                                    <span id="days_count" class="font-bold text-gray-900 text-lg">0</span>
+                                </div>
+                                <div id="days_detail" class="text-xs text-gray-500 mt-1 hidden">
+                                    <span id="detail_total">0</span> días totales 
+                                    (<span id="detail_weekends">0</span> fines de semana, 
+                                    <span id="detail_holidays">0</span> feriados)
+                                </div>
                             </div>
                             
                             <div>
@@ -226,7 +251,7 @@
                                                     {{ \Carbon\Carbon::parse($request->start)->format('d/m/Y') }} - 
                                                     {{ \Carbon\Carbon::parse($request->end)->format('d/m/Y') }}
                                                     <span class="ml-2 px-2 py-0.5 bg-amber-200 text-amber-800 rounded text-xs">
-                                                        {{ $request->days }} días
+                                                        {{ $request->working_days }} días
                                                     </span>
                                                 </div>
                                             </div>
@@ -321,7 +346,7 @@
                                                     {{ \Carbon\Carbon::parse($vac->start)->format('d/m/Y') }} - 
                                                     {{ \Carbon\Carbon::parse($vac->end)->format('d/m/Y') }}
                                                     <span class="ml-2 px-2 py-0.5 bg-blue-200 text-blue-800 rounded text-xs">
-                                                        {{ $vac->days }} días
+                                                        {{ $vac->working_days }} días
                                                     </span>
                                                 </div>
                                             </div>
@@ -399,35 +424,60 @@
             const startDate = document.getElementById('start_date').value;
             const endDate = document.getElementById('end_date').value;
             const daysInfo = document.getElementById('days_info');
+            const daysDetail = document.getElementById('days_detail');
+            const pastNotice = document.getElementById('past_date_notice');
+            
+            // Verificar si es fecha pasada
+            if (startDate) {
+                const start = new Date(startDate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (start < today) {
+                    pastNotice.classList.remove('hidden');
+                } else {
+                    pastNotice.classList.add('hidden');
+                }
+            } else {
+                pastNotice.classList.add('hidden');
+            }
             
             if (startDate && endDate) {
-                const start = new Date(startDate);
-                const end = new Date(endDate);
-                const diffTime = end - start;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                
-                if (diffDays > 0) {
-                    document.getElementById('days_count').textContent = diffDays;
-                    daysInfo.classList.remove('hidden');
-                    
-                    // Verificar si excede los disponibles
-                    const select = document.getElementById('employee_select');
-                    if (select.value) {
-                        const option = select.options[select.selectedIndex];
-                        const available = parseInt(option.dataset.available);
-                        const daysSpan = document.getElementById('days_count');
-                        
-                        if (diffDays > available) {
-                            daysSpan.classList.add('text-red-600');
-                            daysSpan.classList.remove('text-gray-900');
-                        } else {
-                            daysSpan.classList.remove('text-red-600');
-                            daysSpan.classList.add('text-gray-900');
+                // Llamar API para calcular días hábiles
+                fetch(`/vacation/calculate-days?start=${startDate}&end=${endDate}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const workingDays = data.data.working;
+                            document.getElementById('days_count').textContent = workingDays;
+                            document.getElementById('detail_total').textContent = data.data.total;
+                            document.getElementById('detail_weekends').textContent = data.data.weekends;
+                            document.getElementById('detail_holidays').textContent = data.data.holidays;
+                            
+                            daysInfo.classList.remove('hidden');
+                            daysDetail.classList.remove('hidden');
+                            
+                            // Verificar si excede los disponibles
+                            const select = document.getElementById('employee_select');
+                            if (select.value) {
+                                const option = select.options[select.selectedIndex];
+                                const available = parseInt(option.dataset.available);
+                                const daysSpan = document.getElementById('days_count');
+                                
+                                if (workingDays > available) {
+                                    daysSpan.classList.add('text-red-600');
+                                    daysSpan.classList.remove('text-gray-900');
+                                } else {
+                                    daysSpan.classList.remove('text-red-600');
+                                    daysSpan.classList.add('text-gray-900');
+                                }
+                            }
                         }
-                    }
-                } else {
-                    daysInfo.classList.add('hidden');
-                }
+                    })
+                    .catch(error => {
+                        console.error('Error calculating days:', error);
+                        daysInfo.classList.add('hidden');
+                    });
             } else {
                 daysInfo.classList.add('hidden');
             }

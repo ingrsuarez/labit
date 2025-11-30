@@ -217,7 +217,7 @@
     <table>
         <tr>
             <td class="label-cell">TOTAL DÍAS SOLICITADOS:</td>
-            <td class="value-cell" style="width: 100px; text-align: center; font-weight: bold;">{{ $leave->days }}</td>
+            <td class="value-cell" style="width: 100px; text-align: center; font-weight: bold;">{{ $leave->working_days }}</td>
             <td class="label-cell">DÍAS DISPONIBLES:</td>
             <td class="value-cell" style="width: 100px; text-align: center;">{{ $availableDays }}</td>
         </tr>

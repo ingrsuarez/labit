@@ -186,7 +186,7 @@
                                                 {{ \Carbon\Carbon::parse($request->start)->format('d/m/Y') }} - 
                                                 {{ \Carbon\Carbon::parse($request->end)->format('d/m/Y') }}
                                                 <span class="ml-2 px-2 py-0.5 bg-amber-200 text-amber-800 rounded text-xs">
-                                                    {{ $request->days }} días
+                                                    {{ $request->working_days }} días
                                                 </span>
                                             </div>
                                             @if($request->employee->jobs->count())
@@ -256,7 +256,7 @@
                                         {{ \Carbon\Carbon::parse($vac->start)->format('d/m/Y') }} - 
                                         {{ \Carbon\Carbon::parse($vac->end)->format('d/m/Y') }}
                                         <span class="ml-2 px-2 py-0.5 bg-green-200 text-green-800 rounded text-xs">
-                                            {{ $vac->days }} días
+                                            {{ $vac->working_days }} días
                                         </span>
                                     </div>
                                 </div>

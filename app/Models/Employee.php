@@ -100,31 +100,39 @@ class Employee extends Model
     }
 
     /**
-     * Días de vacaciones usados en un año específico
+     * Días de vacaciones usados en un año específico (días hábiles)
      */
     public function getUsedVacationDays(int $year = null): int
     {
         $year = $year ?? now()->year;
 
-        return $this->leaves()
+        $leaves = $this->leaves()
             ->where('type', 'vacaciones')
             ->where('status', 'aprobado')
             ->whereYear('start', $year)
-            ->sum('days');
+            ->get();
+
+        return $leaves->sum(function ($leave) {
+            return $leave->working_days;
+        });
     }
 
     /**
-     * Días de vacaciones pendientes (solicitadas pero no aprobadas)
+     * Días de vacaciones pendientes (solicitadas pero no aprobadas) - días hábiles
      */
     public function getPendingVacationDays(int $year = null): int
     {
         $year = $year ?? now()->year;
 
-        return $this->leaves()
+        $leaves = $this->leaves()
             ->where('type', 'vacaciones')
             ->where('status', 'pendiente')
             ->whereYear('start', $year)
-            ->sum('days');
+            ->get();
+
+        return $leaves->sum(function ($leave) {
+            return $leave->working_days;
+        });
     }
 
     /**

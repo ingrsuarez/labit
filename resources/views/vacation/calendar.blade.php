@@ -246,7 +246,7 @@
                                              style="left: {{ $leftPercent }}%; width: {{ max($widthPercent, 2) }}%;"
                                              title="{{ $emp->lastName }} {{ $emp->name }}
 {{ $vStart->format('d/m') }} - {{ $vEnd->format('d/m') }}
-{{ $vac->days }} días - {{ ucfirst($vac->status) }}{{ $hasConflict ? '
+{{ $vac->working_days }} días - {{ ucfirst($vac->status) }}{{ $hasConflict ? '
 ⚠️ SUPERPOSICIÓN' : '' }}">
                                             @if($widthPercent > 8)
                                                 <span class="truncate px-1">{{ $vStart->format('d') }}-{{ $vEnd->format('d') }}</span>
@@ -356,7 +356,7 @@
                                         <div class="text-right">
                                             <span class="px-2 py-1 rounded text-xs font-bold
                                                 {{ $vac->status === 'aprobado' ? 'bg-green-500 text-white' : 'bg-amber-400 text-white' }}">
-                                                {{ $vac->days }} días
+                                                {{ $vac->working_days }} días
                                             </span>
                                         </div>
                                     </div>

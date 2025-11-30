@@ -70,6 +70,20 @@ class LeaveController extends Controller
 
         $resumes = $query->get();
 
+        // Recalcular días hábiles para vacaciones
+        foreach ($resumes as $resume) {
+            if ($resume->type === 'vacaciones') {
+                // Obtener las licencias individuales para calcular días hábiles
+                $vacaciones = Leave::where('employee_id', $resume->employee_id)
+                    ->where('type', 'vacaciones')
+                    ->whereYear('start', $resume->year)
+                    ->whereMonth('start', $resume->month)
+                    ->get();
+                
+                $resume->total_dias = $vacaciones->sum(fn($l) => $l->working_days);
+            }
+        }
+
         $employees = \App\Models\Employee::orderBy('lastName')
             ->get(['id','name','lastName','employeeId']); // agrega 'cuil' si existe
 
@@ -118,8 +132,20 @@ class LeaveController extends Controller
         $byEmpMonth = [];
         foreach ($leavesAgg as $row) {
             $ym = sprintf('%04d-%02d', $row->y, $row->m);
+            
+            // Recalcular días hábiles para vacaciones
+            $vacDays = 0;
+            if ($row->vac > 0) {
+                $vacaciones = Leave::where('employee_id', $row->employee_id)
+                    ->where('type', 'vacaciones')
+                    ->whereYear('start', $row->y)
+                    ->whereMonth('start', $row->m)
+                    ->get();
+                $vacDays = $vacaciones->sum(fn($l) => $l->working_days);
+            }
+            
             $byEmpMonth[$row->employee_id][$ym] = [
-                'vac'  => (int) $row->vac,
+                'vac'  => $vacDays,
                 'enf'  => (int) $row->enf,
                 'emb'  => (int) $row->emb,
                 'h50'  => (int) $row->h50,
@@ -294,8 +320,9 @@ class LeaveController extends Controller
         $month      = $request->input('month');
         $employeeId = $request->input('employee_id');
 
-        // Obtener novedades del período
+        // Obtener novedades del período y recalcular días hábiles para vacaciones
         $resumes = $this->getResumesQuery($year, $month, $employeeId)->get();
+        $resumes = $this->recalculateVacationDays($resumes);
 
         // Obtener todos los empleados (o uno específico si se filtró)
         $employeesQuery = Employee::query()->orderBy('lastName')->orderBy('name');
@@ -371,7 +398,9 @@ class LeaveController extends Controller
         $month      = $request->input('month');
         $employeeId = $request->input('employee_id');
 
+        // Recalcular días hábiles para vacaciones
         $resumes = $this->getResumesQuery($year, $month, $employeeId)->get();
+        $resumes = $this->recalculateVacationDays($resumes);
 
         $filename = 'novedades_liquidacion';
         if ($year && $month) {
@@ -422,5 +451,24 @@ class LeaveController extends Controller
             ->orderBy('year', 'desc')
             ->orderBy('month', 'desc')
             ->orderBy('employee');
+    }
+
+    /**
+     * Recalcular días hábiles para vacaciones en una colección de resúmenes
+     */
+    private function recalculateVacationDays($resumes)
+    {
+        foreach ($resumes as $resume) {
+            if ($resume->type === 'vacaciones') {
+                $vacaciones = Leave::where('employee_id', $resume->employee_id)
+                    ->where('type', 'vacaciones')
+                    ->whereYear('start', $resume->year)
+                    ->whereMonth('start', $resume->month)
+                    ->get();
+                
+                $resume->total_dias = $vacaciones->sum(fn($l) => $l->working_days);
+            }
+        }
+        return $resumes;
     }
 }

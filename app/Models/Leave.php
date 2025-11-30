@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Services\WorkingDaysService;
 
 class Leave extends Model
 {
@@ -73,5 +74,44 @@ class Leave extends Model
     public function scopeFuture($query)
     {
         return $query->where('start', '>=', now());
+    }
+
+    /**
+     * Obtener días hábiles (solo para vacaciones)
+     * Para otros tipos de licencia, devuelve días corridos
+     */
+    public function getWorkingDaysAttribute(): int
+    {
+        if (!$this->start || !$this->end) {
+            return 0;
+        }
+
+        // Solo vacaciones calculan días hábiles
+        if ($this->type === 'vacaciones') {
+            return WorkingDaysService::calculateWorkingDays($this->start, $this->end);
+        }
+
+        // Otros tipos: días corridos
+        return $this->start->diffInDays($this->end) + 1;
+    }
+
+    /**
+     * Obtener el detalle de días (total, hábiles, fines de semana, feriados)
+     */
+    public function getDaysDetailAttribute(): array
+    {
+        if (!$this->start || !$this->end) {
+            return ['total' => 0, 'working' => 0, 'weekends' => 0, 'holidays' => 0];
+        }
+
+        return WorkingDaysService::getDaysDetail($this->start, $this->end);
+    }
+
+    /**
+     * Días a usar para cálculos (hábiles para vacaciones, corridos para otros)
+     */
+    public function getEffectiveDaysAttribute(): int
+    {
+        return $this->working_days;
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Employee;
 use App\Models\Leave;
 use App\Models\User;
+use App\Services\WorkingDaysService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -133,14 +134,23 @@ class VacationController extends Controller
     {
         $validated = $request->validate([
             'employee_id' => 'required|exists:employees,id',
-            'start' => 'required|date|after_or_equal:today',
+            'start' => 'required|date',
             'end' => 'required|date|after_or_equal:start',
             'description' => 'nullable|string|max:500',
         ]);
         
         $start = Carbon::parse($validated['start']);
         $end = Carbon::parse($validated['end']);
-        $days = $start->diffInDays($end) + 1; // Incluir ambos días
+        
+        // Calcular días hábiles (excluye sábados, domingos y feriados)
+        $daysDetail = WorkingDaysService::getDaysDetail($start, $end);
+        $days = $daysDetail['working'];
+        
+        if ($days <= 0) {
+            return back()->withErrors([
+                'days' => 'El rango seleccionado no contiene días hábiles (solo fines de semana o feriados).'
+            ])->withInput();
+        }
         
         // Verificar días disponibles del empleado según ley argentina
         $employee = Employee::find($validated['employee_id']);
@@ -153,6 +163,10 @@ class VacationController extends Controller
             ])->withInput();
         }
         
+        // Si la fecha de inicio es pasada, aprobar automáticamente (registro histórico)
+        $isPastDate = $start->lt(now()->startOfDay());
+        $status = $isPastDate ? 'aprobado' : 'pendiente';
+        
         // 'days' y 'year' son columnas generadas automáticamente, no se incluyen en create
         $leave = Leave::create([
             'employee_id' => $validated['employee_id'],
@@ -160,14 +174,18 @@ class VacationController extends Controller
             'start' => $validated['start'],
             'end' => $validated['end'],
             'description' => $validated['description'] ?? '',
-            'status' => 'pendiente',
+            'status' => $status,
             'user_id' => auth()->id(),
-            'requested_at' => now(),
-            'signature_required' => true,
+            'approved_by' => $isPastDate ? auth()->id() : null,
+            'approved_at' => $isPastDate ? now() : null,
         ]);
         
+        $message = $isPastDate 
+            ? 'Vacaciones registradas y aprobadas automáticamente (fecha pasada).'
+            : 'Solicitud de vacaciones creada correctamente.';
+        
         return redirect()->route('vacation.index')
-            ->with('success', 'Solicitud de vacaciones creada correctamente.');
+            ->with('success', $message);
     }
 
     /**
@@ -390,6 +408,41 @@ class VacationController extends Controller
         }
         
         return $calendar;
+    }
+
+    /**
+     * API: Calcular días hábiles entre dos fechas
+     */
+    public function calculateWorkingDays(Request $request)
+    {
+        $request->validate([
+            'start' => 'required|date',
+            'end' => 'required|date|after_or_equal:start',
+        ]);
+
+        $start = Carbon::parse($request->start);
+        $end = Carbon::parse($request->end);
+        
+        $detail = WorkingDaysService::getDaysDetail($start, $end);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $detail,
+        ]);
+    }
+
+    /**
+     * Vista de gestión de feriados
+     */
+    public function holidays(Request $request)
+    {
+        $year = $request->input('year', now()->year);
+        
+        $holidays = \App\Models\Holiday::whereYear('date', $year)
+            ->orderBy('date')
+            ->get();
+        
+        return view('vacation.holidays', compact('holidays', 'year'));
     }
 }
 

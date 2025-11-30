@@ -55,12 +55,12 @@
                 {{-- Desde / Hasta --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Desde</label>
-                    <input type="date" name="start" value="{{ old('start', $leave->start) }}" required
+                    <input type="date" name="start" value="{{ old('start', $leave->start?->format('Y-m-d')) }}" required
                         class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Hasta</label>
-                    <input type="date" name="end" value="{{ old('end', $leave->end) }}" required
+                    <input type="date" name="end" value="{{ old('end', $leave->end?->format('Y-m-d')) }}" required
                         class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
                 </div>
 
