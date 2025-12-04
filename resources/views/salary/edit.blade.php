@@ -135,6 +135,14 @@
                                    class="rounded border-gray-300 text-amber-600 shadow-sm focus:ring-amber-500">
                             <span class="ml-2 text-sm text-gray-700">Requiere asignación individual</span>
                         </label>
+
+                        <label class="flex items-center" id="antiguedad_base_wrapper">
+                            <input type="checkbox" name="includes_in_antiguedad_base" value="1" 
+                                   {{ old('includes_in_antiguedad_base', $salaryItem->includes_in_antiguedad_base) ? 'checked' : '' }}
+                                   class="rounded border-gray-300 text-purple-600 shadow-sm focus:ring-purple-500">
+                            <span class="ml-2 text-sm text-gray-700">Se suma a la base de antigüedad</span>
+                            <span class="ml-1 text-xs text-purple-500" title="Si está marcado, este concepto se sumará al básico para calcular la antigüedad">ⓘ</span>
+                        </label>
                     </div>
 
                     @if($salaryItem->requires_assignment)

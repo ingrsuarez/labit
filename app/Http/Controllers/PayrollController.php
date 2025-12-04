@@ -162,8 +162,38 @@ class PayrollController extends Controller
             $totalHaberes += $totalHorasExtras;
         }
 
-        // 2. SEGUNDO: Calcular antigüedad sobre (básico + horas extras)
+        // 2. SEGUNDO: Calcular conceptos que afectan la base de antigüedad (ej: Adicional Título)
         $baseParaAntiguedad = $basicSalary + $totalHorasExtras;
+        $conceptosAntiguedad = [];
+        
+        // Buscar haberes que se incluyen en la base de antigüedad
+        $haberesAntiguedad = $haberes->where('includes_in_antiguedad_base', true);
+        foreach ($haberesAntiguedad as $haber) {
+            // Si requiere asignación, verificar que el empleado lo tenga
+            if ($haber->requires_assignment && !$employee->hasSalaryItem($haber->id)) {
+                continue;
+            }
+            
+            $importe = $this->calculateItem($haber, $basicSalary, $leaves);
+            if ($importe > 0) {
+                $conceptosAntiguedad[] = [
+                    'nombre' => $haber->name,
+                    'porcentaje' => $haber->calculation_type === 'percentage' ? $haber->value . '%' : null,
+                    'importe' => $importe,
+                    'tipo' => $haber->calculation_type,
+                    'remunerativo' => $haber->is_remunerative,
+                ];
+                $baseParaAntiguedad += $importe;
+                $totalHaberes += $importe;
+            }
+        }
+        
+        // Agregar conceptos que afectan antigüedad al listado de haberes
+        foreach ($conceptosAntiguedad as $concepto) {
+            $haberesCalculados[] = $concepto;
+        }
+        
+        // 3. TERCERO: Calcular antigüedad sobre (básico + horas extras + conceptos especiales)
         $antiguedad = $this->calculateAntiguedad($employee, $baseParaAntiguedad, $year, $month);
         
         if ($antiguedad > 0) {
@@ -176,7 +206,7 @@ class PayrollController extends Controller
             $totalHaberes += $antiguedad;
         }
 
-        // 3. TERCERO: Calcular haberes adicionales según su base de cálculo
+        // 4. CUARTO: Calcular haberes adicionales según su base de cálculo
         // Preparar las diferentes bases
         $bases = [
             'basic' => $basicSalary,
@@ -186,10 +216,18 @@ class PayrollController extends Controller
         ];
 
         // Separar haberes remunerativos y no remunerativos
-        $totalRemunerativo = $totalHaberes; // El básico, horas extras y antigüedad son remunerativos
+        $totalRemunerativo = $totalHaberes; // El básico, horas extras, conceptos especiales y antigüedad son remunerativos
         $totalNoRemunerativo = 0;
 
+        // IDs de haberes ya procesados (los que afectan la base de antigüedad)
+        $haberesYaProcesados = $haberesAntiguedad->pluck('id')->toArray();
+
         foreach ($haberes as $haber) {
+            // Saltar haberes que ya se procesaron (afectan base de antigüedad)
+            if (in_array($haber->id, $haberesYaProcesados)) {
+                continue;
+            }
+            
             // Si el concepto requiere asignación, verificar que el empleado lo tenga
             if ($haber->requires_assignment && !$employee->hasSalaryItem($haber->id)) {
                 continue; // Saltar este concepto si no está asignado al empleado

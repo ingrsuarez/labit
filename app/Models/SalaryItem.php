@@ -20,6 +20,7 @@ class SalaryItem extends Model
         'is_remunerative',
         'is_active',
         'requires_assignment', // Si requiere asignación individual a empleados
+        'includes_in_antiguedad_base', // Si se suma a la base para calcular antigüedad
         'applies_all_year',
         'recurrent_month',
         'specific_month',
