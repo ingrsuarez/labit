@@ -272,7 +272,7 @@ class PayrollController extends Controller
         // Subtotal total (incluye no remunerativo)
         $subtotal = $totalHaberes;
 
-        // Calcular deducciones - SIEMPRE sobre el BRUTO (total de haberes)
+        // Calcular deducciones - SOLO sobre el BRUTO REMUNERATIVO (excluye no remunerativos)
         $deduccionesCalculadas = [];
         $totalDeducciones = 0;
 
@@ -282,8 +282,8 @@ class PayrollController extends Controller
                 continue;
             }
             
-            // Las deducciones siempre se calculan sobre el BRUTO (total haberes)
-            $importe = $this->calculateItem($deduccion, $subtotal, $leaves);
+            // Las deducciones se calculan sobre el SUBTOTAL REMUNERATIVO (excluye no remunerativos)
+            $importe = $this->calculateItem($deduccion, $subtotalRemunerativo, $leaves);
             if ($importe > 0) {
                 $deduccionesCalculadas[] = [
                     'nombre' => $deduccion->name,
