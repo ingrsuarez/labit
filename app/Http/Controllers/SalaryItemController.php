@@ -44,7 +44,7 @@ class SalaryItemController extends Controller
             'type' => ['required', 'in:haber,deduccion'],
             'calculation_type' => ['required', 'in:percentage,fixed,hours'],
             'value' => ['required', 'numeric', 'min:0'],
-            'base' => ['nullable', 'string', 'max:100'],
+            'calculation_base' => ['nullable', 'string', 'in:basic,basic_antiguedad,basic_hours,basic_hours_antiguedad'],
             'is_remunerative' => ['nullable', 'boolean'],
             'is_active' => ['nullable', 'boolean'],
             'order' => ['nullable', 'integer', 'min:0'],
@@ -58,7 +58,7 @@ class SalaryItemController extends Controller
         $validated['is_remunerative'] = $request->has('is_remunerative');
         $validated['is_active'] = $request->has('is_active');
         $validated['requires_assignment'] = $request->has('requires_assignment');
-        $validated['base'] = $validated['base'] ?? 'basic_salary';
+        $validated['calculation_base'] = $request->input('calculation_base', 'basic_antiguedad');
         $validated['order'] = $validated['order'] ?? SalaryItem::max('order') + 1;
 
         // Procesar período de aplicación
@@ -96,7 +96,7 @@ class SalaryItemController extends Controller
             'type' => ['required', 'in:haber,deduccion'],
             'calculation_type' => ['required', 'in:percentage,fixed,hours'],
             'value' => ['required', 'numeric', 'min:0'],
-            'base' => ['nullable', 'string', 'max:100'],
+            'calculation_base' => ['nullable', 'string', 'in:basic,basic_antiguedad,basic_hours,basic_hours_antiguedad'],
             'is_remunerative' => ['nullable', 'boolean'],
             'is_active' => ['nullable', 'boolean'],
             'order' => ['nullable', 'integer', 'min:0'],
@@ -110,6 +110,7 @@ class SalaryItemController extends Controller
         $validated['is_remunerative'] = $request->has('is_remunerative');
         $validated['is_active'] = $request->has('is_active');
         $validated['requires_assignment'] = $request->has('requires_assignment');
+        $validated['calculation_base'] = $request->input('calculation_base', 'basic_antiguedad');
 
         // Procesar período de aplicación
         $periodType = $request->input('period_type', 'all_year');
