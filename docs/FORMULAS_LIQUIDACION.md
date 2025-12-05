@@ -95,6 +95,17 @@ Importe = Base de Cálculo × (Porcentaje / 100)
 Importe = Valor Fijo del Concepto
 ```
 
+### Conceptos por Monto Fijo Proporcional
+```
+Importe = Valor Fijo × (Horas Semanales Empleado / Horas Base Categoría)
+```
+
+**Ejemplo: Seguro de Fidelidad**
+- Valor fijo: $218.471,74
+- Empleado trabaja: 30 hs semanales
+- Categoría base: 48 hs semanales
+- Importe = $218.471,74 × (30 / 48) = **$136.544,84**
+
 ### Ejemplo: Zona 30%
 - Base: Básico + Antigüedad = $500.000 + $55.000 = $555.000
 - Zona 30% = $555.000 × 0.30 = **$166.500**

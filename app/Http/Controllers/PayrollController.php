@@ -174,7 +174,7 @@ class PayrollController extends Controller
                 continue;
             }
             
-            $importe = $this->calculateItem($haber, $basicSalary, $leaves);
+            $importe = $this->calculateItem($haber, $basicSalary, $leaves, $employee);
             if ($importe > 0) {
                 $conceptosAntiguedad[] = [
                     'nombre' => $haber->name,
@@ -245,7 +245,7 @@ class PayrollController extends Controller
                 }
             }
             
-            $importe = $customValue ?? $this->calculateItem($haber, $baseCalculo, $leaves);
+            $importe = $customValue ?? $this->calculateItem($haber, $baseCalculo, $leaves, $employee);
             if ($importe > 0) {
                 $haberesCalculados[] = [
                     'nombre' => $haber->name,
@@ -283,7 +283,7 @@ class PayrollController extends Controller
             }
             
             // Las deducciones se calculan sobre el SUBTOTAL REMUNERATIVO (excluye no remunerativos)
-            $importe = $this->calculateItem($deduccion, $subtotalRemunerativo, $leaves);
+            $importe = $this->calculateItem($deduccion, $subtotalRemunerativo, $leaves, $employee);
             if ($importe > 0) {
                 $deduccionesCalculadas[] = [
                     'nombre' => $deduccion->name,
@@ -393,14 +393,35 @@ class PayrollController extends Controller
     /**
      * Calcular el importe de un concepto
      */
-    private function calculateItem(SalaryItem $item, float $base, array $leaves): float
+    private function calculateItem(SalaryItem $item, float $base, array $leaves, ?Employee $employee = null): float
     {
         return match($item->calculation_type) {
             'percentage' => $base * ($item->value / 100),
             'fixed' => $item->value,
+            'fixed_proportional' => $this->calculateFixedProportional($item, $employee),
             'hours' => 0, // Las horas se calculan aparte
             default => 0,
         };
+    }
+
+    /**
+     * Calcular monto fijo proporcional según horas del empleado
+     */
+    private function calculateFixedProportional(SalaryItem $item, ?Employee $employee): float
+    {
+        if (!$employee) {
+            return $item->value;
+        }
+
+        $employeeHours = $employee->weekly_hours ?? 48;
+        $category = $employee->jobs->first()?->category;
+        $categoryHours = $category?->base_weekly_hours ?? 48;
+
+        if ($categoryHours <= 0) {
+            return $item->value;
+        }
+
+        return $item->value * ($employeeHours / $categoryHours);
     }
 
     /**

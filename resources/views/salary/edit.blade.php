@@ -61,6 +61,7 @@
                                 class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
                             <option value="percentage" {{ old('calculation_type', $salaryItem->calculation_type) === 'percentage' ? 'selected' : '' }}>Porcentaje (%)</option>
                             <option value="fixed" {{ old('calculation_type', $salaryItem->calculation_type) === 'fixed' ? 'selected' : '' }}>Monto Fijo ($)</option>
+                            <option value="fixed_proportional" {{ old('calculation_type', $salaryItem->calculation_type) === 'fixed_proportional' ? 'selected' : '' }}>Monto Fijo Proporcional</option>
                             <option value="hours" {{ old('calculation_type', $salaryItem->calculation_type) === 'hours' ? 'selected' : '' }}>Por Horas</option>
                         </select>
                     </div>
