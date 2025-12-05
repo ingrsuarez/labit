@@ -445,8 +445,8 @@ class PayrollController extends Controller
     private function calculateHorasExtras(Employee $employee, float $basicSalary, array $leaves): array
     {
         // Valor hora según CCT 108/75 FATSA-CADIME/CEDIM
-        // Divisor: 207 (48 hs semanales × 4.33 semanas = 207.84)
-        $valorHora = $basicSalary / 207;
+        // Divisor: 204 (48 hs semanales × 4.25 semanas = 204)
+        $valorHora = $basicSalary / 204;
 
         // 50% días hábiles, 100% feriados/fines de semana
         // Sin redondeo intermedio para mayor precisión
