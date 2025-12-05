@@ -226,8 +226,24 @@
                 </div>
             </div>
 
-            {{-- Botón de imprimir --}}
-            <div class="mt-4 flex justify-end gap-2">
+            {{-- Botones de acción --}}
+            <div class="mt-4 flex justify-end gap-2 print:hidden">
+                {{-- Guardar como borrador --}}
+                <form action="{{ route('payroll.store') }}" method="POST" class="inline">
+                    @csrf
+                    <input type="hidden" name="employee_id" value="{{ $selectedEmployee->id }}">
+                    <input type="hidden" name="year" value="{{ $filters['year'] }}">
+                    <input type="hidden" name="month" value="{{ $filters['month'] }}">
+                    <button type="submit" 
+                            class="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                        </svg>
+                        Guardar Liquidación
+                    </button>
+                </form>
+
+                {{-- Imprimir --}}
                 <button onclick="window.print()" 
                         class="inline-flex items-center px-4 py-2 rounded-lg bg-gray-600 text-white hover:bg-gray-700">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,6 +251,14 @@
                     </svg>
                     Imprimir
                 </button>
+            </div>
+            
+            {{-- Link a liquidaciones cerradas --}}
+            <div class="mt-3 text-right print:hidden">
+                <a href="{{ route('payroll.closed', ['year' => $filters['year'], 'month' => $filters['month']]) }}" 
+                   class="text-sm text-blue-600 hover:text-blue-800 hover:underline">
+                    Ver liquidaciones guardadas →
+                </a>
             </div>
         @else
             {{-- Estado vacío --}}

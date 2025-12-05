@@ -144,6 +144,16 @@ Route::middleware([
     // PAYROLL (Liquidación de Sueldos)
     Route::get('payroll/index', [App\Http\Controllers\PayrollController::class, 'index'])->name('payroll.index');
     Route::get('payroll/bulk', [App\Http\Controllers\PayrollController::class, 'bulk'])->name('payroll.bulk');
+    Route::get('payroll/closed', [App\Http\Controllers\PayrollController::class, 'closed'])->name('payroll.closed');
+    Route::post('payroll/store', [App\Http\Controllers\PayrollController::class, 'store'])->name('payroll.store');
+    Route::post('payroll/store-bulk', [App\Http\Controllers\PayrollController::class, 'storeBulk'])->name('payroll.storeBulk');
+    Route::get('payroll/{payroll}', [App\Http\Controllers\PayrollController::class, 'show'])->name('payroll.show');
+    Route::post('payroll/{payroll}/liquidar', [App\Http\Controllers\PayrollController::class, 'liquidar'])->name('payroll.liquidar');
+    Route::post('payroll/{payroll}/pagar', [App\Http\Controllers\PayrollController::class, 'pagar'])->name('payroll.pagar');
+    Route::post('payroll/{payroll}/reabrir', [App\Http\Controllers\PayrollController::class, 'reabrir'])->name('payroll.reabrir');
+    Route::delete('payroll/{payroll}', [App\Http\Controllers\PayrollController::class, 'destroy'])->name('payroll.destroy');
+    Route::post('payroll/liquidar-bulk', [App\Http\Controllers\PayrollController::class, 'liquidarBulk'])->name('payroll.liquidarBulk');
+    Route::post('payroll/pagar-bulk', [App\Http\Controllers\PayrollController::class, 'pagarBulk'])->name('payroll.pagarBulk');
 
     //VACATIONS (Gestión de Vacaciones)
     Route::get('vacation/index', [App\Http\Controllers\VacationController::class, 'index'])->name('vacation.index');

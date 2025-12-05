@@ -7,6 +7,8 @@ use App\Models\Employee;
 use App\Models\Category;
 use App\Models\SalaryItem;
 use App\Models\Leave;
+use App\Models\Payroll;
+use App\Models\PayrollItem;
 use Illuminate\Support\Carbon;
 
 class PayrollController extends Controller
@@ -506,6 +508,333 @@ class PayrollController extends Controller
                 'total_neto' => collect($payrolls)->sum('neto_a_cobrar'),
             ],
         ]);
+    }
+
+    /**
+     * Ver liquidaciones guardadas/cerradas
+     */
+    public function closed(Request $request)
+    {
+        $year = $request->input('year', now()->year);
+        $month = $request->input('month', now()->month);
+
+        $payrolls = Payroll::with(['employee', 'items'])
+            ->forPeriod($year, $month)
+            ->orderBy('employee_name')
+            ->get();
+
+        return view('payroll.closed', [
+            'payrolls' => $payrolls,
+            'year' => $year,
+            'month' => $month,
+            'totals' => [
+                'total_bruto' => $payrolls->sum('total_haberes'),
+                'total_deducciones' => $payrolls->sum('total_deducciones'),
+                'total_neto' => $payrolls->sum('neto_a_cobrar'),
+            ],
+        ]);
+    }
+
+    /**
+     * Guardar/Cerrar una liquidación individual
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'year' => 'required|integer',
+            'month' => 'required|integer|min:1|max:12',
+        ]);
+
+        $employee = Employee::with(['jobs.category'])->findOrFail($request->employee_id);
+        $year = $request->year;
+        $month = $request->month;
+
+        // Verificar si ya existe una liquidación para este período
+        $existing = Payroll::where('employee_id', $employee->id)
+            ->forPeriod($year, $month)
+            ->first();
+
+        if ($existing && $existing->isLiquidado()) {
+            return back()->with('error', 'Ya existe una liquidación cerrada para este período.');
+        }
+
+        // Calcular la liquidación actual
+        $payrollData = $this->calculatePayroll($employee, $year, $month);
+
+        // Crear o actualizar la liquidación
+        $payroll = Payroll::updateOrCreate(
+            [
+                'employee_id' => $employee->id,
+                'year' => $year,
+                'month' => $month,
+            ],
+            [
+                'period_label' => Carbon::createFromDate($year, $month, 1)->translatedFormat('F Y'),
+                'employee_name' => $payrollData['empleado']['nombre'],
+                'employee_cuil' => $payrollData['empleado']['cuil'],
+                'category_name' => $payrollData['empleado']['categoria'],
+                'position_name' => $employee->jobs->first()?->name,
+                'antiguedad_years' => $payrollData['empleado']['antiguedad_anos'],
+                'start_date' => $employee->start_date,
+                'salario_basico' => $payrollData['salario_basico'],
+                'total_haberes' => $payrollData['subtotal'],
+                'total_remunerativo' => $payrollData['total_remunerativo'],
+                'total_no_remunerativo' => $payrollData['total_no_remunerativo'],
+                'total_deducciones' => $payrollData['total_deducciones'],
+                'neto_a_cobrar' => $payrollData['neto_a_cobrar'],
+                'status' => 'borrador',
+                'created_by' => auth()->id(),
+            ]
+        );
+
+        // Eliminar items anteriores y crear nuevos
+        $payroll->items()->delete();
+
+        $order = 0;
+        foreach ($payrollData['haberes'] as $haber) {
+            $payroll->items()->create([
+                'type' => 'haber',
+                'name' => $haber['nombre'],
+                'percentage' => $haber['porcentaje'] ?? null,
+                'amount' => $haber['importe'],
+                'is_remunerative' => $haber['remunerativo'] ?? true,
+                'order' => $order++,
+            ]);
+        }
+
+        foreach ($payrollData['deducciones'] as $deduccion) {
+            $payroll->items()->create([
+                'type' => 'deduccion',
+                'name' => $deduccion['nombre'],
+                'percentage' => $deduccion['porcentaje'] ?? null,
+                'amount' => $deduccion['importe'],
+                'is_remunerative' => true,
+                'order' => $order++,
+            ]);
+        }
+
+        return back()->with('success', 'Liquidación guardada como borrador.');
+    }
+
+    /**
+     * Cerrar/Liquidar definitivamente
+     */
+    public function liquidar(Payroll $payroll)
+    {
+        if ($payroll->isLiquidado()) {
+            return back()->with('error', 'Esta liquidación ya está cerrada.');
+        }
+
+        $payroll->update([
+            'status' => 'liquidado',
+            'liquidated_at' => now(),
+            'approved_by' => auth()->id(),
+        ]);
+
+        return back()->with('success', 'Liquidación cerrada correctamente. Los montos han quedado fijos.');
+    }
+
+    /**
+     * Marcar como pagada
+     */
+    public function pagar(Payroll $payroll)
+    {
+        if ($payroll->isPagado()) {
+            return back()->with('error', 'Esta liquidación ya está marcada como pagada.');
+        }
+
+        if ($payroll->status === 'borrador') {
+            // Si es borrador, liquidar primero
+            $payroll->update([
+                'status' => 'pagado',
+                'liquidated_at' => $payroll->liquidated_at ?? now(),
+                'paid_at' => now(),
+                'approved_by' => auth()->id(),
+            ]);
+        } else {
+            $payroll->update([
+                'status' => 'pagado',
+                'paid_at' => now(),
+            ]);
+        }
+
+        return back()->with('success', 'Liquidación marcada como pagada.');
+    }
+
+    /**
+     * Reabrir una liquidación (solo si no está pagada)
+     */
+    public function reabrir(Payroll $payroll)
+    {
+        if ($payroll->isPagado()) {
+            return back()->with('error', 'No se puede reabrir una liquidación pagada.');
+        }
+
+        $payroll->update([
+            'status' => 'borrador',
+            'liquidated_at' => null,
+            'approved_by' => null,
+        ]);
+
+        return back()->with('success', 'Liquidación reabierta. Puede modificar los datos.');
+    }
+
+    /**
+     * Eliminar una liquidación (solo borradores)
+     */
+    public function destroy(Payroll $payroll)
+    {
+        if ($payroll->isLiquidado()) {
+            return back()->with('error', 'No se puede eliminar una liquidación cerrada o pagada.');
+        }
+
+        $payroll->delete();
+
+        return back()->with('success', 'Liquidación eliminada.');
+    }
+
+    /**
+     * Ver detalle de una liquidación cerrada
+     */
+    public function show(Payroll $payroll)
+    {
+        $payroll->load(['items', 'employee', 'createdBy', 'approvedBy']);
+
+        return view('payroll.show', [
+            'payroll' => $payroll,
+        ]);
+    }
+
+    /**
+     * Liquidación masiva - guardar todas
+     */
+    public function storeBulk(Request $request)
+    {
+        $request->validate([
+            'year' => 'required|integer',
+            'month' => 'required|integer|min:1|max:12',
+            'employee_ids' => 'required|array',
+            'employee_ids.*' => 'exists:employees,id',
+        ]);
+
+        $year = $request->year;
+        $month = $request->month;
+        $saved = 0;
+        $skipped = 0;
+
+        foreach ($request->employee_ids as $employeeId) {
+            // Verificar si ya existe una liquidación cerrada
+            $existing = Payroll::where('employee_id', $employeeId)
+                ->forPeriod($year, $month)
+                ->whereIn('status', ['liquidado', 'pagado'])
+                ->first();
+
+            if ($existing) {
+                $skipped++;
+                continue;
+            }
+
+            $employee = Employee::with(['jobs.category'])->find($employeeId);
+            if (!$employee) continue;
+
+            $payrollData = $this->calculatePayroll($employee, $year, $month);
+
+            $payroll = Payroll::updateOrCreate(
+                [
+                    'employee_id' => $employee->id,
+                    'year' => $year,
+                    'month' => $month,
+                ],
+                [
+                    'period_label' => Carbon::createFromDate($year, $month, 1)->translatedFormat('F Y'),
+                    'employee_name' => $payrollData['empleado']['nombre'],
+                    'employee_cuil' => $payrollData['empleado']['cuil'],
+                    'category_name' => $payrollData['empleado']['categoria'],
+                    'position_name' => $employee->jobs->first()?->name,
+                    'antiguedad_years' => $payrollData['empleado']['antiguedad_anos'],
+                    'start_date' => $employee->start_date,
+                    'salario_basico' => $payrollData['salario_basico'],
+                    'total_haberes' => $payrollData['subtotal'],
+                    'total_remunerativo' => $payrollData['total_remunerativo'],
+                    'total_no_remunerativo' => $payrollData['total_no_remunerativo'],
+                    'total_deducciones' => $payrollData['total_deducciones'],
+                    'neto_a_cobrar' => $payrollData['neto_a_cobrar'],
+                    'status' => 'borrador',
+                    'created_by' => auth()->id(),
+                ]
+            );
+
+            $payroll->items()->delete();
+
+            $order = 0;
+            foreach ($payrollData['haberes'] as $haber) {
+                $payroll->items()->create([
+                    'type' => 'haber',
+                    'name' => $haber['nombre'],
+                    'percentage' => $haber['porcentaje'] ?? null,
+                    'amount' => $haber['importe'],
+                    'is_remunerative' => $haber['remunerativo'] ?? true,
+                    'order' => $order++,
+                ]);
+            }
+
+            foreach ($payrollData['deducciones'] as $deduccion) {
+                $payroll->items()->create([
+                    'type' => 'deduccion',
+                    'name' => $deduccion['nombre'],
+                    'percentage' => $deduccion['porcentaje'] ?? null,
+                    'amount' => $deduccion['importe'],
+                    'is_remunerative' => true,
+                    'order' => $order++,
+                ]);
+            }
+
+            $saved++;
+        }
+
+        return back()->with('success', "Se guardaron {$saved} liquidaciones. {$skipped} omitidas (ya cerradas).");
+    }
+
+    /**
+     * Liquidar masivamente todas las liquidaciones en borrador
+     */
+    public function liquidarBulk(Request $request)
+    {
+        $request->validate([
+            'year' => 'required|integer',
+            'month' => 'required|integer|min:1|max:12',
+        ]);
+
+        $updated = Payroll::forPeriod($request->year, $request->month)
+            ->where('status', 'borrador')
+            ->update([
+                'status' => 'liquidado',
+                'liquidated_at' => now(),
+                'approved_by' => auth()->id(),
+            ]);
+
+        return back()->with('success', "Se cerraron {$updated} liquidaciones.");
+    }
+
+    /**
+     * Marcar como pagadas masivamente
+     */
+    public function pagarBulk(Request $request)
+    {
+        $request->validate([
+            'year' => 'required|integer',
+            'month' => 'required|integer|min:1|max:12',
+        ]);
+
+        $updated = Payroll::forPeriod($request->year, $request->month)
+            ->where('status', 'liquidado')
+            ->update([
+                'status' => 'pagado',
+                'paid_at' => now(),
+            ]);
+
+        return back()->with('success', "Se marcaron {$updated} liquidaciones como pagadas.");
     }
 }
 
