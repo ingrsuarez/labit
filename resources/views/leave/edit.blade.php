@@ -98,6 +98,20 @@
                     @endif
                 </div>
 
+                {{-- Justificada (solo para enfermedad) --}}
+                <div class="md:col-span-2 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" name="is_justified" value="1" 
+                               {{ old('is_justified', $leave->is_justified) ? 'checked' : '' }}
+                               class="rounded border-gray-300 text-amber-600 shadow-sm focus:ring-amber-500 w-5 h-5">
+                        <span class="ml-3 text-sm font-medium text-amber-800">Licencia Justificada</span>
+                    </label>
+                    <p class="mt-2 text-xs text-amber-700">
+                        <strong>Importante:</strong> Marcar esta opción indica que la licencia está justificada aunque no tenga certificado adjunto. 
+                        En la liquidación se contará como <strong>días de enfermedad</strong> (se pagan) en lugar de <strong>inasistencia</strong> (no se pagan).
+                    </p>
+                </div>
+
                 {{-- Botón --}}
                 <div class="md:col-span-2 flex justify-end">
                     <button class="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">

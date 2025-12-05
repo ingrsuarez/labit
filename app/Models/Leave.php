@@ -23,6 +23,7 @@ class Leave extends Model
         'file',
         'user_id',
         'status',
+        'is_justified', // Licencia justificada manualmente (se paga aunque no tenga certificado)
         'approved_by',
         'approved_at',
         'rejection_reason',
@@ -38,6 +39,7 @@ class Leave extends Model
         'requested_at' => 'datetime',
         'signed_at' => 'datetime',
         'signature_required' => 'boolean',
+        'is_justified' => 'boolean',
     ];
 
     public function employee()

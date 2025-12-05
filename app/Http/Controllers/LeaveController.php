@@ -213,6 +213,7 @@ class LeaveController extends Controller
         $leave->hour_50     = $validated['hour_50'] ?? null;
         $leave->hour_100    = $validated['hour_100'] ?? null;
         $leave->status      = 'revision';
+        $leave->is_justified = $request->has('is_justified');
 
         // Guardar certificado (imagen)
         if ($request->hasFile('file')) {
@@ -259,6 +260,7 @@ class LeaveController extends Controller
         $leave->hour_100    = $validated['hour_100'] ?? 0;
         $leave->description = $validated['description'];
         $leave->user_id = auth()->id();
+        $leave->is_justified = $request->has('is_justified');
 
         // Si se sube un nuevo archivo, lo reemplaza
         if ($request->hasFile('file')) {

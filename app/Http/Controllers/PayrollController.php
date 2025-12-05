@@ -369,17 +369,17 @@ class PayrollController extends Controller
             ->whereMonth('start', $month)
             ->get();
 
-        // Separar licencias por enfermedad: válidas (con certificado y aprobadas) vs inasistencias
+        // Separar licencias por enfermedad: válidas (justificadas o con certificado y aprobadas) vs inasistencias
         $enfermedadLeaves = $leaves->where('type', 'enfermedad');
         
-        // Días de enfermedad válidos: con archivo Y aprobado
+        // Días de enfermedad válidos: justificada O (con archivo Y aprobado)
         $diasEnfermedadValidos = $enfermedadLeaves
-            ->filter(fn($l) => !empty($l->file) && $l->status === 'aprobado')
+            ->filter(fn($l) => $l->is_justified || (!empty($l->file) && $l->status === 'aprobado'))
             ->sum(fn($l) => $l->days ?? (Carbon::parse($l->end)->diffInDays(Carbon::parse($l->start)) + 1));
         
-        // Días de inasistencia: sin archivo O no aprobado
+        // Días de inasistencia: NO justificada Y (sin archivo O no aprobado)
         $diasInasistencia = $enfermedadLeaves
-            ->filter(fn($l) => empty($l->file) || $l->status !== 'aprobado')
+            ->filter(fn($l) => !$l->is_justified && (empty($l->file) || $l->status !== 'aprobado'))
             ->sum(fn($l) => $l->days ?? (Carbon::parse($l->end)->diffInDays(Carbon::parse($l->start)) + 1));
 
         return [
