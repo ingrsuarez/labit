@@ -20,6 +20,7 @@ class SalaryItem extends Model
         'is_remunerative',
         'is_active',
         'requires_assignment', // Si requiere asignación individual a empleados
+        'hide_percentage_in_receipt', // Ocultar el porcentaje en el recibo (ej: acuerdos internos)
         'includes_in_antiguedad_base', // Si se suma a la base para calcular antigüedad
         'applies_all_year',
         'recurrent_month',
@@ -34,6 +35,7 @@ class SalaryItem extends Model
         'is_remunerative' => 'boolean',
         'is_active' => 'boolean',
         'requires_assignment' => 'boolean',
+        'hide_percentage_in_receipt' => 'boolean',
         'applies_all_year' => 'boolean',
     ];
 

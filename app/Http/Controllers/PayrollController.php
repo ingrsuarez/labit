@@ -180,7 +180,7 @@ class PayrollController extends Controller
             if ($importe > 0) {
                 $conceptosAntiguedad[] = [
                     'nombre' => $haber->name,
-                    'porcentaje' => $haber->calculation_type === 'percentage' ? $haber->value . '%' : null,
+                    'porcentaje' => ($haber->calculation_type === 'percentage' && !$haber->hide_percentage_in_receipt) ? $haber->value . '%' : null,
                     'importe' => $importe,
                     'tipo' => $haber->calculation_type,
                     'remunerativo' => $haber->is_remunerative,
@@ -251,7 +251,7 @@ class PayrollController extends Controller
             if ($importe > 0) {
                 $haberesCalculados[] = [
                     'nombre' => $haber->name,
-                    'porcentaje' => $haber->calculation_type === 'percentage' ? $haber->value . '%' : null,
+                    'porcentaje' => ($haber->calculation_type === 'percentage' && !$haber->hide_percentage_in_receipt) ? $haber->value . '%' : null,
                     'importe' => $importe,
                     'tipo' => $haber->calculation_type,
                     'remunerativo' => $haber->is_remunerative,
@@ -289,7 +289,7 @@ class PayrollController extends Controller
             if ($importe > 0) {
                 $deduccionesCalculadas[] = [
                     'nombre' => $deduccion->name,
-                    'porcentaje' => $deduccion->calculation_type === 'percentage' ? $deduccion->value . '%' : null,
+                    'porcentaje' => ($deduccion->calculation_type === 'percentage' && !$deduccion->hide_percentage_in_receipt) ? $deduccion->value . '%' : null,
                     'importe' => $importe,
                     'tipo' => $deduccion->calculation_type,
                 ];

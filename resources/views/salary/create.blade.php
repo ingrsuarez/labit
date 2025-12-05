@@ -143,6 +143,14 @@
                         </label>
 
                         <label class="flex items-center">
+                            <input type="checkbox" name="hide_percentage_in_receipt" value="1" 
+                                   {{ old('hide_percentage_in_receipt') ? 'checked' : '' }}
+                                   class="rounded border-gray-300 text-rose-600 shadow-sm focus:ring-rose-500">
+                            <span class="ml-2 text-sm text-gray-700">Ocultar % en recibo</span>
+                            <span class="ml-1 text-xs text-gray-500" title="No mostrar el porcentaje en el recibo de sueldo (ej: acuerdos internos)">(confidencial)</span>
+                        </label>
+
+                        <label class="flex items-center">
                             <input type="checkbox" name="includes_in_antiguedad_base" value="1" 
                                    {{ old('includes_in_antiguedad_base') ? 'checked' : '' }}
                                    class="rounded border-gray-300 text-purple-600 shadow-sm focus:ring-purple-500">

@@ -34,6 +34,8 @@ class SalaryItemsSeeder extends Seeder
                 'value' => 15.2,
                 'is_remunerative' => true,
                 'is_active' => true,
+                'requires_assignment' => true,
+                'hide_percentage_in_receipt' => true, // Acuerdo interno de la empresa
                 'order' => 2,
             ],
             [

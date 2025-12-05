@@ -58,6 +58,7 @@ class SalaryItemController extends Controller
         $validated['is_remunerative'] = $request->has('is_remunerative');
         $validated['is_active'] = $request->has('is_active');
         $validated['requires_assignment'] = $request->has('requires_assignment');
+        $validated['hide_percentage_in_receipt'] = $request->has('hide_percentage_in_receipt');
         $validated['includes_in_antiguedad_base'] = $request->has('includes_in_antiguedad_base');
         $validated['calculation_base'] = $request->input('calculation_base', 'basic_antiguedad');
         $validated['order'] = $validated['order'] ?? SalaryItem::max('order') + 1;
@@ -111,6 +112,7 @@ class SalaryItemController extends Controller
         $validated['is_remunerative'] = $request->has('is_remunerative');
         $validated['is_active'] = $request->has('is_active');
         $validated['requires_assignment'] = $request->has('requires_assignment');
+        $validated['hide_percentage_in_receipt'] = $request->has('hide_percentage_in_receipt');
         $validated['includes_in_antiguedad_base'] = $request->has('includes_in_antiguedad_base');
         $validated['calculation_base'] = $request->input('calculation_base', 'basic_antiguedad');
 
