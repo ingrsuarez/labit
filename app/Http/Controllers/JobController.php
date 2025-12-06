@@ -13,10 +13,10 @@ class JobController extends Controller
 {
     public function list()
     {
-        $jobs = Job::with('category')->get();
+        $jobs = Job::with(['category', 'employees', 'childs', 'parent'])->get();
         $categories = Category::all();
 
-        return view('job.list',compact('jobs','categories'));
+        return view('job.list', compact('jobs', 'categories'));
     }
 
     public function new()
