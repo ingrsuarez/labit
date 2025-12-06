@@ -11,41 +11,40 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
         <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <!-- Styles -->
         @livewireStyles
     </head>
-    <body class="font-sans antialiased bg-gray-300">
+    <body class="font-sans antialiased bg-gray-100">
         <x-banner />
 
-        <div class="min-h-fit h-max bg-gray-300">
-            @livewire('navigation-menu')
-            
-            <!-- Page Heading -->
-            @if (isset($header))
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div class="min-h-screen flex">
+            <!-- Sidebar Administrativo -->
+            @include('admin.partials.sidebar')
+
+            <!-- Contenido Principal -->
+            <div class="flex-1 flex flex-col md:ml-64">
+                <!-- Header -->
+                @include('admin.partials.header')
+
+                <!-- Page Heading -->
+                @if (isset($header))
+                    <div class="bg-white shadow-sm border-b px-6 py-4">
                         {{ $header }}
                     </div>
-                </header>
-            @endif
+                @endif
 
-            <!-- Page Content -->
-            <main class="h-full">
-
-                    <div>@livewire('side-bar')</div>
-                    <div class="absolute top-20 md:ml-64">{{ $slot }}</div>
-                    
-                {{-- </div> --}}
-                
-            </main>
+                <!-- Page Content -->
+                <main class="flex-1">
+                    {{ $slot }}
+                </main>
+            </div>
         </div>
 
         @stack('modals')
-        <script src="/livewire/livewire.js" data-turbo-eval="false" data-turbolinks-eval="false"></script>
-
-        {{-- @livewireScripts --}}
+        @livewireScripts
     </body>
 </html>

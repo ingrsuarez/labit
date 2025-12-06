@@ -24,11 +24,24 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::get('/access-pending', function () {
-        // Si el usuario ya tiene acceso, redirigir al dashboard
         $user = auth()->user();
-        if ($user->employee || $user->roles->count() > 0 || $user->permissions->count() > 0) {
+        
+        // Roles que solo dan acceso al portal
+        $portalOnlyRoles = ['empleado', 'employee'];
+        $userRoles = $user->roles->pluck('name')->map(fn($r) => strtolower($r))->toArray();
+        
+        // Si tiene roles administrativos (no solo empleado), ir al dashboard
+        $hasAdminRoles = !empty(array_diff($userRoles, $portalOnlyRoles));
+        if ($hasAdminRoles || $user->permissions->count() > 0) {
             return redirect()->route('dashboard');
         }
+        
+        // Si tiene empleado asociado, ir al portal
+        if ($user->employee) {
+            return redirect()->route('portal.dashboard');
+        }
+        
+        // Mostrar página de acceso pendiente
         return view('auth.access-pending');
     })->name('access.pending');
 });
@@ -294,11 +307,23 @@ Route::middleware([
     Route::post('permission/generate-module',[App\Http\Controllers\PermissionController::class, 'generateForModule'])
         // ->middleware('can:permission.generate')
         ->name('permission.generateModule');
+});
 
-    // EMPLOYEE PORTAL (Vista para usuarios con empleado asociado)
-    Route::prefix('portal')->name('portal.')->middleware('has.employee')->group(function () {
-        Route::get('/', [App\Http\Controllers\EmployeePortalController::class, 'dashboard'])->name('dashboard');
-        Route::get('/team', [App\Http\Controllers\EmployeePortalController::class, 'team'])->name('team');
-        Route::get('/directory', [App\Http\Controllers\EmployeePortalController::class, 'directory'])->name('directory');
-    });
+// EMPLOYEE PORTAL (Vista para usuarios con empleado asociado)
+// IMPORTANTE: Debe estar FUERA del middleware check.access para evitar loops
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'verified',
+    'has.employee',
+])->prefix('portal')->name('portal.')->group(function () {
+    Route::get('/', [App\Http\Controllers\EmployeePortalController::class, 'dashboard'])->name('dashboard');
+    Route::get('/team', [App\Http\Controllers\EmployeePortalController::class, 'team'])->name('team');
+    Route::get('/directory', [App\Http\Controllers\EmployeePortalController::class, 'directory'])->name('directory');
+    
+    // Solicitudes
+    Route::get('/requests', [App\Http\Controllers\EmployeePortalController::class, 'requests'])->name('requests');
+    Route::post('/requests/vacation', [App\Http\Controllers\EmployeePortalController::class, 'storeVacationRequest'])->name('requests.vacation');
+    Route::post('/requests/leave', [App\Http\Controllers\EmployeePortalController::class, 'storeLeaveRequest'])->name('requests.leave');
+    Route::delete('/requests/{leave}/cancel', [App\Http\Controllers\EmployeePortalController::class, 'cancelRequest'])->name('requests.cancel');
 });

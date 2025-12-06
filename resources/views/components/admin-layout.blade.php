@@ -1,3 +1,5 @@
+@props(['title' => 'Panel Administrativo'])
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
@@ -5,7 +7,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'IPAC') }} - Administración</title>
+        <title>{{ config('app.name', 'Laravel') }} - {{ $title }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -31,7 +33,7 @@
                 @include('admin.partials.header')
 
                 <!-- Page Content -->
-                <main class="flex-1 p-6">
+                <main class="flex-1">
                     {{ $slot }}
                 </main>
             </div>

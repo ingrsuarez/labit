@@ -21,7 +21,8 @@ class HasEmployee
         }
 
         if (!$user->employee) {
-            return redirect()->route('dashboard')
+            // Redirigir a access.pending en lugar de dashboard para evitar loops
+            return redirect()->route('access.pending')
                 ->with('error', 'No tienes un empleado asociado a tu cuenta. Contacta al administrador.');
         }
 

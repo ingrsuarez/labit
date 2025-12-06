@@ -18,8 +18,10 @@ class EmployeePortalController extends Controller
         $user = Auth::user();
         $employee = $user->employee;
 
+        // Esta verificación es redundante si has.employee middleware está activo,
+        // pero la dejamos por seguridad, redirigiendo a access.pending
         if (!$employee) {
-            return redirect()->route('dashboard')
+            return redirect()->route('access.pending')
                 ->with('error', 'No tienes un empleado asociado a tu cuenta.');
         }
 
@@ -27,7 +29,9 @@ class EmployeePortalController extends Controller
         
         // Calcular antigüedad
         $startDate = $employee->start_date ? Carbon::parse($employee->start_date) : null;
-        $antiguedad = $startDate ? $startDate->diffInYears(now()) : 0;
+        $antiguedadExacta = $startDate ? $startDate->floatDiffInYears(now()) : 0;
+        $antiguedad = number_format($antiguedadExacta, 1, ',', '.'); // Un solo decimal, formato español
+        $antiguedadPorcentaje = number_format(min($antiguedadExacta * 2, 70), 1); // Porcentaje con un decimal
         $antiguedadMeses = $startDate ? $startDate->diff(now())->format('%y años, %m meses') : '—';
         
         // Obtener categoría del empleado
@@ -59,6 +63,7 @@ class EmployeePortalController extends Controller
         return view('portal.dashboard', compact(
             'employee', 
             'antiguedad',
+            'antiguedadPorcentaje',
             'antiguedadMeses',
             'category',
             'leavesSummary',
@@ -78,7 +83,7 @@ class EmployeePortalController extends Controller
         $employee = $user->employee;
 
         if (!$employee) {
-            return redirect()->route('dashboard')
+            return redirect()->route('access.pending')
                 ->with('error', 'No tienes un empleado asociado a tu cuenta.');
         }
 
@@ -143,7 +148,7 @@ class EmployeePortalController extends Controller
         $employee = $user->employee;
 
         if (!$employee) {
-            return redirect()->route('dashboard')
+            return redirect()->route('access.pending')
                 ->with('error', 'No tienes un empleado asociado a tu cuenta.');
         }
 
@@ -194,6 +199,180 @@ class EmployeePortalController extends Controller
             'upcomingVacations',
             'isSupervisor'
         ));
+    }
+
+    /**
+     * Vista de solicitudes (vacaciones y licencias del empleado)
+     */
+    public function requests(Request $request)
+    {
+        $user = Auth::user();
+        $employee = $user->employee;
+
+        if (!$employee) {
+            return redirect()->route('access.pending')
+                ->with('error', 'No tienes un empleado asociado a tu cuenta.');
+        }
+
+        $tab = $request->get('tab', 'vacations');
+        $year = $request->get('year', now()->year);
+
+        // Resumen de vacaciones
+        $vacationSummary = $employee->getVacationSummary($year);
+
+        // Solicitudes de vacaciones del empleado
+        $vacationRequests = Leave::where('employee_id', $employee->id)
+            ->where('type', 'vacaciones')
+            ->whereYear('start', $year)
+            ->orderByDesc('start')
+            ->get();
+
+        // Otras licencias del empleado
+        $otherLeaves = Leave::where('employee_id', $employee->id)
+            ->where('type', '!=', 'vacaciones')
+            ->whereYear('start', $year)
+            ->orderByDesc('start')
+            ->get();
+
+        // Tipos de licencia disponibles
+        $leaveTypes = [
+            'enfermedad' => 'Enfermedad',
+            'maternidad' => 'Maternidad',
+            'paternidad' => 'Paternidad',
+            'estudio' => 'Estudio',
+            'mudanza' => 'Mudanza',
+            'fallecimiento' => 'Fallecimiento familiar',
+            'matrimonio' => 'Matrimonio',
+            'otro' => 'Otro',
+        ];
+
+        return view('portal.requests', compact(
+            'employee',
+            'tab',
+            'year',
+            'vacationSummary',
+            'vacationRequests',
+            'otherLeaves',
+            'leaveTypes'
+        ));
+    }
+
+    /**
+     * Crear solicitud de vacaciones desde el portal
+     */
+    public function storeVacationRequest(Request $request)
+    {
+        $user = Auth::user();
+        $employee = $user->employee;
+
+        if (!$employee) {
+            return redirect()->route('access.pending');
+        }
+
+        $validated = $request->validate([
+            'start' => 'required|date|after_or_equal:today',
+            'end' => 'required|date|after_or_equal:start',
+            'description' => 'nullable|string|max:500',
+        ]);
+
+        $start = Carbon::parse($validated['start']);
+        $end = Carbon::parse($validated['end']);
+
+        // Calcular días hábiles
+        $workingDays = 0;
+        $current = $start->copy();
+        while ($current <= $end) {
+            if (!$current->isWeekend()) {
+                $workingDays++;
+            }
+            $current->addDay();
+        }
+
+        if ($workingDays <= 0) {
+            return back()->withErrors([
+                'days' => 'El rango seleccionado no contiene días hábiles.'
+            ])->withInput();
+        }
+
+        // Verificar días disponibles
+        $availableDays = $employee->getAvailableVacationDays($start->year);
+        
+        if ($workingDays > $availableDays) {
+            return back()->withErrors([
+                'days' => "Solo tienes {$availableDays} días disponibles. Solicitaste {$workingDays} días."
+            ])->withInput();
+        }
+
+        // Crear la solicitud
+        Leave::create([
+            'employee_id' => $employee->id,
+            'type' => 'vacaciones',
+            'start' => $validated['start'],
+            'end' => $validated['end'],
+            'description' => $validated['description'] ?? 'Solicitud desde portal del empleado',
+            'status' => 'pendiente',
+            'user_id' => $user->id,
+        ]);
+
+        return redirect()->route('portal.requests')
+            ->with('success', 'Solicitud de vacaciones enviada correctamente. Será revisada por tu supervisor.');
+    }
+
+    /**
+     * Crear solicitud de licencia desde el portal
+     */
+    public function storeLeaveRequest(Request $request)
+    {
+        $user = Auth::user();
+        $employee = $user->employee;
+
+        if (!$employee) {
+            return redirect()->route('access.pending');
+        }
+
+        $validated = $request->validate([
+            'type' => 'required|string|in:enfermedad,maternidad,paternidad,estudio,mudanza,fallecimiento,matrimonio,otro',
+            'start' => 'required|date',
+            'end' => 'required|date|after_or_equal:start',
+            'description' => 'required|string|max:500',
+        ]);
+
+        // Crear la solicitud
+        Leave::create([
+            'employee_id' => $employee->id,
+            'type' => $validated['type'],
+            'start' => $validated['start'],
+            'end' => $validated['end'],
+            'description' => $validated['description'],
+            'status' => 'pendiente',
+            'user_id' => $user->id,
+        ]);
+
+        return redirect()->route('portal.requests', ['tab' => 'leaves'])
+            ->with('success', 'Solicitud de licencia enviada correctamente.');
+    }
+
+    /**
+     * Cancelar una solicitud pendiente
+     */
+    public function cancelRequest(Leave $leave)
+    {
+        $user = Auth::user();
+        $employee = $user->employee;
+
+        // Verificar que la solicitud pertenece al empleado
+        if (!$employee || $leave->employee_id !== $employee->id) {
+            return back()->withErrors(['error' => 'No puedes cancelar esta solicitud.']);
+        }
+
+        // Solo se pueden cancelar solicitudes pendientes
+        if ($leave->status !== 'pendiente') {
+            return back()->withErrors(['error' => 'Solo puedes cancelar solicitudes pendientes.']);
+        }
+
+        $leave->update(['status' => 'cancelado']);
+
+        return back()->with('success', 'Solicitud cancelada correctamente.');
     }
 
     /**

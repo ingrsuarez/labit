@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-portal-layout title="Mi Perfil">
     <div class="py-6 px-4 sm:px-6 lg:px-8">
         <div class="max-w-6xl mx-auto">
             {{-- Header --}}
@@ -196,7 +196,7 @@
                         <div class="mt-4 pt-4 border-t border-emerald-400/30">
                             <div class="flex justify-between text-sm">
                                 <span class="text-emerald-100">Porcentaje:</span>
-                                <span class="font-semibold">{{ min($antiguedad * 2, 70) }}%</span>
+                                <span class="font-semibold">{{ $antiguedadPorcentaje }}%</span>
                             </div>
                         </div>
                     </div>
@@ -330,4 +330,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-portal-layout>

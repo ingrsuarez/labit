@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-portal-layout title="Directorio">
     <div class="py-6 px-4 sm:px-6 lg:px-8">
         <div class="max-w-6xl mx-auto">
             {{-- Header --}}
@@ -301,4 +301,4 @@
             @endif
         </div>
     </div>
-</x-app-layout>
+</x-portal-layout>

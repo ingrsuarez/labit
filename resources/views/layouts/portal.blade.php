@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'IPAC') }} - Administración</title>
+        <title>{{ config('app.name', 'Laravel') }} - Portal del Empleado</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -22,13 +22,13 @@
         <x-banner />
 
         <div class="min-h-screen flex">
-            <!-- Sidebar Administrativo -->
-            @include('admin.partials.sidebar')
+            <!-- Sidebar del Portal -->
+            @include('portal.partials.sidebar')
 
             <!-- Contenido Principal -->
             <div class="flex-1 flex flex-col md:ml-64">
-                <!-- Header -->
-                @include('admin.partials.header')
+                <!-- Header del Portal -->
+                @include('portal.partials.header')
 
                 <!-- Page Content -->
                 <main class="flex-1 p-6">
