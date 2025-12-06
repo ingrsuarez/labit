@@ -57,15 +57,15 @@ class DashboardController extends Controller
             });
         $promedioAntiguedad = round($promedioAntiguedad ?? 0, 1);
 
-        // Costo de nómina del último mes (si hay payrolls)
-        $ultimoMesPagado = Payroll::where('status', 'pagado')
+        // Costo de nómina del último mes (si hay payrolls liquidados o pagados)
+        $ultimoMesPagado = Payroll::whereIn('status', ['liquidado', 'pagado'])
             ->orderByDesc('year')
             ->orderByDesc('month')
             ->first();
         
         $costoNomina = 0;
         if ($ultimoMesPagado) {
-            $costoNomina = Payroll::where('status', 'pagado')
+            $costoNomina = Payroll::whereIn('status', ['liquidado', 'pagado'])
                 ->where('year', $ultimoMesPagado->year)
                 ->where('month', $ultimoMesPagado->month)
                 ->sum('neto_a_cobrar');
