@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Job;
+use App\Models\User;
 use Carbon\Carbon;
 
 class Employee extends Model
@@ -33,11 +34,72 @@ class Employee extends Model
         'status',
     ];
 
+    /**
+     * Usuario asociado al empleado
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
     public function jobs()
     {
         return $this->belongsToMany(\App\Models\Job::class, 'job_employee', 'employee_id', 'job_id')
             ->withPivot('user_id')
             ->withTimestamps();
+    }
+
+    /**
+     * Verificar si el empleado es supervisor (tiene puestos con subordinados)
+     */
+    public function isSupervisor(): bool
+    {
+        foreach ($this->jobs as $job) {
+            if ($job->childs()->exists()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Obtener todos los empleados subordinados (directos e indirectos)
+     */
+    public function getSubordinates(): \Illuminate\Support\Collection
+    {
+        $subordinates = collect();
+        
+        foreach ($this->jobs as $job) {
+            $subordinates = $subordinates->merge($this->getSubordinatesFromJob($job));
+        }
+        
+        return $subordinates->unique('id');
+    }
+
+    /**
+     * Obtener empleados subordinados de un puesto específico (recursivo)
+     */
+    protected function getSubordinatesFromJob(Job $job): \Illuminate\Support\Collection
+    {
+        $subordinates = collect();
+        
+        foreach ($job->childs as $childJob) {
+            // Agregar empleados del puesto hijo
+            $subordinates = $subordinates->merge($childJob->employees);
+            
+            // Recursivamente obtener subordinados de puestos inferiores
+            $subordinates = $subordinates->merge($this->getSubordinatesFromJob($childJob));
+        }
+        
+        return $subordinates;
+    }
+
+    /**
+     * Obtener nombre completo del empleado
+     */
+    public function getFullNameAttribute(): string
+    {
+        return "{$this->name} {$this->lastName}";
     }
 
     public function leaves()

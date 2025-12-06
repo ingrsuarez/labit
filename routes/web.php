@@ -17,10 +17,28 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Ruta para usuarios sin acceso (debe estar fuera del middleware check.access)
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
     'verified',
+])->group(function () {
+    Route::get('/access-pending', function () {
+        // Si el usuario ya tiene acceso, redirigir al dashboard
+        $user = auth()->user();
+        if ($user->employee || $user->roles->count() > 0 || $user->permissions->count() > 0) {
+            return redirect()->route('dashboard');
+        }
+        return view('auth.access-pending');
+    })->name('access.pending');
+});
+
+// Rutas protegidas que requieren acceso al sistema
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'verified',
+    'check.access',
 ])->group(function () {
     
     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
@@ -202,47 +220,85 @@ Route::middleware([
         ->name('user.save');
         
 
+    // TODO: Agregar middleware de permisos cuando estén configurados
     Route::get('users/attach/role',[App\Http\Controllers\UserController::class, 'attachRole'])
-        ->middleware('can:role.new')
+        // ->middleware('can:role.new')
         ->name('role.attach');
     Route::get('users/detach/role',[App\Http\Controllers\UserController::class, 'detachRole'])
-        ->middleware('can:role.new')
+        // ->middleware('can:role.new')
         ->name('role.detach');
+    Route::post('users/sync-roles',[App\Http\Controllers\UserController::class, 'syncRoles'])
+        // ->middleware('can:role.new')
+        ->name('user.syncRoles');
 
     //ROLES
+    // TODO: Reactivar middleware cuando estén configurados los permisos iniciales
 
     Route::get('role/new',[App\Http\Controllers\RoleController::class, 'new'])
-        ->middleware('can:role.new')
+        // ->middleware('can:role.new')
         ->name('role.new');
 
     Route::post('role/store',[App\Http\Controllers\RoleController::class, 'store'])
-        ->middleware('can:role.store')
+        // ->middleware('can:role.store')
         ->name('role.store');
 
     Route::post('role/update',[App\Http\Controllers\RoleController::class, 'update'])
-        ->middleware('can:role.store')
+        // ->middleware('can:role.store')
         ->name('role.update');
 
     Route::get('role/edit/{role}',[App\Http\Controllers\RoleController::class, 'edit'])->name('role.edit');
     
+    Route::delete('role/destroy/{role}',[App\Http\Controllers\RoleController::class, 'destroy'])
+        // ->middleware('can:role.delete')
+        ->name('role.destroy');
+
     Route::get('role/permission/attach/{role}/{permission}',[App\Http\Controllers\RoleController::class, 'attachPermission'])
-        ->middleware('can:role.attachPermission')
+        // ->middleware('can:role.attachPermission')
         ->name('role.attachPermission');
     
     Route::get('role/permission/detach/{role}/{permission}',[App\Http\Controllers\RoleController::class, 'detachPermission'])
-        ->middleware('can:role.detachPermission')
+        // ->middleware('can:role.detachPermission')
         ->name('role.detachPermission');
+
     //PERMISSION
+    // TODO: Reactivar middleware cuando estén configurados los permisos iniciales
 
     Route::get('permission/new',[App\Http\Controllers\PermissionController::class, 'new'])
-        ->middleware('can:permission.new')
+        // ->middleware('can:permission.new')
         ->name('permission.new');
 
     Route::post('permission/store',[App\Http\Controllers\PermissionController::class, 'store'])
-        ->middleware('can:permission.store')
+        // ->middleware('can:permission.store')
         ->name('permission.store');
 
     Route::get('permission/edit/{permission}',[App\Http\Controllers\PermissionController::class, 'edit'])
-        ->middleware('can:permission.new')
-        ->name('permission.edit');    
+        // ->middleware('can:permission.edit')
+        ->name('permission.edit');
+
+    Route::put('permission/update/{permission}',[App\Http\Controllers\PermissionController::class, 'update'])
+        // ->middleware('can:permission.update')
+        ->name('permission.update');
+
+    Route::delete('permission/destroy/{permission}',[App\Http\Controllers\PermissionController::class, 'destroy'])
+        // ->middleware('can:permission.destroy')
+        ->name('permission.destroy');
+
+    Route::post('permission/attach-role/{permission}/{role}',[App\Http\Controllers\PermissionController::class, 'attachRole'])
+        // ->middleware('can:permission.attachRole')
+        ->name('permission.attachRole');
+
+    Route::delete('permission/detach-role/{permission}/{role}',[App\Http\Controllers\PermissionController::class, 'detachRole'])
+        // ->middleware('can:permission.detachRole')
+        ->name('permission.detachRole');
+
+    Route::post('permission/generate-module',[App\Http\Controllers\PermissionController::class, 'generateForModule'])
+        // ->middleware('can:permission.generate')
+        ->name('permission.generateModule');
+
+    // EMPLOYEE PORTAL (Vista para usuarios con empleado asociado)
+    Route::prefix('portal')->name('portal.')->middleware('has.employee')->group(function () {
+        Route::get('/', [App\Http\Controllers\EmployeePortalController::class, 'dashboard'])->name('dashboard');
+        Route::get('/team', [App\Http\Controllers\EmployeePortalController::class, 'team'])->name('team');
+        Route::get('/directory', [App\Http\Controllers\EmployeePortalController::class, 'directory'])->name('directory');
+    });
 });

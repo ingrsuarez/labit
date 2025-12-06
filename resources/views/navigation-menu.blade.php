@@ -2,11 +2,11 @@
     <!-- Primary Navigation Menu -->
     <div class="px-4 sm:px-6">
         <div class="flex justify-between h-16 ">
-            <div class="flex place-content-start">
+            <div class="flex place-content-start items-center">
                 <!-- Logo -->
-                <div class="shrink-0 flex">
-                    <a href="{{ route('dashboard') }}">
-                        <x-application-mark class="h-14 w-auto" />
+                <div class="shrink-0 flex items-center h-full">
+                    <a href="{{ route('dashboard') }}" class="flex items-center h-full py-1">
+                        <x-application-mark class="h-full w-auto max-h-14" />
                     </a>
                 </div>
 
@@ -112,6 +112,12 @@
                             <x-dropdown-link href="{{ route('profile.show') }}">
                                 {{ __('Profile') }}
                             </x-dropdown-link>
+
+                            @if(Auth::user()->employee)
+                                <x-dropdown-link href="{{ route('portal.dashboard') }}">
+                                    Mi Portal de Empleado
+                                </x-dropdown-link>
+                            @endif
 
                             @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
                                 <x-dropdown-link href="{{ route('api-tokens.index') }}">

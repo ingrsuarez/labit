@@ -13,6 +13,14 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
+        $user = Auth::user();
+
+        // Si el usuario solo tiene empleado asociado (sin roles administrativos),
+        // redirigir al portal de empleados
+        if ($user->employee && $user->roles->count() === 0 && $user->permissions->count() === 0) {
+            return redirect()->route('portal.dashboard');
+        }
+
         // Filtros
         $q       = trim($request->input('q', ''));
         $status  = $request->input('status', '');
