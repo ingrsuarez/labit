@@ -185,6 +185,7 @@ Route::middleware([
     Route::delete('payroll/{payroll}', [App\Http\Controllers\PayrollController::class, 'destroy'])->name('payroll.destroy');
     Route::post('payroll/liquidar-bulk', [App\Http\Controllers\PayrollController::class, 'liquidarBulk'])->name('payroll.liquidarBulk');
     Route::post('payroll/pagar-bulk', [App\Http\Controllers\PayrollController::class, 'pagarBulk'])->name('payroll.pagarBulk');
+    Route::get('payroll/{payroll}/pdf', [App\Http\Controllers\PayrollController::class, 'downloadPdf'])->name('payroll.pdf');
 
     //VACATIONS (Gestión de Vacaciones)
     Route::get('vacation/index', [App\Http\Controllers\VacationController::class, 'index'])->name('vacation.index');

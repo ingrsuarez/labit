@@ -87,3 +87,4 @@ class EmployeeRoleSeeder extends Seeder
         $this->command->info('✓ Rol "supervisor" creado con ' . count($supervisorPermissions) . ' permisos');
     }
 }
+

@@ -41,3 +41,4 @@
         @livewireScripts
     </body>
 </html>
+

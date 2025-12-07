@@ -836,5 +836,32 @@ class PayrollController extends Controller
 
         return back()->with('success', "Se marcaron {$updated} liquidaciones como pagadas.");
     }
+
+    /**
+     * Descargar recibo en PDF
+     */
+    public function downloadPdf(Payroll $payroll)
+    {
+        $payroll->load(['haberes', 'deducciones', 'approvedBy', 'employee']);
+        
+        // Nombre del archivo: recibo-mesaño-nombreempleado.pdf
+        $mesNombre = Carbon::createFromDate($payroll->year, $payroll->month, 1)
+            ->locale('es')
+            ->isoFormat('MMMM');
+        
+        // Limpiar el nombre del empleado para el archivo
+        $nombreEmpleado = str_replace(' ', '_', $payroll->employee_name);
+        $nombreEmpleado = preg_replace('/[^A-Za-z0-9_]/', '', $nombreEmpleado);
+        
+        $filename = "recibo-{$mesNombre}{$payroll->year}-{$nombreEmpleado}.pdf";
+        
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payroll.pdf', [
+            'payroll' => $payroll,
+        ]);
+        
+        $pdf->setPaper('A4', 'portrait');
+        
+        return $pdf->download($filename);
+    }
 }
 

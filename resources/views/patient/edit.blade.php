@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-lab-layout>
   
     @if (session('error'))
       <div class="bg-white pb-4 px-2 rounded-lg shadow-lg">
@@ -168,4 +168,4 @@
   </form>
         
 
-</x-app-layout>
+</x-lab-layout>

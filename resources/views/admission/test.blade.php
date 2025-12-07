@@ -1,5 +1,5 @@
-<x-app-layout>
+<x-lab-layout>
     
 
     @livewire('analysis-search')
-</x-app-layout>
+</x-lab-layout>

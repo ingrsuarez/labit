@@ -61,3 +61,4 @@ class CheckSystemAccess
         return redirect()->route('access.pending');
     }
 }
+

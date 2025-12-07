@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-lab-layout>
     
     
 
@@ -209,4 +209,4 @@
     </script>
                   
   
-</x-app-layout>
+</x-lab-layout>

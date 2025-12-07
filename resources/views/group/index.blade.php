@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-lab-layout>
   
     
     <form class="ml-4 md:ml-6" action="{{route('group.store')}}" method="POST">
@@ -94,4 +94,4 @@
     </form>
           
   
-</x-app-layout>
+</x-lab-layout>

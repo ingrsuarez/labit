@@ -31,7 +31,25 @@
 
         {{-- Recibo --}}
         <div class="bg-white rounded-xl shadow-lg overflow-hidden" id="recibo-content">
-            {{-- Header --}}
+            {{-- Header con Logo --}}
+            <div class="p-4 border-b flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    @if(file_exists(public_path('images/logo.png')))
+                        <img src="{{ asset('images/logo.png') }}" alt="Logo" class="h-12">
+                    @else
+                        <x-application-mark class="h-12 w-auto" />
+                    @endif
+                    <div>
+                        <p class="font-bold text-gray-800">{{ config('app.name', 'Labit') }}</p>
+                        <p class="text-xs text-gray-500">Administración</p>
+                    </div>
+                </div>
+                <div class="text-right text-sm text-gray-500">
+                    <p>{{ now()->format('d/m/Y H:i') }}</p>
+                </div>
+            </div>
+            
+            {{-- Título --}}
             <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6">
                 <div class="flex justify-between items-start">
                     <div>
@@ -203,6 +221,9 @@
                 </form>
             @endif
             
+            <a href="{{ route('payroll.pdf', $payroll) }}" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 inline-flex items-center">
+                📄 Descargar PDF
+            </a>
             <button onclick="window.print()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
                 🖨️ Imprimir
             </button>

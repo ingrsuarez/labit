@@ -180,7 +180,7 @@ class DashboardController extends Controller
                     $cumpleEsteAno->addYear();
                 }
                 
-                $diasParaCumple = $hoy->diffInDays($cumpleEsteAno, false);
+                $diasParaCumple = (int) $hoy->diffInDays($cumpleEsteAno, false);
                 
                 return [
                     'employee' => $emp,

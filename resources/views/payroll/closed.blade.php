@@ -98,39 +98,39 @@
             </div>
 
             {{-- Tabla de liquidaciones --}}
-            <div class="bg-white rounded-xl shadow overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200">
+            <div class="bg-white rounded-xl shadow overflow-x-auto">
+                <table class="w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Empleado</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Bruto</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Deducciones</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Neto</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Estado</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Empleado</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
+                            <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase">Bruto</th>
+                            <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase">Deducciones</th>
+                            <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase">Neto</th>
+                            <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">Estado</th>
+                            <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">Acciones</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach($payrolls as $payroll)
                             <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="font-medium text-gray-900">{{ $payroll->employee_name }}</div>
-                                    <div class="text-sm text-gray-500">{{ $payroll->employee_cuil }}</div>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <div class="font-medium text-gray-900 text-sm">{{ $payroll->employee_name }}</div>
+                                    <div class="text-xs text-gray-500">{{ $payroll->employee_cuil }}</div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                                     {{ $payroll->category_name }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
+                                <td class="px-3 py-3 whitespace-nowrap text-right text-sm font-medium text-gray-900">
                                     ${{ number_format($payroll->total_haberes, 2, ',', '.') }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-red-600">
+                                <td class="px-3 py-3 whitespace-nowrap text-right text-sm text-red-600">
                                     -${{ number_format($payroll->total_deducciones, 2, ',', '.') }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-green-600">
+                                <td class="px-3 py-3 whitespace-nowrap text-right text-sm font-bold text-green-600">
                                     ${{ number_format($payroll->neto_a_cobrar, 2, ',', '.') }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <td class="px-3 py-3 whitespace-nowrap text-center">
                                     @if($payroll->status === 'borrador')
                                         <span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
                                             Borrador
@@ -145,7 +145,7 @@
                                         </span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <td class="px-3 py-3 whitespace-nowrap text-center">
                                     <div class="flex justify-center gap-1">
                                         {{-- Ver detalle --}}
                                         <a href="{{ route('payroll.show', $payroll) }}" 

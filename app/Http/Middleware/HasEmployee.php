@@ -29,3 +29,4 @@ class HasEmployee
         return $next($request);
     }
 }
+

@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-lab-layout>
   
     
     <form class="mx-4 w-fit" action="{{route('test.store')}}" method="POST">
@@ -82,4 +82,4 @@
 
 
     </form>
-</x-app-layout>
+</x-lab-layout>
