@@ -64,10 +64,13 @@ Route::middleware([
 
     Route::post('/patient/store',[App\Http\Controllers\PatientController::class, 'store'])->name('patient.store');
 
-    // TEST ROUTES
-    Route::get('/tests/new',[App\Http\Controllers\TestController::class, 'index'])->name('tests.index');
-
-    Route::post('tests/store',[App\Http\Controllers\TestController::class, 'store'])->name('test.store');
+    // TEST ROUTES (Determinaciones)
+    Route::get('/tests',[App\Http\Controllers\TestController::class, 'index'])->name('tests.index');
+    Route::get('/tests/create',[App\Http\Controllers\TestController::class, 'create'])->name('tests.create');
+    Route::post('/tests',[App\Http\Controllers\TestController::class, 'store'])->name('test.store');
+    Route::get('/tests/{test}/edit',[App\Http\Controllers\TestController::class, 'edit'])->name('tests.edit')->where('test', '[0-9]+');
+    Route::put('/tests/{test}',[App\Http\Controllers\TestController::class, 'update'])->name('tests.update')->where('test', '[0-9]+');
+    Route::delete('/tests/{test}',[App\Http\Controllers\TestController::class, 'destroy'])->name('tests.destroy')->where('test', '[0-9]+');
 
     // ADMISSION
     Route::get('/admission/new',[App\Http\Controllers\AdmissionController::class, 'index'])->name('admission.index');
@@ -84,6 +87,24 @@ Route::middleware([
     Route::get('/group/new/{current_patient?}',[App\Http\Controllers\GroupController::class, 'index'])->name('group.index');
 
     Route::post('group/store',[App\Http\Controllers\GroupController::class, 'store'])->name('group.store');
+
+    // SAMPLES (Muestras de Agua y Alimentos)
+    Route::get('sample', [App\Http\Controllers\SampleController::class, 'index'])->name('sample.index');
+    Route::get('sample/create', [App\Http\Controllers\SampleController::class, 'create'])->name('sample.create');
+    Route::post('sample', [App\Http\Controllers\SampleController::class, 'store'])->name('sample.store');
+    Route::get('sample/{sample}', [App\Http\Controllers\SampleController::class, 'show'])->name('sample.show');
+    Route::get('sample/{sample}/edit', [App\Http\Controllers\SampleController::class, 'edit'])->name('sample.edit');
+    Route::put('sample/{sample}', [App\Http\Controllers\SampleController::class, 'update'])->name('sample.update');
+    Route::post('sample/{sample}/determination', [App\Http\Controllers\SampleController::class, 'addDetermination'])->name('sample.addDetermination');
+    Route::delete('sample/{sample}/determination/{determination}', [App\Http\Controllers\SampleController::class, 'removeDetermination'])->name('sample.removeDetermination');
+    Route::put('sample/determination/{determination}', [App\Http\Controllers\SampleController::class, 'updateDetermination'])->name('sample.updateDetermination');
+
+    // CUSTOMERS (Clientes)
+    Route::get('customer', [App\Http\Controllers\CustomerController::class, 'index'])->name('customer.index');
+    Route::get('customer/create', [App\Http\Controllers\CustomerController::class, 'create'])->name('customer.create');
+    Route::post('customer', [App\Http\Controllers\CustomerController::class, 'store'])->name('customer.store');
+    Route::get('customer/{customer}/edit', [App\Http\Controllers\CustomerController::class, 'edit'])->name('customer.edit');
+    Route::put('customer/{customer}', [App\Http\Controllers\CustomerController::class, 'update'])->name('customer.update');
 
     //MANAGMENT
     Route::get('manage/index',[App\Http\Controllers\ManageController::class, 'index'])->name('manage.index');
