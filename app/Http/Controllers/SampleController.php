@@ -509,25 +509,40 @@ class SampleController extends Controller
 
     /**
      * Actualiza el estado de validación del protocolo basado en sus determinaciones
+     * - Validado: TODAS las determinaciones están validadas
+     * - Completo: Todos los resultados cargados O algunas validadas  
+     * - Incompleto: No tiene todas las determinaciones con resultado
      */
     private function updateSampleValidationStatus(Sample $sample)
     {
         $sample->refresh();
         
+        $total = $sample->determinations()->count();
         $totalCompleted = $sample->determinations()->where('status', 'completed')->count();
         $totalValidated = $sample->determinations()->where('is_validated', true)->count();
 
-        if ($totalValidated > 0) {
-            // Si hay al menos una determinación validada, el protocolo está validado
+        // Determinar validation_status
+        if ($total > 0 && $totalValidated === $total) {
+            // TODAS validadas = Validado
             $sample->update([
                 'validation_status' => 'validated',
+                'status' => 'completed',
                 'validated_by' => $sample->validated_by ?? auth()->id(),
                 'validated_at' => $sample->validated_at ?? now(),
             ]);
+        } elseif ($totalValidated > 0 || $totalCompleted === $total) {
+            // Algunas validadas O todas completadas = Completo (parcialmente validado)
+            $sample->update([
+                'validation_status' => $totalValidated > 0 ? 'partial' : 'pending',
+                'status' => 'completed',
+                'validated_by' => $totalValidated > 0 ? ($sample->validated_by ?? auth()->id()) : null,
+                'validated_at' => $totalValidated > 0 ? ($sample->validated_at ?? now()) : null,
+            ]);
         } else {
-            // Si no hay ninguna validada, volver a pendiente
+            // Incompleto
             $sample->update([
                 'validation_status' => 'pending',
+                'status' => $totalCompleted > 0 ? 'in_progress' : 'pending',
                 'validated_by' => null,
                 'validated_at' => null,
             ]);

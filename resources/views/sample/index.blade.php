@@ -122,12 +122,16 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
+                                @php
+                                    $calcStatus = $sample->calculated_status;
+                                @endphp
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                    @switch($sample->status)
-                                        @case('pending') bg-yellow-100 text-yellow-800 @break
-                                        @case('in_progress') bg-blue-100 text-blue-800 @break
-                                        @case('completed') bg-green-100 text-green-800 @break
-                                        @case('cancelled') bg-red-100 text-red-800 @break
+                                    @switch($calcStatus)
+                                        @case('validated') bg-green-100 text-green-800 @break
+                                        @case('completed') bg-blue-100 text-blue-800 @break
+                                        @case('incomplete') bg-yellow-100 text-yellow-800 @break
+                                        @case('pending') bg-gray-100 text-gray-800 @break
+                                        @default bg-gray-100 text-gray-800 @break
                                     @endswitch">
                                     {{ $sample->status_label }}
                                 </span>

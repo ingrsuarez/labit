@@ -96,14 +96,48 @@ class Sample extends Model
     }
 
     /**
+     * Calcula el estado real del protocolo basado en determinaciones
+     * - Validado: TODAS las determinaciones están validadas
+     * - Completo: Todos los resultados cargados O algunas validadas
+     * - Incompleto: No tiene todas las determinaciones con resultado
+     */
+    public function getCalculatedStatusAttribute(): string
+    {
+        $total = $this->determinations->count();
+        if ($total === 0) {
+            return 'pending';
+        }
+
+        $completed = $this->determinations->where('status', 'completed')->count();
+        $validated = $this->determinations->where('is_validated', true)->count();
+
+        // Todas validadas = Validado
+        if ($validated === $total && $total > 0) {
+            return 'validated';
+        }
+
+        // Todas completadas O algunas validadas = Completo
+        if ($completed === $total || $validated > 0) {
+            return 'completed';
+        }
+
+        // No todas completadas = Incompleto
+        return 'incomplete';
+    }
+
+    /**
      * Obtiene el estado en español
      */
     public function getStatusLabelAttribute(): string
     {
-        return match($this->status) {
+        $calculated = $this->calculated_status;
+        
+        return match($calculated) {
+            'validated' => 'Validado',
+            'completed' => 'Completo',
+            'incomplete' => 'Incompleto',
             'pending' => 'Pendiente',
             'in_progress' => 'En Proceso',
-            'completed' => 'Completado',
             'cancelled' => 'Cancelado',
             default => $this->status,
         };
@@ -114,10 +148,14 @@ class Sample extends Model
      */
     public function getStatusColorAttribute(): string
     {
-        return match($this->status) {
+        $calculated = $this->calculated_status;
+        
+        return match($calculated) {
+            'validated' => 'green',
+            'completed' => 'blue',
+            'incomplete' => 'yellow',
             'pending' => 'yellow',
             'in_progress' => 'blue',
-            'completed' => 'green',
             'cancelled' => 'red',
             default => 'gray',
         };
@@ -137,7 +175,8 @@ class Sample extends Model
     public function getValidationStatusLabelAttribute(): string
     {
         return match($this->validation_status) {
-            'pending' => 'Pendiente de validación',
+            'pending' => 'Sin validar',
+            'partial' => 'Parcialmente validado',
             'validated' => 'Validado',
             'rejected' => 'Rechazado',
             default => $this->validation_status ?? 'Pendiente',
@@ -150,7 +189,8 @@ class Sample extends Model
     public function getValidationStatusColorAttribute(): string
     {
         return match($this->validation_status) {
-            'pending' => 'yellow',
+            'pending' => 'gray',
+            'partial' => 'blue',
             'validated' => 'green',
             'rejected' => 'red',
             default => 'gray',
@@ -158,11 +198,19 @@ class Sample extends Model
     }
 
     /**
-     * Verifica si el protocolo está validado
+     * Verifica si el protocolo está completamente validado (todas las determinaciones)
      */
     public function isValidated(): bool
     {
         return $this->validation_status === 'validated';
+    }
+
+    /**
+     * Verifica si tiene al menos una determinación validada
+     */
+    public function hasValidatedDeterminations(): bool
+    {
+        return $this->determinations->where('is_validated', true)->count() > 0;
     }
 
     /**
