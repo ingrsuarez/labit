@@ -79,32 +79,58 @@
                 <!-- Lista de determinaciones en formato vertical con jerarquía -->
                 @php
                     // Ordenar determinaciones: padres primero, luego hijos
+                    // Soporta múltiples padres (tabla pivote test_parents)
                     $orderedDeterminations = collect();
-                    $processed = [];
+                    $processedAsParent = [];
+                    $processedAsChild = [];
                     
-                    foreach ($sample->determinations as $det) {
-                        if (in_array($det->id, $processed)) continue;
+                    // Función para verificar si un test es padre de otro
+                    $isParentOf = function($parentDet, $childDet) {
+                        $childTest = $childDet->test;
+                        $parentTestId = $parentDet->test_id;
                         
-                        // Si no tiene padre o su padre no está en la muestra
-                        if (!$det->test->parent) {
-                            $orderedDeterminations->push(['det' => $det, 'isChild' => false]);
-                            $processed[] = $det->id;
+                        // Verificar relación legacy
+                        if ($childTest->parent == $parentTestId) return true;
+                        
+                        // Verificar relación tabla pivote
+                        if ($childTest->parentTests && $childTest->parentTests->contains('id', $parentTestId)) return true;
+                        
+                        return false;
+                    };
+                    
+                    // Identificar tests que son padres en esta muestra
+                    $parentTestIds = [];
+                    foreach ($sample->determinations as $det) {
+                        $allChildren = $det->test->getAllChildren();
+                        $childIdsInSample = $allChildren->pluck('id')->intersect($sample->determinations->pluck('test_id'));
+                        if ($childIdsInSample->count() > 0) {
+                            $parentTestIds[] = $det->test_id;
+                        }
+                    }
+                    
+                    // Procesar padres y sus hijos
+                    foreach ($sample->determinations as $det) {
+                        if (in_array($det->id, $processedAsParent)) continue;
+                        
+                        if (in_array($det->test_id, $parentTestIds)) {
+                            $orderedDeterminations->push(['det' => $det, 'isChild' => false, 'isParent' => true]);
+                            $processedAsParent[] = $det->id;
                             
-                            // Buscar hijos
+                            // Agregar hijos de este padre
                             foreach ($sample->determinations as $child) {
-                                if ($child->test->parent == $det->test_id && !in_array($child->id, $processed)) {
-                                    $orderedDeterminations->push(['det' => $child, 'isChild' => true]);
-                                    $processed[] = $child->id;
+                                if ($isParentOf($det, $child) && !in_array($child->id, $processedAsParent)) {
+                                    $orderedDeterminations->push(['det' => $child, 'isChild' => true, 'isParent' => false]);
+                                    $processedAsChild[] = $child->id;
                                 }
                             }
                         }
                     }
                     
-                    // Agregar huérfanos
+                    // Agregar determinaciones huérfanas (sin padre en esta muestra)
                     foreach ($sample->determinations as $det) {
-                        if (!in_array($det->id, $processed)) {
-                            $isChild = $det->test->parent ? true : false;
-                            $orderedDeterminations->push(['det' => $det, 'isChild' => $isChild]);
+                        if (!in_array($det->id, $processedAsParent) && !in_array($det->id, $processedAsChild)) {
+                            $hasParents = $det->test->parent || ($det->test->parentTests && $det->test->parentTests->count() > 0);
+                            $orderedDeterminations->push(['det' => $det, 'isChild' => $hasParents, 'isParent' => false]);
                         }
                     }
                 @endphp
@@ -114,7 +140,7 @@
                         @php 
                             $det = $item['det'];
                             $isChild = $item['isChild'];
-                            $isParentWithChildren = !$isChild && $sample->determinations->where('test.parent', $det->test_id)->count() > 0;
+                            $isParentWithChildren = $item['isParent'] ?? false;
                         @endphp
                         <div class="p-4 hover:bg-gray-50 transition-colors {{ $det->status === 'completed' ? 'bg-green-50' : '' }} {{ $isChild ? 'pl-10 border-l-4 border-teal-200' : '' }}" 
                              id="det-block-{{ $index }}">
@@ -154,18 +180,87 @@
 
                             <!-- Campos en grid para entrada rápida -->
                             @if($isParentWithChildren)
-                                {{-- Determinación padre: solo lectura, su estado depende de los hijos --}}
-                                {{-- No se incluye en el formulario, no hay campos editables --}}
-                                <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                    <div class="flex items-center text-sm text-gray-600">
-                                        <svg class="w-5 h-5 mr-2 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        <span>Este grupo contiene subdeterminaciones. El estado se actualiza automáticamente según los resultados de cada una.</span>
+                                {{-- Determinación padre: selector de categoría de valores de referencia --}}
+                                @php
+                                    // Obtener los IDs de los hijos de este padre en esta muestra
+                                    $childTestIds = $det->test->getAllChildren()->pluck('id');
+                                    $childDeterminations = $sample->determinations->whereIn('test_id', $childTestIds);
+                                    
+                                    // Obtener todas las categorías disponibles que tienen valores de referencia para los hijos
+                                    $availableCategories = collect();
+                                    foreach ($childDeterminations as $childDet) {
+                                        if ($childDet->test->referenceValues) {
+                                            foreach ($childDet->test->referenceValues as $refVal) {
+                                                if ($refVal->category && !$availableCategories->contains('id', $refVal->category->id)) {
+                                                    $availableCategories->push($refVal->category);
+                                                }
+                                            }
+                                        }
+                                    }
+                                @endphp
+                                <div class="bg-teal-50 rounded-lg p-4 border border-teal-200">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex items-center text-sm text-teal-700 mb-3">
+                                            <svg class="w-5 h-5 mr-2 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                            </svg>
+                                            <span class="font-medium">Valores de referencia según normativa:</span>
+                                        </div>
                                     </div>
+                                    
+                                    @if($availableCategories->count() > 0)
+                                        <div class="flex items-center gap-3">
+                                            <select class="parent-category-select flex-1 rounded-lg border-teal-300 focus:border-teal-500 focus:ring-teal-500 text-sm font-medium"
+                                                    data-parent-id="{{ $det->test_id }}"
+                                                    onchange="applyParentCategory(this)">
+                                                <option value="">-- Seleccionar normativa --</option>
+                                                @foreach($availableCategories->sortBy('name') as $category)
+                                                    <option value="{{ $category->id }}" data-code="{{ $category->code }}">
+                                                        {{ $category->name }} ({{ $category->code }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <button type="button" 
+                                                    onclick="applyParentCategory(this.previousElementSibling)"
+                                                    class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-medium whitespace-nowrap">
+                                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                                </svg>
+                                                Aplicar a todos
+                                            </button>
+                                        </div>
+                                        <p class="text-xs text-teal-600 mt-2">
+                                            Al seleccionar una normativa, se actualizarán los valores de referencia de todas las subdeterminaciones.
+                                        </p>
+                                    @else
+                                        <p class="text-sm text-gray-500 italic">
+                                            No hay valores de referencia configurados para las subdeterminaciones.
+                                        </p>
+                                    @endif
                                 </div>
                             @else
                                 {{-- Determinación normal o hija: todos los campos --}}
+                                @php
+                                    // Obtener los IDs de los padres de esta determinación
+                                    $parentIds = [];
+                                    if ($det->test->parent) {
+                                        $parentIds[] = $det->test->parent;
+                                    }
+                                    if ($det->test->parentTests) {
+                                        $parentIds = array_merge($parentIds, $det->test->parentTests->pluck('id')->toArray());
+                                    }
+                                    $parentIdsJson = json_encode(array_unique($parentIds));
+                                    
+                                    // Crear mapa de categoría -> valor de referencia para este test
+                                    $refValuesByCategory = [];
+                                    if ($det->test->referenceValues) {
+                                        foreach ($det->test->referenceValues as $refVal) {
+                                            if ($refVal->category) {
+                                                $refValuesByCategory[$refVal->category->id] = $refVal->value;
+                                            }
+                                        }
+                                    }
+                                @endphp
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
                                     <!-- Resultado -->
                                     <div>
@@ -184,14 +279,18 @@
                                         @if($det->test->referenceValues && $det->test->referenceValues->count() > 0)
                                             {{-- Si hay valores predefinidos, mostrar select --}}
                                             <select name="determinations[{{ $index }}][reference_value]" 
-                                                    class="result-input w-full text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500"
-                                                    data-index="{{ $index }}">
+                                                    class="result-input child-ref-select w-full text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                                                    data-index="{{ $index }}"
+                                                    data-test-id="{{ $det->test_id }}"
+                                                    data-parent-ids="{{ $parentIdsJson }}"
+                                                    data-ref-by-category="{{ json_encode($refValuesByCategory) }}">
                                                 <option value="">Seleccionar normativa...</option>
                                                 @foreach($det->test->referenceValues as $refValue)
                                                     <option value="{{ $refValue->value }}" 
+                                                            data-category-id="{{ $refValue->category->id ?? '' }}"
                                                             {{ $det->reference_value == $refValue->value ? 'selected' : '' }}
                                                             title="{{ $refValue->category->description ?? '' }}">
-                                                        {{ $refValue->value }} ({{ $refValue->category->code }})
+                                                        {{ $refValue->value }} ({{ $refValue->category->code ?? 'N/A' }})
                                                     </option>
                                                 @endforeach
                                                 <option value="custom" {{ !$det->test->referenceValues->pluck('value')->contains($det->reference_value) && $det->reference_value ? 'selected' : '' }}>
@@ -213,6 +312,8 @@
                                                    value="{{ $det->reference_value }}"
                                                    class="result-input w-full text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500"
                                                    data-index="{{ $index }}"
+                                                   data-test-id="{{ $det->test_id }}"
+                                                   data-parent-ids="{{ $parentIdsJson }}"
                                                    placeholder="Ej: < 500 UFC/ml">
                                         @endif
                                     </div>

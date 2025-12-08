@@ -83,9 +83,9 @@ class SampleController extends Controller
 
         // Agregar las determinaciones (incluyendo hijos automáticamente)
         foreach ($request->determinations as $testId) {
-            $test = Test::with(['children', 'referenceValues'])->find($testId);
+            $test = Test::with(['children', 'childTests', 'referenceValues'])->find($testId);
             
-            // Crear determinaci?n padre
+            // Crear determinación padre
             SampleDetermination::create([
                 'sample_id' => $sample->id,
                 'test_id' => $testId,
@@ -95,9 +95,10 @@ class SampleController extends Controller
                 'status' => 'pending',
             ]);
             
-            // Agregar autom?ticamente los hijos si existen
-            foreach ($test->children as $childTest) {
-                // Verificar que no exista ya
+            // Agregar automáticamente los hijos si existen (combinar legacy y nueva relación)
+            $allChildren = $test->getAllChildren();
+            foreach ($allChildren as $childTest) {
+                // Verificar que no exista ya (un hijo puede pertenecer a múltiples padres)
                 $exists = $sample->determinations()->where('test_id', $childTest->id)->exists();
                 if (!$exists) {
                     SampleDetermination::create([
@@ -121,7 +122,15 @@ class SampleController extends Controller
      */
     public function show(Sample $sample)
     {
-        $sample->load(['customer', 'determinations.test.parentTest', 'determinations.test.children', 'creator', 'validator']);
+        $sample->load([
+            'customer', 
+            'determinations.test.parentTest', 
+            'determinations.test.parentTests',
+            'determinations.test.children',
+            'determinations.test.childTests',
+            'creator', 
+            'validator'
+        ]);
         
         return view('sample.show', compact('sample'));
     }
@@ -178,9 +187,9 @@ class SampleController extends Controller
             return back()->with('error', 'Esta determinaci?n ya existe en el protocolo.');
         }
 
-        $test = Test::with('children')->find($validated['test_id']);
+        $test = Test::with(['children', 'childTests', 'referenceValues'])->find($validated['test_id']);
         
-        // Crear determinaci?n padre
+        // Crear determinación padre
         SampleDetermination::create([
             'sample_id' => $sample->id,
             'test_id' => $validated['test_id'],
@@ -190,9 +199,10 @@ class SampleController extends Controller
             'status' => 'pending',
         ]);
 
-        // Agregar autom?ticamente los hijos si existen
+        // Agregar automáticamente los hijos si existen (combinar legacy y nueva relación)
         $childrenAdded = 0;
-        foreach ($test->children as $childTest) {
+        $allChildren = $test->getAllChildren();
+        foreach ($allChildren as $childTest) {
             $childExists = $sample->determinations()->where('test_id', $childTest->id)->exists();
             if (!$childExists) {
                 SampleDetermination::create([
@@ -207,7 +217,7 @@ class SampleController extends Controller
             }
         }
 
-        $message = 'Determinaci?n agregada correctamente.';
+        $message = 'Determinación agregada correctamente.';
         if ($childrenAdded > 0) {
             $message .= " Se agregaron {$childrenAdded} subdeterminaciones.";
         }
@@ -262,14 +272,16 @@ class SampleController extends Controller
     }
 
     /**
-     * Muestra la vista de carga r?pida de resultados (tipo planilla)
+     * Muestra la vista de carga rápida de resultados (tipo planilla)
      */
     public function loadResults(Sample $sample)
     {
         $sample->load([
             'customer', 
             'determinations.test.parentTest', 
+            'determinations.test.parentTests',
             'determinations.test.children',
+            'determinations.test.childTests',
             'determinations.test.referenceValues.category',
             'creator'
         ]);
@@ -339,11 +351,20 @@ class SampleController extends Controller
     }
 
     /**
-     * Muestra la vista de validaci?n del protocolo
+     * Muestra la vista de validación del protocolo
      */
     public function showValidation(Sample $sample)
     {
-        $sample->load(['customer', 'determinations.test.parentTest', 'determinations.test.children', 'determinations.analyzer', 'creator', 'validator']);
+        $sample->load([
+            'customer', 
+            'determinations.test.parentTest',
+            'determinations.test.parentTests',
+            'determinations.test.children',
+            'determinations.test.childTests',
+            'determinations.analyzer', 
+            'creator', 
+            'validator'
+        ]);
         
         return view('sample.validate', compact('sample'));
     }
@@ -552,58 +573,79 @@ class SampleController extends Controller
     /**
      * Actualiza el estado de la determinación padre basado en sus hijos
      * Si al menos un hijo está completado, el padre también lo está
+     * Soporta múltiples padres (tabla pivote test_parents)
      */
     private function updateParentDeterminationStatus(SampleDetermination $determination, Sample $sample)
     {
-        // Verificar si esta determinación es un hijo (tiene parent)
         $test = $determination->test;
-        if (!$test || !$test->parent) {
+        if (!$test) {
             return;
         }
 
-        // Buscar la determinación padre en esta muestra
-        $parentDetermination = $sample->determinations()
-            ->whereHas('test', function ($query) use ($test) {
-                $query->where('id', $test->parent);
-            })
-            ->first();
+        // Obtener todos los padres de este test (legacy + nueva tabla pivote)
+        $parentIds = collect();
+        
+        // Parent legacy
+        if ($test->parent) {
+            $parentIds->push($test->parent);
+        }
+        
+        // Parents de la tabla pivote
+        $pivotParentIds = $test->parentTests()->pluck('tests.id');
+        $parentIds = $parentIds->merge($pivotParentIds)->unique();
 
-        if (!$parentDetermination) {
+        if ($parentIds->isEmpty()) {
             return;
         }
 
-        // Obtener todos los hijos de este padre en esta muestra
-        $childDeterminations = $sample->determinations()
-            ->whereHas('test', function ($query) use ($test) {
-                $query->where('parent', $test->parent);
-            })
-            ->get();
+        // Actualizar cada padre
+        foreach ($parentIds as $parentId) {
+            $parentDetermination = $sample->determinations()
+                ->where('test_id', $parentId)
+                ->first();
 
-        // Determinar el estado del padre basado en los hijos
-        $hasCompleted = $childDeterminations->where('status', 'completed')->count() > 0;
-        $hasInProgress = $childDeterminations->where('status', 'in_progress')->count() > 0;
-        $allPending = $childDeterminations->where('status', 'pending')->count() === $childDeterminations->count();
-
-        if ($hasCompleted) {
-            $newStatus = 'completed';
-        } elseif ($hasInProgress) {
-            $newStatus = 'in_progress';
-        } elseif ($allPending) {
-            $newStatus = 'pending';
-        } else {
-            $newStatus = 'in_progress';
-        }
-
-        // Actualizar el padre si cambió el estado
-        if ($parentDetermination->status !== $newStatus) {
-            $updateData = ['status' => $newStatus];
-            
-            if ($newStatus === 'completed' && !$parentDetermination->analyzed_at) {
-                $updateData['analyzed_at'] = now();
-                $updateData['analyzed_by'] = auth()->id();
+            if (!$parentDetermination) {
+                continue;
             }
+
+            // Obtener todos los hijos de este padre que están en esta muestra
+            $parentTest = Test::with(['children', 'childTests'])->find($parentId);
+            $allChildIds = $parentTest->getAllChildren()->pluck('id');
             
-            $parentDetermination->update($updateData);
+            $childDeterminations = $sample->determinations()
+                ->whereIn('test_id', $allChildIds)
+                ->get();
+
+            if ($childDeterminations->isEmpty()) {
+                continue;
+            }
+
+            // Determinar el estado del padre basado en los hijos
+            $hasCompleted = $childDeterminations->where('status', 'completed')->count() > 0;
+            $hasInProgress = $childDeterminations->where('status', 'in_progress')->count() > 0;
+            $allPending = $childDeterminations->where('status', 'pending')->count() === $childDeterminations->count();
+
+            if ($hasCompleted) {
+                $newStatus = 'completed';
+            } elseif ($hasInProgress) {
+                $newStatus = 'in_progress';
+            } elseif ($allPending) {
+                $newStatus = 'pending';
+            } else {
+                $newStatus = 'in_progress';
+            }
+
+            // Actualizar el padre si cambió el estado
+            if ($parentDetermination->status !== $newStatus) {
+                $updateData = ['status' => $newStatus];
+                
+                if ($newStatus === 'completed' && !$parentDetermination->analyzed_at) {
+                    $updateData['analyzed_at'] = now();
+                    $updateData['analyzed_by'] = auth()->id();
+                }
+                
+                $parentDetermination->update($updateData);
+            }
         }
     }
 
@@ -643,7 +685,16 @@ class SampleController extends Controller
             return back()->with('error', 'Debe validar al menos una determinación para poder descargar el informe.');
         }
 
-        $sample->load(['customer', 'determinations.test.parentTest', 'determinations.test.children', 'determinations.determinationValidator', 'creator', 'validator']);
+        $sample->load([
+            'customer', 
+            'determinations.test.parentTest',
+            'determinations.test.parentTests',
+            'determinations.test.children',
+            'determinations.test.childTests',
+            'determinations.determinationValidator', 
+            'creator', 
+            'validator'
+        ]);
 
         $pdf = PDF::loadView('sample.pdf', compact('sample'));
         $pdf->setPaper('A4', 'portrait');
@@ -662,7 +713,16 @@ class SampleController extends Controller
             return back()->with('error', 'Debe validar al menos una determinación para poder ver el informe.');
         }
 
-        $sample->load(['customer', 'determinations.test.parentTest', 'determinations.test.children', 'determinations.determinationValidator', 'creator', 'validator']);
+        $sample->load([
+            'customer', 
+            'determinations.test.parentTest',
+            'determinations.test.parentTests',
+            'determinations.test.children',
+            'determinations.test.childTests',
+            'determinations.determinationValidator', 
+            'creator', 
+            'validator'
+        ]);
 
         $pdf = PDF::loadView('sample.pdf', compact('sample'));
         $pdf->setPaper('A4', 'portrait');
@@ -727,40 +787,61 @@ class SampleController extends Controller
 
     /**
      * Obtiene las determinaciones ordenadas con padres e hijos agrupados
+     * Soporta hijos que pertenecen a múltiples padres (se muestran bajo cada padre)
      */
     public function getOrderedDeterminations(Sample $sample)
     {
-        $determinations = $sample->determinations()->with('test.parentTest', 'test.children')->get();
+        if (!$sample->relationLoaded('determinations')) {
+            $sample->load(['determinations.test.parentTest', 'determinations.test.parentTests', 'determinations.test.children', 'determinations.test.childTests']);
+        }
+        
+        $determinations = $sample->determinations;
         
         $ordered = collect();
-        $processed = [];
+        $processedAsParent = [];
+        $processedAsChild = [];
+
+        // Primero identificar todos los tests que son padres en esta muestra
+        $parentTestIds = [];
+        foreach ($determinations as $det) {
+            $test = $det->test;
+            // Es padre si tiene hijos (legacy o pivote) y alguno está en la muestra
+            $allChildren = $test->getAllChildren();
+            $childIdsInSample = $allChildren->pluck('id')->intersect($determinations->pluck('test_id'));
+            if ($childIdsInSample->count() > 0) {
+                $parentTestIds[] = $det->test_id;
+            }
+        }
 
         foreach ($determinations as $det) {
-            // Si ya fue procesada, saltar
-            if (in_array($det->id, $processed)) {
+            // Si ya fue procesada como padre, saltar
+            if (in_array($det->id, $processedAsParent)) {
                 continue;
             }
 
-            // Si es un test padre (no tiene parent) o su parent no est? en la muestra
-            if (!$det->test->parent) {
+            // Verificar si es un padre (tiene hijos en esta muestra)
+            if (in_array($det->test_id, $parentTestIds)) {
                 $ordered->push($det);
-                $processed[] = $det->id;
+                $processedAsParent[] = $det->id;
 
-                // Buscar y agregar hijos
-                $children = $determinations->filter(function($d) use ($det) {
-                    return $d->test->parent == $det->test_id;
-                });
-
-                foreach ($children as $child) {
-                    $ordered->push($child);
-                    $processed[] = $child->id;
+                // Buscar y agregar hijos de este padre
+                $allChildren = $det->test->getAllChildren();
+                foreach ($allChildren as $childTest) {
+                    $childDet = $determinations->firstWhere('test_id', $childTest->id);
+                    if ($childDet) {
+                        // Marcar el hijo con el padre actual para la vista
+                        $childDetClone = clone $childDet;
+                        $childDetClone->current_parent_id = $det->test_id;
+                        $ordered->push($childDetClone);
+                        $processedAsChild[] = $childDet->id;
+                    }
                 }
             }
         }
 
-        // Agregar cualquier determinaci?n hu?rfana que no fue procesada
+        // Agregar cualquier determinación que no fue procesada (huérfanas o sin padre en muestra)
         foreach ($determinations as $det) {
-            if (!in_array($det->id, $processed)) {
+            if (!in_array($det->id, $processedAsParent) && !in_array($det->id, $processedAsChild)) {
                 $ordered->push($det);
             }
         }

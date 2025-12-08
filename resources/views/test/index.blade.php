@@ -107,7 +107,7 @@
                                     Refs
                                 </a>
                                 <button type="button" 
-                                        onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ $test->instructions }}', '{{ $test->material }}', '{{ $test->parent }}')"
+                                        onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }})"
                                         class="text-indigo-600 hover:text-indigo-900">
                                     Editar
                                 </button>
@@ -208,10 +208,11 @@
                                 <option value="5">Heparina</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Análisis Padre</label>
-                            <select name="parent" class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
-                                <option value="">Ninguno (es padre)</option>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Análisis Padres</label>
+                            <p class="text-xs text-gray-500 mb-2">Puede seleccionar múltiples padres. Dejar vacío si esta determinación es un padre.</p>
+                            <select name="parent_ids[]" multiple size="5"
+                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                                 @foreach($parents as $parent)
                                     <option value="{{ $parent->id }}">{{ $parent->code }} - {{ ucfirst($parent->name) }}</option>
                                 @endforeach
@@ -302,10 +303,11 @@
                                 <option value="5">Heparina</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Análisis Padre</label>
-                            <select name="parent" id="edit-parent" class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
-                                <option value="">Ninguno (es padre)</option>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Análisis Padres</label>
+                            <p class="text-xs text-gray-500 mb-2">Puede seleccionar múltiples padres. Dejar vacío si esta determinación es un padre.</p>
+                            <select name="parent_ids[]" id="edit-parent-ids" multiple size="5"
+                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                                 @foreach($parents as $parent)
                                     <option value="{{ $parent->id }}">{{ $parent->code }} - {{ ucfirst($parent->name) }}</option>
                                 @endforeach
@@ -333,7 +335,7 @@
     </div>
 
     <script>
-        function openEditModal(id, code, name, unit, method, low, high, decimals, nbu, instructions, material, parent) {
+        function openEditModal(id, code, name, unit, method, low, high, decimals, nbu, instructions, material, parentIds) {
             document.getElementById('form-edit').action = '/tests/' + id;
             document.getElementById('edit-code').value = code;
             document.getElementById('edit-name').value = name;
@@ -345,7 +347,13 @@
             document.getElementById('edit-nbu').value = nbu || '';
             document.getElementById('edit-instructions').value = instructions || '';
             document.getElementById('edit-material').value = material || '';
-            document.getElementById('edit-parent').value = parent || '';
+            
+            // Seleccionar múltiples padres
+            const parentSelect = document.getElementById('edit-parent-ids');
+            Array.from(parentSelect.options).forEach(option => {
+                option.selected = parentIds && parentIds.includes(parseInt(option.value));
+            });
+            
             document.getElementById('modal-edit').classList.remove('hidden');
         }
 

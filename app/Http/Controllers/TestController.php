@@ -12,7 +12,7 @@ class TestController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Test::with('referenceValues')->orderBy('code');
+        $query = Test::with(['referenceValues', 'parentTests'])->orderBy('code');
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -23,7 +23,12 @@ class TestController extends Controller
         }
 
         $tests = $query->paginate(20);
-        $parents = Test::whereNull('parent')->orderBy('name')->get();
+        
+        // Tests que pueden ser padres (no tienen padres asignados - tabla pivote vacía)
+        $parents = Test::whereDoesntHave('parentTests')
+            ->whereNull('parent')
+            ->orderBy('name')
+            ->get();
 
         return view('test.index', compact('tests', 'parents'));
     }
@@ -42,10 +47,12 @@ class TestController extends Controller
      */
     public function store(Request $request)
     {
-        // Convertir strings vacíos a null
-        $request->merge(array_map(function ($value) {
+        // Convertir strings vacíos a null (excepto arrays)
+        $data = $request->except('parent_ids');
+        $data = array_map(function ($value) {
             return $value === '' ? null : $value;
-        }, $request->all()));
+        }, $data);
+        $request->merge($data);
 
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:tests,code',
@@ -55,13 +62,14 @@ class TestController extends Controller
             'instructions' => 'nullable|string',
             'decimals' => 'nullable|integer|min:0|max:6',
             'nbu' => 'nullable|integer',
-            'parent' => 'nullable|integer|exists:tests,id',
+            'parent_ids' => 'nullable|array',
+            'parent_ids.*' => 'integer|exists:tests,id',
             'low' => 'nullable|string|max:50',
             'high' => 'nullable|string|max:50',
             'material' => 'nullable|integer',
         ]);
 
-        Test::create([
+        $test = Test::create([
             'code' => strtoupper($validated['code']),
             'name' => strtolower($validated['name']),
             'unit' => $validated['unit'] ?? null,
@@ -69,13 +77,18 @@ class TestController extends Controller
             'instructions' => $validated['instructions'] ?? null,
             'decimals' => $validated['decimals'] ?? 2,
             'nbu' => $validated['nbu'] ?? null,
-            'parent' => $validated['parent'] ?? null,
+            'parent' => null, // Ya no usamos el campo legacy para nuevos registros
             'low' => $validated['low'] ?? null,
             'high' => $validated['high'] ?? null,
             'material' => $validated['material'] ?? null,
             'price' => 0,
             'cost' => 0,
         ]);
+
+        // Asignar múltiples padres si se seleccionaron
+        if (!empty($validated['parent_ids'])) {
+            $test->parentTests()->sync($validated['parent_ids']);
+        }
 
         return redirect()->route('tests.index')
             ->with('success', 'Determinación creada correctamente.');
@@ -95,10 +108,12 @@ class TestController extends Controller
      */
     public function update(Request $request, Test $test)
     {
-        // Convertir strings vacíos a null
-        $request->merge(array_map(function ($value) {
+        // Convertir strings vacíos a null (excepto arrays)
+        $data = $request->except('parent_ids');
+        $data = array_map(function ($value) {
             return $value === '' ? null : $value;
-        }, $request->all()));
+        }, $data);
+        $request->merge($data);
 
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:tests,code,' . $test->id,
@@ -108,7 +123,8 @@ class TestController extends Controller
             'instructions' => 'nullable|string',
             'decimals' => 'nullable|integer|min:0|max:6',
             'nbu' => 'nullable|integer',
-            'parent' => 'nullable|integer|exists:tests,id',
+            'parent_ids' => 'nullable|array',
+            'parent_ids.*' => 'integer|exists:tests,id',
             'low' => 'nullable|string|max:50',
             'high' => 'nullable|string|max:50',
             'material' => 'nullable|integer',
@@ -122,11 +138,15 @@ class TestController extends Controller
             'instructions' => $validated['instructions'],
             'decimals' => $validated['decimals'] ?? 2,
             'nbu' => $validated['nbu'],
-            'parent' => $validated['parent'],
+            'parent' => null, // Limpiar campo legacy
             'low' => $validated['low'],
             'high' => $validated['high'],
             'material' => $validated['material'],
         ]);
+
+        // Sincronizar múltiples padres (esto reemplaza los existentes)
+        $parentIds = $validated['parent_ids'] ?? [];
+        $test->parentTests()->sync($parentIds);
 
         return redirect()->route('tests.index')
             ->with('success', 'Determinación actualizada correctamente.');

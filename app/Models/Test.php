@@ -40,7 +40,8 @@ class Test extends Model
     }
 
     /**
-     * Relación con el test padre
+     * Relación con el test padre (legacy - para compatibilidad)
+     * @deprecated Usar parentTests() para múltiples padres
      */
     public function parentTest()
     {
@@ -48,11 +49,71 @@ class Test extends Model
     }
 
     /**
-     * Relación con tests hijos
+     * Relación con tests hijos (legacy - para compatibilidad)
+     * @deprecated Usar childTests() para múltiples padres
      */
     public function children()
     {
         return $this->hasMany(Test::class, 'parent');
+    }
+
+    /**
+     * Relación muchos-a-muchos con tests padres
+     * Un test puede tener múltiples padres
+     */
+    public function parentTests()
+    {
+        return $this->belongsToMany(Test::class, 'test_parents', 'child_test_id', 'parent_test_id')
+            ->withPivot('order')
+            ->withTimestamps();
+    }
+
+    /**
+     * Relación muchos-a-muchos con tests hijos
+     * Un test padre puede tener múltiples hijos
+     */
+    public function childTests()
+    {
+        return $this->belongsToMany(Test::class, 'test_parents', 'parent_test_id', 'child_test_id')
+            ->withPivot('order')
+            ->orderBy('test_parents.order')
+            ->withTimestamps();
+    }
+
+    /**
+     * Verifica si este test tiene hijos (nueva relación)
+     */
+    public function hasChildren(): bool
+    {
+        return $this->childTests()->count() > 0;
+    }
+
+    /**
+     * Verifica si este test es hijo de algún padre (nueva relación)
+     */
+    public function hasParents(): bool
+    {
+        return $this->parentTests()->count() > 0;
+    }
+
+    /**
+     * Verifica si es hijo de un padre específico
+     */
+    public function isChildOf(int $parentId): bool
+    {
+        return $this->parentTests()->where('parent_test_id', $parentId)->exists();
+    }
+
+    /**
+     * Obtiene todos los hijos incluyendo ambas relaciones (legacy y nueva)
+     */
+    public function getAllChildren()
+    {
+        // Combinar hijos de la relación legacy y la nueva tabla pivote
+        $legacyChildren = $this->children()->get();
+        $pivotChildren = $this->childTests()->get();
+        
+        return $legacyChildren->merge($pivotChildren)->unique('id');
     }
 
     /**

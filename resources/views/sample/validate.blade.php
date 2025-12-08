@@ -73,30 +73,58 @@
 
         @php
             // Ordenar determinaciones: padres primero, luego hijos
+            // Soporta múltiples padres (tabla pivote test_parents)
             $orderedDeterminations = collect();
-            $processed = [];
+            $processedAsParent = [];
+            $processedAsChild = [];
             
-            foreach ($sample->determinations as $det) {
-                if (in_array($det->id, $processed)) continue;
+            // Función para verificar si un test es padre de otro
+            $isParentOf = function($parentDet, $childDet) {
+                $childTest = $childDet->test;
+                $parentTestId = $parentDet->test_id;
                 
-                if (!$det->test->parent) {
-                    $hasChildren = $sample->determinations->where('test.parent', $det->test_id)->count() > 0;
-                    $orderedDeterminations->push(['det' => $det, 'isChild' => false, 'isParent' => $hasChildren]);
-                    $processed[] = $det->id;
+                // Verificar relación legacy
+                if ($childTest->parent == $parentTestId) return true;
+                
+                // Verificar relación tabla pivote
+                if ($childTest->parentTests && $childTest->parentTests->contains('id', $parentTestId)) return true;
+                
+                return false;
+            };
+            
+            // Identificar tests que son padres en esta muestra
+            $parentTestIds = [];
+            foreach ($sample->determinations as $det) {
+                $allChildren = $det->test->getAllChildren();
+                $childIdsInSample = $allChildren->pluck('id')->intersect($sample->determinations->pluck('test_id'));
+                if ($childIdsInSample->count() > 0) {
+                    $parentTestIds[] = $det->test_id;
+                }
+            }
+            
+            // Procesar padres y sus hijos
+            foreach ($sample->determinations as $det) {
+                if (in_array($det->id, $processedAsParent)) continue;
+                
+                if (in_array($det->test_id, $parentTestIds)) {
+                    $orderedDeterminations->push(['det' => $det, 'isChild' => false, 'isParent' => true]);
+                    $processedAsParent[] = $det->id;
                     
+                    // Agregar hijos de este padre
                     foreach ($sample->determinations as $child) {
-                        if ($child->test->parent == $det->test_id && !in_array($child->id, $processed)) {
+                        if ($isParentOf($det, $child) && !in_array($child->id, $processedAsParent)) {
                             $orderedDeterminations->push(['det' => $child, 'isChild' => true, 'isParent' => false]);
-                            $processed[] = $child->id;
+                            $processedAsChild[] = $child->id;
                         }
                     }
                 }
             }
             
+            // Agregar determinaciones huérfanas (sin padre en esta muestra)
             foreach ($sample->determinations as $det) {
-                if (!in_array($det->id, $processed)) {
-                    $isChild = $det->test->parent ? true : false;
-                    $orderedDeterminations->push(['det' => $det, 'isChild' => $isChild, 'isParent' => false]);
+                if (!in_array($det->id, $processedAsParent) && !in_array($det->id, $processedAsChild)) {
+                    $hasParents = $det->test->parent || ($det->test->parentTests && $det->test->parentTests->count() > 0);
+                    $orderedDeterminations->push(['det' => $det, 'isChild' => $hasParents, 'isParent' => false]);
                 }
             }
         @endphp
