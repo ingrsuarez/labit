@@ -559,5 +559,74 @@
                 }
             });
         });
+
+        // Aplicar categoría de valores de referencia del padre a todos los hijos
+        function applyParentCategory(selectElement) {
+            const parentId = selectElement.dataset.parentId;
+            const categoryId = selectElement.value;
+            
+            if (!categoryId) {
+                return; // No se seleccionó ninguna categoría
+            }
+
+            let updatedCount = 0;
+            
+            // Buscar todos los selects de hijos que tienen este padre
+            document.querySelectorAll('.child-ref-select').forEach(function(childSelect) {
+                const parentIds = JSON.parse(childSelect.dataset.parentIds || '[]');
+                
+                // Verificar si este hijo pertenece al padre seleccionado
+                if (parentIds.includes(parseInt(parentId))) {
+                    const refByCategory = JSON.parse(childSelect.dataset.refByCategory || '{}');
+                    
+                    // Buscar si tiene un valor de referencia para esta categoría
+                    if (refByCategory[categoryId]) {
+                        const valueToSet = refByCategory[categoryId];
+                        
+                        // Buscar la opción con ese valor y seleccionarla
+                        Array.from(childSelect.options).forEach(function(option) {
+                            if (option.value === valueToSet) {
+                                childSelect.value = valueToSet;
+                                childSelect.classList.add('ring-2', 'ring-teal-400');
+                                updatedCount++;
+                            }
+                        });
+                    }
+                }
+            });
+
+            // También buscar inputs de texto (para hijos sin valores predefinidos)
+            document.querySelectorAll('input[name$="[reference_value]"]').forEach(function(input) {
+                if (!input.dataset.parentIds) return;
+                
+                const parentIds = JSON.parse(input.dataset.parentIds || '[]');
+                
+                if (parentIds.includes(parseInt(parentId))) {
+                    // Para inputs de texto, no podemos aplicar automáticamente
+                    // pero marcamos visualmente que hay que revisar
+                    input.classList.add('ring-2', 'ring-yellow-400');
+                }
+            });
+
+            // Feedback visual
+            if (updatedCount > 0) {
+                const categoryName = selectElement.options[selectElement.selectedIndex].text;
+                
+                // Mostrar notificación temporal
+                const notification = document.createElement('div');
+                notification.className = 'fixed bottom-4 right-4 bg-teal-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 flex items-center';
+                notification.innerHTML = `
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>${updatedCount} valores de referencia actualizados según ${categoryName}</span>
+                `;
+                document.body.appendChild(notification);
+                
+                setTimeout(function() {
+                    notification.remove();
+                }, 3000);
+            }
+        }
     </script>
 </x-lab-layout>
