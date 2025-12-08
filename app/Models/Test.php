@@ -17,6 +17,7 @@ class Test extends Model
         'high',
         'instructions',
         'parent',
+        'default_reference_category_id',
         'decimals',
         'negative',
         'positive',
@@ -106,12 +107,18 @@ class Test extends Model
 
     /**
      * Obtiene todos los hijos incluyendo ambas relaciones (legacy y nueva)
+     * @param bool $withRelations Si true, carga los referenceValues de cada hijo
      */
-    public function getAllChildren()
+    public function getAllChildren(bool $withRelations = true)
     {
         // Combinar hijos de la relación legacy y la nueva tabla pivote
-        $legacyChildren = $this->children()->get();
-        $pivotChildren = $this->childTests()->get();
+        if ($withRelations) {
+            $legacyChildren = $this->children()->with('referenceValues.category')->get();
+            $pivotChildren = $this->childTests()->with('referenceValues.category')->get();
+        } else {
+            $legacyChildren = $this->children()->get();
+            $pivotChildren = $this->childTests()->get();
+        }
         
         return $legacyChildren->merge($pivotChildren)->unique('id');
     }
@@ -122,6 +129,14 @@ class Test extends Model
     public function referenceValues()
     {
         return $this->hasMany(TestReferenceValue::class);
+    }
+
+    /**
+     * Relación con la categoría de referencia predeterminada
+     */
+    public function defaultReferenceCategory()
+    {
+        return $this->belongsTo(ReferenceCategory::class, 'default_reference_category_id');
     }
 
     /**

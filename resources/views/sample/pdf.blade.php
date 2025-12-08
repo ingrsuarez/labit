@@ -161,6 +161,38 @@
             font-weight: bold;
             color: #000;
         }
+
+        /* Layout resultado + referencia en línea */
+        .result-row {
+            display: table;
+            width: 100%;
+            font-size: 9px;
+            padding-left: 10px;
+            margin-bottom: 2px;
+        }
+        
+        .result-label {
+            display: table-cell;
+            width: 70px;
+            color: #666;
+            vertical-align: middle;
+        }
+        
+        .result-value {
+            display: table-cell;
+            width: 150px;
+            font-weight: bold;
+            color: #000;
+            vertical-align: middle;
+        }
+        
+        .result-reference {
+            display: table-cell;
+            text-align: right;
+            color: #666;
+            font-size: 9px;
+            vertical-align: middle;
+        }
         
         /* Observations */
         .observations-block {
@@ -178,11 +210,15 @@
             text-transform: uppercase;
         }
         
-        /* Footer / Validation */
+        /* Footer / Validation - Siempre al final de la página */
         .validation-section {
-            margin-top: 30px;
+            position: fixed;
+            bottom: 40px;
+            left: 30px;
+            right: 30px;
             padding-top: 15px;
             border-top: 2px solid #333;
+            background: #fff;
         }
         
         .validation-row {
@@ -237,10 +273,10 @@
         }
         
         
-        /* Page Footer */
+        /* Page Footer - Siempre al final absoluto */
         .page-footer {
             position: fixed;
-            bottom: 15px;
+            bottom: 10px;
             left: 30px;
             right: 30px;
             font-size: 7px;
@@ -248,6 +284,12 @@
             text-align: center;
             border-top: 1px solid #eee;
             padding-top: 5px;
+            background: #fff;
+        }
+        
+        /* Espacio reservado para el footer fijo */
+        .content-area {
+            padding-bottom: 120px;
         }
     </style>
 </head>
@@ -256,35 +298,72 @@
         // Filtrar solo determinaciones validadas y ordenar: padres primero, luego hijos
         $validatedDeterminations = $sample->determinations->where('is_validated', true);
         
+        // Función helper para verificar si un test es padre de otro
+        $isParentOf = function($parentTestId, $childTestId) {
+            $childTest = \App\Models\Test::find($childTestId);
+            if (!$childTest) return false;
+            
+            // Verificar relación legacy
+            if ($childTest->parent == $parentTestId) return true;
+            
+            // Verificar relación many-to-many
+            return $childTest->parentTests()->where('parent_test_id', $parentTestId)->exists();
+        };
+        
+        // Identificar qué tests son padres (tienen hijos validados en este protocolo)
+        $parentTestIds = [];
+        $childTestIds = [];
+        
+        foreach ($validatedDeterminations as $det) {
+            $test = $det->test;
+            
+            // Obtener todos los hijos del test (legacy + pivot)
+            $allChildren = $test->getAllChildren(false);
+            
+            foreach ($allChildren as $child) {
+                // Si el hijo está validado en este protocolo
+                if ($validatedDeterminations->where('test_id', $child->id)->count() > 0) {
+                    $parentTestIds[$det->test_id] = true;
+                    $childTestIds[$child->id] = true;
+                }
+            }
+        }
+        
         $orderedDeterminations = collect();
         $processed = [];
         
+        // Primero procesar padres y sus hijos
         foreach ($validatedDeterminations as $det) {
             if (in_array($det->id, $processed)) continue;
             
-            if (!$det->test->parent) {
-                $hasValidatedChildren = $validatedDeterminations->where('test.parent', $det->test_id)->count() > 0;
-                $orderedDeterminations->push(['det' => $det, 'isChild' => false, 'isParent' => $hasValidatedChildren]);
+            // Si es un padre
+            if (isset($parentTestIds[$det->test_id])) {
+                $orderedDeterminations->push(['det' => $det, 'isChild' => false, 'isParent' => true]);
                 $processed[] = $det->id;
                 
-                foreach ($validatedDeterminations as $child) {
-                    if ($child->test->parent == $det->test_id && !in_array($child->id, $processed)) {
-                        $orderedDeterminations->push(['det' => $child, 'isChild' => true, 'isParent' => false]);
-                        $processed[] = $child->id;
+                // Agregar sus hijos validados
+                foreach ($validatedDeterminations as $childDet) {
+                    if (in_array($childDet->id, $processed)) continue;
+                    
+                    if ($isParentOf($det->test_id, $childDet->test_id)) {
+                        $orderedDeterminations->push(['det' => $childDet, 'isChild' => true, 'isParent' => false]);
+                        $processed[] = $childDet->id;
                     }
                 }
             }
         }
         
+        // Agregar determinaciones restantes (sin padre en este protocolo)
         foreach ($validatedDeterminations as $det) {
             if (!in_array($det->id, $processed)) {
-                $isChild = $det->test->parent ? true : false;
+                $isChild = isset($childTestIds[$det->test_id]);
                 $orderedDeterminations->push(['det' => $det, 'isChild' => $isChild, 'isParent' => false]);
+                $processed[] = $det->id;
             }
         }
     @endphp
 
-    <div class="page">
+    <div class="page content-area">
         <!-- Header -->
         <div class="header">
             <div class="header-left">
@@ -322,62 +401,73 @@
                 $isChild = $item['isChild'];
                 $isParent = $item['isParent'];
                 
-                // Para padres, obtener TODAS las categorías únicas de los hijos
+                // Para padres, obtener las categorías de la normativa predeterminada o de los hijos
                 $parentCategories = null;
                 if ($isParent) {
-                    $categoryNames = collect();
-                    
-                    // Buscar categorías de todos los hijos validados
-                    $childDeterminations = $validatedDeterminations->where('test.parent', $det->test_id);
-                    
-                    foreach ($childDeterminations as $child) {
-                        // Buscar el TestReferenceValue con categoría para este hijo
-                        $refValue = \App\Models\TestReferenceValue::where('test_id', $child->test_id)
-                            ->whereNotNull('reference_category_id')
-                            ->with('category')
-                            ->first();
+                    // Primero verificar si el padre tiene una categoría predeterminada
+                    if ($det->test->default_reference_category_id && $det->test->defaultReferenceCategory) {
+                        $parentCategories = $det->test->defaultReferenceCategory->name;
+                    } else {
+                        // Si no, obtener categorías únicas de los hijos
+                        $categoryNames = collect();
                         
-                        if ($refValue && $refValue->category) {
-                            $categoryNames->push($refValue->category->name);
+                        // Obtener todos los hijos del test
+                        $allChildren = $det->test->getAllChildren(false);
+                        $childTestIds = $allChildren->pluck('id')->toArray();
+                        
+                        // Buscar hijos validados en este protocolo
+                        foreach ($validatedDeterminations as $childDet) {
+                            if (in_array($childDet->test_id, $childTestIds)) {
+                                // Buscar el TestReferenceValue con categoría para este hijo
+                                $refValue = \App\Models\TestReferenceValue::where('test_id', $childDet->test_id)
+                                    ->whereNotNull('reference_category_id')
+                                    ->with('category')
+                                    ->first();
+                                
+                                if ($refValue && $refValue->category) {
+                                    $categoryNames->push($refValue->category->name);
+                                }
+                            }
                         }
-                    }
-                    
-                    // Obtener categorías únicas
-                    $uniqueCategories = $categoryNames->unique()->values();
-                    
-                    if ($uniqueCategories->count() > 0) {
-                        $parentCategories = $uniqueCategories->implode(', ');
+                        
+                        // Obtener categorías únicas
+                        $uniqueCategories = $categoryNames->unique()->values();
+                        
+                        if ($uniqueCategories->count() > 0) {
+                            $parentCategories = $uniqueCategories->implode(', ');
+                        }
                     }
                 }
             @endphp
             
             <div class="determination-item {{ $isChild ? 'is-child' : '' }} {{ $isParent ? 'is-parent' : '' }}">
-                {{-- Header: Nombre y Referencia/Categoría --}}
+                {{-- Header: Nombre del test --}}
                 <div class="det-header-row">
                     <span class="det-name {{ $isChild ? 'is-child' : '' }} {{ $isParent ? 'is-parent' : '' }}">
                         {{ $det->test->name ?? 'N/A' }}
                     </span>
                     @if($isParent && $parentCategories)
                         <span class="det-reference-col" style="font-style: italic;">Valores de referencia según {{ $parentCategories }}</span>
-                    @elseif(!$isParent && $det->reference_value)
-                        <span class="det-reference-col">{{ $det->reference_value }}</span>
                     @endif
                 </div>
                 
                 @if(!$isParent)
-                    {{-- Resultado --}}
-                    <div class="det-data-row">
-                        <span class="det-label">Resultado:</span>
-                        <span class="det-value result">{{ $det->result ?? '-' }}@if($det->unit) {{ $det->unit }}@endif</span>
+                    {{-- Resultado + Valor de referencia en la misma línea --}}
+                    <div class="result-row">
+                        <span class="result-label">Resultado:</span>
+                        <span class="result-value">{{ $det->result ?? '-' }}@if($det->unit) {{ $det->unit }}@endif</span>
+                        @if($det->reference_value)
+                            <span class="result-reference">{{ $det->reference_value }}</span>
+                        @endif
                     </div>
-                @endif
-                
-                {{-- Método (solo para padres o si no es hijo) --}}
-                @if($det->method && ($isParent || !$isChild))
-                <div class="det-data-row">
-                    <span class="det-label">Método:</span>
-                    <span class="det-value">{{ $det->method }}</span>
-                </div>
+                    
+                    {{-- Método --}}
+                    @if($det->method)
+                    <div class="det-data-row">
+                        <span class="det-label">Método:</span>
+                        <span class="det-value">{{ $det->method }}</span>
+                    </div>
+                    @endif
                 @endif
                 
                 {{-- Observaciones de la determinación --}}

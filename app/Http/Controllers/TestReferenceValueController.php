@@ -14,7 +14,7 @@ class TestReferenceValueController extends Controller
      */
     public function index(Test $test)
     {
-        $test->load('referenceValues.category');
+        $test->load(['referenceValues.category', 'defaultReferenceCategory']);
         $categories = ReferenceCategory::where('is_active', true)->orderBy('name')->get();
         
         return view('test.reference-values', compact('test', 'categories'));
@@ -34,8 +34,10 @@ class TestReferenceValueController extends Controller
             'is_default' => 'boolean',
         ]);
 
+        // Convertir string vacío a null para category_id
+        $categoryId = !empty($validated['category_id']) ? $validated['category_id'] : null;
+        
         // Si se proporciona un nuevo nombre de categoría, crearla
-        $categoryId = $validated['category_id'] ?? null;
         if (empty($categoryId) && !empty($validated['category_name'])) {
             // Generar código único
             $code = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $validated['category_name']), 0, 3));
@@ -63,8 +65,8 @@ class TestReferenceValueController extends Controller
             'test_id' => $test->id,
             'reference_category_id' => $categoryId,
             'value' => $validated['value'],
-            'min_value' => $validated['min_value'] ?? null,
-            'max_value' => $validated['max_value'] ?? null,
+            'min_value' => $validated['min_value'] ?: null,
+            'max_value' => $validated['max_value'] ?: null,
             'is_default' => $request->boolean('is_default'),
         ]);
 
@@ -89,11 +91,14 @@ class TestReferenceValueController extends Controller
             $test->referenceValues()->where('id', '!=', $referenceValue->id)->update(['is_default' => false]);
         }
 
+        // Convertir string vacío a null para category_id
+        $categoryId = !empty($validated['category_id']) ? $validated['category_id'] : null;
+
         $referenceValue->update([
-            'reference_category_id' => $validated['category_id'] ?? null,
+            'reference_category_id' => $categoryId,
             'value' => $validated['value'],
-            'min_value' => $validated['min_value'] ?? null,
-            'max_value' => $validated['max_value'] ?? null,
+            'min_value' => $validated['min_value'] ?: null,
+            'max_value' => $validated['max_value'] ?: null,
             'is_default' => $request->boolean('is_default'),
         ]);
 
@@ -119,5 +124,31 @@ class TestReferenceValueController extends Controller
         $referenceValue->update(['is_default' => true]);
         
         return back()->with('success', 'Valor de referencia establecido como predeterminado.');
+    }
+
+    /**
+     * Actualiza la categoría de referencia predeterminada de un test padre
+     */
+    public function updateDefaultCategory(Request $request, Test $test)
+    {
+        $validated = $request->validate([
+            'default_reference_category_id' => 'nullable|exists:reference_categories,id',
+        ]);
+
+        // Convertir string vacío a null
+        $categoryId = !empty($validated['default_reference_category_id']) 
+            ? $validated['default_reference_category_id'] 
+            : null;
+
+        $test->update([
+            'default_reference_category_id' => $categoryId,
+        ]);
+
+        if ($categoryId) {
+            $category = ReferenceCategory::find($categoryId);
+            return back()->with('success', "Normativa predeterminada establecida: {$category->name}");
+        }
+
+        return back()->with('success', 'Normativa predeterminada eliminada.');
     }
 }

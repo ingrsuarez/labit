@@ -85,6 +85,9 @@ class SampleController extends Controller
         foreach ($request->determinations as $testId) {
             $test = Test::with(['children', 'childTests', 'referenceValues'])->find($testId);
             
+            // Obtener la categoría predeterminada del padre (si tiene)
+            $parentCategoryId = $test->default_reference_category_id;
+            
             // Crear determinación padre
             SampleDetermination::create([
                 'sample_id' => $sample->id,
@@ -106,7 +109,8 @@ class SampleController extends Controller
                         'test_id' => $childTest->id,
                         'unit' => $childTest->unit,
                         'method' => $childTest->method,
-                        'reference_value' => $this->buildReferenceValue($childTest),
+                        // Usar la categoría predeterminada del padre para asignar el valor de referencia
+                        'reference_value' => $this->buildReferenceValue($childTest, $parentCategoryId),
                         'status' => 'pending',
                     ]);
                 }
@@ -189,6 +193,9 @@ class SampleController extends Controller
 
         $test = Test::with(['children', 'childTests', 'referenceValues'])->find($validated['test_id']);
         
+        // Obtener la categoría predeterminada del padre (si tiene)
+        $parentCategoryId = $test->default_reference_category_id;
+        
         // Crear determinación padre
         SampleDetermination::create([
             'sample_id' => $sample->id,
@@ -210,7 +217,8 @@ class SampleController extends Controller
                     'test_id' => $childTest->id,
                     'unit' => $childTest->unit,
                     'method' => $childTest->method,
-                    'reference_value' => $this->buildReferenceValue($childTest),
+                    // Usar la categoría predeterminada del padre para asignar el valor de referencia
+                    'reference_value' => $this->buildReferenceValue($childTest, $parentCategoryId),
                     'status' => 'pending',
                 ]);
                 $childrenAdded++;
@@ -752,10 +760,22 @@ class SampleController extends Controller
 
     /**
      * Construye el valor de referencia basado en los valores predefinidos o campos low/high del test
+     * @param Test $test El test para el cual construir el valor de referencia
+     * @param int|null $parentCategoryId ID de la categoría predeterminada del padre (si aplica)
      */
-    private function buildReferenceValue(Test $test): ?string
+    private function buildReferenceValue(Test $test, ?int $parentCategoryId = null): ?string
     {
-        // Primero verificar si tiene valores de referencia predefinidos
+        // Si hay una categoría del padre, buscar el valor de referencia del test para esa categoría
+        if ($parentCategoryId) {
+            $refValue = $test->referenceValues()
+                ->where('reference_category_id', $parentCategoryId)
+                ->first();
+            if ($refValue) {
+                return $refValue->value;
+            }
+        }
+
+        // Luego verificar si tiene valores de referencia con default
         $defaultRef = $test->referenceValues()->where('is_default', true)->first();
         if ($defaultRef) {
             return $defaultRef->value;
