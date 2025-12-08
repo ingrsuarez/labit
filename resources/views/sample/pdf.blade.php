@@ -321,15 +321,45 @@
                 $det = $item['det'];
                 $isChild = $item['isChild'];
                 $isParent = $item['isParent'];
+                
+                // Para padres, obtener TODAS las categorías únicas de los hijos
+                $parentCategories = null;
+                if ($isParent) {
+                    $categoryNames = collect();
+                    
+                    // Buscar categorías de todos los hijos validados
+                    $childDeterminations = $validatedDeterminations->where('test.parent', $det->test_id);
+                    
+                    foreach ($childDeterminations as $child) {
+                        // Buscar el TestReferenceValue con categoría para este hijo
+                        $refValue = \App\Models\TestReferenceValue::where('test_id', $child->test_id)
+                            ->whereNotNull('reference_category_id')
+                            ->with('category')
+                            ->first();
+                        
+                        if ($refValue && $refValue->category) {
+                            $categoryNames->push($refValue->category->name);
+                        }
+                    }
+                    
+                    // Obtener categorías únicas
+                    $uniqueCategories = $categoryNames->unique()->values();
+                    
+                    if ($uniqueCategories->count() > 0) {
+                        $parentCategories = $uniqueCategories->implode(', ');
+                    }
+                }
             @endphp
             
             <div class="determination-item {{ $isChild ? 'is-child' : '' }} {{ $isParent ? 'is-parent' : '' }}">
-                {{-- Header: Nombre y Referencia --}}
+                {{-- Header: Nombre y Referencia/Categoría --}}
                 <div class="det-header-row">
                     <span class="det-name {{ $isChild ? 'is-child' : '' }} {{ $isParent ? 'is-parent' : '' }}">
                         {{ $det->test->name ?? 'N/A' }}
                     </span>
-                    @if(!$isParent && $det->reference_value)
+                    @if($isParent && $parentCategories)
+                        <span class="det-reference-col" style="font-style: italic;">Valores de referencia según {{ $parentCategories }}</span>
+                    @elseif(!$isParent && $det->reference_value)
                         <span class="det-reference-col">{{ $det->reference_value }}</span>
                     @endif
                 </div>
@@ -342,8 +372,8 @@
                     </div>
                 @endif
                 
-                {{-- Método --}}
-                @if($det->method)
+                {{-- Método (solo para padres o si no es hijo) --}}
+                @if($det->method && ($isParent || !$isChild))
                 <div class="det-data-row">
                     <span class="det-label">Método:</span>
                     <span class="det-value">{{ $det->method }}</span>
