@@ -13,7 +13,7 @@
         
         body {
             font-family: Arial, sans-serif;
-            font-size: 10px;
+            font-size: 12px;
             line-height: 1.4;
             color: #333;
         }
@@ -28,32 +28,32 @@
             display: table;
             width: 100%;
             margin-bottom: 15px;
-            border-bottom: 3px solid #00a0b0;
+            /* border-bottom: 1px solid #fff; */
             padding-bottom: 10px;
         }
         
         .header-left {
             display: table-cell;
             vertical-align: middle;
-            width: 70%;
+            width: 30%;
         }
         
         .header-right {
             display: table-cell;
             vertical-align: middle;
             text-align: right;
-            width: 30%;
+            width: 70%;
         }
         
         .company-name {
-            font-size: 18px;
+            font-size: 22px;
             font-weight: bold;
-            color: #333;
+            color: #636363;
         }
         
         .logo-img {
-            max-height: 50px;
-            max-width: 120px;
+            max-height: 70px;
+            max-width: 170px;
         }
         
         /* Sample Info Bar */
@@ -61,7 +61,7 @@
             background-color: #f5f5f5;
             padding: 12px 15px;
             margin-bottom: 15px;
-            font-size: 14px;
+            font-size: 17px;
             color: #000;
         }
         
@@ -75,12 +75,12 @@
         
         /* Section Title */
         .section-title {
-            font-size: 11px;
+            font-size: 13px;
             font-weight: bold;
-            color: #00a0b0;
+            color:rgb(18, 18, 15);
             margin: 15px 0 10px 0;
             text-transform: uppercase;
-            border-bottom: 1px solid #00a0b0;
+            border-bottom: 1px solidrgb(12, 15, 15);
             padding-bottom: 3px;
         }
         
@@ -93,7 +93,7 @@
         .determination-item.is-child {
             margin-left: 25px;
             padding-left: 10px;
-            border-left: 2px solid #00a0b0;
+            /* border-left: 2px solid #00a0b0; */
         }
         
         .determination-item.is-parent {
@@ -112,19 +112,19 @@
             display: table-cell;
             width: 55%;
             font-weight: bold;
-            color: #00a0b0;
-            font-size: 10px;
+            color:rgb(20, 27, 28);
+            font-size: 12px;
             text-transform: uppercase;
             vertical-align: top;
         }
         
         .det-name.is-child {
-            font-size: 9px;
-            text-transform: none;
+            font-size: 11px;
+            text-transform: uppercase;
         }
         
         .det-name.is-parent {
-            font-size: 11px;
+            font-size: 13px;
             color: #006070;
         }
         
@@ -132,7 +132,7 @@
             display: table-cell;
             width: 45%;
             text-align: right;
-            font-size: 9px;
+            font-size: 11px;
             color: #666;
             vertical-align: top;
         }
@@ -140,13 +140,13 @@
         .det-data-row {
             display: table;
             width: 100%;
-            font-size: 9px;
+            font-size: 11px;
             padding-left: 10px;
         }
         
         .det-label {
             display: table-cell;
-            width: 70px;
+            width: 80px;
             color: #666;
             padding: 1px 0;
         }
@@ -166,21 +166,21 @@
         .result-row {
             display: table;
             width: 100%;
-            font-size: 9px;
+            font-size: 11px;
             padding-left: 10px;
             margin-bottom: 2px;
         }
         
         .result-label {
             display: table-cell;
-            width: 70px;
+            width: 80px;
             color: #666;
             vertical-align: middle;
         }
         
         .result-value {
             display: table-cell;
-            width: 150px;
+            width: 180px;
             font-weight: bold;
             color: #000;
             vertical-align: middle;
@@ -188,9 +188,9 @@
         
         .result-reference {
             display: table-cell;
-            text-align: right;
+            text-align: left;
             color: #666;
-            font-size: 9px;
+            font-size: 11px;
             vertical-align: middle;
         }
         
@@ -200,7 +200,7 @@
             padding: 10px 15px;
             background-color: #fffde7;
             border-left: 3px solid #ffc107;
-            font-size: 9px;
+            font-size: 11px;
         }
         
         .observations-title {
@@ -240,7 +240,7 @@
         }
         
         .validation-text {
-            font-size: 9px;
+            font-size: 11px;
             color: #333;
             margin-bottom: 2px;
         }
@@ -262,13 +262,13 @@
         }
         
         .validator-name {
-            font-size: 10px;
+            font-size: 12px;
             font-weight: bold;
             color: #333;
         }
         
         .validator-title {
-            font-size: 9px;
+            font-size: 11px;
             color: #666;
         }
         
@@ -279,7 +279,7 @@
             bottom: 10px;
             left: 30px;
             right: 30px;
-            font-size: 7px;
+            font-size: 8px;
             color: #999;
             text-align: center;
             border-top: 1px solid #eee;
@@ -367,10 +367,10 @@
         <!-- Header -->
         <div class="header">
             <div class="header-left">
-                <div class="company-name">IPAC Laboratorio de Aguas y Alimentos</div>
+                <img src="{{ public_path('images/logo_ipac.png') }}" alt="IPAC" class="logo-img">
             </div>
             <div class="header-right">
-                <img src="{{ public_path('images/logo_ipac.png') }}" alt="IPAC" class="logo-img">
+                <div class="company-name">IPAC Laboratorio de Aguas y Alimentos</div>
             </div>
         </div>
         
@@ -378,14 +378,14 @@
         <div class="sample-info-bar">
             <div class="sample-info-row" style="display: table; width: 100%;">
                 <span style="display: table-cell; text-align: left;">
-                    <strong>Empresa:</strong> {{ strtoupper($sample->customer->name ?? 'N/A') }}
+                    Empresa: <strong>{{ strtoupper($sample->customer->name ?? 'N/A') }} </strong>
                 </span>
                 <span style="display: table-cell; text-align: right;">
                     <strong>{{ $sample->sampling_date?->format('d/m/Y') }} - {{ substr($sample->protocol_number, -2) }}</strong>
                 </span>
             </div>
             <div class="sample-info-row" style="margin-top: 8px;">
-                <strong style="font-size: 14px;">MUESTRA: {{ strtoupper($sample->sample_type) }} - {{ strtoupper($sample->location) }}</strong>
+                Muestra: <strong style="font-size: 14px;">{{ strtoupper($sample->sample_type) }} - {{ strtoupper($sample->location) }}</strong>
             </div>
         </div>
         
