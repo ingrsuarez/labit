@@ -20,6 +20,10 @@ class Sample extends Model
         'batch',
         'product_name',
         'status',
+        'validation_status',
+        'validated_by',
+        'validated_at',
+        'validator_notes',
         'observations',
         'created_by',
     ];
@@ -27,6 +31,7 @@ class Sample extends Model
     protected $casts = [
         'entry_date' => 'date',
         'sampling_date' => 'date',
+        'validated_at' => 'datetime',
     ];
 
     /**
@@ -116,5 +121,66 @@ class Sample extends Model
             'cancelled' => 'red',
             default => 'gray',
         };
+    }
+
+    /**
+     * Relación con el usuario validador
+     */
+    public function validator()
+    {
+        return $this->belongsTo(User::class, 'validated_by');
+    }
+
+    /**
+     * Obtiene el estado de validación en español
+     */
+    public function getValidationStatusLabelAttribute(): string
+    {
+        return match($this->validation_status) {
+            'pending' => 'Pendiente de validación',
+            'validated' => 'Validado',
+            'rejected' => 'Rechazado',
+            default => $this->validation_status ?? 'Pendiente',
+        };
+    }
+
+    /**
+     * Obtiene el color del badge de validación
+     */
+    public function getValidationStatusColorAttribute(): string
+    {
+        return match($this->validation_status) {
+            'pending' => 'yellow',
+            'validated' => 'green',
+            'rejected' => 'red',
+            default => 'gray',
+        };
+    }
+
+    /**
+     * Verifica si el protocolo está validado
+     */
+    public function isValidated(): bool
+    {
+        return $this->validation_status === 'validated';
+    }
+
+    /**
+     * Verifica si el protocolo puede ser validado
+     */
+    public function canBeValidated(): bool
+    {
+        // Solo se puede validar si todas las determinaciones están completadas
+        return $this->status === 'completed' 
+            && $this->validation_status === 'pending'
+            && $this->determinations->every(fn($d) => $d->status === 'completed');
+    }
+
+    /**
+     * Verifica si el protocolo está listo para descargar/enviar
+     */
+    public function isReadyForDownload(): bool
+    {
+        return $this->isValidated();
     }
 }

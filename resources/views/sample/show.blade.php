@@ -10,7 +10,7 @@
                     Volver a Protocolos
                 </a>
                 <h1 class="text-2xl font-bold text-gray-800">Protocolo {{ $sample->protocol_number }}</h1>
-                <div class="flex items-center gap-3 mt-2">
+                <div class="flex flex-wrap items-center gap-3 mt-2">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                         {{ $sample->sample_type == 'agua' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800' }}">
                         {{ ucfirst($sample->sample_type) }}
@@ -24,15 +24,74 @@
                         @endswitch">
                         {{ $sample->status_label }}
                     </span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        @switch($sample->validation_status ?? 'pending')
+                            @case('pending') bg-gray-100 text-gray-800 @break
+                            @case('validated') bg-green-100 text-green-800 @break
+                            @case('rejected') bg-red-100 text-red-800 @break
+                        @endswitch">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            @if($sample->validation_status === 'validated')
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            @elseif($sample->validation_status === 'rejected')
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            @else
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            @endif
+                        </svg>
+                        {{ $sample->validation_status_label ?? 'Pendiente de validación' }}
+                    </span>
                 </div>
             </div>
-            <a href="{{ route('sample.edit', $sample) }}" 
-               class="mt-4 md:mt-0 inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                </svg>
-                Editar
-            </a>
+            <div class="mt-4 md:mt-0 flex flex-wrap gap-2">
+                <!-- Botón cargar resultados -->
+                <a href="{{ route('sample.loadResults', $sample) }}" 
+                   class="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                    </svg>
+                    Cargar Resultados
+                </a>
+                
+                <!-- Botón validar (solo para validadores) -->
+                @can('samples.validate')
+                    <a href="{{ route('sample.validate.show', $sample) }}" 
+                       class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Validar
+                    </a>
+                @endcan
+                
+                <!-- Botones PDF (si hay determinaciones validadas) -->
+                @if($sample->determinations->where('is_validated', true)->count() > 0)
+                    <a href="{{ route('sample.pdf.view', $sample) }}" target="_blank"
+                       class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        Ver PDF ({{ $sample->determinations->where('is_validated', true)->count() }})
+                    </a>
+                    <a href="{{ route('sample.pdf.download', $sample) }}" 
+                       class="inline-flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Descargar
+                    </a>
+                @endif
+                
+                <!-- Botón editar -->
+                <a href="{{ route('sample.edit', $sample) }}" 
+                   class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    Editar
+                </a>
+            </div>
         </div>
 
         <!-- Alertas -->
@@ -101,6 +160,22 @@
                             <dt class="text-sm text-gray-500">Registrado por</dt>
                             <dd class="text-gray-900">{{ $sample->creator->name ?? 'N/A' }}</dd>
                         </div>
+                        @if($sample->isValidated())
+                        <div class="pt-3 mt-3 border-t border-gray-200">
+                            <dt class="text-sm text-gray-500">Validado por</dt>
+                            <dd class="text-gray-900 font-medium">{{ $sample->validator->name ?? 'N/A' }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-500">Fecha de validación</dt>
+                            <dd class="text-gray-900">{{ $sample->validated_at?->format('d/m/Y H:i') }}</dd>
+                        </div>
+                        @if($sample->validator_notes)
+                        <div>
+                            <dt class="text-sm text-gray-500">Notas del validador</dt>
+                            <dd class="text-gray-900">{{ $sample->validator_notes }}</dd>
+                        </div>
+                        @endif
+                        @endif
                     </dl>
                 </div>
             </div>
@@ -142,6 +217,36 @@
                         </div>
                     </div>
 
+                    @php
+                        // Ordenar determinaciones: padres primero, luego hijos
+                        $orderedDeterminations = collect();
+                        $processed = [];
+                        
+                        foreach ($sample->determinations as $det) {
+                            if (in_array($det->id, $processed)) continue;
+                            
+                            if (!$det->test->parent) {
+                                $hasChildren = $sample->determinations->where('test.parent', $det->test_id)->count() > 0;
+                                $orderedDeterminations->push(['det' => $det, 'isChild' => false, 'isParent' => $hasChildren]);
+                                $processed[] = $det->id;
+                                
+                                foreach ($sample->determinations as $child) {
+                                    if ($child->test->parent == $det->test_id && !in_array($child->id, $processed)) {
+                                        $orderedDeterminations->push(['det' => $child, 'isChild' => true, 'isParent' => false]);
+                                        $processed[] = $child->id;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        foreach ($sample->determinations as $det) {
+                            if (!in_array($det->id, $processed)) {
+                                $isChild = $det->test->parent ? true : false;
+                                $orderedDeterminations->push(['det' => $det, 'isChild' => $isChild, 'isParent' => false]);
+                            }
+                        }
+                    @endphp
+
                     @if($sample->determinations->count() > 0)
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
@@ -156,17 +261,34 @@
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
-                                    @foreach($sample->determinations as $det)
-                                        <tr class="hover:bg-gray-50" x-data="{ editing: false }">
-                                            <td class="px-4 py-3 text-sm text-gray-900">{{ $det->test->code ?? 'N/A' }}</td>
-                                            <td class="px-4 py-3 text-sm text-gray-900">{{ $det->test->name ?? 'N/A' }}</td>
+                                    @foreach($orderedDeterminations as $item)
+                                        @php 
+                                            $det = $item['det'];
+                                            $isChild = $item['isChild'];
+                                            $isParent = $item['isParent'];
+                                        @endphp
+                                        <tr class="hover:bg-gray-50 {{ $isChild ? 'bg-gray-50' : '' }} {{ $isParent ? 'bg-teal-50' : '' }}" x-data="{ editing: false }">
+                                            <td class="px-4 py-3 text-sm text-gray-900 {{ $isChild ? 'pl-8' : '' }}">
+                                                @if($isChild)
+                                                    <span class="text-teal-400 mr-1">↳</span>
+                                                @endif
+                                                {{ $det->test->code ?? 'N/A' }}
+                                            </td>
+                                            <td class="px-4 py-3 text-sm {{ $isChild ? 'text-gray-700' : 'text-gray-900 font-medium' }}">
+                                                {{ $det->test->name ?? 'N/A' }}
+                                                @if($isParent)
+                                                    <span class="ml-2 text-xs bg-teal-100 text-teal-600 px-1.5 py-0.5 rounded">Grupo</span>
+                                                @endif
+                                            </td>
                                             
                                             <!-- Modo Ver -->
                                             <template x-if="!editing">
-                                                <td class="px-4 py-3 text-sm text-gray-900">{{ $det->result ?? '-' }}</td>
+                                                <td class="px-4 py-3 text-sm {{ $isParent ? 'text-gray-400 italic' : 'text-gray-900' }}">
+                                                    {{ $isParent ? '-' : ($det->result ?? '-') }}
+                                                </td>
                                             </template>
                                             <template x-if="!editing">
-                                                <td class="px-4 py-3 text-sm text-gray-500">{{ $det->unit ?? '-' }}</td>
+                                                <td class="px-4 py-3 text-sm text-gray-500">{{ $isParent ? '-' : ($det->unit ?? '-') }}</td>
                                             </template>
                                             <template x-if="!editing">
                                                 <td class="px-4 py-3">
@@ -200,10 +322,16 @@
                                                     <form action="{{ route('sample.updateDetermination', $det) }}" method="POST" class="flex items-center gap-2">
                                                         @csrf
                                                         @method('PUT')
-                                                        <input type="text" name="result" value="{{ $det->result }}" placeholder="Resultado"
-                                                               class="w-24 text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500">
-                                                        <input type="text" name="reference_value" value="{{ $det->reference_value }}" placeholder="Ref."
-                                                               class="w-20 text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                                                        @if(!$isParent)
+                                                            <input type="text" name="result" value="{{ $det->result }}" placeholder="Resultado"
+                                                                   class="w-24 text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                                                            <input type="text" name="reference_value" value="{{ $det->reference_value }}" placeholder="Ref."
+                                                                   class="w-20 text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                                                        @else
+                                                            <input type="hidden" name="result" value="">
+                                                            <input type="hidden" name="reference_value" value="">
+                                                            <span class="text-sm text-gray-500 italic">Grupo sin resultado</span>
+                                                        @endif
                                                         <select name="status" class="text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                                                             <option value="pending" {{ $det->status == 'pending' ? 'selected' : '' }}>Pendiente</option>
                                                             <option value="in_progress" {{ $det->status == 'in_progress' ? 'selected' : '' }}>En Proceso</option>

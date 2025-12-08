@@ -116,31 +116,77 @@
             <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">Determinaciones a Realizar</h2>
                 
-                <!-- Buscador -->
-                <div class="mb-4">
-                    <input type="text" x-model="searchTest" 
-                           placeholder="Buscar determinación por nombre o código..."
-                           class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                <!-- Buscador con autocompletado -->
+                <div class="mb-4 relative">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Buscar y agregar determinación</label>
+                    <input type="text" 
+                           x-model="searchTest" 
+                           @keydown.tab.prevent="addFirstFiltered()"
+                           @keydown.enter.prevent="addFirstFiltered()"
+                           @input="showSuggestions = true"
+                           @focus="showSuggestions = true"
+                           @click.away="showSuggestions = false"
+                           placeholder="Escriba código o nombre y presione Tab o Enter para agregar..."
+                           class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                           autocomplete="off">
+                    
+                    <!-- Lista desplegable de sugerencias -->
+                    <div x-show="showSuggestions && searchTest.length > 0 && filteredTests.length > 0" 
+                         x-cloak
+                         class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                        <template x-for="test in filteredTests" :key="test.id">
+                            <div @click="addTest(test)" 
+                                 class="px-4 py-2 hover:bg-teal-50 cursor-pointer flex justify-between items-center">
+                                <span>
+                                    <span class="font-medium text-teal-600" x-text="test.code"></span>
+                                    <span class="text-gray-600" x-text="' - ' + test.name"></span>
+                                </span>
+                                <span class="text-xs text-gray-400">Tab/Enter para agregar</span>
+                            </div>
+                        </template>
+                    </div>
                 </div>
 
-                <!-- Lista de determinaciones disponibles -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto border rounded-lg p-3 mb-4">
-                    @foreach($tests as $test)
-                        <label class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer"
-                               x-show="'{{ strtolower($test->name . ' ' . $test->code) }}'.includes(searchTest.toLowerCase())">
-                            <input type="checkbox" name="determinations[]" value="{{ $test->id }}"
-                                   class="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-                                   {{ in_array($test->id, old('determinations', [])) ? 'checked' : '' }}>
-                            <span class="ml-2 text-sm">
-                                <span class="font-medium text-gray-700">{{ $test->code }}</span>
-                                <span class="text-gray-500">- {{ $test->name }}</span>
-                            </span>
-                        </label>
-                    @endforeach
+                <!-- Tabla de determinaciones seleccionadas -->
+                <div class="border rounded-lg overflow-hidden">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Determinación</th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <template x-for="(test, index) in selectedTests" :key="test.id">
+                                <tr>
+                                    <td class="px-4 py-3 text-sm font-medium text-teal-600" x-text="test.code"></td>
+                                    <td class="px-4 py-3 text-sm text-gray-900" x-text="test.name"></td>
+                                    <td class="px-4 py-3 text-right">
+                                        <button type="button" @click="removeTest(index)" 
+                                                class="text-red-600 hover:text-red-800 text-sm">
+                                            Eliminar
+                                        </button>
+                                    </td>
+                                    <input type="hidden" name="determinations[]" :value="test.id">
+                                </tr>
+                            </template>
+                            <tr x-show="selectedTests.length === 0">
+                                <td colspan="3" class="px-4 py-8 text-center text-gray-500">
+                                    <svg class="mx-auto h-8 w-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                    </svg>
+                                    Busque y agregue determinaciones usando el campo de arriba
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
-                <p class="text-sm text-gray-500">
-                    Seleccione al menos una determinación para el protocolo.
+                <p class="text-sm text-gray-500 mt-3">
+                    <span class="font-medium" x-text="selectedTests.length"></span> determinación(es) seleccionada(s).
+                    Use <kbd class="px-1.5 py-0.5 bg-gray-100 rounded text-xs">Tab</kbd> o 
+                    <kbd class="px-1.5 py-0.5 bg-gray-100 rounded text-xs">Enter</kbd> para agregar rápidamente.
                 </p>
             </div>
 
@@ -162,7 +208,39 @@
         function sampleForm() {
             return {
                 sampleType: '{{ old('sample_type', 'agua') }}',
-                searchTest: ''
+                searchTest: '',
+                showSuggestions: false,
+                selectedTests: [],
+                allTests: @json($tests->map(fn($t) => ['id' => $t->id, 'code' => $t->code, 'name' => $t->name])),
+                
+                get filteredTests() {
+                    if (!this.searchTest || this.searchTest.length < 1) return [];
+                    const search = this.searchTest.toLowerCase();
+                    return this.allTests.filter(test => {
+                        const matchesSearch = test.code.toLowerCase().includes(search) || 
+                                             test.name.toLowerCase().includes(search);
+                        const notSelected = !this.selectedTests.find(s => s.id === test.id);
+                        return matchesSearch && notSelected;
+                    }).slice(0, 10); // Limitar a 10 resultados
+                },
+                
+                addFirstFiltered() {
+                    if (this.filteredTests.length > 0) {
+                        this.addTest(this.filteredTests[0]);
+                    }
+                },
+                
+                addTest(test) {
+                    if (!this.selectedTests.find(s => s.id === test.id)) {
+                        this.selectedTests.push(test);
+                    }
+                    this.searchTest = '';
+                    this.showSuggestions = false;
+                },
+                
+                removeTest(index) {
+                    this.selectedTests.splice(index, 1);
+                }
             }
         }
     </script>

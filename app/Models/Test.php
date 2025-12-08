@@ -56,6 +56,30 @@ class Test extends Model
     }
 
     /**
+     * Relación con valores de referencia
+     */
+    public function referenceValues()
+    {
+        return $this->hasMany(TestReferenceValue::class);
+    }
+
+    /**
+     * Obtiene el valor de referencia por defecto
+     */
+    public function getDefaultReferenceValue()
+    {
+        return $this->referenceValues()->where('is_default', true)->first();
+    }
+
+    /**
+     * Verifica si tiene múltiples valores de referencia
+     */
+    public function hasMultipleReferenceValues(): bool
+    {
+        return $this->referenceValues()->count() > 1;
+    }
+
+    /**
      * Obtiene el nombre del material
      */
     public function getMaterialNameAttribute(): string

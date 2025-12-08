@@ -20,10 +20,15 @@ class SampleDetermination extends Model
         'observations',
         'analyzed_by',
         'analyzed_at',
+        'is_validated',
+        'validated_by',
+        'validated_at',
     ];
 
     protected $casts = [
         'analyzed_at' => 'datetime',
+        'validated_at' => 'datetime',
+        'is_validated' => 'boolean',
     ];
 
     /**
@@ -61,5 +66,13 @@ class SampleDetermination extends Model
             'completed' => 'Completado',
             default => $this->status,
         };
+    }
+
+    /**
+     * Relación con el usuario validador
+     */
+    public function determinationValidator()
+    {
+        return $this->belongsTo(User::class, 'validated_by');
     }
 }

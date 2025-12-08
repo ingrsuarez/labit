@@ -97,6 +97,22 @@ class RolesAndPermissionsSeeder extends Seeder
             'permission.new',
             'permission.store',
             'permission.edit',
+
+            // SAMPLES/PROTOCOLOS
+            'samples.index',
+            'samples.create',
+            'samples.edit',
+            'samples.delete',
+            'samples.loadResults',
+            'samples.validate',      // Permiso para validar protocolos
+            'samples.downloadPdf',
+            'samples.sendEmail',
+
+            // CUSTOMERS
+            'customers.index',
+            'customers.create',
+            'customers.edit',
+            'customers.delete',
         ];
 
         // 3) Crear/asegurar permisos (idempotente)
