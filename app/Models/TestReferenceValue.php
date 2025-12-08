@@ -44,7 +44,10 @@ class TestReferenceValue extends Model
      */
     public function getFormattedValueAttribute(): string
     {
-        return "{$this->value} ({$this->category->code})";
+        if ($this->category) {
+            return "{$this->value} ({$this->category->code})";
+        }
+        return $this->value;
     }
 
     /**

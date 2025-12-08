@@ -87,17 +87,28 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ $test->method ?? '-' }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                @if($test->low || $test->high)
-                                    {{ $test->low ?? '-' }} - {{ $test->high ?? '-' }}
-                                @else
-                                    -
-                                @endif
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <a href="{{ route('tests.reference-values.index', $test) }}" 
+                                   class="inline-flex items-center text-blue-600 hover:text-blue-800">
+                                    @if($test->referenceValues && $test->referenceValues->count() > 0)
+                                        <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded">
+                                            {{ $test->referenceValues->count() }}
+                                        </span>
+                                    @elseif($test->low || $test->high)
+                                        <span class="text-gray-500">{{ $test->low ?? '-' }} - {{ $test->high ?? '-' }}</span>
+                                    @else
+                                        <span class="text-gray-400">Configurar</span>
+                                    @endif
+                                </a>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                <a href="{{ route('tests.reference-values.index', $test) }}" 
+                                   class="text-blue-600 hover:text-blue-900" title="Valores de referencia">
+                                    Refs
+                                </a>
                                 <button type="button" 
                                         onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ $test->instructions }}', '{{ $test->material }}', '{{ $test->parent }}')"
-                                        class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                        class="text-indigo-600 hover:text-indigo-900">
                                     Editar
                                 </button>
                                 <form action="{{ route('tests.destroy', $test) }}" method="POST" class="inline"

@@ -12,7 +12,7 @@ class TestController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Test::orderBy('code');
+        $query = Test::with('referenceValues')->orderBy('code');
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -64,15 +64,15 @@ class TestController extends Controller
         Test::create([
             'code' => strtoupper($validated['code']),
             'name' => strtolower($validated['name']),
-            'unit' => $validated['unit'],
-            'method' => $validated['method'],
-            'instructions' => $validated['instructions'],
+            'unit' => $validated['unit'] ?? null,
+            'method' => $validated['method'] ?? null,
+            'instructions' => $validated['instructions'] ?? null,
             'decimals' => $validated['decimals'] ?? 2,
-            'nbu' => $validated['nbu'],
-            'parent' => $validated['parent'],
-            'low' => $validated['low'],
-            'high' => $validated['high'],
-            'material' => $validated['material'],
+            'nbu' => $validated['nbu'] ?? null,
+            'parent' => $validated['parent'] ?? null,
+            'low' => $validated['low'] ?? null,
+            'high' => $validated['high'] ?? null,
+            'material' => $validated['material'] ?? null,
             'price' => 0,
             'cost' => 0,
         ]);

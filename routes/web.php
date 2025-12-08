@@ -72,6 +72,18 @@ Route::middleware([
     Route::put('/tests/{test}',[App\Http\Controllers\TestController::class, 'update'])->name('tests.update')->where('test', '[0-9]+');
     Route::delete('/tests/{test}',[App\Http\Controllers\TestController::class, 'destroy'])->name('tests.destroy')->where('test', '[0-9]+');
 
+    // Test Reference Values (Valores de Referencia)
+    Route::get('/tests/{test}/reference-values', [App\Http\Controllers\TestReferenceValueController::class, 'index'])->name('tests.reference-values.index');
+    Route::post('/tests/{test}/reference-values', [App\Http\Controllers\TestReferenceValueController::class, 'store'])->name('tests.reference-values.store');
+    Route::put('/tests/{test}/reference-values/{referenceValue}', [App\Http\Controllers\TestReferenceValueController::class, 'update'])->name('tests.reference-values.update');
+    Route::delete('/tests/{test}/reference-values/{referenceValue}', [App\Http\Controllers\TestReferenceValueController::class, 'destroy'])->name('tests.reference-values.destroy');
+
+    // Reference Categories (Categorías de Valores de Referencia)
+    Route::get('/reference-categories', [App\Http\Controllers\ReferenceCategoryController::class, 'index'])->name('reference-categories.index');
+    Route::post('/reference-categories', [App\Http\Controllers\ReferenceCategoryController::class, 'store'])->name('reference-categories.store');
+    Route::put('/reference-categories/{category}', [App\Http\Controllers\ReferenceCategoryController::class, 'update'])->name('reference-categories.update');
+    Route::delete('/reference-categories/{category}', [App\Http\Controllers\ReferenceCategoryController::class, 'destroy'])->name('reference-categories.destroy');
+
     // ADMISSION
     Route::get('/admission/new',[App\Http\Controllers\AdmissionController::class, 'index'])->name('admission.index');
 
