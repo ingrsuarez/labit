@@ -28,7 +28,7 @@
             display: table;
             width: 100%;
             margin-bottom: 15px;
-            /* border-bottom: 1px solid #fff; */
+            border-bottom: 1px solid #030303;
             padding-bottom: 10px;
         }
         
@@ -48,7 +48,7 @@
         .company-name {
             font-size: 22px;
             font-weight: bold;
-            color: #636363;
+            color: #C3C3C3;
         }
         
         .logo-img {
@@ -80,7 +80,7 @@
             color:rgb(18, 18, 15);
             margin: 15px 0 10px 0;
             text-transform: uppercase;
-            border-bottom: 1px solidrgb(12, 15, 15);
+            border-bottom: 2px solidrgb(12, 15, 15);
             padding-bottom: 3px;
         }
         
