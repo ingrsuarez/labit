@@ -85,6 +85,12 @@ Route::middleware([
     Route::put('/reference-categories/{category}', [App\Http\Controllers\ReferenceCategoryController::class, 'update'])->name('reference-categories.update');
     Route::delete('/reference-categories/{category}', [App\Http\Controllers\ReferenceCategoryController::class, 'destroy'])->name('reference-categories.destroy');
 
+    // Materials (Materiales)
+    Route::get('/materials', [App\Http\Controllers\MaterialController::class, 'index'])->name('materials.index');
+    Route::post('/materials', [App\Http\Controllers\MaterialController::class, 'store'])->name('materials.store');
+    Route::put('/materials/{material}', [App\Http\Controllers\MaterialController::class, 'update'])->name('materials.update');
+    Route::delete('/materials/{material}', [App\Http\Controllers\MaterialController::class, 'destroy'])->name('materials.destroy');
+
     // ADMISSION
     Route::get('/admission/new',[App\Http\Controllers\AdmissionController::class, 'index'])->name('admission.index');
 

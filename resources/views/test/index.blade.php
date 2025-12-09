@@ -201,11 +201,9 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Material</label>
                             <select name="material" class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                                 <option value="">Ninguno</option>
-                                <option value="1">EDTA</option>
-                                <option value="2">Suero</option>
-                                <option value="3">Orina</option>
-                                <option value="4">Citrato</option>
-                                <option value="5">Heparina</option>
+                                @foreach($materials as $material)
+                                    <option value="{{ $material->id }}">{{ $material->name }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="md:col-span-2">
@@ -296,11 +294,9 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Material</label>
                             <select name="material" id="edit-material" class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                                 <option value="">Ninguno</option>
-                                <option value="1">EDTA</option>
-                                <option value="2">Suero</option>
-                                <option value="3">Orina</option>
-                                <option value="4">Citrato</option>
-                                <option value="5">Heparina</option>
+                                @foreach($materials as $material)
+                                    <option value="{{ $material->id }}">{{ $material->name }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="md:col-span-2">
