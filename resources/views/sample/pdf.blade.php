@@ -401,41 +401,39 @@
                 $isChild = $item['isChild'];
                 $isParent = $item['isParent'];
                 
-                // Para padres, obtener las categorías de la normativa predeterminada o de los hijos
+                // Para padres, obtener las categorías de los valores de referencia usados en los hijos
                 $parentCategories = null;
                 if ($isParent) {
-                    // Primero verificar si el padre tiene una categoría predeterminada
-                    if ($det->test->default_reference_category_id && $det->test->defaultReferenceCategory) {
-                        $parentCategories = $det->test->defaultReferenceCategory->name;
-                    } else {
-                        // Si no, obtener categorías únicas de los hijos
-                        $categoryNames = collect();
-                        
-                        // Obtener todos los hijos del test
-                        $allChildren = $det->test->getAllChildren(false);
-                        $childTestIds = $allChildren->pluck('id')->toArray();
-                        
-                        // Buscar hijos validados en este protocolo
-                        foreach ($validatedDeterminations as $childDet) {
-                            if (in_array($childDet->test_id, $childTestIds)) {
-                                // Buscar el TestReferenceValue con categoría para este hijo
-                                $refValue = \App\Models\TestReferenceValue::where('test_id', $childDet->test_id)
-                                    ->whereNotNull('reference_category_id')
-                                    ->with('category')
-                                    ->first();
-                                
-                                if ($refValue && $refValue->category) {
-                                    $categoryNames->push($refValue->category->name);
-                                }
+                    $categoryNames = collect();
+                    
+                    // Obtener todos los hijos del test
+                    $allChildren = $det->test->getAllChildren(false);
+                    $childTestIds = $allChildren->pluck('id')->toArray();
+                    
+                    // Buscar hijos validados en este protocolo
+                    foreach ($validatedDeterminations as $childDet) {
+                        if (in_array($childDet->test_id, $childTestIds) && $childDet->reference_value) {
+                            // Buscar el TestReferenceValue que coincida con el valor usado en esta determinación
+                            $refValue = \App\Models\TestReferenceValue::where('test_id', $childDet->test_id)
+                                ->where('value', $childDet->reference_value)
+                                ->whereNotNull('reference_category_id')
+                                ->with('category')
+                                ->first();
+                            
+                            if ($refValue && $refValue->category) {
+                                $categoryNames->push($refValue->category->name);
                             }
                         }
-                        
-                        // Obtener categorías únicas
-                        $uniqueCategories = $categoryNames->unique()->values();
-                        
-                        if ($uniqueCategories->count() > 0) {
-                            $parentCategories = $uniqueCategories->implode(', ');
-                        }
+                    }
+                    
+                    // Obtener categorías únicas
+                    $uniqueCategories = $categoryNames->unique()->values();
+                    
+                    if ($uniqueCategories->count() > 0) {
+                        $parentCategories = $uniqueCategories->implode(', ');
+                    } elseif ($det->test->default_reference_category_id && $det->test->defaultReferenceCategory) {
+                        // Fallback: usar la categoría predeterminada del padre si no se encontró en hijos
+                        $parentCategories = $det->test->defaultReferenceCategory->name;
                     }
                 }
             @endphp
