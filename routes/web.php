@@ -287,6 +287,17 @@ Route::middleware([
     
     Route::get('leave/export/pdf', [App\Http\Controllers\LeaveController::class, 'exportPdf'])
         ->name('leave.export.pdf');
+
+    // NO CONFORMIDADES
+    Route::get('non-conformity', [App\Http\Controllers\NonConformityController::class, 'index'])->name('non-conformity.index');
+    Route::get('non-conformity/create', [App\Http\Controllers\NonConformityController::class, 'create'])->name('non-conformity.create');
+    Route::post('non-conformity', [App\Http\Controllers\NonConformityController::class, 'store'])->name('non-conformity.store');
+    Route::get('non-conformity/{nonConformity}', [App\Http\Controllers\NonConformityController::class, 'show'])->name('non-conformity.show');
+    Route::get('non-conformity/{nonConformity}/edit', [App\Http\Controllers\NonConformityController::class, 'edit'])->name('non-conformity.edit');
+    Route::put('non-conformity/{nonConformity}', [App\Http\Controllers\NonConformityController::class, 'update'])->name('non-conformity.update');
+    Route::delete('non-conformity/{nonConformity}', [App\Http\Controllers\NonConformityController::class, 'destroy'])->name('non-conformity.destroy');
+    Route::post('non-conformity/{nonConformity}/follow-up', [App\Http\Controllers\NonConformityController::class, 'addFollowUp'])->name('non-conformity.follow-up');
+
     // USERS
 
     Route::get('users/index',[App\Http\Controllers\UserController::class, 'index'])
