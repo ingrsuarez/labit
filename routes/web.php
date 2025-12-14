@@ -297,6 +297,8 @@ Route::middleware([
     Route::put('non-conformity/{nonConformity}', [App\Http\Controllers\NonConformityController::class, 'update'])->name('non-conformity.update');
     Route::delete('non-conformity/{nonConformity}', [App\Http\Controllers\NonConformityController::class, 'destroy'])->name('non-conformity.destroy');
     Route::post('non-conformity/{nonConformity}/follow-up', [App\Http\Controllers\NonConformityController::class, 'addFollowUp'])->name('non-conformity.follow-up');
+    Route::get('non-conformity/{nonConformity}/pdf', [App\Http\Controllers\NonConformityController::class, 'pdf'])->name('non-conformity.pdf');
+    Route::get('non-conformity/{nonConformity}/print', [App\Http\Controllers\NonConformityController::class, 'print'])->name('non-conformity.print');
 
     // USERS
 

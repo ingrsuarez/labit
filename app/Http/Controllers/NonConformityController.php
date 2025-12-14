@@ -198,4 +198,26 @@ class NonConformityController extends Controller
 
         return back()->with('success', 'Seguimiento agregado correctamente.');
     }
+
+    /**
+     * Generar PDF de la NC
+     */
+    public function pdf(NonConformity $nonConformity)
+    {
+        $nonConformity->load(['employee', 'reporter', 'closer']);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('non-conformity.pdf', compact('nonConformity'));
+        
+        return $pdf->stream("NC-{$nonConformity->code}.pdf");
+    }
+
+    /**
+     * Imprimir (vista para impresión)
+     */
+    public function print(NonConformity $nonConformity)
+    {
+        $nonConformity->load(['employee', 'reporter', 'closer']);
+
+        return view('non-conformity.pdf', compact('nonConformity'));
+    }
 }
