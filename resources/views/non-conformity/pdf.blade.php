@@ -365,7 +365,7 @@
             <div class="employee-info">
                 <div class="employee-row">
                     <div class="employee-cell employee-label">Nombre Completo:</div>
-                    <div class="employee-cell employee-value">{{ $nonConformity->employee->lastname }}, {{ $nonConformity->employee->name }}</div>
+                    <div class="employee-cell employee-value">{{ $nonConformity->employee->lastName }} {{ $nonConformity->employee->name }}</div>
                 </div>
                 @if($nonConformity->employee->dni)
                 <div class="employee-row">
@@ -391,7 +391,7 @@
         <div class="signature-section">
             <div class="signature-box">
                 <div class="signature-line">
-                    <div class="signature-name">{{ $nonConformity->employee->lastname }}, {{ $nonConformity->employee->name }}</div>
+                    <div class="signature-name">{{ $nonConformity->employee->lastName }} {{ $nonConformity->employee->name }}</div>
                     <div class="signature-label">Firma del Empleado</div>
                 </div>
             </div>

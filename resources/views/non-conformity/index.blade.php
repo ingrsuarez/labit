@@ -53,7 +53,7 @@
                             <option value="">Todos</option>
                             @foreach($employees as $emp)
                                 <option value="{{ $emp->id }}" {{ request('employee_id') == $emp->id ? 'selected' : '' }}>
-                                    {{ $emp->lastname }}, {{ $emp->name }}
+                                    {{ $emp->lastName }} {{ $emp->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -127,7 +127,7 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm font-medium text-gray-900">
-                                                {{ $nc->employee->lastname }}, {{ $nc->employee->name }}
+                                                {{ $nc->employee->lastName }} {{ $nc->employee->name }}
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

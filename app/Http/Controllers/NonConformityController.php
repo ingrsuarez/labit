@@ -43,7 +43,7 @@ class NonConformityController extends Controller
         }
 
         $nonConformities = $query->paginate(15);
-        $employees = Employee::orderBy('lastname')->get();
+        $employees = Employee::orderBy('lastName')->get();
 
         // Estadísticas
         $stats = [
@@ -61,7 +61,7 @@ class NonConformityController extends Controller
      */
     public function create()
     {
-        $employees = Employee::orderBy('lastname')->get();
+        $employees = Employee::orderBy('lastName')->get();
         $code = NonConformity::generateCode();
 
         return view('non-conformity.create', compact('employees', 'code'));
@@ -109,7 +109,7 @@ class NonConformityController extends Controller
      */
     public function edit(NonConformity $nonConformity)
     {
-        $employees = Employee::orderBy('lastname')->get();
+        $employees = Employee::orderBy('lastName')->get();
 
         return view('non-conformity.edit', compact('nonConformity', 'employees'));
     }

@@ -71,7 +71,7 @@
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500">Empleado Involucrado</p>
-                                <p class="font-medium">{{ $nonConformity->employee->lastname }}, {{ $nonConformity->employee->name }}</p>
+                                <p class="font-medium">{{ $nonConformity->employee->lastName }} {{ $nonConformity->employee->name }}</p>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500">Reportado por</p>
