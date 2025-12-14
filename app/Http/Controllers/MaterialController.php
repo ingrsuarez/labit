@@ -74,3 +74,6 @@ class MaterialController extends Controller
         return back()->with('success', 'Material eliminado correctamente.');
     }
 }
+
+
+

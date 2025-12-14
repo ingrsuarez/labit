@@ -24,3 +24,6 @@ return new class extends Migration
         // No revertir - parent debe ser nullable
     }
 };
+
+
+

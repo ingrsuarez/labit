@@ -73,3 +73,6 @@ class ReferenceCategoryController extends Controller
         return back()->with('success', 'Categoría eliminada.');
     }
 }
+
+
+

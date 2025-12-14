@@ -26,3 +26,6 @@ return new class extends Migration
         DB::statement("ALTER TABLE samples MODIFY COLUMN validation_status ENUM('pending', 'validated', 'rejected') DEFAULT 'pending'");
     }
 };
+
+
+
