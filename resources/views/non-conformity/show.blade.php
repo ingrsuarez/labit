@@ -120,6 +120,60 @@
                         @endif
                     </div>
 
+                    <!-- Evidencias -->
+                    @if($nonConformity->attachments && count($nonConformity->attachments) > 0)
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                            Evidencias
+                            <span class="text-sm font-normal text-gray-500">({{ count($nonConformity->attachments) }} archivo{{ count($nonConformity->attachments) > 1 ? 's' : '' }})</span>
+                        </h3>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            @foreach($nonConformity->attachments as $attachment)
+                                @php
+                                    $extension = pathinfo($attachment['name'], PATHINFO_EXTENSION);
+                                    $isImage = in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                                @endphp
+                                
+                                <div class="group relative border rounded-lg overflow-hidden bg-gray-50 hover:shadow-md transition-shadow">
+                                    @if($isImage)
+                                        <a href="{{ Storage::url($attachment['path']) }}" target="_blank" class="block">
+                                            <img src="{{ Storage::url($attachment['path']) }}" 
+                                                 alt="{{ $attachment['name'] }}" 
+                                                 class="w-full h-32 object-cover">
+                                        </a>
+                                    @else
+                                        <a href="{{ Storage::url($attachment['path']) }}" target="_blank"
+                                           class="flex flex-col items-center justify-center h-32 text-gray-500 hover:text-red-600">
+                                            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                            </svg>
+                                            <span class="text-sm mt-1 uppercase font-medium">{{ $extension }}</span>
+                                        </a>
+                                    @endif
+                                    
+                                    <div class="p-2 bg-white">
+                                        <p class="text-xs text-gray-600 truncate" title="{{ $attachment['name'] }}">
+                                            {{ $attachment['name'] }}
+                                        </p>
+                                        <p class="text-xs text-gray-400">
+                                            {{ number_format($attachment['size'] / 1024, 1) }} KB
+                                        </p>
+                                    </div>
+                                    
+                                    <!-- Botón de descarga -->
+                                    <a href="{{ Storage::url($attachment['path']) }}" download="{{ $attachment['name'] }}"
+                                       class="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                        </svg>
+                                    </a>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
                     <!-- Seguimientos -->
                     <div class="bg-white rounded-xl shadow-sm p-6">
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">Seguimientos</h3>

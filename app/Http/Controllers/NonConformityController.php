@@ -6,6 +6,7 @@ use App\Models\NonConformity;
 use App\Models\NonConformityFollowUp;
 use App\Models\Employee;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class NonConformityController extends Controller
 {
@@ -82,11 +83,27 @@ class NonConformityController extends Controller
             'training_name' => 'nullable|string|max:255',
             'corrective_action' => 'nullable|string',
             'preventive_action' => 'nullable|string',
+            'attachments.*' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx',
         ]);
 
         $validated['code'] = NonConformity::generateCode();
         $validated['reported_by'] = auth()->id();
         $validated['status'] = 'abierta';
+
+        // Manejar archivos adjuntos
+        $attachments = [];
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('non-conformities/' . date('Y/m'), 'public');
+                $attachments[] = [
+                    'name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'size' => $file->getSize(),
+                    'mime' => $file->getMimeType(),
+                ];
+            }
+        }
+        $validated['attachments'] = $attachments ?: null;
 
         $nc = NonConformity::create($validated);
 
@@ -130,6 +147,8 @@ class NonConformityController extends Controller
             'corrective_action' => 'nullable|string',
             'preventive_action' => 'nullable|string',
             'status' => 'required|in:abierta,en_proceso,cerrada',
+            'attachments.*' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx',
+            'delete_attachments' => 'nullable|array',
         ]);
 
         // Si se cierra, registrar quién y cuándo
@@ -144,6 +163,39 @@ class NonConformityController extends Controller
             $validated['closed_by'] = null;
         }
 
+        // Manejar archivos adjuntos
+        $attachments = $nonConformity->attachments ?? [];
+
+        // Eliminar archivos marcados
+        if ($request->has('delete_attachments')) {
+            $toDelete = $request->input('delete_attachments');
+            foreach ($toDelete as $index) {
+                if (isset($attachments[$index])) {
+                    Storage::disk('public')->delete($attachments[$index]['path']);
+                }
+            }
+            // Reindexar después de eliminar
+            $attachments = array_values(array_filter($attachments, function($key) use ($toDelete) {
+                return !in_array($key, $toDelete);
+            }, ARRAY_FILTER_USE_KEY));
+        }
+
+        // Agregar nuevos archivos
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('non-conformities/' . date('Y/m'), 'public');
+                $attachments[] = [
+                    'name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'size' => $file->getSize(),
+                    'mime' => $file->getMimeType(),
+                ];
+            }
+        }
+
+        $validated['attachments'] = count($attachments) > 0 ? $attachments : null;
+        unset($validated['delete_attachments']);
+
         $nonConformity->update($validated);
 
         return redirect()->route('non-conformity.show', $nonConformity)
@@ -156,6 +208,14 @@ class NonConformityController extends Controller
     public function destroy(NonConformity $nonConformity)
     {
         $code = $nonConformity->code;
+
+        // Eliminar archivos adjuntos
+        if ($nonConformity->attachments) {
+            foreach ($nonConformity->attachments as $attachment) {
+                Storage::disk('public')->delete($attachment['path']);
+            }
+        }
+
         $nonConformity->delete();
 
         return redirect()->route('non-conformity.index')
