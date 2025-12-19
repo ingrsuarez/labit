@@ -2,13 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PayrollItem extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'payroll_id',
         'type',
@@ -22,9 +20,13 @@ class PayrollItem extends Model
     protected $casts = [
         'amount' => 'decimal:2',
         'is_remunerative' => 'boolean',
+        'order' => 'integer',
     ];
 
-    public function payroll()
+    /**
+     * Liquidación a la que pertenece
+     */
+    public function payroll(): BelongsTo
     {
         return $this->belongsTo(Payroll::class);
     }

@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Payroll extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'employee_id',
         'year',
@@ -27,11 +26,10 @@ class Payroll extends Model
         'total_deducciones',
         'neto_a_cobrar',
         'status',
-        'created_by',
-        'approved_by',
         'liquidated_at',
         'paid_at',
-        'notes',
+        'created_by',
+        'approved_by',
     ];
 
     protected $casts = [
@@ -46,66 +44,79 @@ class Payroll extends Model
         'neto_a_cobrar' => 'decimal:2',
     ];
 
-    // Relaciones
-    public function employee()
+    /**
+     * Empleado asociado
+     */
+    public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
     }
 
-    public function items()
+    /**
+     * Items de la liquidación (haberes y deducciones)
+     */
+    public function items(): HasMany
     {
-        return $this->hasMany(PayrollItem::class)->orderBy('type')->orderBy('order');
+        return $this->hasMany(PayrollItem::class)->orderBy('order');
     }
 
-    public function haberes()
+    /**
+     * Solo haberes
+     */
+    public function haberes(): HasMany
     {
-        return $this->hasMany(PayrollItem::class)->where('type', 'haber')->orderBy('order');
+        return $this->hasMany(PayrollItem::class)
+            ->where('type', 'haber')
+            ->orderBy('order');
     }
 
-    public function deducciones()
+    /**
+     * Solo deducciones
+     */
+    public function deducciones(): HasMany
     {
-        return $this->hasMany(PayrollItem::class)->where('type', 'deduccion')->orderBy('order');
+        return $this->hasMany(PayrollItem::class)
+            ->where('type', 'deduccion')
+            ->orderBy('order');
     }
 
-    public function createdBy()
+    /**
+     * Usuario que creó la liquidación
+     */
+    public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function approvedBy()
+    /**
+     * Usuario que aprobó la liquidación
+     */
+    public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
     }
 
-    // Scopes
+    /**
+     * Scope para filtrar por período (año y mes)
+     */
     public function scopeForPeriod($query, int $year, int $month)
     {
         return $query->where('year', $year)->where('month', $month);
     }
 
-    public function scopeLiquidado($query)
-    {
-        return $query->whereIn('status', ['liquidado', 'pagado']);
-    }
-
-    public function scopePagado($query)
-    {
-        return $query->where('status', 'pagado');
-    }
-
-    // Helpers
+    /**
+     * Verificar si está liquidado
+     */
     public function isLiquidado(): bool
     {
         return in_array($this->status, ['liquidado', 'pagado']);
     }
 
+    /**
+     * Verificar si está pagado
+     */
     public function isPagado(): bool
     {
         return $this->status === 'pagado';
-    }
-
-    public function canEdit(): bool
-    {
-        return $this->status === 'borrador';
     }
 }

@@ -5,39 +5,46 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'IPAC') }} - Administración</title>
+        <title>{{ config('app.name', 'IPAC') }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
         <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-        
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <!-- Styles -->
         @livewireStyles
     </head>
-    <body class="font-sans antialiased bg-gray-100">
+    <body class="font-sans antialiased bg-gray-300">
         <x-banner />
 
-        <div class="min-h-screen flex">
-            <!-- Sidebar Administrativo -->
-            @include('admin.partials.sidebar')
+        <div class="min-h-fit h-max bg-gray-300">
+            @livewire('navigation-menu')
+            
+            <!-- Page Heading -->
+            @if (isset($header))
+                <header class="bg-white shadow">
+                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                        {{ $header }}
+                    </div>
+                </header>
+            @endif
 
-            <!-- Contenido Principal -->
-            <div class="flex-1 flex flex-col md:ml-64">
-                <!-- Header -->
-                @include('admin.partials.header')
+            <!-- Page Content -->
+            <main class="h-screen">
 
-                <!-- Page Content -->
-                <main class="flex-1 p-6">
-                    {{ $slot }}
-                </main>
-            </div>
+                    <div>@livewire('manage-side-bar')</div>
+                    <div class="relative h-fit md:absolute md:top-20 md:ml-64 mx-2 w-fit lg:w-3/4">{{ $slot }}</div>
+                    
+                {{-- </div> --}}
+                
+            </main>
         </div>
 
         @stack('modals')
-        @livewireScripts
+        <script src="/livewire/livewire.js" data-turbo-eval="false" data-turbolinks-eval="false"></script>
+        {{-- @livewireScripts --}}
     </body>
 </html>

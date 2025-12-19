@@ -4,200 +4,193 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">Liquidación de Sueldos</h1>
-                <p class="text-sm text-gray-600 mt-1">CCT 108/75 (FATSA–CADIME/CEDIM) - Convenio de Sanidad</p>
+                <p class="text-sm text-gray-600 mt-1">Calcular y generar recibos de sueldo</p>
             </div>
-            <a href="{{ route('payroll.bulk', ['year' => $filters['year'], 'month' => $filters['month']]) }}" 
-               class="mt-3 sm:mt-0 inline-flex items-center px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors shadow-sm">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                </svg>
-                Liquidación Masiva
+            <a href="{{ route('payroll.closed') }}" class="mt-3 sm:mt-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                📋 Ver Liquidaciones Cerradas
             </a>
         </div>
 
+        {{-- Mensajes --}}
+        @if(session('success'))
+            <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                {{ session('success') }}
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                {{ session('error') }}
+            </div>
+        @endif
+
         {{-- Filtros --}}
-        <form method="GET" class="bg-white p-4 rounded-xl shadow mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl shadow p-6 mb-6">
+            <form method="GET" action="{{ route('payroll.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Empleado</label>
-                    <select name="employee_id" required
-                            class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">Seleccione un empleado...</option>
-                        @foreach($employees as $e)
-                            <option value="{{ $e->id }}" {{ ($filters['employee_id'] ?? '') == $e->id ? 'selected' : '' }}>
-                                {{ ucfirst($e->lastName) }}, {{ ucfirst($e->name) }} — {{ $e->employeeId }}
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Empleado</label>
+                    <select name="employee_id" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">Seleccionar empleado...</option>
+                        @foreach($employees as $employee)
+                            <option value="{{ $employee->id }}" {{ ($filters['employee_id'] ?? '') == $employee->id ? 'selected' : '' }}>
+                                {{ $employee->lastName }}, {{ $employee->name }}
                             </option>
                         @endforeach
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Año</label>
-                    <input type="number" name="year" value="{{ $filters['year'] }}" min="2020" max="2100"
-                           class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Mes</label>
-                    <select name="month"
-                            class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        @for($m = 1; $m <= 12; $m++)
-                            <option value="{{ $m }}" {{ $filters['month'] == $m ? 'selected' : '' }}>
-                                {{ \Carbon\Carbon::createFromDate(2000, $m, 1)->translatedFormat('F') }}
-                            </option>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Año</label>
+                    <select name="year" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        @for($y = now()->year; $y >= now()->year - 5; $y--)
+                            <option value="{{ $y }}" {{ ($filters['year'] ?? now()->year) == $y ? 'selected' : '' }}>{{ $y }}</option>
                         @endfor
                     </select>
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mes</label>
+                    <select name="month" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        @foreach(range(1, 12) as $m)
+                            <option value="{{ $m }}" {{ ($filters['month'] ?? now()->month) == $m ? 'selected' : '' }}>
+                                {{ \Carbon\Carbon::createFromDate(null, $m, 1)->translatedFormat('F') }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="flex items-end">
-                    <button type="submit" 
-                            class="w-full px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
-                        Calcular Recibo
+                    <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        🔍 Calcular
                     </button>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
 
-        @if($payroll)
-            {{-- Recibo de Sueldo --}}
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden" id="recibo">
-                {{-- Encabezado del recibo --}}
+        {{-- Resultado de la liquidación --}}
+        @if($selectedEmployee && $payroll)
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                {{-- Header con Logo --}}
+                <div class="p-4 border-b flex justify-between items-center">
+                    <div class="flex items-center gap-4">
+                        @if(file_exists(public_path('images/logo_ipac.png')))
+                            <img src="{{ asset('images/logo_ipac.png') }}" alt="Logo IPAC" class="h-12">
+                        @else
+                            <x-application-mark class="h-12 w-auto" />
+                        @endif
+                        <div>
+                            <p class="font-bold text-gray-800">{{ config('app.name', 'Labit') }}</p>
+                            <p class="text-xs text-gray-500">Administración</p>
+                        </div>
+                    </div>
+                    <div class="text-right text-sm text-gray-500">
+                        <p>Vista previa</p>
+                        <p>{{ now()->format('d/m/Y H:i') }}</p>
+                    </div>
+                </div>
+                
+                {{-- Título --}}
                 <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6">
                     <div class="flex justify-between items-start">
                         <div>
                             <h2 class="text-xl font-bold">RECIBO DE SUELDO</h2>
-                            <p class="text-blue-200 text-sm">{{ $payroll['periodo']['label'] }}</p>
+                            <p class="text-blue-200">{{ $payroll['periodo']['label'] }}</p>
                         </div>
-                        <div class="text-right">
-                            <p class="text-sm text-blue-200">Convenio</p>
-                            <p class="font-semibold">{{ $payroll['empleado']['convenio'] ?? 'CCT 108/75' }}</p>
+                        <div class="text-right text-sm">
+                            <p class="text-blue-200">Convenio</p>
+                            <p class="font-semibold">{{ $payroll['empleado']['convenio'] }}</p>
                         </div>
                     </div>
                 </div>
 
                 {{-- Datos del empleado --}}
-                <div class="border-b border-gray-200 p-4 bg-gray-50">
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                            <span class="text-gray-500">Empleado:</span>
-                            <p class="font-semibold text-gray-900 capitalize">{{ $payroll['empleado']['nombre'] }}</p>
-                        </div>
-                        <div>
-                            <span class="text-gray-500">CUIL:</span>
-                            <p class="font-semibold text-gray-900">{{ $payroll['empleado']['cuil'] }}</p>
-                        </div>
-                        <div>
-                            <span class="text-gray-500">Categoría:</span>
-                            <p class="font-semibold text-gray-900 capitalize">{{ $payroll['empleado']['categoria'] }}</p>
-                        </div>
-                        <div>
-                            <span class="text-gray-500">Antigüedad:</span>
-                            <p class="font-semibold text-gray-900">{{ $payroll['empleado']['antiguedad_anos'] }} años</p>
-                        </div>
+                <div class="grid grid-cols-4 gap-4 p-4 bg-gray-50 border-b">
+                    <div>
+                        <p class="text-xs text-gray-500">Empleado:</p>
+                        <p class="font-semibold">{{ $payroll['empleado']['nombre'] }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">CUIL:</p>
+                        <p class="font-semibold">{{ $payroll['empleado']['cuil'] }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">Categoría:</p>
+                        <p class="font-semibold">{{ $payroll['empleado']['categoria'] }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">Antigüedad:</p>
+                        <p class="font-semibold">{{ $payroll['empleado']['antiguedad_anos'] }} años</p>
                     </div>
                 </div>
 
-                {{-- Novedades del período --}}
-                @if(array_sum($payroll['novedades']) > 0)
-                    <div class="border-b border-gray-200 p-4 bg-amber-50">
-                        <h3 class="text-sm font-semibold text-amber-800 mb-2">Novedades del Período:</h3>
-                        <div class="flex flex-wrap gap-4 text-sm">
-                            @if($payroll['novedades']['dias_vacaciones'] > 0)
-                                <span class="px-2 py-1 bg-green-100 text-green-800 rounded">
-                                    Vacaciones: {{ $payroll['novedades']['dias_vacaciones'] }} días
-                                </span>
-                            @endif
-                            @if($payroll['novedades']['dias_enfermedad'] > 0)
-                                <span class="px-2 py-1 bg-red-100 text-red-800 rounded">
-                                    Enfermedad: {{ $payroll['novedades']['dias_enfermedad'] }} días
-                                </span>
-                            @endif
-                            @if($payroll['novedades']['horas_50'] > 0)
-                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded">
-                                    Hs. Extra 50%: {{ $payroll['novedades']['horas_50'] }} hs
-                                </span>
-                            @endif
-                            @if($payroll['novedades']['horas_100'] > 0)
-                                <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded">
-                                    Hs. Extra 100%: {{ $payroll['novedades']['horas_100'] }} hs
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-                @endif
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-gray-200">
-                    {{-- HABERES --}}
+                {{-- Haberes y Deducciones --}}
+                <div class="grid grid-cols-2 gap-0 divide-x">
+                    {{-- Haberes --}}
                     <div class="p-4">
-                        <h3 class="text-lg font-bold text-green-700 mb-4 flex items-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                            </svg>
-                            HABERES
+                        <h3 class="text-lg font-bold text-green-600 mb-3 flex items-center gap-2">
+                            <span class="text-xl">+</span> HABERES
                         </h3>
                         <table class="w-full text-sm">
                             <thead>
-                                <tr class="text-gray-500 border-b">
-                                    <th class="text-left py-2">Concepto</th>
-                                    <th class="text-right py-2">%</th>
-                                    <th class="text-right py-2">Importe</th>
+                                <tr class="text-gray-500 text-xs">
+                                    <th class="text-left pb-2">Concepto</th>
+                                    <th class="text-center pb-2">%</th>
+                                    <th class="text-right pb-2">Importe</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="divide-y divide-gray-100">
                                 @foreach($payroll['haberes'] as $haber)
-                                    <tr class="border-b border-gray-100">
-                                        <td class="py-2 capitalize">
+                                    <tr class="{{ ($haber['remunerativo'] ?? true) ? '' : 'text-purple-600' }}">
+                                        <td class="py-2">
                                             {{ $haber['nombre'] }}
-                                            @if(isset($haber['remunerativo']) && !$haber['remunerativo'])
-                                                <span class="text-xs text-amber-600">(No Rem.)</span>
+                                            @if(!($haber['remunerativo'] ?? true))
+                                                <span class="text-xs">(No Rem.)</span>
                                             @endif
                                         </td>
-                                        <td class="text-right py-2 text-gray-500">{{ $haber['porcentaje'] ?? '' }}</td>
-                                        <td class="text-right py-2 font-medium text-green-600">
+                                        <td class="text-center text-gray-500">{{ $haber['porcentaje'] ?? '' }}</td>
+                                        <td class="text-right font-medium {{ $haber['importe'] >= 0 ? 'text-green-600' : 'text-red-600' }}">
                                             ${{ number_format($haber['importe'], 2, ',', '.') }}
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
-                            <tfoot>
-                                <tr class="border-t-2 border-green-300 bg-green-50">
-                                    <td colspan="2" class="py-3 font-bold text-green-800">TOTAL HABERES</td>
-                                    <td class="text-right py-3 font-bold text-green-800 text-lg">
-                                        ${{ number_format($payroll['subtotal'], 2, ',', '.') }}
+                            <tfoot class="border-t-2 border-gray-200">
+                                <tr class="font-bold">
+                                    <td class="pt-3 text-green-700">TOTAL HABERES</td>
+                                    <td></td>
+                                    <td class="pt-3 text-right text-green-700">
+                                        ${{ number_format($payroll['total_haberes'], 2, ',', '.') }}
                                     </td>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
 
-                    {{-- DEDUCCIONES --}}
+                    {{-- Deducciones --}}
                     <div class="p-4">
-                        <h3 class="text-lg font-bold text-red-700 mb-4 flex items-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
-                            </svg>
-                            DEDUCCIONES
+                        <h3 class="text-lg font-bold text-red-600 mb-3 flex items-center gap-2">
+                            <span class="text-xl">−</span> DEDUCCIONES
                         </h3>
                         <table class="w-full text-sm">
                             <thead>
-                                <tr class="text-gray-500 border-b">
-                                    <th class="text-left py-2">Concepto</th>
-                                    <th class="text-right py-2">%</th>
-                                    <th class="text-right py-2">Importe</th>
+                                <tr class="text-gray-500 text-xs">
+                                    <th class="text-left pb-2">Concepto</th>
+                                    <th class="text-center pb-2">%</th>
+                                    <th class="text-right pb-2">Importe</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="divide-y divide-gray-100">
                                 @foreach($payroll['deducciones'] as $deduccion)
-                                    <tr class="border-b border-gray-100">
-                                        <td class="py-2 capitalize">{{ $deduccion['nombre'] }}</td>
-                                        <td class="text-right py-2 text-gray-500">{{ $deduccion['porcentaje'] ?? '' }}</td>
-                                        <td class="text-right py-2 font-medium text-red-600">
+                                    <tr>
+                                        <td class="py-2">{{ $deduccion['nombre'] }}</td>
+                                        <td class="text-center text-gray-500">{{ $deduccion['porcentaje'] ?? '' }}</td>
+                                        <td class="text-right font-medium text-red-600">
                                             ${{ number_format($deduccion['importe'], 2, ',', '.') }}
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
-                            <tfoot>
-                                <tr class="border-t-2 border-red-300 bg-red-50">
-                                    <td colspan="2" class="py-3 font-bold text-red-800">TOTAL DEDUCCIONES</td>
-                                    <td class="text-right py-3 font-bold text-red-800 text-lg">
+                            <tfoot class="border-t-2 border-gray-200">
+                                <tr class="font-bold">
+                                    <td class="pt-3 text-red-700">TOTAL DEDUCCIONES</td>
+                                    <td></td>
+                                    <td class="pt-3 text-right text-red-700">
                                         ${{ number_format($payroll['total_deducciones'], 2, ',', '.') }}
                                     </td>
                                 </tr>
@@ -206,80 +199,45 @@
                     </div>
                 </div>
 
-                {{-- NETO A COBRAR --}}
+                {{-- Neto a cobrar --}}
                 <div class="bg-gradient-to-r from-blue-700 to-blue-900 text-white p-6">
                     <div class="flex justify-between items-center">
                         <div>
                             <p class="text-blue-200 text-sm">NETO A COBRAR</p>
-                            <p class="text-3xl font-bold">${{ number_format($payroll['neto_a_cobrar'], 2, ',', '.') }}</p>
+                            <p class="text-4xl font-bold">${{ number_format($payroll['neto_a_cobrar'], 2, ',', '.') }}</p>
                         </div>
-                        <div class="text-right text-sm text-blue-200">
-                            <p>Bruto: ${{ number_format($payroll['subtotal'], 2, ',', '.') }}</p>
+                        <div class="text-right text-sm">
+                            <p>Bruto Remunerativo: ${{ number_format($payroll['total_remunerativo'], 2, ',', '.') }}</p>
+                            @if($payroll['total_no_remunerativo'] > 0)
+                                <p>No Remunerativo: ${{ number_format($payroll['total_no_remunerativo'], 2, ',', '.') }}</p>
+                            @endif
                             <p>Deducciones: -${{ number_format($payroll['total_deducciones'], 2, ',', '.') }}</p>
                         </div>
                     </div>
                 </div>
 
-                {{-- Footer del recibo --}}
-                <div class="p-4 bg-gray-50 border-t text-center text-xs text-gray-500">
-                    <p>Generado el {{ now()->format('d/m/Y H:i') }} | Sistema de Gestión de RRHH</p>
+                {{-- Acciones --}}
+                <div class="p-4 bg-gray-50 flex justify-end gap-3">
+                    <form action="{{ route('payroll.store') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="employee_id" value="{{ $selectedEmployee->id }}">
+                        <input type="hidden" name="year" value="{{ $filters['year'] }}">
+                        <input type="hidden" name="month" value="{{ $filters['month'] }}">
+                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            💾 Guardar Liquidación
+                        </button>
+                    </form>
                 </div>
             </div>
-
-            {{-- Botones de acción --}}
-            <div class="mt-4 flex justify-end gap-2 print:hidden">
-                {{-- Guardar como borrador --}}
-                <form action="{{ route('payroll.store') }}" method="POST" class="inline">
-                    @csrf
-                    <input type="hidden" name="employee_id" value="{{ $selectedEmployee->id }}">
-                    <input type="hidden" name="year" value="{{ $filters['year'] }}">
-                    <input type="hidden" name="month" value="{{ $filters['month'] }}">
-                    <button type="submit" 
-                            class="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
-                        </svg>
-                        Guardar Liquidación
-                    </button>
-                </form>
-
-                {{-- Imprimir --}}
-                <button onclick="window.print()" 
-                        class="inline-flex items-center px-4 py-2 rounded-lg bg-gray-600 text-white hover:bg-gray-700">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                    </svg>
-                    Imprimir
-                </button>
-            </div>
-            
-            {{-- Link a liquidaciones cerradas --}}
-            <div class="mt-3 text-right print:hidden">
-                <a href="{{ route('payroll.closed', ['year' => $filters['year'], 'month' => $filters['month']]) }}" 
-                   class="text-sm text-blue-600 hover:text-blue-800 hover:underline">
-                    Ver liquidaciones guardadas →
-                </a>
+        @elseif(!$selectedEmployee && request()->has('employee_id'))
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+                <p class="text-yellow-700">No se encontró el empleado seleccionado.</p>
             </div>
         @else
-            {{-- Estado vacío --}}
-            <div class="bg-white rounded-xl shadow p-12 text-center">
-                <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                </svg>
-                <h3 class="mt-4 text-lg font-medium text-gray-900">Seleccione un empleado</h3>
-                <p class="mt-2 text-sm text-gray-500">
-                    Elija un empleado y el período para calcular su recibo de sueldo.
-                </p>
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-12 text-center">
+                <div class="text-gray-400 text-6xl mb-4">📋</div>
+                <p class="text-gray-600 text-lg">Seleccione un empleado y período para calcular la liquidación.</p>
             </div>
         @endif
     </div>
-
-    <style>
-        @media print {
-            body * { visibility: hidden; }
-            #recibo, #recibo * { visibility: visible; }
-            #recibo { position: absolute; left: 0; top: 0; width: 100%; }
-        }
-    </style>
 </x-manage>
-

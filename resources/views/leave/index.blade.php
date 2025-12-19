@@ -39,7 +39,7 @@
                             <td class="p-2">{{ $leave->start }}</td>
                             <td class="p-2">{{ $leave->end }}</td>
                             <td class="p-2">{{ $leave->type }}</td>
-                            <td class="p-2">{{ $leave->working_days }}</td>
+                            <td class="p-2">{{ $leave->days }}</td>
                             <td class="p-2">{{ $leave->hour_50 }}</td>
                             <td class="p-2">{{ $leave->hour_100 }}</td>
                             <td class="p-2">

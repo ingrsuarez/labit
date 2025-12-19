@@ -54,7 +54,7 @@
         
         /* Título del recibo */
         .title-section {
-            background: linear-gradient(to right, #2563eb, #1d4ed8);
+            background-color: #2563eb;
             color: white;
             padding: 15px;
             margin-bottom: 15px;
@@ -187,10 +187,11 @@
         
         /* Neto */
         .neto-section {
-            background: linear-gradient(to right, #1e40af, #1e3a8a);
+            background-color: #1e40af;
             color: white;
             padding: 20px;
-            margin-top: 15px;
+            margin-top: 20px;
+            margin-bottom: 10px;
         }
         .neto-container {
             display: table;
@@ -255,16 +256,17 @@
         <!-- Header con Logo -->
         <div class="header">
             <div class="header-left">
-                @if(file_exists(public_path('images/logo.png')))
-                    <img src="{{ public_path('images/logo.png') }}" alt="Logo" class="logo">
+                @if(file_exists(public_path('images/logo_ipac.png')))
+                    <img src="{{ public_path('images/logo_ipac.png') }}" alt="Logo IPAC" class="logo">
                 @else
                     <div class="company-name">{{ config('app.name', 'Labit') }}</div>
-                    <div class="company-subtitle">Administración</div>
                 @endif
+                <div style="font-size: 9px; color: #666; margin-top: 5px;">DIRECCIÓN: LEGUIZAMON 356 ( 8300 ) Neuquén</div>
+                <div style="font-size: 10px; font-weight: bold; color: #333;">CUIT: 27-29145034-8</div>
             </div>
             <div class="header-right">
-                <div style="font-size: 9px; color: #666;">Fecha de emisión</div>
-                <div style="font-weight: bold;">{{ now()->format('d/m/Y H:i') }}</div>
+                <div style="font-size: 9px; color: #666;">Período</div>
+                <div style="font-weight: bold; font-size: 14px;">{{ $payroll->period_label }}</div>
             </div>
         </div>
 
@@ -289,7 +291,7 @@
             <table width="100%">
                 <tr>
                     <td width="25%" style="padding: 5px;">
-                        <div class="label">Empleado:</div>
+                        <div class="label">Apellido y Nombre:</div>
                         <div class="value">{{ $payroll->employee_name }}</div>
                     </td>
                     <td width="25%" style="padding: 5px;">
@@ -374,20 +376,18 @@
 
         <!-- Neto a Cobrar -->
         <div class="neto-section">
-            <div class="neto-container">
-                <table width="100%">
-                    <tr>
-                        <td width="60%">
-                            <div class="neto-label">NETO A COBRAR</div>
-                            <div class="neto-amount">${{ number_format($payroll->neto_a_cobrar, 2, ',', '.') }}</div>
-                        </td>
-                        <td width="40%" style="text-align: right;">
-                            <div class="neto-detail">Bruto: ${{ number_format($payroll->total_haberes, 2, ',', '.') }}</div>
-                            <div class="neto-detail">Deducciones: -${{ number_format($payroll->total_deducciones, 2, ',', '.') }}</div>
-                        </td>
-                    </tr>
-                </table>
-            </div>
+            <table width="100%">
+                <tr>
+                    <td width="50%" style="vertical-align: middle;">
+                        <div style="font-size: 11px; opacity: 0.9; margin-bottom: 5px;">NETO A DEPOSITAR</div>
+                        <div style="font-size: 26px; font-weight: bold;">${{ number_format($payroll->neto_a_cobrar, 2, ',', '.') }}</div>
+                    </td>
+                    <td width="50%" style="text-align: right; vertical-align: middle;">
+                        <div style="font-size: 10px; opacity: 0.9;">Total Haberes: ${{ number_format($payroll->total_haberes, 2, ',', '.') }}</div>
+                        <div style="font-size: 10px; opacity: 0.9;">Total Deducciones: -${{ number_format($payroll->total_deducciones, 2, ',', '.') }}</div>
+                    </td>
+                </tr>
+            </table>
         </div>
 
         <!-- Firma -->
@@ -407,7 +407,7 @@
 
         <!-- Footer -->
         <div class="footer">
-            <p>Liquidación guardada el {{ $payroll->created_at->format('d/m/Y H:i') }}</p>
+            
             @if($payroll->approvedBy)
                 <p>Aprobado por: {{ $payroll->approvedBy->name }}</p>
             @endif
@@ -415,6 +415,9 @@
     </div>
 </body>
 </html>
+
+
+
 
 
 

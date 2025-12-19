@@ -1,16 +1,6 @@
 <x-manage>
     <div class="max-w-7xl mx-auto p-6">
-        {{-- Encabezado con título y botón --}}
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-            <h1 class="text-2xl font-bold text-gray-900">Empleados</h1>
-            <a href="{{ route('employee.new') }}" 
-               class="mt-3 sm:mt-0 inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                </svg>
-                Nuevo Empleado
-            </a>
-        </div>
+        <h1 class="text-2xl font-bold text-gray-900 mb-6">Empleados</h1>
 
         {{-- Filtros --}}
         <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-4 rounded-xl shadow mb-6">
@@ -86,7 +76,14 @@
             </div>
         @endif
 
+        <div class="p-6 lg:p-8 bg-white border-b border-gray-200">
         
+            {{-- @livewire('organization-chart', ['employees' => $employees, 'job' => $job ?? null]) --}}
+            <!-- component -->
+            {{-- @livewire('organization-chart',['employees'=>$employees, 'job'=>$job]) --}}
+
+
+        </div>
         {{-- Tabla --}}
         <div class="bg-white rounded-xl shadow overflow-hidden">
             <table class="min-w-full divide-y divide-gray-200">
@@ -131,21 +128,10 @@
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <div class="inline-flex gap-2">
-                                    <a href="{{ route('employee.profile', $e) }}"
-                                       class="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-sm transition-colors">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                        </svg>
-                                        Ver
-                                    </a>
-                                    <a href="{{ route('employee.edit', $e) }}"
-                                       class="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg text-sm transition-colors">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                        </svg>
-                                        Editar
-                                    </a>
+                                    <a href="{{ route('employee.edit',$e )}}"
+                                    class="text-blue-600 hover:text-blue-800 text-sm">Editar</a>
+                                    <a href="{{ route('employee.show') }}?id={{ $e->id }}"
+                                    class="text-gray-600 hover:text-gray-800 text-sm">Ver</a>
                                 </div>
                             </td>
                         </tr>

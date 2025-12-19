@@ -13,13 +13,7 @@ return new class extends Migration
     {
         Schema::create('holidays', function (Blueprint $table) {
             $table->id();
-            $table->date('date')->unique();
-            $table->string('name');
-            $table->enum('type', ['fijo', 'movil', 'puente'])->default('fijo');
-            $table->boolean('is_active')->default(true);
             $table->timestamps();
-            
-            $table->index('date');
         });
     }
 

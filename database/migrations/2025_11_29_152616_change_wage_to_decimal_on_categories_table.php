@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('categories', function (Blueprint $table) {
-            // Cambiar de float a decimal para mayor precisión en valores monetarios
-            $table->decimal('wage', 12, 2)->change();
+            //
         });
     }
 
@@ -23,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('categories', function (Blueprint $table) {
-            $table->float('wage', 9, 2)->change();
+            //
         });
     }
 };

@@ -31,18 +31,18 @@
                     @endforeach
                 </select>
             </div>
-            <div class="flex gap-3 flex-wrap items-end">
+            <div class="flex gap-3">
                 <a href="{{ route('leave.resume') }}"
                 class="px-4 py-2 my-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Limpiar</a>
                 <button class="px-4 my-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Filtrar</button>
                 
             {{-- Botón que abre la vista de 4 meses centrada en este mes --}}
                 @php
-                    $yearFilter = request('year') ?? now()->year;
-                    $monthFilter = request('month') ?? now()->month;
-                    $ymFilter = sprintf('%04d-%02d', $yearFilter, $monthFilter);
+                    $year = request('year') ?? now()->year;
+                    $month = request('month') ?? now()->month;
+                    $ym = sprintf('%04d-%02d', $year, $month);
                 @endphp
-                <a href="{{ route('leave.resume.compact', array_merge(request()->only(['employee_id','year','month']), ['anchor' => $ymFilter])) }}"
+                <a href="{{ route('leave.resume.compact', array_merge(request()->only(['employee_id','year','month']), ['anchor' => $ym])) }}"
                 class="px-4 py-2 my-3 border border-green-500 rounded-lg bg-green-200 text-gray-800 hover:bg-green-300">
                     Últimos 
                 </a>
@@ -56,37 +56,13 @@
             @endphp
 
             @forelse($grouped as $ym => $rows)
-                @php
-                    // Extraer año y mes del período
-                    [$periodYear, $periodMonth] = explode('-', $ym);
-                    $periodMonth = (int)$periodMonth;
-                    $periodYear = (int)$periodYear;
-                @endphp
-                <div class="bg-gray-100 px-4 py-3 border-t-2 border-blue-300 flex items-center justify-between">
+                <div class="bg-gray-50 px-4 py-2 border-t border-gray-200 flex items-center justify-between">
                     <div>
                         <div class="text-sm text-gray-600">Periodo</div>
                         <div class="text-lg font-semibold text-gray-900">{{ $ym }}</div>
                     </div>
 
-                    {{-- Botones de exportación por período --}}
-                    <div class="flex gap-2">
-                        <a href="{{ route('leave.export.excel', ['year' => $periodYear, 'month' => $periodMonth, 'employee_id' => request('employee_id')]) }}"
-                           class="inline-flex items-center px-3 py-1.5 rounded-lg bg-green-600 text-white text-sm hover:bg-green-700 transition-colors shadow-sm"
-                           title="Descargar Excel del período {{ $ym }}">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                            Excel
-                        </a>
-                        <a href="{{ route('leave.export.pdf', ['year' => $periodYear, 'month' => $periodMonth, 'employee_id' => request('employee_id')]) }}"
-                           class="inline-flex items-center px-3 py-1.5 rounded-lg bg-red-600 text-white text-sm hover:bg-red-700 transition-colors shadow-sm"
-                           title="Descargar PDF del período {{ $ym }}">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                            </svg>
-                            PDF
-                        </a>
-                    </div>
+                    
                 </div>
 
                 <div class="overflow-x-auto">
@@ -157,5 +133,57 @@
         </div>
     </div>
 
-   
+    <div class="flex flex-col justify-start">
+
+
+        <div class="bg-white mt-2 pb-4 px-2 w-fit lg:w-fit rounded-lg shadow-lg ">
+            <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Novedades:</h2>
+            <p class="mt-1 text-sm leading-6 text-gray-600">Licencias:</p>    
+
+            
+                @if (empty($resumes[0]))
+                    <div class="mt-6 flex items-center justify-end gap-x-6">
+                        No existen licencias!
+                        <a href="" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Nuevo</a>
+                    </div>
+                
+                    
+                @else
+                    <div>
+                        <table class="border-collapse border border-slate-400 table-auto mt-6 rounded">
+                            <thead class="border border-slate-300">
+                                <th class="bg-blue-300 px-2 border border-slate-300">Año</th>
+                                <th class="bg-blue-300 px-2 border border-slate-300">Mes</th>
+                                <th class="bg-blue-300 px-2 border border-slate-300">Empleado</th>
+                                <th class="bg-blue-300 px-2 border border-slate-300">Tipo</th>
+                                <th class="bg-blue-300 px-2 border border-slate-300">Categoría</th>
+                                <th class="bg-blue-300 px-2 border border-slate-300">Días</th>
+                                <th class="bg-blue-300 px-2 border border-slate-300"></th>
+                            </thead>
+                            <tbody>
+                            @foreach ($resumes as $leave)
+                            <tr class="">
+                                <td class="px-2 border border-slate-300">{{$leave->year}}</td>
+                                <td class="px-2 border border-slate-300">{{$leave->month}}</td>
+                                
+                                <td class="px-2 border border-slate-300">{{ucwords($leave->employee)}}</td>
+                                <td class="px-2 border border-slate-300">{{ucwords($leave->type)}}</td>
+                                <td class="px-2 border border-slate-300">{{ucwords($leave->category)}}</td>
+                                <td class="px-2 border border-slate-300"><strong>{{ucwords($leave->days)}}</strong></td>
+                                <td class="px-2 py-2 border border-slate-300">
+                                    <a href="{{route('leave.delete',$leave->leave_id)}}" class="rounded-md bg-red-600 mx-2 px-2 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                                        Eliminar
+                                    </a>
+                                </td>
+                            </tr>
+                            
+                            @endforeach  
+                            </tbody>
+                        </table>
+                    </div>  
+                @endif
+            
+        </div>
+
+    </div>
 </x-manage>

@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('salary_items', function (Blueprint $table) {
-            // Si está marcado, este concepto se suma a la base para calcular antigüedad
-            $table->boolean('includes_in_antiguedad_base')->default(false)->after('requires_assignment');
+            //
         });
     }
 
@@ -23,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('salary_items', function (Blueprint $table) {
-            $table->dropColumn('includes_in_antiguedad_base');
+            //
         });
     }
 };
