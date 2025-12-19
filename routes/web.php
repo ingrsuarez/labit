@@ -300,6 +300,17 @@ Route::middleware([
     Route::get('non-conformity/{nonConformity}/pdf', [App\Http\Controllers\NonConformityController::class, 'pdf'])->name('non-conformity.pdf');
     Route::get('non-conformity/{nonConformity}/print', [App\Http\Controllers\NonConformityController::class, 'print'])->name('non-conformity.print');
 
+    // CIRCULARES
+    Route::get('circular', [App\Http\Controllers\CircularController::class, 'index'])->name('circular.index');
+    Route::get('circular/create', [App\Http\Controllers\CircularController::class, 'create'])->name('circular.create');
+    Route::post('circular', [App\Http\Controllers\CircularController::class, 'store'])->name('circular.store');
+    Route::get('circular/{circular}', [App\Http\Controllers\CircularController::class, 'show'])->name('circular.show');
+    Route::get('circular/{circular}/edit', [App\Http\Controllers\CircularController::class, 'edit'])->name('circular.edit');
+    Route::put('circular/{circular}', [App\Http\Controllers\CircularController::class, 'update'])->name('circular.update');
+    Route::delete('circular/{circular}', [App\Http\Controllers\CircularController::class, 'destroy'])->name('circular.destroy');
+    Route::get('circular/{circular}/pdf', [App\Http\Controllers\CircularController::class, 'pdf'])->name('circular.pdf');
+    Route::get('circular/{circular}/print', [App\Http\Controllers\CircularController::class, 'print'])->name('circular.print');
+
     // USERS
 
     Route::get('users/index',[App\Http\Controllers\UserController::class, 'index'])
