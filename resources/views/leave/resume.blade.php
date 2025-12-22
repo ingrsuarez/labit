@@ -47,6 +47,24 @@
                     Últimos 
                 </a>
             </div>
+
+            {{-- Botones de exportación --}}
+            <div class="flex items-end gap-3">
+                <a href="{{ route('leave.export.excel', request()->only(['year', 'month', 'employee_id'])) }}"
+                   class="px-4 py-2 my-3 rounded-lg bg-green-600 text-white hover:bg-green-700 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"/>
+                    </svg>
+                    Excel
+                </a>
+                <a href="{{ route('leave.export.pdf', request()->only(['year', 'month', 'employee_id'])) }}"
+                   class="px-4 py-2 my-3 rounded-lg bg-red-600 text-white hover:bg-red-700 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"/>
+                    </svg>
+                    PDF
+                </a>
+            </div>
         </form>
 
         {{-- Tabla agrupada por Año-Mes --}}
