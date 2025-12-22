@@ -41,13 +41,20 @@
                 {{-- Mes --}}
                 <div>
                     <label for="month" class="block text-sm font-medium text-gray-700 mb-1">Mes</label>
+                    @php
+                        $mesesPayroll = [
+                            1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+                            5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+                            9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+                        ];
+                    @endphp
                     <select name="month" id="month" 
                             class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        @for($m = 1; $m <= 12; $m++)
-                            <option value="{{ $m }}" {{ $filters['month'] == $m ? 'selected' : '' }}>
-                                {{ \Carbon\Carbon::createFromDate(null, $m, 1)->translatedFormat('F') }}
+                        @foreach($mesesPayroll as $num => $nombre)
+                            <option value="{{ $num }}" {{ $filters['month'] == $num ? 'selected' : '' }}>
+                                {{ $nombre }}
                             </option>
-                        @endfor
+                        @endforeach
                     </select>
                 </div>
 

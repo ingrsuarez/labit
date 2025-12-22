@@ -33,13 +33,20 @@
                     <!-- Mes -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Mes</label>
+                        @php
+                            $mesesEspanol = [
+                                1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+                                5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+                                9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+                            ];
+                        @endphp
                         <select name="month" class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
                             <option value="">— Todos —</option>
-                            @for($m = 1; $m <= 12; $m++)
-                                <option value="{{ $m }}" @selected(($filters['month'] ?? '') == $m)>
-                                    {{ \Carbon\Carbon::createFromDate(null, $m, 1)->translatedFormat('F') }}
+                            @foreach($mesesEspanol as $num => $nombre)
+                                <option value="{{ $num }}" @selected(($filters['month'] ?? '') == $num)>
+                                    {{ $nombre }}
                                 </option>
-                            @endfor
+                            @endforeach
                         </select>
                     </div>
                     
@@ -69,9 +76,16 @@
 
                 <!-- Botones de exportación -->
                 <div class="flex items-center justify-between pt-4 border-t">
+                    @php
+                        $mesesNombres = [
+                            1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+                            5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+                            9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+                        ];
+                    @endphp
                     <p class="text-sm text-gray-500">
                         @if($filters['year'] && $filters['month'])
-                            Período: {{ \Carbon\Carbon::createFromDate($filters['year'], $filters['month'], 1)->translatedFormat('F Y') }}
+                            Período: {{ $mesesNombres[(int)$filters['month']] }} {{ $filters['year'] }}
                         @elseif($filters['year'])
                             Año: {{ $filters['year'] }}
                         @else
@@ -106,11 +120,20 @@
         @forelse($grouped as $ym => $rows)
             <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
                 <!-- Header del período -->
+                @php
+                    $mesNum = (int)\Carbon\Carbon::createFromFormat('Y-m', $ym)->format('m');
+                    $anio = \Carbon\Carbon::createFromFormat('Y-m', $ym)->format('Y');
+                    $mesesEs = [
+                        1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+                        5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+                        9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+                    ];
+                @endphp
                 <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
                     <div class="flex items-center justify-between">
                         <div class="text-white">
                             <p class="text-sm text-blue-100">Período</p>
-                            <p class="text-xl font-bold">{{ \Carbon\Carbon::createFromFormat('Y-m', $ym)->translatedFormat('F Y') }}</p>
+                            <p class="text-xl font-bold">{{ $mesesEs[$mesNum] }} {{ $anio }}</p>
                         </div>
                         <div class="text-right text-white">
                             <p class="text-sm text-blue-100">Total registros</p>

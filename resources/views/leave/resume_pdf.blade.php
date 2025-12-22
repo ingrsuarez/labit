@@ -190,9 +190,16 @@
         <div class="header">
             <h1>RESUMEN DE NOVEDADES PARA LIQUIDACIÓN</h1>
             <div class="subtitle">{{ config('app.name', 'Sistema de Gestión') }}</div>
+            @php
+                $mesesPdf = [
+                    1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+                    5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+                    9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+                ];
+            @endphp
             @if($filters['year'] && $filters['month'])
                 <div class="period">
-                    Período: {{ \Carbon\Carbon::createFromDate($filters['year'], $filters['month'], 1)->translatedFormat('F Y') }}
+                    Período: {{ $mesesPdf[(int)$filters['month']] }} {{ $filters['year'] }}
                 </div>
             @elseif($filters['year'])
                 <div class="period">Año: {{ $filters['year'] }}</div>
@@ -225,8 +232,17 @@
             @endphp
 
             @foreach($grouped as $ym => $rows)
+                @php
+                    $mesPdfNum = (int)\Carbon\Carbon::createFromFormat('Y-m', $ym)->format('m');
+                    $anioPdf = \Carbon\Carbon::createFromFormat('Y-m', $ym)->format('Y');
+                    $mesesPdfNombres = [
+                        1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+                        5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+                        9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+                    ];
+                @endphp
                 <div class="period-header">
-                    Período: {{ \Carbon\Carbon::createFromFormat('Y-m', $ym)->translatedFormat('F Y') }}
+                    Período: {{ $mesesPdfNombres[$mesPdfNum] }} {{ $anioPdf }}
                 </div>
                 
                 <table>
