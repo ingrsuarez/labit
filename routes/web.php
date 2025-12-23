@@ -244,6 +244,8 @@ Route::middleware([
     Route::get('payroll/index', [App\Http\Controllers\PayrollController::class, 'index'])->name('payroll.index');
     Route::get('payroll/bulk', [App\Http\Controllers\PayrollController::class, 'bulk'])->name('payroll.bulk');
     Route::get('payroll/closed', [App\Http\Controllers\PayrollController::class, 'closed'])->name('payroll.closed');
+    Route::get('payroll/sac', [App\Http\Controllers\PayrollController::class, 'sac'])->name('payroll.sac');
+    Route::post('payroll/sac/store', [App\Http\Controllers\PayrollController::class, 'storeSAC'])->name('payroll.storeSAC');
     Route::post('payroll/store', [App\Http\Controllers\PayrollController::class, 'store'])->name('payroll.store');
     Route::post('payroll/store-bulk', [App\Http\Controllers\PayrollController::class, 'storeBulk'])->name('payroll.storeBulk');
     Route::get('payroll/{payroll}', [App\Http\Controllers\PayrollController::class, 'show'])->name('payroll.show');

@@ -268,31 +268,6 @@ class PayrollController extends Controller
             }
         }
 
-        // 5. QUINTO: Calcular SAC (Sueldo Anual Complementario) si corresponde
-        // Solo se calcula en junio (1er semestre) o diciembre (2do semestre)
-        $sacData = null;
-        if ($this->isSACMonth($month)) {
-            $sacData = $this->calculateSAC($employee, $year, $month, $totalRemunerativo);
-            
-            if ($sacData['sac_bruto'] > 0) {
-                $sacLabel = 'SAC ' . $sacData['periodo'] . ' ' . $year;
-                if ($sacData['es_proporcional']) {
-                    $sacLabel .= ' (Proporcional ' . $sacData['meses_trabajados'] . ' meses)';
-                }
-                
-                $haberesCalculados[] = [
-                    'nombre' => $sacLabel,
-                    'porcentaje' => null,
-                    'importe' => $sacData['sac_bruto'],
-                    'tipo' => 'sac',
-                    'remunerativo' => true, // SAC es remunerativo
-                ];
-                
-                $totalHaberes += $sacData['sac_bruto'];
-                $totalRemunerativo += $sacData['sac_bruto'];
-            }
-        }
-
         // Subtotal remunerativo (base para deducciones)
         $subtotalRemunerativo = $totalRemunerativo;
         
@@ -362,7 +337,6 @@ class PayrollController extends Controller
             'total_deducciones' => round($totalDeducciones, 2),
             'neto_a_cobrar' => round($netoACobrar, 2),
             'novedades' => $leaves,
-            'sac' => $sacData,
         ];
     }
 
@@ -613,6 +587,291 @@ class PayrollController extends Controller
     private function isSACMonth(int $month): bool
     {
         return in_array($month, [6, 12]); // Junio o Diciembre
+    }
+
+    /**
+     * Calcular recibo de SAC (Sueldo Anual Complementario) como recibo separado
+     * El SAC tiene sus propias deducciones aplicadas sobre el monto bruto
+     */
+    private function calculateSACPayroll(Employee $employee, int $year, int $semester): array
+    {
+        // Determinar el mes de pago según el semestre
+        $month = $semester === 1 ? 6 : 12;
+        $startMonth = $semester === 1 ? 1 : 7;
+        $endMonth = $semester === 1 ? 6 : 12;
+        
+        // Obtener categoría del empleado
+        $category = $this->getEmployeeCategory($employee);
+        
+        // Calcular el SAC usando la función existente
+        // Primero necesitamos el mejor sueldo del semestre
+        $inicioSemestre = Carbon::createFromDate($year, $startMonth, 1);
+        $finSemestre = Carbon::createFromDate($year, $endMonth, 1)->endOfMonth();
+        
+        // Determinar meses trabajados basándose en la fecha de ingreso
+        $mesesTrabajados = 6;
+        $esProporcional = false;
+        
+        if ($employee->start_date) {
+            $fechaIngreso = Carbon::parse($employee->start_date);
+            
+            if ($fechaIngreso->between($inicioSemestre, $finSemestre)) {
+                $mesesTrabajados = $fechaIngreso->diffInMonths($finSemestre) + 1;
+                $esProporcional = true;
+            } elseif ($fechaIngreso->gt($finSemestre)) {
+                // No corresponde SAC
+                return [
+                    'empleado' => [
+                        'nombre' => $employee->name . ' ' . $employee->lastName,
+                        'cuil' => $employee->employeeId,
+                        'categoria' => $category ? $category->name : 'Sin categoría',
+                        'convenio' => $category ? $category->agreement : 'CCT 108/75',
+                        'fecha_ingreso' => $employee->start_date,
+                        'antiguedad_anos' => $this->calculateAntiguedadYears($employee, $year, $month),
+                    ],
+                    'periodo' => [
+                        'year' => $year,
+                        'semester' => $semester,
+                        'label' => 'SAC ' . ($semester === 1 ? '1er' : '2do') . ' Semestre ' . $year,
+                    ],
+                    'error' => 'El empleado ingresó después del fin del semestre',
+                    'sac_bruto' => 0,
+                    'neto_a_cobrar' => 0,
+                ];
+            }
+        }
+        
+        // Buscar liquidaciones del semestre para obtener el mejor sueldo
+        $payrolls = Payroll::where('employee_id', $employee->id)
+            ->where('year', $year)
+            ->whereBetween('month', [$startMonth, $endMonth])
+            ->get();
+        
+        $sueldosRemunerativos = $payrolls->pluck('total_remunerativo')
+            ->map(fn($v) => (float) $v)
+            ->toArray();
+        
+        // Si no hay sueldos guardados, calcular el sueldo actual
+        if (empty($sueldosRemunerativos)) {
+            // Calcular liquidación del mes actual para tener un sueldo de referencia
+            $payrollActual = $this->calculatePayroll($employee, $year, $month);
+            $sueldosRemunerativos[] = $payrollActual['total_remunerativo'];
+        }
+        
+        $mejorSueldo = max($sueldosRemunerativos);
+        
+        // Calcular SAC bruto
+        if ($esProporcional) {
+            $sacBruto = ($mejorSueldo * $mesesTrabajados) / 12;
+        } else {
+            $sacBruto = $mejorSueldo / 2;
+        }
+        
+        // Construir el haber del SAC
+        $sacLabel = 'SAC ' . ($semester === 1 ? '1er' : '2do') . ' Semestre ' . $year;
+        if ($esProporcional) {
+            $sacLabel .= ' (Proporcional ' . $mesesTrabajados . ' meses)';
+        }
+        
+        $haberesCalculados = [
+            [
+                'nombre' => $sacLabel,
+                'porcentaje' => null,
+                'importe' => round($sacBruto, 2),
+                'tipo' => 'sac',
+                'remunerativo' => true,
+            ]
+        ];
+        
+        // Obtener deducciones activas
+        $deducciones = SalaryItem::deducciones()->active()->forPeriod($month, $year)->orderBy('order')->get();
+        
+        // Calcular deducciones sobre el SAC bruto
+        $deduccionesCalculadas = [];
+        $totalDeducciones = 0;
+        
+        foreach ($deducciones as $deduccion) {
+            // Si el concepto requiere asignación, verificar que el empleado lo tenga
+            if ($deduccion->requires_assignment && !$employee->hasSalaryItem($deduccion->id)) {
+                continue;
+            }
+            
+            // Calcular la deducción sobre el SAC bruto
+            $importe = 0;
+            if ($deduccion->calculation_type === 'percentage') {
+                $importe = $sacBruto * ($deduccion->value / 100);
+            } elseif ($deduccion->calculation_type === 'fixed') {
+                // Para montos fijos, aplicar proporcional al SAC
+                // (el SAC es medio mes, así que aplicar proporción)
+                $importe = $deduccion->value / 2;
+            }
+            
+            if ($importe > 0) {
+                $deduccionesCalculadas[] = [
+                    'nombre' => $deduccion->name,
+                    'porcentaje' => ($deduccion->calculation_type === 'percentage' && !$deduccion->hide_percentage_in_receipt) 
+                        ? $deduccion->value . '%' : null,
+                    'importe' => round($importe, 2),
+                    'tipo' => $deduccion->calculation_type,
+                ];
+                $totalDeducciones += $importe;
+            }
+        }
+        
+        $netoACobrar = $sacBruto - $totalDeducciones;
+        
+        return [
+            'empleado' => [
+                'nombre' => $employee->name . ' ' . $employee->lastName,
+                'cuil' => $employee->employeeId,
+                'categoria' => $category ? $category->name : 'Sin categoría',
+                'convenio' => $category ? $category->agreement : 'CCT 108/75',
+                'fecha_ingreso' => $employee->start_date,
+                'antiguedad_anos' => $this->calculateAntiguedadYears($employee, $year, $month),
+            ],
+            'periodo' => [
+                'year' => $year,
+                'month' => $month,
+                'semester' => $semester,
+                'label' => 'SAC ' . ($semester === 1 ? '1er' : '2do') . ' Semestre ' . $year,
+            ],
+            'mejor_sueldo' => round($mejorSueldo, 2),
+            'meses_trabajados' => $mesesTrabajados,
+            'es_proporcional' => $esProporcional,
+            'haberes' => $haberesCalculados,
+            'sac_bruto' => round($sacBruto, 2),
+            'deducciones' => $deduccionesCalculadas,
+            'total_deducciones' => round($totalDeducciones, 2),
+            'neto_a_cobrar' => round($netoACobrar, 2),
+        ];
+    }
+
+    /**
+     * Vista para liquidar SAC (Sueldo Anual Complementario)
+     */
+    public function sac(Request $request)
+    {
+        $employees = Employee::with(['jobs.category'])
+            ->orderBy('lastName')
+            ->get();
+
+        $selectedEmployee = null;
+        $sacPayroll = null;
+        $year = $request->input('year', now()->year);
+        $semester = $request->input('semester', now()->month <= 6 ? 1 : 2);
+
+        if ($request->filled('employee_id')) {
+            $selectedEmployee = Employee::with(['jobs.category'])->find($request->employee_id);
+            
+            if ($selectedEmployee) {
+                $sacPayroll = $this->calculateSACPayroll($selectedEmployee, $year, $semester);
+            }
+        }
+
+        return view('payroll.sac', [
+            'employees' => $employees,
+            'selectedEmployee' => $selectedEmployee,
+            'sacPayroll' => $sacPayroll,
+            'filters' => [
+                'employee_id' => $request->employee_id,
+                'year' => $year,
+                'semester' => $semester,
+            ],
+        ]);
+    }
+
+    /**
+     * Guardar liquidación de SAC
+     */
+    public function storeSAC(Request $request)
+    {
+        $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'year' => 'required|integer',
+            'semester' => 'required|integer|in:1,2',
+        ]);
+
+        $employee = Employee::with(['jobs.category'])->findOrFail($request->employee_id);
+        $year = $request->year;
+        $semester = $request->semester;
+        $month = $semester === 1 ? 6 : 12;
+
+        // Verificar si ya existe una liquidación de SAC para este período
+        $existing = Payroll::where('employee_id', $employee->id)
+            ->where('year', $year)
+            ->where('month', $month)
+            ->where('period_label', 'like', 'SAC%')
+            ->first();
+
+        if ($existing && $existing->isLiquidado()) {
+            return back()->with('error', 'Ya existe una liquidación de SAC cerrada para este período.');
+        }
+
+        // Calcular el SAC
+        $sacData = $this->calculateSACPayroll($employee, $year, $semester);
+
+        if (isset($sacData['error'])) {
+            return back()->with('error', $sacData['error']);
+        }
+
+        if ($sacData['sac_bruto'] <= 0) {
+            return back()->with('error', 'No se pudo calcular el SAC para este empleado.');
+        }
+
+        // Crear o actualizar la liquidación del SAC
+        $payroll = Payroll::updateOrCreate(
+            [
+                'employee_id' => $employee->id,
+                'year' => $year,
+                'month' => $month + 100, // Usar mes + 100 para diferenciar SAC (106 = SAC junio, 112 = SAC diciembre)
+            ],
+            [
+                'period_label' => $sacData['periodo']['label'],
+                'employee_name' => $sacData['empleado']['nombre'],
+                'employee_cuil' => $sacData['empleado']['cuil'],
+                'category_name' => $sacData['empleado']['categoria'],
+                'position_name' => $employee->jobs->first()?->name,
+                'antiguedad_years' => $sacData['empleado']['antiguedad_anos'],
+                'start_date' => $employee->start_date,
+                'salario_basico' => $sacData['mejor_sueldo'],
+                'total_haberes' => $sacData['sac_bruto'],
+                'total_remunerativo' => $sacData['sac_bruto'],
+                'total_no_remunerativo' => 0,
+                'total_deducciones' => $sacData['total_deducciones'],
+                'neto_a_cobrar' => $sacData['neto_a_cobrar'],
+                'status' => 'borrador',
+                'created_by' => auth()->id(),
+            ]
+        );
+
+        // Eliminar items anteriores y crear nuevos
+        $payroll->items()->delete();
+
+        // Agregar el haber del SAC
+        $payroll->items()->create([
+            'type' => 'haber',
+            'name' => $sacData['haberes'][0]['nombre'],
+            'percentage' => null,
+            'amount' => $sacData['sac_bruto'],
+            'is_remunerative' => true,
+            'order' => 0,
+        ]);
+
+        // Agregar las deducciones
+        $order = 0;
+        foreach ($sacData['deducciones'] as $deduccion) {
+            $payroll->items()->create([
+                'type' => 'deduccion',
+                'name' => $deduccion['nombre'],
+                'percentage' => $deduccion['porcentaje'] ?? null,
+                'amount' => $deduccion['importe'],
+                'is_remunerative' => false,
+                'order' => $order++,
+            ]);
+        }
+
+        return redirect()->route('payroll.show', $payroll)
+            ->with('success', 'Liquidación de SAC guardada correctamente.');
     }
 
     /**
