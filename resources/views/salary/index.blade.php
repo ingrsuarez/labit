@@ -1,4 +1,4 @@
-<x-admin-manage>
+<x-admin-layout title="Conceptos de Sueldo">
     <div class="max-w-7xl mx-auto p-6">
         {{-- Encabezado --}}
         <div class="flex items-center justify-between mb-6">
@@ -281,5 +281,5 @@
             </div>
         </div>
     </div>
-</x-admin-manage>
+</x-admin-layout>
 
