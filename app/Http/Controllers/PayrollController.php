@@ -268,6 +268,31 @@ class PayrollController extends Controller
             }
         }
 
+        // 5. QUINTO: Calcular SAC (Sueldo Anual Complementario) si corresponde
+        // Solo se calcula en junio (1er semestre) o diciembre (2do semestre)
+        $sacData = null;
+        if ($this->isSACMonth($month)) {
+            $sacData = $this->calculateSAC($employee, $year, $month, $totalRemunerativo);
+            
+            if ($sacData['sac_bruto'] > 0) {
+                $sacLabel = 'SAC ' . $sacData['periodo'] . ' ' . $year;
+                if ($sacData['es_proporcional']) {
+                    $sacLabel .= ' (Proporcional ' . $sacData['meses_trabajados'] . ' meses)';
+                }
+                
+                $haberesCalculados[] = [
+                    'nombre' => $sacLabel,
+                    'porcentaje' => null,
+                    'importe' => $sacData['sac_bruto'],
+                    'tipo' => 'sac',
+                    'remunerativo' => true, // SAC es remunerativo
+                ];
+                
+                $totalHaberes += $sacData['sac_bruto'];
+                $totalRemunerativo += $sacData['sac_bruto'];
+            }
+        }
+
         // Subtotal remunerativo (base para deducciones)
         $subtotalRemunerativo = $totalRemunerativo;
         
@@ -337,6 +362,7 @@ class PayrollController extends Controller
             'total_deducciones' => round($totalDeducciones, 2),
             'neto_a_cobrar' => round($netoACobrar, 2),
             'novedades' => $leaves,
+            'sac' => $sacData,
         ];
     }
 
@@ -481,6 +507,94 @@ class PayrollController extends Controller
             'horas_100' => $horas100,
             'total' => $horas50 + $horas100,
         ];
+    }
+
+    /**
+     * Calcular SAC (Sueldo Anual Complementario / Medio Aguinaldo)
+     * Según Ley 20.744, Art. 122: 50% de la mejor remuneración mensual del semestre
+     * 
+     * @param Employee $employee
+     * @param int $year
+     * @param int $month Debe ser 6 (junio) o 12 (diciembre)
+     * @param float|null $currentMonthRemunerativo Total remunerativo del mes actual (para incluir en comparación)
+     * @return array
+     */
+    private function calculateSAC(Employee $employee, int $year, int $month, ?float $currentMonthRemunerativo = null): array
+    {
+        // Determinar el semestre
+        $semester = $month <= 6 ? 1 : 2;
+        $startMonth = $semester === 1 ? 1 : 7;
+        $endMonth = $semester === 1 ? 6 : 12;
+        
+        // Buscar liquidaciones guardadas del semestre (excluyendo SAC previos)
+        $payrolls = Payroll::where('employee_id', $employee->id)
+            ->where('year', $year)
+            ->whereBetween('month', [$startMonth, $endMonth])
+            ->where('month', '!=', $month) // Excluir el mes actual (lo calcularemos aparte)
+            ->get();
+        
+        // Obtener los totales remunerativos de cada mes
+        $sueldosRemunerativos = $payrolls->pluck('total_remunerativo')->toArray();
+        
+        // Agregar el sueldo remunerativo del mes actual si se proporcionó
+        if ($currentMonthRemunerativo !== null && $currentMonthRemunerativo > 0) {
+            $sueldosRemunerativos[] = $currentMonthRemunerativo;
+        }
+        
+        // Si no hay sueldos, retornar 0
+        if (empty($sueldosRemunerativos)) {
+            return [
+                'mejor_sueldo' => 0,
+                'meses_trabajados' => 0,
+                'es_proporcional' => true,
+                'sac_bruto' => 0,
+            ];
+        }
+        
+        // Obtener el mejor sueldo remunerativo del semestre
+        $mejorSueldo = max($sueldosRemunerativos);
+        $mesesTrabajados = count($sueldosRemunerativos);
+        
+        // Calcular meses desde fecha de ingreso si es nuevo
+        if ($employee->start_date) {
+            $fechaIngreso = Carbon::parse($employee->start_date);
+            $inicioSemestre = Carbon::createFromDate($year, $startMonth, 1);
+            $finSemestre = Carbon::createFromDate($year, $endMonth, 1)->endOfMonth();
+            
+            // Si ingresó durante este semestre, calcular meses proporcionales
+            if ($fechaIngreso->between($inicioSemestre, $finSemestre)) {
+                $mesesDesdeIngreso = $fechaIngreso->diffInMonths($finSemestre) + 1;
+                $mesesTrabajados = min($mesesTrabajados, $mesesDesdeIngreso);
+            }
+        }
+        
+        // SAC = Mejor sueldo / 2 (o proporcional si no trabajó todo el semestre)
+        $esProporcional = $mesesTrabajados < 6;
+        
+        if ($esProporcional) {
+            // Proporcional: (Mejor sueldo × Meses trabajados) / 12
+            $sacBruto = ($mejorSueldo * $mesesTrabajados) / 12;
+        } else {
+            // Completo: Mejor sueldo / 2
+            $sacBruto = $mejorSueldo / 2;
+        }
+        
+        return [
+            'mejor_sueldo' => round($mejorSueldo, 2),
+            'meses_trabajados' => $mesesTrabajados,
+            'es_proporcional' => $esProporcional,
+            'sac_bruto' => round($sacBruto, 2),
+            'semestre' => $semester,
+            'periodo' => $semester === 1 ? '1er Semestre' : '2do Semestre',
+        ];
+    }
+
+    /**
+     * Verificar si el mes corresponde a liquidación de SAC
+     */
+    private function isSACMonth(int $month): bool
+    {
+        return in_array($month, [6, 12]); // Junio o Diciembre
     }
 
     /**

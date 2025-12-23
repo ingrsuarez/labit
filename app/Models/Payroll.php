@@ -29,12 +29,14 @@ class Payroll extends Model
         'created_by',
         'approved_by',
         'approved_at',
+        'liquidated_at',
         'paid_at',
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'approved_at' => 'datetime',
+        'liquidated_at' => 'datetime',
         'paid_at' => 'datetime',
         'salario_basico' => 'decimal:2',
         'total_haberes' => 'decimal:2',

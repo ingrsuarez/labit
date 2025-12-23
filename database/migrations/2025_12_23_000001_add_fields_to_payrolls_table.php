@@ -74,8 +74,11 @@ return new class extends Migration
             if (!Schema::hasColumn('payrolls', 'approved_at')) {
                 $table->timestamp('approved_at')->nullable()->after('approved_by');
             }
+            if (!Schema::hasColumn('payrolls', 'liquidated_at')) {
+                $table->timestamp('liquidated_at')->nullable()->after('approved_at');
+            }
             if (!Schema::hasColumn('payrolls', 'paid_at')) {
-                $table->timestamp('paid_at')->nullable()->after('approved_at');
+                $table->timestamp('paid_at')->nullable()->after('liquidated_at');
             }
         });
 
@@ -144,7 +147,7 @@ return new class extends Migration
             'employee_cuil', 'category_name', 'position_name', 'antiguedad_years',
             'start_date', 'salario_basico', 'total_haberes', 'total_remunerativo',
             'total_no_remunerativo', 'total_deducciones', 'neto_a_cobrar',
-            'status', 'created_by', 'approved_by', 'approved_at', 'paid_at',
+            'status', 'created_by', 'approved_by', 'approved_at', 'liquidated_at', 'paid_at',
         ];
 
         Schema::table('payrolls', function (Blueprint $table) use ($columns) {

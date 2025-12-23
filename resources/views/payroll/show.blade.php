@@ -1,4 +1,4 @@
-<x-manage>
+<x-admin-layout title="Detalle de Liquidación">
     <div class="max-w-4xl mx-auto p-6">
         {{-- Encabezado --}}
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
@@ -237,4 +237,4 @@
             #recibo-content { position: absolute; left: 0; top: 0; width: 100%; }
         }
     </style>
-</x-manage>
+</x-admin-layout>
