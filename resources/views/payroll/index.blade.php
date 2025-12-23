@@ -81,7 +81,7 @@
                     </div>
                     <div>
                         <p class="text-xs text-gray-500">Fecha Ingreso:</p>
-                        <p class="font-semibold">{{ $payroll['empleado']['fecha_ingreso']?->format('d/m/Y') ?? '-' }}</p>
+                        <p class="font-semibold">{{ $payroll['empleado']['fecha_ingreso'] ? \Carbon\Carbon::parse($payroll['empleado']['fecha_ingreso'])->format('d/m/Y') : '-' }}</p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-500">Salario Básico:</p>
