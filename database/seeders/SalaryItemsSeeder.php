@@ -19,11 +19,12 @@ class SalaryItemsSeeder extends Seeder
                 'code' => 'Z30',
                 'type' => 'haber',
                 'calculation_type' => 'percentage',
-                'calculation_base' => 'basic_antiguedad', // Básico + Antigüedad
+                // CCT 108/75 FATSA: El 30% de zona se calcula sobre Básico + Antigüedad + Adicional Título
+                'calculation_base' => 'basic_antiguedad_titulo',
                 'value' => 30,
                 'is_remunerative' => true,
                 'is_active' => true,
-                'order' => 1,
+                'order' => 10, // Se calcula después de antigüedad y adicional título
             ],
             [
                 'name' => 'Puesto Jerárquico',
@@ -36,18 +37,20 @@ class SalaryItemsSeeder extends Seeder
                 'is_active' => true,
                 'requires_assignment' => true,
                 'hide_percentage_in_receipt' => true, // Acuerdo interno de la empresa
-                'order' => 2,
+                'order' => 20, // Se calcula después de zona
             ],
             [
                 'name' => 'Adicional Título',
                 'code' => 'ADTIT',
                 'type' => 'haber',
                 'calculation_type' => 'percentage',
-                'calculation_base' => 'basic', // Solo Básico (ajustar si es diferente)
+                'calculation_base' => 'basic', // Solo Básico
                 'value' => 15,
                 'is_remunerative' => true,
                 'is_active' => true,
-                'order' => 3,
+                // CCT 108/75 FATSA: El adicional título se incluye en la base de antigüedad y zona
+                'includes_in_antiguedad_base' => true,
+                'order' => 2, // Se calcula antes de antigüedad y zona
             ],
         ];
 

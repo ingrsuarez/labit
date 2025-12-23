@@ -209,12 +209,20 @@ class PayrollController extends Controller
         }
 
         // 4. CUARTO: Calcular haberes adicionales según su base de cálculo
+        // Calcular el total de conceptos fijos que se incluyen en base de zona
+        // (conceptos con includes_in_antiguedad_base = true, como Adicional Título)
+        $totalConceptosFijosZona = collect($conceptosAntiguedad)->sum('importe');
+        
         // Preparar las diferentes bases
+        // Según CCT 108/75 FATSA, el 30% de zona se calcula sobre:
+        // Básico + Antigüedad + Adicional Título (conceptos fijos convencionales)
         $bases = [
             'basic' => $basicSalary,
             'basic_antiguedad' => $basicSalary + $antiguedad,
             'basic_hours' => $basicSalary + $totalHorasExtras,
             'basic_hours_antiguedad' => $basicSalary + $totalHorasExtras + $antiguedad,
+            // Nueva base para Zona 30% según CCT 108/75: incluye conceptos fijos como Adicional Título
+            'basic_antiguedad_titulo' => $basicSalary + $antiguedad + $totalConceptosFijosZona,
         ];
 
         // Separar haberes remunerativos y no remunerativos

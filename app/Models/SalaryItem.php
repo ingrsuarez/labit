@@ -14,7 +14,7 @@ class SalaryItem extends Model
         'code',
         'type',
         'calculation_type',
-        'calculation_base', // 'basic', 'basic_antiguedad', 'basic_hours', 'basic_hours_antiguedad', 'subtotal'
+        'calculation_base', // 'basic', 'basic_antiguedad', 'basic_antiguedad_titulo', 'basic_hours', 'basic_hours_antiguedad', 'subtotal'
         'value',
         'base',
         'is_remunerative',
@@ -36,6 +36,7 @@ class SalaryItem extends Model
         'is_active' => 'boolean',
         'requires_assignment' => 'boolean',
         'hide_percentage_in_receipt' => 'boolean',
+        'includes_in_antiguedad_base' => 'boolean',
         'applies_all_year' => 'boolean',
     ];
 
