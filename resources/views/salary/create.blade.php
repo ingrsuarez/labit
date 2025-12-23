@@ -77,6 +77,7 @@
                                 class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
                             <option value="basic" {{ old('calculation_base') === 'basic' ? 'selected' : '' }}>Sueldo Básico</option>
                             <option value="basic_antiguedad" {{ old('calculation_base', 'basic_antiguedad') === 'basic_antiguedad' ? 'selected' : '' }}>Básico + Antigüedad</option>
+                            <option value="basic_antiguedad_titulo" {{ old('calculation_base') === 'basic_antiguedad_titulo' ? 'selected' : '' }}>Básico + Antigüedad + Título (CCT 108/75 Zona)</option>
                             <option value="basic_hours" {{ old('calculation_base') === 'basic_hours' ? 'selected' : '' }}>Básico + Horas Extras</option>
                             <option value="basic_hours_antiguedad" {{ old('calculation_base') === 'basic_hours_antiguedad' ? 'selected' : '' }}>Básico + Horas + Antigüedad</option>
                         </select>
