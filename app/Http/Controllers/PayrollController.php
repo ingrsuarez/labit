@@ -520,8 +520,9 @@ class PayrollController extends Controller
             
             // Si ingresó DURANTE este semestre, calcular meses proporcionales
             if ($fechaIngreso->between($inicioSemestre, $finSemestre)) {
-                // Calcular meses desde el ingreso hasta el fin del semestre
-                $mesesTrabajados = $fechaIngreso->diffInMonths($finSemestre) + 1;
+                // Contar meses calendario desde el mes de ingreso hasta el fin del semestre
+                // Ej: ingreso noviembre, fin diciembre = 2 meses (noviembre + diciembre)
+                $mesesTrabajados = $endMonth - $fechaIngreso->month + 1;
                 $esProporcional = true;
             } elseif ($fechaIngreso->gt($finSemestre)) {
                 // Si ingresó después del fin del semestre, no corresponde SAC
@@ -624,7 +625,9 @@ class PayrollController extends Controller
             $fechaIngreso = Carbon::parse($employee->start_date);
             
             if ($fechaIngreso->between($inicioSemestre, $finSemestre)) {
-                $mesesTrabajados = $fechaIngreso->diffInMonths($finSemestre) + 1;
+                // Contar meses calendario desde el mes de ingreso hasta el fin del semestre
+                // Ej: ingreso noviembre, fin diciembre = 2 meses (noviembre + diciembre)
+                $mesesTrabajados = $endMonth - $fechaIngreso->month + 1;
                 $esProporcional = true;
             } elseif ($fechaIngreso->gt($finSemestre)) {
                 // No corresponde SAC
