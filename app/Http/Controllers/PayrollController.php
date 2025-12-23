@@ -526,51 +526,69 @@ class PayrollController extends Controller
         $startMonth = $semester === 1 ? 1 : 7;
         $endMonth = $semester === 1 ? 6 : 12;
         
-        // Buscar liquidaciones guardadas del semestre (excluyendo SAC previos)
+        $inicioSemestre = Carbon::createFromDate($year, $startMonth, 1);
+        $finSemestre = Carbon::createFromDate($year, $endMonth, 1)->endOfMonth();
+        
+        // Determinar meses trabajados basándose en la FECHA DE INGRESO del empleado
+        $mesesTrabajados = 6; // Por defecto, semestre completo
+        $esProporcional = false;
+        
+        if ($employee->start_date) {
+            $fechaIngreso = Carbon::parse($employee->start_date);
+            
+            // Si ingresó DURANTE este semestre, calcular meses proporcionales
+            if ($fechaIngreso->between($inicioSemestre, $finSemestre)) {
+                // Calcular meses desde el ingreso hasta el fin del semestre
+                $mesesTrabajados = $fechaIngreso->diffInMonths($finSemestre) + 1;
+                $esProporcional = true;
+            } elseif ($fechaIngreso->gt($finSemestre)) {
+                // Si ingresó después del fin del semestre, no corresponde SAC
+                return [
+                    'mejor_sueldo' => 0,
+                    'meses_trabajados' => 0,
+                    'es_proporcional' => true,
+                    'sac_bruto' => 0,
+                    'semestre' => $semester,
+                    'periodo' => $semester === 1 ? '1er Semestre' : '2do Semestre',
+                ];
+            }
+            // Si ingresó ANTES del inicio del semestre, trabajó los 6 meses completos
+        }
+        
+        // Buscar liquidaciones guardadas del semestre para obtener el mejor sueldo
         $payrolls = Payroll::where('employee_id', $employee->id)
             ->where('year', $year)
             ->whereBetween('month', [$startMonth, $endMonth])
-            ->where('month', '!=', $month) // Excluir el mes actual (lo calcularemos aparte)
+            ->where('month', '!=', $month) // Excluir el mes actual
             ->get();
         
-        // Obtener los totales remunerativos de cada mes
-        $sueldosRemunerativos = $payrolls->pluck('total_remunerativo')->toArray();
+        // Obtener los totales remunerativos de cada mes guardado
+        $sueldosRemunerativos = $payrolls->pluck('total_remunerativo')
+            ->map(fn($v) => (float) $v)
+            ->toArray();
         
-        // Agregar el sueldo remunerativo del mes actual si se proporcionó
+        // Agregar el sueldo remunerativo del mes actual
         if ($currentMonthRemunerativo !== null && $currentMonthRemunerativo > 0) {
             $sueldosRemunerativos[] = $currentMonthRemunerativo;
         }
         
-        // Si no hay sueldos, retornar 0
+        // Si no hay sueldos guardados, usar el sueldo actual como referencia
         if (empty($sueldosRemunerativos)) {
             return [
                 'mejor_sueldo' => 0,
-                'meses_trabajados' => 0,
-                'es_proporcional' => true,
+                'meses_trabajados' => $mesesTrabajados,
+                'es_proporcional' => $esProporcional,
                 'sac_bruto' => 0,
+                'semestre' => $semester,
+                'periodo' => $semester === 1 ? '1er Semestre' : '2do Semestre',
+                'mensaje' => 'No hay sueldos registrados en el semestre',
             ];
         }
         
         // Obtener el mejor sueldo remunerativo del semestre
         $mejorSueldo = max($sueldosRemunerativos);
-        $mesesTrabajados = count($sueldosRemunerativos);
-        
-        // Calcular meses desde fecha de ingreso si es nuevo
-        if ($employee->start_date) {
-            $fechaIngreso = Carbon::parse($employee->start_date);
-            $inicioSemestre = Carbon::createFromDate($year, $startMonth, 1);
-            $finSemestre = Carbon::createFromDate($year, $endMonth, 1)->endOfMonth();
-            
-            // Si ingresó durante este semestre, calcular meses proporcionales
-            if ($fechaIngreso->between($inicioSemestre, $finSemestre)) {
-                $mesesDesdeIngreso = $fechaIngreso->diffInMonths($finSemestre) + 1;
-                $mesesTrabajados = min($mesesTrabajados, $mesesDesdeIngreso);
-            }
-        }
         
         // SAC = Mejor sueldo / 2 (o proporcional si no trabajó todo el semestre)
-        $esProporcional = $mesesTrabajados < 6;
-        
         if ($esProporcional) {
             // Proporcional: (Mejor sueldo × Meses trabajados) / 12
             $sacBruto = ($mejorSueldo * $mesesTrabajados) / 12;
