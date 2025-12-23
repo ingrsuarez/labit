@@ -21,7 +21,7 @@
                         <option value="">Seleccionar empleado...</option>
                         @foreach($employees as $employee)
                             <option value="{{ $employee->id }}" {{ $filters['employee_id'] == $employee->id ? 'selected' : '' }}>
-                                {{ $employee->lastName }}, {{ $employee->firstName }}
+                                {{ $employee->lastName }}, {{ $employee->name }}
                             </option>
                         @endforeach
                     </select>
@@ -39,7 +39,7 @@
                     <select name="month" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @foreach(range(1, 12) as $m)
                             <option value="{{ $m }}" {{ $filters['month'] == $m ? 'selected' : '' }}>
-                                {{ \Carbon\Carbon::create()->month($m)->translatedFormat('F') }}
+                                {{ \Carbon\Carbon::create()->month($m)->locale('es')->translatedFormat('F') }}
                             </option>
                         @endforeach
                     </select>
