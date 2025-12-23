@@ -1,4 +1,4 @@
-<x-manage>
+<x-admin-layout title="Empleados">
     <div class="max-w-7xl mx-auto p-6">
         <h1 class="text-2xl font-bold text-gray-900 mb-6">Empleados</h1>
 
@@ -146,4 +146,4 @@
             </div>
         </div>
     </div>
-</x-manage>
+</x-admin-layout>
