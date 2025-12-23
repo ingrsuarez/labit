@@ -61,7 +61,7 @@
                 </span>
             </div>
 
-            <a href="{{ route('employee.show') }}" 
+            <a href="{{ route('employee.new') }}" 
                class="flex items-center px-4 py-2.5 text-sm rounded-lg transition-colors
                 {{ request()->routeIs('employee.*') 
                     ? 'bg-zinc-700 text-white' 
