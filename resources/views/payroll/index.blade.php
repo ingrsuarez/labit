@@ -6,10 +6,16 @@
                 <h1 class="text-2xl font-bold text-gray-900">Liquidación de Sueldos</h1>
                 <p class="text-sm text-gray-600 mt-1">Calcular liquidación individual</p>
             </div>
-            <a href="{{ route('payroll.closed') }}" 
-               class="mt-3 sm:mt-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-flex items-center gap-2">
-                📋 Ver Liquidaciones Cerradas
-            </a>
+            <div class="mt-3 sm:mt-0 flex gap-2">
+                <a href="{{ route('payroll.sac') }}" 
+                   class="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 inline-flex items-center gap-2">
+                    💰 Liquidar SAC
+                </a>
+                <a href="{{ route('payroll.closed') }}" 
+                   class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-flex items-center gap-2">
+                    📋 Ver Liquidaciones Cerradas
+                </a>
+            </div>
         </div>
 
         {{-- Filtros --}}
