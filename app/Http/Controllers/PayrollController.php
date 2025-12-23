@@ -678,7 +678,7 @@ class PayrollController extends Controller
         // Construir el haber del SAC
         $sacLabel = 'SAC ' . ($semester === 1 ? '1er' : '2do') . ' Semestre ' . $year;
         if ($esProporcional) {
-            $sacLabel .= ' (Proporcional ' . $mesesTrabajados . ' meses)';
+            $sacLabel .= ' (Proporcional ' . number_format($mesesTrabajados, 1, ',', '.') . ' meses)';
         }
         
         $haberesCalculados = [

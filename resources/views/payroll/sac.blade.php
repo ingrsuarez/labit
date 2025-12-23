@@ -102,7 +102,7 @@
                                 <p class="text-amber-100">{{ $sacPayroll['empleado']['categoria'] }}</p>
                                 <p class="font-semibold">
                                     @if($sacPayroll['es_proporcional'])
-                                        Proporcional: {{ $sacPayroll['meses_trabajados'] }} meses
+                                        Proporcional: {{ number_format($sacPayroll['meses_trabajados'], 1, ',', '.') }} meses
                                     @else
                                         Semestre completo
                                     @endif
@@ -123,7 +123,7 @@
                         </div>
                         <div>
                             <p class="text-xs text-gray-500">Meses Trabajados:</p>
-                            <p class="font-semibold">{{ $sacPayroll['meses_trabajados'] }} de 6</p>
+                            <p class="font-semibold">{{ number_format($sacPayroll['meses_trabajados'], 1, ',', '.') }} de 6</p>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500">Fecha Ingreso:</p>
@@ -170,7 +170,7 @@
                                 <p class="font-medium">Fórmula aplicada:</p>
                                 @if($sacPayroll['es_proporcional'])
                                     <p class="mt-1">SAC = (Mejor sueldo × Meses) / 12</p>
-                                    <p>SAC = (${{ number_format($sacPayroll['mejor_sueldo'], 2, ',', '.') }} × {{ $sacPayroll['meses_trabajados'] }}) / 12</p>
+                                    <p>SAC = (${{ number_format($sacPayroll['mejor_sueldo'], 2, ',', '.') }} × {{ number_format($sacPayroll['meses_trabajados'], 1, ',', '.') }}) / 12</p>
                                 @else
                                     <p class="mt-1">SAC = Mejor sueldo / 2</p>
                                     <p>SAC = ${{ number_format($sacPayroll['mejor_sueldo'], 2, ',', '.') }} / 2</p>
