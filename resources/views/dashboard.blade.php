@@ -116,7 +116,16 @@
                         <p class="text-3xl font-bold mt-1">${{ number_format($costoNomina, 0, ',', '.') }}</p>
                         <p class="text-xs text-emerald-200 mt-1">
                             @if($ultimoMesPagado)
-                                {{ Carbon\Carbon::create($ultimoMesPagado->year, $ultimoMesPagado->month)->locale('es')->isoFormat('MMMM YYYY') }}
+                                @php
+                                    // Si el mes es > 100, es SAC (106 = SAC junio, 112 = SAC diciembre)
+                                    $mesMostrar = $ultimoMesPagado->month > 100 ? $ultimoMesPagado->month - 100 : $ultimoMesPagado->month;
+                                    $esSAC = $ultimoMesPagado->month > 100;
+                                @endphp
+                                @if($esSAC)
+                                    SAC {{ Carbon\Carbon::create($ultimoMesPagado->year, $mesMostrar)->locale('es')->isoFormat('MMMM YYYY') }}
+                                @else
+                                    {{ Carbon\Carbon::create($ultimoMesPagado->year, $mesMostrar)->locale('es')->isoFormat('MMMM YYYY') }}
+                                @endif
                             @else
                                 Sin datos
                             @endif
