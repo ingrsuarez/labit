@@ -1,4 +1,4 @@
-<x-manage>
+<x-admin-layout title="Liquidaciones Guardadas">
     <div class="max-w-7xl mx-auto p-6">
         {{-- Encabezado --}}
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
@@ -221,7 +221,7 @@
                 </svg>
                 <h3 class="mt-4 text-lg font-medium text-gray-900">No hay liquidaciones guardadas</h3>
                 <p class="mt-2 text-sm text-gray-500">
-                    No se encontraron liquidaciones para {{ \Carbon\Carbon::createFromDate($year, $month, 1)->translatedFormat('F Y') }}.
+                    No se encontraron liquidaciones para {{ \Carbon\Carbon::createFromDate($year, $month, 1)->locale('es')->translatedFormat('F Y') }}.
                 </p>
                 <a href="{{ route('payroll.index', ['year' => $year, 'month' => $month]) }}" 
                    class="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
@@ -230,4 +230,4 @@
             </div>
         @endif
     </div>
-</x-manage>
+</x-admin-layout>
