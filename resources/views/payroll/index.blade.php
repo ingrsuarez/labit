@@ -41,13 +41,16 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Mes</label>
-                    <select name="month" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mes / Período</label>
+                    <select name="month" id="month-select" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @foreach(range(1, 12) as $m)
                             <option value="{{ $m }}" {{ $filters['month'] == $m ? 'selected' : '' }}>
                                 {{ \Carbon\Carbon::create()->month($m)->locale('es')->translatedFormat('F') }}
                             </option>
                         @endforeach
+                        <option disabled class="bg-gray-100">──────────────</option>
+                        <option value="sac-1" class="font-semibold text-amber-600">💰 SAC Junio (1er Semestre)</option>
+                        <option value="sac-2" class="font-semibold text-amber-600">💰 SAC Diciembre (2do Semestre)</option>
                     </select>
                 </div>
                 <div class="flex items-end">
@@ -212,5 +215,23 @@
             </div>
         @endif
     </div>
+
+    <script>
+        document.getElementById('month-select').addEventListener('change', function() {
+            const value = this.value;
+            if (value === 'sac-1' || value === 'sac-2') {
+                const semester = value === 'sac-1' ? 1 : 2;
+                const year = document.querySelector('select[name="year"]').value;
+                const employeeId = document.querySelector('select[name="employee_id"]').value;
+                
+                let url = '{{ route("payroll.sac") }}?year=' + year + '&semester=' + semester;
+                if (employeeId) {
+                    url += '&employee_id=' + employeeId;
+                }
+                
+                window.location.href = url;
+            }
+        });
+    </script>
 </x-admin-layout>
 
