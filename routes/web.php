@@ -91,6 +91,35 @@ Route::middleware([
     Route::put('/materials/{material}', [App\Http\Controllers\MaterialController::class, 'update'])->name('materials.update');
     Route::delete('/materials/{material}', [App\Http\Controllers\MaterialController::class, 'destroy'])->name('materials.destroy');
 
+    // NOMENCLADORES (Precios por Obra Social)
+    Route::get('/nomenclator', [App\Http\Controllers\InsuranceNomenclatorController::class, 'index'])->name('nomenclator.index');
+    Route::get('/nomenclator/{insurance}', [App\Http\Controllers\InsuranceNomenclatorController::class, 'show'])->name('nomenclator.show');
+    Route::put('/nomenclator/{insurance}/nbu', [App\Http\Controllers\InsuranceNomenclatorController::class, 'updateNbuValue'])->name('nomenclator.updateNbu');
+    Route::post('/nomenclator/{insurance}', [App\Http\Controllers\InsuranceNomenclatorController::class, 'store'])->name('nomenclator.store');
+    Route::put('/nomenclator/{insurance}/{insuranceTest}', [App\Http\Controllers\InsuranceNomenclatorController::class, 'update'])->name('nomenclator.update');
+    Route::delete('/nomenclator/{insurance}/{insuranceTest}', [App\Http\Controllers\InsuranceNomenclatorController::class, 'destroy'])->name('nomenclator.destroy');
+    Route::post('/nomenclator/{insurance}/bulk', [App\Http\Controllers\InsuranceNomenclatorController::class, 'bulkAdd'])->name('nomenclator.bulkAdd');
+    Route::post('/nomenclator/{insurance}/recalculate', [App\Http\Controllers\InsuranceNomenclatorController::class, 'recalculatePrices'])->name('nomenclator.recalculate');
+    Route::get('/nomenclator/{insurance}/search-tests', [App\Http\Controllers\InsuranceNomenclatorController::class, 'searchTests'])->name('nomenclator.searchTests');
+
+    // LAB ADMISSIONS (Admisiones de Pacientes - Laboratorio)
+    Route::get('lab/admissions', [App\Http\Controllers\LabAdmissionController::class, 'index'])->name('lab.admissions.index');
+    Route::get('lab/admissions/create', [App\Http\Controllers\LabAdmissionController::class, 'create'])->name('lab.admissions.create');
+    Route::post('lab/admissions', [App\Http\Controllers\LabAdmissionController::class, 'store'])->name('lab.admissions.store');
+    Route::get('lab/admissions/search-patients', [App\Http\Controllers\LabAdmissionController::class, 'searchPatients'])->name('lab.admissions.searchPatients');
+    Route::get('lab/admissions/search-tests', [App\Http\Controllers\LabAdmissionController::class, 'searchTests'])->name('lab.admissions.searchTests');
+    Route::get('lab/admissions/test-price', [App\Http\Controllers\LabAdmissionController::class, 'getTestPrice'])->name('lab.admissions.getTestPrice');
+    Route::get('lab/admissions/{admission}', [App\Http\Controllers\LabAdmissionController::class, 'show'])->name('lab.admissions.show');
+    Route::get('lab/admissions/{admission}/edit', [App\Http\Controllers\LabAdmissionController::class, 'edit'])->name('lab.admissions.edit');
+    Route::put('lab/admissions/{admission}', [App\Http\Controllers\LabAdmissionController::class, 'update'])->name('lab.admissions.update');
+    Route::post('lab/admissions/{admission}/test', [App\Http\Controllers\LabAdmissionController::class, 'addTest'])->name('lab.admissions.addTest');
+    Route::put('lab/admissions/{admission}/test/{test}', [App\Http\Controllers\LabAdmissionController::class, 'updateTest'])->name('lab.admissions.updateTest');
+    Route::delete('lab/admissions/{admission}/test/{test}', [App\Http\Controllers\LabAdmissionController::class, 'removeTest'])->name('lab.admissions.removeTest');
+
+    // LAB REPORTS (Reportes del Laboratorio)
+    Route::get('lab/reports/monthly', [App\Http\Controllers\LabReportController::class, 'monthly'])->name('lab.reports.monthly');
+    Route::get('lab/reports/monthly/export', [App\Http\Controllers\LabReportController::class, 'exportExcel'])->name('lab.reports.exportExcel');
+
     // ADMISSION
     Route::get('/admission/new',[App\Http\Controllers\AdmissionController::class, 'index'])->name('admission.index');
 

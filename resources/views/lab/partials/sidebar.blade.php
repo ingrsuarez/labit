@@ -33,24 +33,74 @@
         <!-- Navegación Principal -->
         <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
             
-            <!-- Dashboard -->
-            <a href="{{ route('sample.index') }}" 
-               class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors
-                {{ request()->routeIs('sample.index') 
+            <!-- Separador: Pacientes -->
+            <div class="pb-2">
+                <span class="px-4 text-xs font-semibold text-teal-300 uppercase tracking-wider">
+                    Pacientes
+                </span>
+            </div>
+
+            <a href="{{ route('lab.admissions.index') }}" 
+               class="flex items-center px-4 py-2.5 text-sm rounded-lg transition-colors
+                {{ request()->routeIs('lab.admissions.index') 
                     ? 'bg-teal-600 text-white' 
                     : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                 </svg>
-                Protocolos
+                Admisiones
+            </a>
+
+            <a href="{{ route('lab.admissions.create') }}" 
+               class="flex items-center px-4 py-2.5 text-sm rounded-lg transition-colors
+                {{ request()->routeIs('lab.admissions.create') 
+                    ? 'bg-teal-600 text-white' 
+                    : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
+                Nueva Admisión
+            </a>
+
+            <a href="{{ route('patient.index') }}" 
+               class="flex items-center px-4 py-2.5 text-sm rounded-lg transition-colors
+                {{ request()->routeIs('patient.index') 
+                    ? 'bg-teal-600 text-white' 
+                    : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                Nuevo Paciente
+            </a>
+
+            <a href="{{ route('lab.reports.monthly') }}" 
+               class="flex items-center px-4 py-2.5 text-sm rounded-lg transition-colors
+                {{ request()->routeIs('lab.reports.*') 
+                    ? 'bg-teal-600 text-white' 
+                    : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Reportes Mensuales
             </a>
 
             <!-- Separador: Muestras -->
             <div class="pt-4 pb-2">
                 <span class="px-4 text-xs font-semibold text-teal-300 uppercase tracking-wider">
-                    Muestras
+                    Muestras (Agua/Alimentos)
                 </span>
             </div>
+
+            <a href="{{ route('sample.index') }}" 
+               class="flex items-center px-4 py-2.5 text-sm rounded-lg transition-colors
+                {{ request()->routeIs('sample.index') 
+                    ? 'bg-teal-600 text-white' 
+                    : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                </svg>
+                Protocolos
+            </a>
 
             <a href="{{ route('sample.create') }}" 
                class="flex items-center px-4 py-2.5 text-sm rounded-lg transition-colors
@@ -62,6 +112,7 @@
                 </svg>
                 Nueva Muestra
             </a>
+
             <a href="{{ route('customer.index') }}" 
                class="flex items-center px-4 py-2.5 text-sm rounded-lg transition-colors
                 {{ request()->routeIs('customer.*') 
@@ -112,6 +163,17 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                 </svg>
                 Materiales
+            </a>
+
+            <a href="{{ route('nomenclator.index') }}" 
+               class="flex items-center px-4 py-2.5 text-sm rounded-lg transition-colors
+                {{ request()->routeIs('nomenclator.*') 
+                    ? 'bg-teal-600 text-white' 
+                    : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Nomencladores
             </a>
 
         </nav>

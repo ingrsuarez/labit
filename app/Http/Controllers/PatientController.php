@@ -35,10 +35,12 @@ class PatientController extends Controller
         $patient->address = strtolower($request->address);
         $patient->country = $request->country;
         $patient->state = $request->state;
+        $patient->insurance = $request->insurance;
+        $patient->insurance_cod = $request->insurance_cod;
         
         try {
             $patient->save();
-            return redirect()->back();
+            return redirect()->back()->with('success', 'Paciente creado correctamente.');
         }
         catch ( \Exception $e ) {
     
