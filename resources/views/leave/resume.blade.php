@@ -49,20 +49,24 @@
             </div>
         </form>
 
-        {{-- Tabla agrupada por Año-Mes --}}
+        {{-- Tabla agrupada por Año-Mes y luego por Empleado --}}
         <div class="bg-white rounded-xl shadow overflow-hidden">
             @php
+                // Agrupar por período
                 $grouped = $resumes->groupBy(fn($r) => sprintf('%04d-%02d', $r->year, $r->month));
             @endphp
 
             @forelse($grouped as $ym => $rows)
+                @php
+                    // Agrupar por empleado dentro del período
+                    $byEmployee = $rows->groupBy('employee_id');
+                @endphp
+
                 <div class="bg-gray-50 px-4 py-2 border-t border-gray-200 flex items-center justify-between">
                     <div>
                         <div class="text-sm text-gray-600">Periodo</div>
                         <div class="text-lg font-semibold text-gray-900">{{ $ym }}</div>
                     </div>
-
-                    
                 </div>
 
                 <div class="overflow-x-auto">
@@ -71,56 +75,94 @@
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Empleado</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CUIL</th>
-                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Horas sem.</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Cantidad</th>
-                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total días</th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Horas Sem.</th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Vacaciones</th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Enfermedad</th>
                                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Horas 50%</th>
                                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Horas 100%</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Certificados</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 bg-white">
-                            @foreach($rows as $r)
+                            @foreach($byEmployee as $employeeId => $employeeRows)
                                 @php
-                                    $files = collect(explode('|', (string)$r->files))
-                                        ->filter(fn($f) => !empty($f));
+                                    $first = $employeeRows->first();
+                                    
+                                    // Sumar valores por tipo
+                                    $vacaciones = 0;
+                                    $enfermedad = 0;
+                                    $horas50 = 0;
+                                    $horas100 = 0;
+                                    $allFiles = collect();
+                                    
+                                    foreach ($employeeRows as $r) {
+                                        $type = strtolower($r->type ?? '');
+                                        
+                                        if ($type === 'vacaciones') {
+                                            $vacaciones += (int)($r->total_dias ?? 0);
+                                        } elseif ($type === 'enfermedad') {
+                                            $enfermedad += (int)($r->total_dias ?? 0);
+                                        }
+                                        
+                                        $horas50 += (int)($r->horas_50 ?? 0);
+                                        $horas100 += (int)($r->horas_100 ?? 0);
+                                        
+                                        // Recolectar archivos
+                                        if (!empty($r->files)) {
+                                            $files = collect(explode('|', (string)$r->files))->filter(fn($f) => !empty($f));
+                                            $allFiles = $allFiles->merge($files);
+                                        }
+                                    }
+                                    
+                                    $allFiles = $allFiles->unique();
                                 @endphp
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3">
-                                        <div class="font-medium text-gray-900">{{ $r->employee }}</div>
-                                        {{-- <div class="text-xs text-gray-500">#{{ $r->employee_id }}</div> --}}
+                                        <div class="font-medium text-gray-900">{{ $first->employee }}</div>
                                     </td>
-                                    <td class="px-4 py-3 text-gray-700">{{ $r->cuil ?? '—' }}</td>
-                                    <td class="px-4 py-3 text-right text-gray-700">{{ (int)($r->weekly_hours ?? 0) }}</td>
-                                    
-                                    
-                                    <td class="px-4 py-3 text-gray-700 capitalize">{{ $r->type }}</td>
-                                    <td class="px-4 py-3 text-right text-gray-700">{{ $r->cantidad }}</td>
-                                    <td class="px-4 py-3 text-right text-gray-700">{{ (int)$r->total_dias }}</td>
-                                    <td class="px-4 py-3 text-right text-gray-700">{{ (int)$r->horas_50 }}</td>
-                                    <td class="px-4 py-3 text-right text-gray-700">{{ (int)$r->horas_100 }}</td>
+                                    <td class="px-4 py-3 text-gray-700">{{ $first->cuil ?? '—' }}</td>
+                                    <td class="px-4 py-3 text-right text-gray-700">{{ (int)($first->weekly_hours ?? 0) }}</td>
+                                    <td class="px-4 py-3 text-right text-gray-700">
+                                        @if($vacaciones > 0)
+                                            <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded">{{ $vacaciones }}</span>
+                                        @else
+                                            <span class="text-gray-400">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-right text-gray-700">
+                                        @if($enfermedad > 0)
+                                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded">{{ $enfermedad }}</span>
+                                        @else
+                                            <span class="text-gray-400">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-right text-gray-700">
+                                        @if($horas50 > 0)
+                                            <span class="px-2 py-1 bg-amber-100 text-amber-800 rounded">{{ $horas50 }}</span>
+                                        @else
+                                            <span class="text-gray-400">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-right text-gray-700">
+                                        @if($horas100 > 0)
+                                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded">{{ $horas100 }}</span>
+                                        @else
+                                            <span class="text-gray-400">—</span>
+                                        @endif
+                                    </td>
                                     <td class="px-4 py-3">
-                                        @if($files->isEmpty())
+                                        @if($allFiles->isEmpty())
                                             <span class="text-gray-400 text-sm">—</span>
                                         @else
                                             <div class="flex flex-wrap gap-2">
-                                                @foreach($files as $idx => $file)
+                                                @foreach($allFiles as $idx => $file)
                                                     <a href="{{ asset('storage/'.$file) }}" target="_blank"
                                                     class="inline-flex items-center px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs hover:bg-blue-100">
-                                                        Cert. {{ $idx+1 }}
+                                                        Cert. {{ $loop->iteration }}
                                                     </a>
                                                 @endforeach
                                             </div>
                                         @endif
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <a href="{{ route('leave.edit', $r) }}"
-                                            class="text-blue-600 text-sm hover:underline">
-                                            Editar
-                                        </a>
-                                     
                                     </td>
                                 </tr>
                             @endforeach
@@ -130,59 +172,6 @@
             @empty
                 <div class="p-6 text-center text-gray-500">No hay novedades para el criterio seleccionado.</div>
             @endforelse
-        </div>
-    </div>
-
-    <div class="flex flex-col justify-start">
-
-
-        <div class="bg-white mt-2 pb-4 px-2 w-fit lg:w-fit rounded-lg shadow-lg ">
-            <h2 class="text-base font-semibold leading-7 text-gray-200 bg-blue-500 rounded -ml-2 -mr-2 py-2 px-2 shadow-lg">Novedades:</h2>
-            <p class="mt-1 text-sm leading-6 text-gray-600">Licencias:</p>    
-
-            
-                @if (empty($resumes[0]))
-                    <div class="mt-6 flex items-center justify-end gap-x-6">
-                        No existen licencias!
-                        <a href="" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Nuevo</a>
-                    </div>
-                
-                    
-                @else
-                    <div>
-                        <table class="border-collapse border border-slate-400 table-auto mt-6 rounded">
-                            <thead class="border border-slate-300">
-                                <th class="bg-blue-300 px-2 border border-slate-300">Año</th>
-                                <th class="bg-blue-300 px-2 border border-slate-300">Mes</th>
-                                <th class="bg-blue-300 px-2 border border-slate-300">Empleado</th>
-                                <th class="bg-blue-300 px-2 border border-slate-300">Tipo</th>
-                                <th class="bg-blue-300 px-2 border border-slate-300">Categoría</th>
-                                <th class="bg-blue-300 px-2 border border-slate-300">Días</th>
-                                <th class="bg-blue-300 px-2 border border-slate-300"></th>
-                            </thead>
-                            <tbody>
-                            @foreach ($resumes as $leave)
-                            <tr class="">
-                                <td class="px-2 border border-slate-300">{{$leave->year}}</td>
-                                <td class="px-2 border border-slate-300">{{$leave->month}}</td>
-                                
-                                <td class="px-2 border border-slate-300">{{ucwords($leave->employee)}}</td>
-                                <td class="px-2 border border-slate-300">{{ucwords($leave->type)}}</td>
-                                <td class="px-2 border border-slate-300">{{ucwords($leave->category)}}</td>
-                                <td class="px-2 border border-slate-300"><strong>{{ucwords($leave->days)}}</strong></td>
-                                <td class="px-2 py-2 border border-slate-300">
-                                    <a href="{{route('leave.delete',$leave->leave_id)}}" class="rounded-md bg-red-600 mx-2 px-2 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                                        Eliminar
-                                    </a>
-                                </td>
-                            </tr>
-                            
-                            @endforeach  
-                            </tbody>
-                        </table>
-                    </div>  
-                @endif
-            
         </div>
     </div>
 </x-admin-layout>
