@@ -1,4 +1,4 @@
-<x-manage>
+<x-admin-layout title="Detalle de Licencias">
 
 <div class="max-w-7xl mx-auto p-6">
     <div class="flex justify-between items-center mb-4">
@@ -60,4 +60,4 @@
     </div>
 </div>
 
-</x-manage>
+</x-admin-layout>
