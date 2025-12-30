@@ -84,6 +84,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 bg-white">
+                            {{-- Empleados CON novedades --}}
                             @foreach($byEmployee as $employeeId => $employeeRows)
                                 @php
                                     $first = $employeeRows->first();
@@ -126,28 +127,28 @@
                                         @if($vacaciones > 0)
                                             <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded">{{ $vacaciones }}</span>
                                         @else
-                                            <span class="text-gray-400">—</span>
+                                            <span class="text-gray-400">0</span>
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-right text-gray-700">
                                         @if($enfermedad > 0)
                                             <span class="px-2 py-1 bg-red-100 text-red-800 rounded">{{ $enfermedad }}</span>
                                         @else
-                                            <span class="text-gray-400">—</span>
+                                            <span class="text-gray-400">0</span>
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-right text-gray-700">
                                         @if($horas50 > 0)
                                             <span class="px-2 py-1 bg-amber-100 text-amber-800 rounded">{{ $horas50 }}</span>
                                         @else
-                                            <span class="text-gray-400">—</span>
+                                            <span class="text-gray-400">0</span>
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-right text-gray-700">
                                         @if($horas100 > 0)
                                             <span class="px-2 py-1 bg-green-100 text-green-800 rounded">{{ $horas100 }}</span>
                                         @else
-                                            <span class="text-gray-400">—</span>
+                                            <span class="text-gray-400">0</span>
                                         @endif
                                     </td>
                                     <td class="px-4 py-3">
@@ -164,6 +165,26 @@
                                             </div>
                                         @endif
                                     </td>
+                                </tr>
+                            @endforeach
+
+                            {{-- Empleados SIN novedades en este período --}}
+                            @php
+                                $employeeIdsWithLeaves = $byEmployee->keys()->toArray();
+                                $employeesWithoutLeaves = $employees->filter(fn($e) => !in_array($e->id, $employeeIdsWithLeaves));
+                            @endphp
+                            @foreach($employeesWithoutLeaves as $emp)
+                                <tr class="hover:bg-gray-50 bg-gray-50/50">
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium text-gray-500">{{ ucfirst($emp->lastName) }} {{ ucfirst($emp->name) }}</div>
+                                    </td>
+                                    <td class="px-4 py-3 text-gray-500">{{ $emp->employeeId ?? '—' }}</td>
+                                    <td class="px-4 py-3 text-right text-gray-500">{{ (int)($emp->weekly_hours ?? 0) }}</td>
+                                    <td class="px-4 py-3 text-right text-gray-400">0</td>
+                                    <td class="px-4 py-3 text-right text-gray-400">0</td>
+                                    <td class="px-4 py-3 text-right text-gray-400">0</td>
+                                    <td class="px-4 py-3 text-right text-gray-400">0</td>
+                                    <td class="px-4 py-3"><span class="text-gray-400 text-sm">—</span></td>
                                 </tr>
                             @endforeach
                         </tbody>
