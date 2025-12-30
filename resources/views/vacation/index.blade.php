@@ -312,7 +312,7 @@
                                                 </div>
                                                 <div class="text-sm text-gray-600">
                                                     Hasta {{ \Carbon\Carbon::parse($vac->end)->format('d/m/Y') }}
-                                                    ({{ \Carbon\Carbon::parse($vac->end)->diffInDays(now()) + 1 }} días restantes)
+                                                    ({{ (int) \Carbon\Carbon::parse($vac->end)->startOfDay()->diffInDays(now()->startOfDay()) + 1 }} días restantes)
                                                 </div>
                                             </div>
                                             <span class="px-3 py-1 bg-green-500 text-white rounded-full text-sm">En curso</span>
@@ -351,7 +351,7 @@
                                                 </div>
                                             </div>
                                             <div class="text-sm text-gray-500">
-                                                En {{ \Carbon\Carbon::parse($vac->start)->diffInDays(now()) }} días
+                                                En {{ (int) \Carbon\Carbon::parse($vac->start)->startOfDay()->diffInDays(now()->startOfDay()) }} días
                                             </div>
                                         </div>
                                     @endforeach
