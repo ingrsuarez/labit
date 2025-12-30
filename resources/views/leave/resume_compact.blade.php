@@ -1,4 +1,4 @@
-<x-admin-manage>
+<x-manage>
     <div class="max-w-7xl mx-auto p-6">
         <h1 class="text-2xl font-bold text-gray-900 mb-6">Resumen (últimos 4 meses) por empleado</h1>
 
@@ -78,4 +78,4 @@
             </table>
         </div>
     </div>
-</x-admin-manage>
+</x-manage>

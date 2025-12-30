@@ -1,4 +1,4 @@
-<x-admin-manage>
+<x-manage>
     <div class="flex flex-col justify-start">
         <div class="bg-slate-200 max-w-4xl mx-auto p-6">
             <h1 class="text-2xl font-bold text-gray-900 mb-6">Nueva licencia</h1>
@@ -120,4 +120,4 @@
 
 
     </div>
-</x-admin-manage>
+</x-manage>
