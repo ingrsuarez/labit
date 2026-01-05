@@ -1,4 +1,4 @@
-<x-manage>
+<x-admin-layout title="Editar Documento">
     <div class="max-w-2xl mx-auto bg-white p-6 shadow rounded">
         <h2 class="text-xl font-semibold mb-4">Editar Documento</h2>
 
@@ -127,4 +127,4 @@
             container.appendChild(group);
         }
     </script>
-</x-manage>
+</x-admin-layout>

@@ -1,4 +1,4 @@
-<x-manage>
+<x-admin-layout>
     <div class="w-full px-4 py-6">
         <div class="max-w-7xl mx-auto">
             {{-- Header --}}
@@ -307,5 +307,5 @@
             document.getElementById('rejectModal').classList.add('hidden');
         }
     </script>
-</x-manage>
+</x-admin-layout>
 

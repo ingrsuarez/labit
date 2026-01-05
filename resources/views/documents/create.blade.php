@@ -1,4 +1,4 @@
-<x-manage>
+<x-admin-layout title="Crear Documento">
     
     <div class="max-w-2xl mx-auto bg-white p-6 shadow rounded">
         <h2 class="text-xl font-semibold mb-4">Nuevo Documento</h2>
@@ -108,4 +108,4 @@
         </script>
 
 
-</x-manage>
+</x-admin-layout>
