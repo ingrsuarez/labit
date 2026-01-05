@@ -157,6 +157,7 @@ class JobController extends Controller
         $category->wage = $request->wage;
         $category->base_weekly_hours = $request->base_weekly_hours ?? 48;
         $category->union_name = strtolower($request->union_name);
+        $category->full_time = $request->full_time;
 
         try {
             $category->save();
