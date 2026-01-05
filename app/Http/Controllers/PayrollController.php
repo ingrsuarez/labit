@@ -9,6 +9,7 @@ use App\Models\SalaryItem;
 use App\Models\Leave;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
+use App\Services\WorkingDaysService;
 use Illuminate\Support\Carbon;
 
 class PayrollController extends Controller
@@ -372,10 +373,17 @@ class PayrollController extends Controller
      */
     private function getEmployeeLeaves(int $employeeId, int $year, int $month): array
     {
+        // Buscar licencias que EMPIEZAN en este mes
+        // Las vacaciones se contabilizan completas en el mes donde empiezan
         $leaves = Leave::where('employee_id', $employeeId)
             ->whereYear('start', $year)
             ->whereMonth('start', $month)
             ->get();
+
+        // Calcular días de vacaciones: todos los días hábiles de la licencia completa
+        // (se contabilizan en el mes donde empiezan, aunque terminen en otro mes)
+        $diasVacaciones = $leaves->where('type', 'vacaciones')
+            ->sum(fn($l) => $l->working_days);
 
         // Separar licencias por enfermedad: válidas (justificadas o con certificado y aprobadas) vs inasistencias
         $enfermedadLeaves = $leaves->where('type', 'enfermedad');
@@ -390,11 +398,15 @@ class PayrollController extends Controller
             ->filter(fn($l) => !$l->is_justified && (empty($l->file) || $l->status !== 'aprobado'))
             ->sum(fn($l) => $l->days ?? (Carbon::parse($l->end)->diffInDays(Carbon::parse($l->start)) + 1));
 
+        // Días de embarazo
+        $diasEmbarazo = $leaves->where('type', 'embarazo')
+            ->sum(fn($l) => $l->days ?? (Carbon::parse($l->end)->diffInDays(Carbon::parse($l->start)) + 1));
+
         return [
-            'dias_vacaciones' => $leaves->where('type', 'vacaciones')->sum(fn($l) => $l->days ?? (Carbon::parse($l->end)->diffInDays(Carbon::parse($l->start)) + 1)),
+            'dias_vacaciones' => $diasVacaciones,
             'dias_enfermedad' => $diasEnfermedadValidos,
             'dias_inasistencia' => $diasInasistencia,
-            'dias_embarazo' => $leaves->where('type', 'embarazo')->sum(fn($l) => $l->days ?? (Carbon::parse($l->end)->diffInDays(Carbon::parse($l->start)) + 1)),
+            'dias_embarazo' => $diasEmbarazo,
             'horas_50' => $leaves->sum('hour_50') ?? 0,
             'horas_100' => $leaves->sum('hour_100') ?? 0,
         ];
