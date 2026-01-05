@@ -1,4 +1,4 @@
-<x-manage>
+<x-admin-layout>
     <div class="flex flex-col justify-start">
         <div class="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
             <h2 class="text-2xl font-bold mb-6 text-gray-800">Nueva Categoría</h2>
@@ -108,4 +108,4 @@
         </div>
 
     </div>
-</x-manage>
+</x-admin-layout>

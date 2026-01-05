@@ -1,4 +1,4 @@
-<x-manage>
+<x-admin-layout>
     <div class="flex flex-col justify-start">
     <div class="bg-white pb-4 px-2 rounded-lg shadow-lg">
         <form class="" action="{{route('category.save')}}" method="POST">
@@ -56,4 +56,4 @@
         </form>
     </div>
 
-</x-manage>
+</x-admin-layout>

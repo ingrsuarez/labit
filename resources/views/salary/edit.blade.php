@@ -1,4 +1,4 @@
-<x-manage>
+<x-admin-layout>
     <div class="max-w-3xl mx-auto p-6">
         <div class="bg-white rounded-2xl shadow-lg p-8">
             {{-- Encabezado --}}
@@ -301,5 +301,5 @@
             specificContainer.classList.toggle('hidden', periodType !== 'specific');
         }
     </script>
-</x-manage>
+</x-admin-layout>
 

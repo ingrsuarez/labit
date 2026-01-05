@@ -1,4 +1,4 @@
-<x-manage>
+<x-admin-layout>
 <div class="max-w-5xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
     <h2 class="text-2xl font-bold mb-6 text-gray-800">Editar Empleado</h2>
 
@@ -240,4 +240,4 @@
             });
         });
     </script>
-</x-manage>
+</x-admin-layout>

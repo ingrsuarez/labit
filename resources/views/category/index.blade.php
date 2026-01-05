@@ -1,4 +1,4 @@
-<x-manage>
+<x-admin-layout>
     <div class="w-full px-4 py-6">
         {{-- Encabezado con título y botón --}}
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
@@ -131,5 +131,5 @@
             @endif
         </div>
     </div>
-</x-manage>
+</x-admin-layout>
 

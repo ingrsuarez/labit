@@ -1,4 +1,4 @@
-<x-manage>
+<x-admin-layout>
     <div class="w-full px-4 py-6">
         <div class="max-w-5xl mx-auto">
             {{-- Header --}}
@@ -240,7 +240,7 @@
             </div>
         </div>
     </div>
-</x-manage>
+</x-admin-layout>
 
 
 

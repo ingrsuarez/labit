@@ -1,4 +1,4 @@
-<x-manage>
+<x-admin-layout>
     <div class="w-full px-4 py-6">
         <div class="max-w-4xl mx-auto">
             {{-- Header --}}
@@ -178,7 +178,7 @@
         // Inicializar contadores
         updateCount();
     </script>
-</x-manage>
+</x-admin-layout>
 
 
 

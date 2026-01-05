@@ -1,4 +1,4 @@
-<x-manage>
+<x-admin-layout>
     <div class="flex flex-col justify-start">
         <div class="rounded-t border border-neutral-200 bg-color-transparent" id="accordionExample">
             <div class="rounded-t-lg border border-neutral-200 bg-white dark:border-neutral-600 dark:bg-neutral-800">
@@ -66,4 +66,4 @@
             iconRotate2.classList.toggle("rotate-[-0deg]");
         });
     </script>
-</x-manage>
+</x-admin-layout>

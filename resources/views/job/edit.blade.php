@@ -1,4 +1,4 @@
-<x-manage>
+<x-admin-layout>
     <div class="mx-auto max-w-5xl p-4 lg:p-6">
         <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
             {{-- Header --}}
@@ -178,4 +178,4 @@
 
 
 
-</x-manage>
+</x-admin-layout>
