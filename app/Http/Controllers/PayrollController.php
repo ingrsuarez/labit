@@ -99,6 +99,7 @@ class PayrollController extends Controller
         
         // Vacaciones: se pagan con divisor 25 (mejor que días normales)
         // vacaciones = basico * (dias_vacaciones / 25)
+        $importeVacaciones = 0;
         if ($diasVacaciones > 0) {
             $importeVacaciones = $basicoOriginal * ($diasVacaciones / 25);
             $haberesCalculados[] = [
@@ -216,14 +217,14 @@ class PayrollController extends Controller
         
         // Preparar las diferentes bases
         // Según CCT 108/75 FATSA, el 30% de zona se calcula sobre:
-        // Básico + Antigüedad + Adicional Título (conceptos fijos convencionales)
+        // Básico + Vacaciones + Antigüedad + Adicional Título (conceptos fijos convencionales)
         $bases = [
             'basic' => $basicSalary,
             'basic_antiguedad' => $basicSalary + $antiguedad,
             'basic_hours' => $basicSalary + $totalHorasExtras,
             'basic_hours_antiguedad' => $basicSalary + $totalHorasExtras + $antiguedad,
-            // Nueva base para Zona 30% según CCT 108/75: incluye conceptos fijos como Adicional Título
-            'basic_antiguedad_titulo' => $basicSalary + $antiguedad + $totalConceptosFijosZona,
+            // Base para Zona 30% según CCT 108/75: incluye vacaciones, antigüedad y conceptos fijos
+            'basic_antiguedad_titulo' => $basicSalary + $importeVacaciones + $antiguedad + $totalConceptosFijosZona,
         ];
 
         // Separar haberes remunerativos y no remunerativos
