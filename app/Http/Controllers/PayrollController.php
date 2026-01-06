@@ -197,13 +197,13 @@ class PayrollController extends Controller
             $haberesCalculados[] = $concepto;
         }
         
-        // 3. TERCERO: Calcular antigüedad sobre (básico + horas extras + conceptos especiales)
-        $antiguedad = $this->calculateAntiguedad($employee, $baseParaAntiguedad, $year, $month);
+        // 3. TERCERO: Calcular antigüedad SOLO sobre el básico (según CCT 108/75)
+        $antiguedad = $this->calculateAntiguedad($employee, $basicSalary, $year, $month);
         
         if ($antiguedad > 0) {
             $haberesCalculados[] = [
                 'nombre' => 'Antigüedad',
-                'porcentaje' => '2%', // Según ley argentina: 2% por año de antigüedad
+                'porcentaje' => '2%', // Porcentaje por año según CCT (el cálculo multiplica por años)
                 'importe' => $antiguedad,
                 'tipo' => 'percentage',
             ];
