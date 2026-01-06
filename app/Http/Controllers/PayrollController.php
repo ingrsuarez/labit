@@ -216,14 +216,14 @@ class PayrollController extends Controller
         $totalConceptosFijosZona = collect($conceptosAntiguedad)->sum('importe');
         
         // Preparar las diferentes bases
-        // Según CCT 108/75 FATSA, el 30% de zona se calcula sobre:
-        // Básico + Vacaciones + Antigüedad + Adicional Título (conceptos fijos convencionales)
         $bases = [
             'basic' => $basicSalary,
+            // Base para Zona 30%: Básico + Vacaciones (según CCT 108/75)
+            'basic_vacaciones' => $basicSalary + $importeVacaciones,
             'basic_antiguedad' => $basicSalary + $antiguedad,
             'basic_hours' => $basicSalary + $totalHorasExtras,
             'basic_hours_antiguedad' => $basicSalary + $totalHorasExtras + $antiguedad,
-            // Base para Zona 30% según CCT 108/75: incluye vacaciones, antigüedad y conceptos fijos
+            // Base completa que incluye vacaciones, antigüedad y conceptos fijos
             'basic_antiguedad_titulo' => $basicSalary + $importeVacaciones + $antiguedad + $totalConceptosFijosZona,
         ];
 
