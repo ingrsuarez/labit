@@ -49,8 +49,16 @@
                                     <span class="text-gray-400">—</span>
                                 @endif
                             </td>
-                            <td class="p-2">
-                                <a href="{{ route('leave.edit', $leave) }}" class="text-blue-600 hover:underline">Editar</a>
+                            <td class="p-2 flex gap-2">
+                                <a href="{{ route('leave.edit', $leave) }}" 
+                                   class="px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs">
+                                    Editar
+                                </a>
+                                <a href="{{ route('leave.delete', $leave) }}" 
+                                   onclick="return confirm('¿Estás seguro de eliminar esta licencia?')"
+                                   class="px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-xs">
+                                    Eliminar
+                                </a>
                             </td>
                         </tr>
                     @endforeach
