@@ -165,19 +165,19 @@
             padding-top: 10px;
         }
         .neto-bar {
-            background: linear-gradient(to right, #1d4ed8, #1e3a8a);
+            background-color: #1d4ed8;
             color: white;
             padding: 20px;
             margin-top: 15px;
-            display: table;
             width: 100%;
+            overflow: hidden;
         }
         .neto-left {
-            display: table-cell;
-            width: 60%;
+            float: left;
+            width: 55%;
         }
         .neto-right {
-            display: table-cell;
+            float: right;
             width: 40%;
             text-align: right;
             font-size: 10px;
