@@ -23,19 +23,6 @@
 <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-indigo-800 to-indigo-900 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
     <!-- Logo y Usuario -->
     <div class="flex flex-col h-full">
-        <!-- Header del Sidebar -->
-        <div class="px-6 py-5 border-b border-indigo-700">
-            <div class="flex items-center">
-                <a href="{{ route('portal.dashboard') }}">
-                    <x-application-mark class="h-10 w-auto" />
-                </a>
-                <div class="ml-3">
-                    <span class="text-white font-semibold text-sm">Portal del</span>
-                    <span class="block text-indigo-300 text-xs">Empleado</span>
-                </div>
-            </div>
-        </div>
-
         <!-- Info del Usuario -->
         <div class="px-4 py-4 border-b border-indigo-700">
             <div class="flex items-center">
@@ -240,7 +227,3 @@
         }
     });
 </script>
-
-
-
-

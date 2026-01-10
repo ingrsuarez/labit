@@ -86,55 +86,107 @@
                         </div>
                     </div>
 
-                    {{-- Información Laboral --}}
+                    {{-- Circulares --}}
+                    @php
+                        $pendingCirculars = \App\Models\Circular::pendingForEmployee($employee)->take(5)->get();
+                        $signedCirculars = \App\Models\Circular::active()
+                            ->whereHas('signatures', function($q) use ($employee) {
+                                $q->where('employee_id', $employee->id)->whereNotNull('signed_at');
+                            })
+                            ->orderBy('date', 'desc')
+                            ->take(5)
+                            ->get();
+                    @endphp
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-                        <div class="px-6 py-4 border-b bg-gray-50">
+                        <div class="px-6 py-4 border-b bg-gray-50 flex items-center justify-between">
                             <h3 class="text-lg font-semibold text-gray-900 flex items-center">
                                 <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>
-                                Información Laboral
+                                Circulares
                             </h3>
+                            <a href="{{ route('portal.circulars.index') }}" class="text-sm text-indigo-600 hover:text-indigo-800">
+                                Ver todas →
+                            </a>
                         </div>
                         <div class="p-6">
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
-                                <div>
-                                    <label class="text-xs font-medium text-gray-500 uppercase">Fecha de Ingreso</label>
-                                    <p class="text-gray-900 font-medium">
-                                        {{ $employee->start_date ? \Carbon\Carbon::parse($employee->start_date)->format('d/m/Y') : '—' }}
-                                    </p>
-                                </div>
-                                <div>
-                                    <label class="text-xs font-medium text-gray-500 uppercase">Antigüedad</label>
-                                    <p class="text-gray-900 font-medium">{{ $antiguedadMeses }}</p>
-                                </div>
-                                <div>
-                                    <label class="text-xs font-medium text-gray-500 uppercase">Horas Semanales</label>
-                                    <p class="text-gray-900 font-medium">{{ $employee->weekly_hours ?? '—' }} hs</p>
-                                </div>
-                                <div>
-                                    <label class="text-xs font-medium text-gray-500 uppercase">Categoría</label>
-                                    <p class="text-gray-900 font-medium capitalize">{{ $category?->name ?? '—' }}</p>
-                                </div>
-                            </div>
-
-                            {{-- Puestos --}}
-                            @if($employee->jobs->count())
-                                <div class="mt-6 pt-6 border-t">
-                                    <label class="text-xs font-medium text-gray-500 uppercase mb-3 block">Puestos Asignados</label>
-                                    <div class="flex flex-wrap gap-2">
-                                        @foreach($employee->jobs as $job)
-                                            <span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-800 text-sm">
-                                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
-                                                </svg>
-                                                {{ $job->name }}
-                                                @if($job->department)
-                                                    <span class="ml-1 text-indigo-600">({{ $job->department }})</span>
-                                                @endif
-                                            </span>
+                            {{-- Pendientes de firma --}}
+                            @if($pendingCirculars->count() > 0)
+                                <div class="mb-6">
+                                    <div class="flex items-center mb-3">
+                                        <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">
+                                            {{ $pendingCirculars->count() }} pendiente{{ $pendingCirculars->count() > 1 ? 's' : '' }}
+                                        </span>
+                                        <span class="ml-2 text-sm text-gray-500">Requieren tu firma</span>
+                                    </div>
+                                    <div class="space-y-2">
+                                        @foreach($pendingCirculars as $circular)
+                                            <a href="{{ route('portal.circulars.show', $circular) }}" 
+                                               class="flex items-center justify-between p-3 bg-amber-50 border border-amber-100 rounded-lg hover:bg-amber-100 transition-colors group">
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="text-xs font-mono text-gray-500">{{ $circular->code }}</span>
+                                                        <span class="text-xs text-gray-400">{{ $circular->date->format('d/m/Y') }}</span>
+                                                    </div>
+                                                    <p class="font-medium text-gray-900 truncate">{{ $circular->title }}</p>
+                                                </div>
+                                                <div class="ml-3 flex-shrink-0">
+                                                    <span class="inline-flex items-center px-3 py-1 bg-indigo-600 text-white rounded-lg text-xs font-medium group-hover:bg-indigo-700">
+                                                        Firmar
+                                                    </span>
+                                                </div>
+                                            </a>
                                         @endforeach
                                     </div>
+                                </div>
+                            @endif
+
+                            {{-- Firmadas --}}
+                            @if($signedCirculars->count() > 0)
+                                <div>
+                                    <div class="flex items-center mb-3">
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
+                                            Firmadas
+                                        </span>
+                                        <span class="ml-2 text-sm text-gray-500">Últimas circulares confirmadas</span>
+                                    </div>
+                                    <div class="space-y-2">
+                                        @foreach($signedCirculars as $circular)
+                                            @php
+                                                $signature = $circular->signatures->where('employee_id', $employee->id)->first();
+                                            @endphp
+                                            <a href="{{ route('portal.circulars.show', $circular) }}" 
+                                               class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="text-xs font-mono text-gray-500">{{ $circular->code }}</span>
+                                                        <span class="text-xs text-gray-400">{{ $circular->date->format('d/m/Y') }}</span>
+                                                    </div>
+                                                    <p class="font-medium text-gray-900 truncate">{{ $circular->title }}</p>
+                                                </div>
+                                                <div class="ml-3 flex-shrink-0 text-right">
+                                                    <span class="inline-flex items-center text-green-600 text-xs">
+                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                        </svg>
+                                                        Firmada
+                                                    </span>
+                                                    @if($signature)
+                                                        <p class="text-xs text-gray-400">{{ $signature->signed_at->format('d/m/Y') }}</p>
+                                                    @endif
+                                                </div>
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if($pendingCirculars->count() === 0 && $signedCirculars->count() === 0)
+                                <div class="text-center py-6">
+                                    <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <p class="mt-2 text-gray-500">No hay circulares activas</p>
                                 </div>
                             @endif
                         </div>

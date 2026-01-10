@@ -6,22 +6,29 @@
 <header class="hidden md:block bg-white shadow-sm border-b sticky top-0 z-30">
     <div class="px-6 py-4">
         <div class="flex items-center justify-between">
-            <!-- Breadcrumb / Título -->
-            <div>
-                <h1 class="text-lg font-semibold text-gray-900">
-                    @if(request()->routeIs('portal.dashboard'))
-                        Mi Perfil
-                    @elseif(request()->routeIs('portal.team'))
-                        Mi Equipo
-                    @elseif(request()->routeIs('portal.directory'))
-                        Directorio
-                    @else
-                        Portal del Empleado
-                    @endif
-                </h1>
-                <p class="text-sm text-gray-500">
-                    {{ now()->locale('es')->isoFormat('dddd, D [de] MMMM [de] YYYY') }}
-                </p>
+            <!-- Logo y Título -->
+            <div class="flex items-center">
+                <a href="{{ route('portal.dashboard') }}" class="mr-4">
+                    <img src="{{ asset('images/logo_ipac.png') }}" alt="IPAC" class="h-10 w-auto">
+                </a>
+                <div>
+                    <h1 class="text-lg font-semibold text-gray-900">
+                        @if(request()->routeIs('portal.dashboard'))
+                            Mi Perfil
+                        @elseif(request()->routeIs('portal.team'))
+                            Mi Equipo
+                        @elseif(request()->routeIs('portal.directory'))
+                            Directorio
+                        @elseif(request()->routeIs('portal.circulars.*'))
+                            Circulares
+                        @else
+                            Portal del Empleado
+                        @endif
+                    </h1>
+                    <p class="text-sm text-gray-500">
+                        {{ now()->locale('es')->isoFormat('dddd, D [de] MMMM [de] YYYY') }}
+                    </p>
+                </div>
             </div>
 
             <!-- Acciones Rápidas -->
@@ -154,7 +161,3 @@
 
 <!-- Header Móvil (espacio para el toggle) -->
 <div class="h-14 md:hidden"></div>
-
-
-
-
