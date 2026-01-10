@@ -212,7 +212,7 @@
                 <img src="{{ public_path('images/logo_ipac.png') }}" alt="IPAC" style="height: 50px;">
             </div>
             <div class="header-right">
-                <p style="font-size: 14px; font-weight: bold;">{{ \Carbon\Carbon::createFromDate($payroll->year, $payroll->month, 1)->locale('es')->translatedFormat('F Y') }}</p>
+                <p style="font-size: 14px; font-weight: bold;">{{ ucfirst(\Carbon\Carbon::createFromDate($payroll->year, $payroll->month, 1)->locale('es')->translatedFormat('F Y')) }}</p>
             </div>
         </div>
 
@@ -223,7 +223,7 @@
                 <div style="font-weight: bold;">CCT 108/75 (FATSA-CADIME/CEDIM)</div>
             </div>
             <h1>RECIBO DE SUELDO</h1>
-            <div class="period">{{ \Carbon\Carbon::createFromDate($payroll->year, $payroll->month, 1)->locale('es')->translatedFormat('F Y') }}</div>
+            <div class="period">{{ ucfirst(\Carbon\Carbon::createFromDate($payroll->year, $payroll->month, 1)->locale('es')->translatedFormat('F Y')) }}</div>
         </div>
 
         {{-- Employee Data --}}
@@ -311,15 +311,19 @@
         </div>
 
         {{-- Neto a Cobrar --}}
-        <div class="neto-bar">
-            <div class="neto-left">
-                <div class="neto-label">NETO A COBRAR</div>
-                <div class="neto-amount">${{ number_format($payroll->neto_a_cobrar, 2, ',', '.') }}</div>
-            </div>
-            <div class="neto-right">
-                <p>Bruto: ${{ number_format($payroll->total_haberes, 2, ',', '.') }}</p>
-                <p>Deducciones: -${{ number_format($payroll->total_deducciones, 2, ',', '.') }}</p>
-            </div>
+        <div style="background-color: #1d4ed8; color: white; padding: 15px 20px; margin-top: 15px; width: 100%;">
+            <table style="width: 100%;">
+                <tr>
+                    <td style="width: 60%; vertical-align: middle;">
+                        <span style="font-size: 10px; opacity: 0.9;">NETO A COBRAR</span><br>
+                        <span style="font-size: 24px; font-weight: bold;">${{ number_format($payroll->neto_a_cobrar, 2, ',', '.') }}</span>
+                    </td>
+                    <td style="width: 40%; text-align: right; vertical-align: middle; font-size: 10px;">
+                        <span>Bruto: ${{ number_format($payroll->total_haberes, 2, ',', '.') }}</span><br>
+                        <span>Deducciones: -${{ number_format($payroll->total_deducciones, 2, ',', '.') }}</span>
+                    </td>
+                </tr>
+            </table>
         </div>
 
         {{-- Footer con Firmas --}}

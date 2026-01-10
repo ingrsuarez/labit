@@ -4,7 +4,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">Detalle de Liquidación</h1>
-                <p class="text-sm text-gray-600 mt-1">{{ \Carbon\Carbon::createFromDate($payroll->year, $payroll->month, 1)->locale('es')->translatedFormat('F Y') }}</p>
+                <p class="text-sm text-gray-600 mt-1">{{ ucfirst(\Carbon\Carbon::createFromDate($payroll->year, $payroll->month, 1)->locale('es')->translatedFormat('F Y')) }}</p>
             </div>
             <a href="{{ route('payroll.closed', ['year' => $payroll->year, 'month' => $payroll->month]) }}" 
                class="mt-3 sm:mt-0 text-blue-600 hover:text-blue-800">
@@ -37,7 +37,7 @@
                     <img src="{{ asset('images/logo_ipac.png') }}" alt="IPAC" class="h-12">
                 </div>
                 <div class="text-right text-sm font-semibold text-gray-700">
-                    <p>{{ \Carbon\Carbon::createFromDate($payroll->year, $payroll->month, 1)->locale('es')->translatedFormat('F Y') }}</p>
+                    <p>{{ ucfirst(\Carbon\Carbon::createFromDate($payroll->year, $payroll->month, 1)->locale('es')->translatedFormat('F Y')) }}</p>
                 </div>
             </div>
             
@@ -46,7 +46,7 @@
                 <div class="flex justify-between items-start">
                     <div>
                         <h2 class="text-xl font-bold">RECIBO DE SUELDO</h2>
-                        <p class="text-blue-200">{{ \Carbon\Carbon::createFromDate($payroll->year, $payroll->month, 1)->locale('es')->translatedFormat('F Y') }}</p>
+                        <p class="text-blue-200">{{ ucfirst(\Carbon\Carbon::createFromDate($payroll->year, $payroll->month, 1)->locale('es')->translatedFormat('F Y')) }}</p>
                     </div>
                     <div class="text-right text-sm">
                         <p class="text-blue-200">Convenio</p>
