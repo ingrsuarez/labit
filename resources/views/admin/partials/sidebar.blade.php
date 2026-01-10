@@ -21,7 +21,7 @@
         <div class="px-6 py-5 border-b border-zinc-700">
             <div class="flex items-center">
                 <a href="{{ route('dashboard') }}">
-                    <x-application-mark class="h-10 w-auto" />
+                    <img src="{{ asset('images/logo_ipac.png') }}" alt="IPAC" class="h-10 w-auto">
                 </a>
                 <div class="ml-3">
                     <span class="text-white font-semibold text-sm">Panel</span>
