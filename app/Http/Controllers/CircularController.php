@@ -12,7 +12,10 @@ class CircularController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Circular::with('creator')
+        $query = Circular::with(['creator', 'signatures'])
+            ->withCount(['signatures as signed_count' => function($q) {
+                $q->whereNotNull('signed_at');
+            }])
             ->orderBy('date', 'desc');
 
         // Búsqueda por descripción/título/código
@@ -143,5 +146,43 @@ class CircularController extends Controller
         $circular->load('creator');
 
         return view('circular.pdf', compact('circular'));
+    }
+
+    /**
+     * Ver seguimiento de firmas de una circular
+     */
+    public function signatures(Circular $circular)
+    {
+        $circular->load(['creator', 'signatures.employee']);
+        
+        // Obtener todos los empleados activos
+        $allEmployees = \App\Models\Employee::where('status', 'active')->get();
+        
+        // Firmas realizadas
+        $signedEmployees = $circular->signatures()
+            ->whereNotNull('signed_at')
+            ->with('employee')
+            ->orderBy('signed_at', 'desc')
+            ->get();
+        
+        // Empleados que han leído pero no firmado
+        $readOnly = $circular->signatures()
+            ->whereNotNull('read_at')
+            ->whereNull('signed_at')
+            ->with('employee')
+            ->get();
+        
+        // Empleados pendientes (no han ni leído)
+        $pendingEmployees = $allEmployees->filter(function($employee) use ($circular) {
+            return !$circular->signatures()->where('employee_id', $employee->id)->exists();
+        });
+
+        return view('circular.signatures', compact(
+            'circular',
+            'signedEmployees',
+            'readOnly',
+            'pendingEmployees',
+            'allEmployees'
+        ));
     }
 }

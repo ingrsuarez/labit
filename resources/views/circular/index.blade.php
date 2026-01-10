@@ -91,6 +91,7 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Título</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sector</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Firmas</th>
                                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Estado</th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
                                 </tr>
@@ -116,6 +117,35 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ \App\Models\Circular::sectors()[$circular->sector] ?? $circular->sector }}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            @php
+                                                $signedSignatures = $circular->signatures->whereNotNull('signed_at')->sortByDesc('signed_at');
+                                            @endphp
+                                            @if($signedSignatures->count() > 0)
+                                                <div class="flex flex-wrap gap-1 max-w-xs">
+                                                    @foreach($signedSignatures->take(3) as $sig)
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800" 
+                                                              title="Firmó: {{ $sig->signed_at->format('d/m/Y H:i') }}">
+                                                            <svg class="w-3 h-3 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                            </svg>
+                                                            {{ ucwords($sig->employee->lastName ?? '') }} {{ ucfirst($sig->employee->name ?? '') }}
+                                                        </span>
+                                                    @endforeach
+                                                    @if($signedSignatures->count() > 3)
+                                                        <a href="{{ route('circular.signatures', $circular) }}" 
+                                                           class="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 hover:bg-gray-200">
+                                                            +{{ $signedSignatures->count() - 3 }} más
+                                                        </a>
+                                                    @endif
+                                                </div>
+                                            @else
+                                                <span class="text-xs text-gray-400 italic">Sin firmas</span>
+                                            @endif
+                                            <a href="{{ route('circular.signatures', $circular) }}" class="block mt-1 text-xs text-indigo-600 hover:text-indigo-800">
+                                                Ver seguimiento →
+                                            </a>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center">
                                             <span class="px-2 py-1 text-xs rounded-full {{ $circular->status_color }}">

@@ -341,6 +341,7 @@ Route::middleware([
     Route::delete('circular/{circular}', [App\Http\Controllers\CircularController::class, 'destroy'])->name('circular.destroy');
     Route::get('circular/{circular}/pdf', [App\Http\Controllers\CircularController::class, 'pdf'])->name('circular.pdf');
     Route::get('circular/{circular}/print', [App\Http\Controllers\CircularController::class, 'print'])->name('circular.print');
+    Route::get('circular/{circular}/signatures', [App\Http\Controllers\CircularController::class, 'signatures'])->name('circular.signatures');
 
     // USERS
 
@@ -450,4 +451,9 @@ Route::middleware([
     Route::post('/requests/vacation', [App\Http\Controllers\EmployeePortalController::class, 'storeVacationRequest'])->name('requests.vacation');
     Route::post('/requests/leave', [App\Http\Controllers\EmployeePortalController::class, 'storeLeaveRequest'])->name('requests.leave');
     Route::delete('/requests/{leave}/cancel', [App\Http\Controllers\EmployeePortalController::class, 'cancelRequest'])->name('requests.cancel');
+    
+    // Circulares
+    Route::get('/circulars', [App\Http\Controllers\Portal\CircularController::class, 'index'])->name('circulars.index');
+    Route::get('/circulars/{circular}', [App\Http\Controllers\Portal\CircularController::class, 'show'])->name('circulars.show');
+    Route::post('/circulars/{circular}/sign', [App\Http\Controllers\Portal\CircularController::class, 'sign'])->name('circulars.sign');
 });

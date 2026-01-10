@@ -108,4 +108,57 @@ class Circular extends Model
               ->orWhere('code', 'like', "%{$term}%");
         });
     }
+
+    /**
+     * Empleados que han firmado esta circular
+     */
+    public function signatures()
+    {
+        return $this->hasMany(CircularSignature::class);
+    }
+
+    /**
+     * Empleados que han firmado (relación many-to-many a través de signatures)
+     */
+    public function signedEmployees()
+    {
+        return $this->belongsToMany(Employee::class, 'circular_signatures')
+            ->withPivot(['read_at', 'signed_at', 'ip_address'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Verificar si un empleado ha firmado esta circular
+     */
+    public function isSignedBy(Employee $employee): bool
+    {
+        return $this->signatures()
+            ->where('employee_id', $employee->id)
+            ->whereNotNull('signed_at')
+            ->exists();
+    }
+
+    /**
+     * Verificar si un empleado ha leído esta circular
+     */
+    public function isReadBy(Employee $employee): bool
+    {
+        return $this->signatures()
+            ->where('employee_id', $employee->id)
+            ->whereNotNull('read_at')
+            ->exists();
+    }
+
+    /**
+     * Obtener circulares pendientes de firma para un empleado
+     */
+    public static function pendingForEmployee(Employee $employee)
+    {
+        return self::active()
+            ->whereDoesntHave('signatures', function($query) use ($employee) {
+                $query->where('employee_id', $employee->id)
+                      ->whereNotNull('signed_at');
+            })
+            ->orderBy('date', 'desc');
+    }
 }

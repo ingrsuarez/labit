@@ -18,6 +18,13 @@
                 <span class="px-3 py-1 text-sm rounded-full {{ $circular->status_color }}">
                     {{ ucfirst($circular->status) }}
                 </span>
+                <a href="{{ route('circular.signatures', $circular) }}"
+                   class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Firmas
+                </a>
                 <a href="{{ route('circular.print', $circular) }}" target="_blank"
                    class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
