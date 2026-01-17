@@ -229,7 +229,7 @@
         {{-- Employee Data --}}
         <div class="employee-data">
             <div class="cell">
-                <div class="label">Empleado:</div>
+                <div class="label">Nombre:</div>
                 <div class="value">{{ $payroll->employee_name }}</div>
             </div>
             <div class="cell">
@@ -311,7 +311,7 @@
         </div>
 
         {{-- Neto a Cobrar --}}
-        <div style="background-color: #1d4ed8; color: white; padding: 15px 20px; margin-top: 15px; width: 100%;">
+        <div style="background-color: #1d4ed8; color: white; padding: 15px 20px; margin: 15px 10px 0 10px;">
             <table style="width: 100%;">
                 <tr>
                     <td style="width: 60%; vertical-align: middle;">

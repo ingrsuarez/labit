@@ -47,6 +47,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
             // MANAGEMENT
             'manage.index',
+            'view.chart',
 
             // EMPLOYEES
             'employee.new',

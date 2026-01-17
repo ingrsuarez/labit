@@ -445,6 +445,11 @@ Route::middleware([
     Route::get('/', [App\Http\Controllers\EmployeePortalController::class, 'dashboard'])->name('dashboard');
     Route::get('/team', [App\Http\Controllers\EmployeePortalController::class, 'team'])->name('team');
     Route::get('/directory', [App\Http\Controllers\EmployeePortalController::class, 'directory'])->name('directory');
+    Route::get('/organization', [App\Http\Controllers\EmployeePortalController::class, 'organization'])->name('organization');
+    
+    // Recibos de sueldo
+    Route::get('/payslips', [App\Http\Controllers\EmployeePortalController::class, 'payslips'])->name('payslips');
+    Route::get('/payslips/{payroll}/download', [App\Http\Controllers\EmployeePortalController::class, 'downloadPayslip'])->name('payslips.download');
     
     // Solicitudes
     Route::get('/requests', [App\Http\Controllers\EmployeePortalController::class, 'requests'])->name('requests');

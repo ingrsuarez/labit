@@ -14,7 +14,12 @@
                         <p class="text-xl font-bold border p-2 border-gray-400 bg-slate-300 rounded">{{ucwords($job->name)}}</p>
                         <div class="border-2">
                         @foreach($job->employees as $employee)
-                            <p>{{ucwords($employee->name." ".$employee->lastName)}}</p>
+                            <p class="{{ $currentEmployeeId && $employee->id == $currentEmployeeId ? 'bg-indigo-500 text-white font-bold px-2 py-1 rounded' : '' }}">
+                                {{ucwords($employee->name." ".$employee->lastName)}}
+                                @if($currentEmployeeId && $employee->id == $currentEmployeeId)
+                                    <span class="text-xs">(Tú)</span>
+                                @endif
+                            </p>
                         @endforeach
                         </div>
                            
@@ -22,7 +27,7 @@
                     </div>
                 </div>
 
-                @include('livewire.childs',['childs' => $job->childs])
+                @include('livewire.childs',['childs' => $job->childs, 'currentEmployeeId' => $currentEmployeeId])
                     {{-- <ul class="flex flex-row mt-10 justify-center">
                         <div class="-mt-10 border-l-2 absolute h-10 border-gray-400"></div>
 

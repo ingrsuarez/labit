@@ -63,6 +63,14 @@ class Payroll extends Model
     }
 
     /**
+     * Verificar si la liquidación está pagada
+     */
+    public function isPagado(): bool
+    {
+        return $this->status === 'pagado';
+    }
+
+    /**
      * Relación con el empleado
      */
     public function employee(): BelongsTo

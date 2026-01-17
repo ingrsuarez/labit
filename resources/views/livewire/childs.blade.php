@@ -15,15 +15,20 @@
                                     src="https://randomuser.me/api/portraits/men/83.jpg" />
                             </div> --}}
                             <div class="text-gray-600 ">
-                                <p class="text-xl font-bold border p-2 border-gray-400 bg-slate-300 rounded">{{ucwords($child->name)}}</p>
-                                <div class="border-2">
+                                <p class="text-xl font-bold border p-2 border-gray-400 {{ $currentEmployeeId && $child->employees->contains('id', $currentEmployeeId) ? 'bg-indigo-200 border-indigo-500' : 'bg-slate-300' }} rounded">{{ucwords($child->name)}}</p>
+                                <div class="border-2 {{ $currentEmployeeId && $child->employees->contains('id', $currentEmployeeId) ? 'border-indigo-500 bg-indigo-50' : '' }}">
                                     @foreach($child->employees as $employee)
-                                        <p>{{ucwords($employee->name." ".$employee->lastName)}}</p>
+                                        <p class="{{ $currentEmployeeId && $employee->id == $currentEmployeeId ? 'bg-indigo-500 text-white font-bold px-2 py-1 rounded' : '' }}">
+                                            {{ucwords($employee->name." ".$employee->lastName)}}
+                                            @if($currentEmployeeId && $employee->id == $currentEmployeeId)
+                                                <span class="text-xs">(Tú)</span>
+                                            @endif
+                                        </p>
                                     @endforeach
                                 </div>
                             </div>
                         </div>
-                        @include('livewire.childs',['childs' => $child->childs])
+                        @include('livewire.childs',['childs' => $child->childs, 'currentEmployeeId' => $currentEmployeeId])
                     </div>
                 </div>
             </li>
@@ -42,15 +47,20 @@
                                     src="https://randomuser.me/api/portraits/men/83.jpg" />
                             </div> --}}
                             <div class="text-gray-600 ">
-                                <p class="text-xl font-bold border p-2 border-gray-400 bg-slate-300 rounded">{{ucwords($child->name)}}</p>
-                                <div class="border-2 ">
+                                <p class="text-xl font-bold border p-2 border-gray-400 {{ $currentEmployeeId && $child->employees->contains('id', $currentEmployeeId) ? 'bg-indigo-200 border-indigo-500' : 'bg-slate-300' }} rounded">{{ucwords($child->name)}}</p>
+                                <div class="border-2 {{ $currentEmployeeId && $child->employees->contains('id', $currentEmployeeId) ? 'border-indigo-500 bg-indigo-50' : '' }}">
                                     @foreach($child->employees as $employee)
-                                        <p>{{ucwords($employee->name." ".$employee->lastName)}}</p>
+                                        <p class="{{ $currentEmployeeId && $employee->id == $currentEmployeeId ? 'bg-indigo-500 text-white font-bold px-2 py-1 rounded' : '' }}">
+                                            {{ucwords($employee->name." ".$employee->lastName)}}
+                                            @if($currentEmployeeId && $employee->id == $currentEmployeeId)
+                                                <span class="text-xs">(Tú)</span>
+                                            @endif
+                                        </p>
                                     @endforeach
                                 </div>
                             </div>
                         </div>
-                        @include('livewire.childs',['childs' => $child->childs])
+                        @include('livewire.childs',['childs' => $child->childs, 'currentEmployeeId' => $currentEmployeeId])
                     </div>
                 </div>
             </li>
@@ -64,20 +74,20 @@
                     <div class="text-center">
                         <div class="flex flex-col justify-center items-center">
                             <div class="text-gray-600 ">
-                                <p class="text-xl font-bold border p-2 border-gray-400 bg-slate-300 rounded">{{ucwords($child->name)}}</p>
-                                <div class="border-2">
+                                <p class="text-xl font-bold border p-2 border-gray-400 {{ $currentEmployeeId && $child->employees->contains('id', $currentEmployeeId) ? 'bg-indigo-200 border-indigo-500' : 'bg-slate-300' }} rounded">{{ucwords($child->name)}}</p>
+                                <div class="border-2 {{ $currentEmployeeId && $child->employees->contains('id', $currentEmployeeId) ? 'border-indigo-500 bg-indigo-50' : '' }}">
                                     @foreach($child->employees as $employee)
-                                    <p>{{ucwords($employee->name." ".$employee->lastName)}}</p>    
-                                    {{-- <div class="w-16">
-                                        <img class="block rounded-full m-auto shadow-md" alt="Leo Six"
-                                            src="https://randomuser.me/api/portraits/men/83.jpg" />
-                                    </div> --}}
-                                        
+                                        <p class="{{ $currentEmployeeId && $employee->id == $currentEmployeeId ? 'bg-indigo-500 text-white font-bold px-2 py-1 rounded' : '' }}">
+                                            {{ucwords($employee->name." ".$employee->lastName)}}
+                                            @if($currentEmployeeId && $employee->id == $currentEmployeeId)
+                                                <span class="text-xs">(Tú)</span>
+                                            @endif
+                                        </p>
                                     @endforeach
-                                <div class="border-2">
+                                </div>
                             </div>
                         </div>
-                        @include('livewire.childs',['childs' => $child->childs])
+                        @include('livewire.childs',['childs' => $child->childs, 'currentEmployeeId' => $currentEmployeeId])
                     </div>
                 </div>
             </li>
@@ -92,20 +102,20 @@
                     <div class="flex flex-col justify-center items-center">
                         
                         <div class="text-gray-600">
-                            <p class="text-xl font-bold border p-2 border-gray-400 bg-slate-300 rounded">{{ucwords($child->name)}}</p>
-                            <div class="border-2">
+                            <p class="text-xl font-bold border p-2 border-gray-400 {{ $currentEmployeeId && $child->employees->contains('id', $currentEmployeeId) ? 'bg-indigo-200 border-indigo-500' : 'bg-slate-300' }} rounded">{{ucwords($child->name)}}</p>
+                            <div class="border-2 {{ $currentEmployeeId && $child->employees->contains('id', $currentEmployeeId) ? 'border-indigo-500 bg-indigo-50' : '' }}">
                                 @foreach($child->employees as $employee)
-                                    {{-- <div class="w-16">
-                                        <img class="block rounded-full m-auto shadow-md" alt="Leo Six"
-                                            src="https://randomuser.me/api/portraits/men/83.jpg" />
-                                    </div> --}}
-                                    <p>{{ucwords($employee->name." ".$employee->lastName)}}</p>
+                                    <p class="{{ $currentEmployeeId && $employee->id == $currentEmployeeId ? 'bg-indigo-500 text-white font-bold px-2 py-1 rounded' : '' }}">
+                                        {{ucwords($employee->name." ".$employee->lastName)}}
+                                        @if($currentEmployeeId && $employee->id == $currentEmployeeId)
+                                            <span class="text-xs">(Tú)</span>
+                                        @endif
+                                    </p>
                                 @endforeach
-                           
                             </div>
                         </div>
                     </div>
-                    @include('livewire.childs',['childs' => $child->childs])
+                    @include('livewire.childs',['childs' => $child->childs, 'currentEmployeeId' => $currentEmployeeId])
                 </div>
             </div>
         </li>    

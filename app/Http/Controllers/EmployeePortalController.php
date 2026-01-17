@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
+use App\Models\Job;
 use App\Models\Leave;
+use App\Models\Payroll;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class EmployeePortalController extends Controller
 {
@@ -137,6 +140,25 @@ class EmployeePortalController extends Controller
             'upcomingBirthdays',
             'currentVacations'
         ));
+    }
+
+    /**
+     * Mostrar el organigrama de la empresa
+     */
+    public function organization()
+    {
+        $user = Auth::user();
+        $employee = $user->employee;
+
+        if (!$employee) {
+            return redirect()->route('access.pending')
+                ->with('error', 'No tienes un empleado asociado a tu cuenta.');
+        }
+
+        $employees = Employee::with(['jobs.category'])->get();
+        $job = Job::whereNull('parent_id')->first();
+
+        return view('portal.organization', compact('employee', 'employees', 'job'));
     }
 
     /**
@@ -376,6 +398,66 @@ class EmployeePortalController extends Controller
     }
 
     /**
+     * Mostrar los recibos de sueldo del empleado
+     */
+    public function payslips(Request $request)
+    {
+        $user = Auth::user();
+        $employee = $user->employee;
+
+        if (!$employee) {
+            return redirect()->route('access.pending')
+                ->with('error', 'No tienes un empleado asociado a tu cuenta.');
+        }
+
+        // Obtener los últimos 24 recibos cerrados (liquidado o pagado) del empleado
+        $payslips = Payroll::where('employee_id', $employee->id)
+            ->whereIn('status', ['liquidado', 'pagado'])
+            ->orderByDesc('year')
+            ->orderByDesc('month')
+            ->limit(24)
+            ->get();
+
+        return view('portal.payslips', compact('employee', 'payslips'));
+    }
+
+    /**
+     * Descargar un recibo de sueldo en PDF
+     */
+    public function downloadPayslip(Payroll $payroll)
+    {
+        $user = Auth::user();
+        $employee = $user->employee;
+
+        // Verificar que el recibo pertenece al empleado
+        if (!$employee || $payroll->employee_id !== $employee->id) {
+            abort(403, 'No tienes permiso para descargar este recibo.');
+        }
+
+        // Verificar que el recibo está cerrado
+        if (!in_array($payroll->status, ['liquidado', 'pagado'])) {
+            abort(403, 'Este recibo aún no está disponible para descarga.');
+        }
+
+        $payroll->load('items', 'employee');
+
+        // Nombre del archivo
+        $meses = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        $mesNombre = $meses[$payroll->month] ?? $payroll->month;
+        $nombreEmpleado = str_replace(' ', '-', $payroll->employee_name ?? $employee->name);
+        $filename = "recibo-{$mesNombre}{$payroll->year}-{$nombreEmpleado}.pdf";
+
+        $pdf = Pdf::loadView('payroll.pdf', [
+            'payroll' => $payroll,
+            'items' => $payroll->items,
+        ]);
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->download($filename);
+    }
+
+    /**
      * Obtener próximos cumpleaños ordenados
      */
     protected function getUpcomingBirthdays($employees, int $days): \Illuminate\Support\Collection
@@ -395,7 +477,7 @@ class EmployeePortalController extends Controller
             }
             
             $emp->next_birthday = $nextBirthday;
-            $emp->days_until_birthday = $today->diffInDays($nextBirthday, false);
+            $emp->days_until_birthday = (int) $today->diffInDays($nextBirthday, false);
             $emp->turning_age = $nextBirthday->year - $birth->year;
             
             return $emp;

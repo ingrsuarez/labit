@@ -168,7 +168,7 @@
                                 <div class="space-y-3">
                                     @foreach($currentVacations as $vac)
                                         @php
-                                            $daysLeft = now()->diffInDays(\Carbon\Carbon::parse($vac->end), false);
+                                            $daysLeft = (int) now()->diffInDays(\Carbon\Carbon::parse($vac->end), false);
                                         @endphp
                                         <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl">
                                             <div class="flex items-start justify-between">
@@ -230,7 +230,7 @@
                                 <div class="space-y-3">
                                     @foreach($upcomingVacations as $vac)
                                         @php
-                                            $daysUntil = now()->diffInDays(\Carbon\Carbon::parse($vac->start), false);
+                                            $daysUntil = (int) now()->diffInDays(\Carbon\Carbon::parse($vac->start), false);
                                         @endphp
                                         <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl">
                                             <div class="flex items-start justify-between">

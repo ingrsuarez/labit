@@ -63,7 +63,7 @@
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                 </svg>
-                Directorio
+                Equipo
             </a>
 
             <!-- Mi Equipo (solo supervisores) -->
@@ -116,9 +116,9 @@
             </a>
 
             <!-- Organigrama -->
-            <a href="{{ route('manage.chart') }}" 
+            <a href="{{ route('portal.organization') }}" 
                class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors
-                {{ request()->routeIs('manage.chart') 
+                {{ request()->routeIs('portal.organization') 
                     ? 'bg-indigo-700 text-white' 
                     : 'text-indigo-200 hover:bg-indigo-700/50 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -143,6 +143,25 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
                 </svg>
                 Vacaciones
+            </a>
+
+            <!-- Separador -->
+            <div class="pt-4 pb-2">
+                <span class="px-4 text-xs font-semibold text-indigo-400 uppercase tracking-wider">
+                    Mis Documentos
+                </span>
+            </div>
+
+            <!-- Mis Recibos -->
+            <a href="{{ route('portal.payslips') }}" 
+               class="flex items-center px-4 py-3 text-sm rounded-lg transition-colors
+                {{ request()->routeIs('portal.payslips') 
+                    ? 'bg-indigo-700 text-white' 
+                    : 'text-indigo-200 hover:bg-indigo-700/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z"/>
+                </svg>
+                Mis Recibos
             </a>
 
             <!-- Separador -->
