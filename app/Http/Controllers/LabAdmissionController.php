@@ -48,7 +48,10 @@ class LabAdmissionController extends Controller
         }
 
         $admissions = $query->paginate(20)->withQueryString();
-        $insurances = Insurance::orderBy('name')->get();
+        $insurances = Insurance::orderByRaw("CASE WHEN type = 'particular' THEN 0 ELSE 1 END")
+            ->orderBy('type')
+            ->orderBy('name')
+            ->get();
 
         return view('lab.admissions.index', compact('admissions', 'insurances'));
     }
@@ -63,7 +66,10 @@ class LabAdmissionController extends Controller
             $patient = Patient::find($request->patient_id);
         }
 
-        $insurances = Insurance::orderBy('name')->get();
+        $insurances = Insurance::orderByRaw("CASE WHEN type = 'particular' THEN 0 ELSE 1 END")
+            ->orderBy('type')
+            ->orderBy('name')
+            ->get();
         $tests = Test::whereNull('parent')->orderBy('code')->get(['id', 'code', 'name', 'nbu', 'price']);
 
         return view('lab.admissions.create', compact('patient', 'insurances', 'tests'));
@@ -170,7 +176,10 @@ class LabAdmissionController extends Controller
     public function edit(Admission $admission)
     {
         $admission->load(['patient', 'insuranceRelation', 'admissionTests.test']);
-        $insurances = Insurance::orderBy('name')->get();
+        $insurances = Insurance::orderByRaw("CASE WHEN type = 'particular' THEN 0 ELSE 1 END")
+            ->orderBy('type')
+            ->orderBy('name')
+            ->get();
         $tests = Test::whereNull('parent')->orderBy('code')->get(['id', 'code', 'name', 'nbu', 'price']);
 
         return view('lab.admissions.edit', compact('admission', 'insurances', 'tests'));

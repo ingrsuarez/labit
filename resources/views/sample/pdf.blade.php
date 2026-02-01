@@ -210,6 +210,54 @@
             text-transform: uppercase;
         }
         
+        /* Conclusion Block */
+        .conclusion-block {
+            margin: 20px 0;
+            padding: 12px 15px;
+            border: 2px solid #333;
+            font-size: 11px;
+            page-break-inside: avoid;
+        }
+        
+        .conclusion-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        
+        .conclusion-text {
+            margin-bottom: 5px;
+            line-height: 1.5;
+        }
+        
+        .conclusion-result {
+            font-weight: bold;
+            font-size: 12px;
+            margin-top: 10px;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        .conclusion-result.cumple {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #2e7d32;
+        }
+        
+        .conclusion-result.no-cumple {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #c62828;
+        }
+        
+        .categories-list {
+            margin-top: 5px;
+            padding-left: 15px;
+            color: #555;
+        }
+        
         /* Footer / Validation - Siempre al final de la página */
         .validation-section {
             position: fixed;
@@ -448,6 +496,211 @@
             </div>
         @endforeach
         
+        <!-- Análisis de Cumplimiento -->
+        @php
+            $categoriesUsed = collect();
+            $allCompliant = true;
+            $nonCompliantItems = [];
+            $analyzedCount = 0;
+            
+            // Palabras clave para detectar resultados negativos (ausencia)
+            $negativeKeywords = ['ausencia', 'ausente', 'negativo', 'no detectado', 'nd', 'no detectable', 
+                                 '<1', '< 1', '<0', '< 0', '0', 'cero', 'ninguno', 'sin desarrollo'];
+            
+            // Palabras clave para detectar resultados positivos (presencia)
+            $positiveKeywords = ['presencia', 'presente', 'positivo', 'detectado', 'desarrollo'];
+            
+            // Palabras clave en el valor de referencia que indican que debe ser ausente
+            $absenceReferenceKeywords = ['ausencia', 'ausente', 'negativo', 'no detectable', 
+                                          'ausencia en', 'ausencia/100', 'ausencia/25', '0 ufc', '0ufc'];
+            
+            foreach ($orderedDeterminations as $item) {
+                $det = $item['det'];
+                $isParent = $item['isParent'];
+                
+                // Solo analizar determinaciones que no son padres (tienen resultados)
+                if ($isParent) continue;
+                
+                // Buscar el valor de referencia en la base de datos
+                $refValue = null;
+                if ($det->reference_value && $det->test) {
+                    $refValue = \App\Models\TestReferenceValue::where('test_id', $det->test_id)
+                        ->where('value', $det->reference_value)
+                        ->first();
+                    
+                    // Si no encontró por valor exacto, buscar por categoría del padre
+                    if (!$refValue && $det->test->parentTests && $det->test->parentTests->count() > 0) {
+                        $parentTest = $det->test->parentTests->first();
+                        if ($parentTest && $parentTest->default_reference_category_id) {
+                            $refValue = \App\Models\TestReferenceValue::where('test_id', $det->test_id)
+                                ->where('reference_category_id', $parentTest->default_reference_category_id)
+                                ->first();
+                        }
+                    }
+                }
+                
+                // Registrar categoría usada
+                if ($refValue && $refValue->category) {
+                    if (!$categoriesUsed->contains('id', $refValue->category->id)) {
+                        $categoriesUsed->push($refValue->category);
+                    }
+                }
+                
+                // Analizar cumplimiento solo si hay resultado y valor de referencia
+                if ($det->result !== null && $det->result !== '' && $det->reference_value) {
+                    $analyzedCount++;
+                    
+                    // Normalizar textos para comparación
+                    $resultLower = strtolower(trim($det->result));
+                    $refLower = strtolower(trim($det->reference_value));
+                    
+                    // Extraer valor numérico del resultado si existe
+                    $numericResult = null;
+                    $cleanResult = str_replace([',', ' '], ['.', ''], $det->result);
+                    if (preg_match('/^<?(\d+\.?\d*)/', $cleanResult, $matches)) {
+                        $numericResult = floatval($matches[1]);
+                        // Si empieza con < y el número es pequeño, tratarlo como cero efectivo
+                        if (strpos($cleanResult, '<') === 0 && $numericResult <= 1) {
+                            $numericResult = 0;
+                        }
+                    }
+                    
+                    // Verificar si el resultado indica negativo/ausencia
+                    $resultIsNegative = false;
+                    foreach ($negativeKeywords as $keyword) {
+                        if (strpos($resultLower, $keyword) !== false) {
+                            $resultIsNegative = true;
+                            break;
+                        }
+                    }
+                    // También es negativo si el número es 0
+                    if ($numericResult === 0.0 || $numericResult === 0) {
+                        $resultIsNegative = true;
+                    }
+                    
+                    // Verificar si el resultado indica positivo/presencia
+                    $resultIsPositive = false;
+                    foreach ($positiveKeywords as $keyword) {
+                        if (strpos($resultLower, $keyword) !== false) {
+                            $resultIsPositive = true;
+                            break;
+                        }
+                    }
+                    
+                    // Verificar si el valor de referencia requiere ausencia
+                    $refRequiresAbsence = false;
+                    foreach ($absenceReferenceKeywords as $keyword) {
+                        if (strpos($refLower, $keyword) !== false) {
+                            $refRequiresAbsence = true;
+                            break;
+                        }
+                    }
+                    
+                    // CASO 1: El valor de referencia requiere AUSENCIA (ej: coliformes, E.coli)
+                    if ($refRequiresAbsence) {
+                        // Cumple si el resultado es negativo/ausente
+                        // No cumple si el resultado es positivo o tiene valor numérico > 0
+                        if ($resultIsPositive) {
+                            $allCompliant = false;
+                            $nonCompliantItems[] = $det->test->name;
+                        } elseif (!$resultIsNegative && $numericResult !== null && $numericResult > 0) {
+                            $allCompliant = false;
+                            $nonCompliantItems[] = $det->test->name;
+                        }
+                    }
+                    // CASO 2: El valor de referencia tiene límites numéricos en la BD
+                    elseif ($refValue && ($refValue->min_value !== null || $refValue->max_value !== null)) {
+                        if ($numericResult !== null) {
+                            $minVal = $refValue->min_value !== null ? floatval($refValue->min_value) : null;
+                            $maxVal = $refValue->max_value !== null ? floatval($refValue->max_value) : null;
+                            
+                            $complies = true;
+                            if ($minVal !== null && $numericResult < $minVal) {
+                                $complies = false;
+                            }
+                            if ($maxVal !== null && $numericResult > $maxVal) {
+                                $complies = false;
+                            }
+                            
+                            if (!$complies) {
+                                $allCompliant = false;
+                                $nonCompliantItems[] = $det->test->name;
+                            }
+                        }
+                    }
+                    // CASO 3: El valor de referencia tiene formato "< X" o "<= X" (máximo implícito)
+                    elseif (preg_match('/^[<≤]\s*(\d+\.?\d*)/', $refLower, $refMatches)) {
+                        $maxFromRef = floatval($refMatches[1]);
+                        if ($numericResult !== null && $numericResult > $maxFromRef) {
+                            $allCompliant = false;
+                            $nonCompliantItems[] = $det->test->name;
+                        }
+                    }
+                    // CASO 4: El valor de referencia tiene formato "X - Y" (rango implícito)
+                    elseif (preg_match('/^(\d+\.?\d*)\s*[-–]\s*(\d+\.?\d*)/', str_replace(',', '.', $det->reference_value), $refMatches)) {
+                        $minFromRef = floatval($refMatches[1]);
+                        $maxFromRef = floatval($refMatches[2]);
+                        if ($numericResult !== null) {
+                            if ($numericResult < $minFromRef || $numericResult > $maxFromRef) {
+                                $allCompliant = false;
+                                $nonCompliantItems[] = $det->test->name;
+                            }
+                        }
+                    }
+                    // CASO 5: Comparación directa de textos (ej: resultado="Ausente", ref="Ausente")
+                    elseif ($resultLower === $refLower) {
+                        // Coinciden exactamente, cumple
+                    }
+                }
+            }
+            
+            // Agregar categorías de determinaciones padre
+            foreach ($orderedDeterminations as $item) {
+                if ($item['isParent'] && $item['det']->test && $item['det']->test->defaultReferenceCategory) {
+                    $cat = $item['det']->test->defaultReferenceCategory;
+                    if (!$categoriesUsed->contains('id', $cat->id)) {
+                        $categoriesUsed->push($cat);
+                    }
+                }
+            }
+        @endphp
+        
+        <!-- Conclusión / Dictamen -->
+        <div class="conclusion-block">
+            <div class="conclusion-title">CONCLUSIÓN</div>
+            
+            @if($categoriesUsed->count() > 0)
+                <div class="conclusion-text">
+                    <strong>Valores de referencia según:</strong>
+                    <div class="categories-list">
+                        @foreach($categoriesUsed->sortBy('name') as $category)
+                            • {{ $category->name }} @if($category->code)({{ $category->code }})@endif<br>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+            
+            @if($analyzedCount > 0)
+                <div class="conclusion-result {{ $allCompliant ? 'cumple' : 'no-cumple' }}">
+                    @if($allCompliant)
+                        LA MUESTRA ANALIZADA CUMPLE CON LOS VALORES DE REFERENCIA ESTABLECIDOS
+                    @else
+                        LA MUESTRA ANALIZADA NO CUMPLE CON LOS VALORES DE REFERENCIA ESTABLECIDOS
+                        @if(count($nonCompliantItems) > 0)
+                            <br><span style="font-size: 10px; font-weight: normal;">
+                                Parámetros fuera de especificación: {{ implode(', ', $nonCompliantItems) }}
+                            </span>
+                        @endif
+                    @endif
+                </div>
+            @else
+                <div class="conclusion-text" style="font-style: italic; color: #666;">
+                    No se pudo determinar el cumplimiento automáticamente. 
+                    Consulte los resultados individuales y valores de referencia.
+                </div>
+            @endif
+        </div>
+
         <!-- General Observations -->
         @if($sample->observations)
         <div class="observations-block">

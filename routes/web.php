@@ -126,10 +126,14 @@ Route::middleware([
     Route::post('admission/store',[App\Http\Controllers\AdmissionController::class, 'store'])->name('admission.store');
 
 
-    // INSURANCE
-    Route::get('/insurance/new',[App\Http\Controllers\InsuranceController::class, 'index'])->name('insurance.index');
-
-    Route::post('insurance/store',[App\Http\Controllers\InsuranceController::class, 'store'])->name('insurance.store');
+    // INSURANCE (Obras Sociales / Coberturas)
+    Route::get('/insurance', [App\Http\Controllers\InsuranceController::class, 'index'])->name('insurance.index');
+    Route::get('/insurance/new', fn() => redirect()->route('insurance.index')); // Redirección de ruta antigua
+    Route::get('/insurance/create', [App\Http\Controllers\InsuranceController::class, 'create'])->name('insurance.create');
+    Route::post('/insurance', [App\Http\Controllers\InsuranceController::class, 'store'])->name('insurance.store');
+    Route::get('/insurance/{insurance}/edit', [App\Http\Controllers\InsuranceController::class, 'edit'])->name('insurance.edit');
+    Route::put('/insurance/{insurance}', [App\Http\Controllers\InsuranceController::class, 'update'])->name('insurance.update');
+    Route::delete('/insurance/{insurance}', [App\Http\Controllers\InsuranceController::class, 'destroy'])->name('insurance.destroy');
 
     // GROUP
     Route::get('/group/new/{current_patient?}',[App\Http\Controllers\GroupController::class, 'index'])->name('group.index');
