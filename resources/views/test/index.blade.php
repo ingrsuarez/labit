@@ -209,12 +209,20 @@
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Análisis Padres</label>
                             <p class="text-xs text-gray-500 mb-2">Puede seleccionar múltiples padres. Dejar vacío si esta determinación es un padre.</p>
-                            <select name="parent_ids[]" multiple size="5"
-                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
-                                @foreach($parents as $parent)
-                                    <option value="{{ $parent->id }}">{{ $parent->code }} - {{ ucfirst($parent->name) }}</option>
-                                @endforeach
-                            </select>
+                            <input type="text" id="create-parent-search" 
+                                   placeholder="🔍 Buscar por código o nombre..."
+                                   class="w-full mb-2 rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                   onkeyup="filterParentOptions('create-parent-search', 'create-parent-ids')">
+                            <div class="relative">
+                                <select name="parent_ids[]" id="create-parent-ids" multiple size="6"
+                                        class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                                    @foreach($parents as $parent)
+                                        <option value="{{ $parent->id }}" data-search="{{ strtolower($parent->code . ' ' . $parent->name) }}">{{ $parent->code }} - {{ ucfirst($parent->name) }}</option>
+                                    @endforeach
+                                </select>
+                                <div id="create-parent-ids-count" class="absolute bottom-1 right-2 text-xs text-gray-400"></div>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">Ctrl+Click para seleccionar múltiples</p>
                         </div>
                     </div>
                     <div class="mt-4">
@@ -302,12 +310,20 @@
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Análisis Padres</label>
                             <p class="text-xs text-gray-500 mb-2">Puede seleccionar múltiples padres. Dejar vacío si esta determinación es un padre.</p>
-                            <select name="parent_ids[]" id="edit-parent-ids" multiple size="5"
-                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
-                                @foreach($parents as $parent)
-                                    <option value="{{ $parent->id }}">{{ $parent->code }} - {{ ucfirst($parent->name) }}</option>
-                                @endforeach
-                            </select>
+                            <input type="text" id="edit-parent-search" 
+                                   placeholder="🔍 Buscar por código o nombre..."
+                                   class="w-full mb-2 rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 text-sm"
+                                   onkeyup="filterParentOptions('edit-parent-search', 'edit-parent-ids')">
+                            <div class="relative">
+                                <select name="parent_ids[]" id="edit-parent-ids" multiple size="6"
+                                        class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                                    @foreach($parents as $parent)
+                                        <option value="{{ $parent->id }}" data-search="{{ strtolower($parent->code . ' ' . $parent->name) }}">{{ $parent->code }} - {{ ucfirst($parent->name) }}</option>
+                                    @endforeach
+                                </select>
+                                <div id="edit-parent-ids-count" class="absolute bottom-1 right-2 text-xs text-gray-400"></div>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">Ctrl+Click para seleccionar múltiples</p>
                         </div>
                     </div>
                     <div class="mt-4">
@@ -331,6 +347,49 @@
     </div>
 
     <script>
+        // Función para filtrar opciones del selector de padres
+        function filterParentOptions(searchInputId, selectId) {
+            const searchInput = document.getElementById(searchInputId);
+            const select = document.getElementById(selectId);
+            const countDiv = document.getElementById(selectId + '-count');
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            
+            let visibleCount = 0;
+            let totalCount = 0;
+            
+            Array.from(select.options).forEach(option => {
+                totalCount++;
+                const searchData = option.getAttribute('data-search') || option.text.toLowerCase();
+                
+                if (searchTerm === '' || searchData.includes(searchTerm)) {
+                    option.style.display = '';
+                    option.disabled = false;
+                    visibleCount++;
+                } else {
+                    option.style.display = 'none';
+                    option.disabled = true;
+                }
+            });
+            
+            // Mostrar contador de resultados
+            if (countDiv) {
+                if (searchTerm !== '') {
+                    countDiv.textContent = visibleCount + ' de ' + totalCount;
+                } else {
+                    countDiv.textContent = '';
+                }
+            }
+        }
+
+        // Función para limpiar el buscador cuando se abre el modal
+        function clearParentSearch(searchInputId, selectId) {
+            const searchInput = document.getElementById(searchInputId);
+            if (searchInput) {
+                searchInput.value = '';
+                filterParentOptions(searchInputId, selectId);
+            }
+        }
+
         function openEditModal(id, code, name, unit, method, low, high, decimals, nbu, instructions, material, parentIds) {
             document.getElementById('form-edit').action = '/tests/' + id;
             document.getElementById('edit-code').value = code;
@@ -343,6 +402,9 @@
             document.getElementById('edit-nbu').value = nbu || '';
             document.getElementById('edit-instructions').value = instructions || '';
             document.getElementById('edit-material').value = material || '';
+            
+            // Limpiar el buscador de padres
+            clearParentSearch('edit-parent-search', 'edit-parent-ids');
             
             // Seleccionar múltiples padres
             const parentSelect = document.getElementById('edit-parent-ids');
@@ -358,6 +420,39 @@
             if (e.key === 'Escape') {
                 document.getElementById('modal-create').classList.add('hidden');
                 document.getElementById('modal-edit').classList.add('hidden');
+            }
+        });
+
+        // Limpiar el buscador cuando se abre el modal de crear
+        document.querySelector('button[onclick*="modal-create"]')?.addEventListener('click', function() {
+            clearParentSearch('create-parent-search', 'create-parent-ids');
+        });
+
+        // Auto-abrir modal de edición si viene el parámetro edit en la URL
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const editId = urlParams.get('edit');
+            if (editId) {
+                // Buscar el test en la tabla por su ID
+                const testData = @json($tests->keyBy('id'));
+                if (testData[editId]) {
+                    const test = testData[editId];
+                    const parentIds = test.parent_tests ? test.parent_tests.map(p => p.id) : [];
+                    openEditModal(
+                        test.id,
+                        test.code,
+                        test.name,
+                        test.unit,
+                        test.method,
+                        test.low,
+                        test.high,
+                        test.decimals,
+                        test.nbu,
+                        test.instructions,
+                        test.material,
+                        parentIds
+                    );
+                }
             }
         });
     </script>

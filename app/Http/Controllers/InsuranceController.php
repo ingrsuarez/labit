@@ -10,11 +10,15 @@ use Exception;
 class InsuranceController extends Controller
 {
     /**
-     * Lista todas las obras sociales
+     * Lista todas las obras sociales (excluyendo nomencladores)
      */
     public function index()
     {
-        $insurances = Insurance::orderBy('type')->orderBy('name')->get();
+        // Excluir nomencladores - solo mostrar obras sociales, prepagas y particulares
+        $insurances = Insurance::where('type', '!=', 'nomenclador')
+            ->orderBy('type')
+            ->orderBy('name')
+            ->get();
         $groups = Group::all();
         
         return view('insurance.index', compact('insurances', 'groups'));
@@ -26,7 +30,10 @@ class InsuranceController extends Controller
     public function create()
     {
         $groups = Group::all();
-        return view('insurance.create', compact('groups'));
+        $nomenclators = Insurance::where('type', 'nomenclador')
+            ->orderBy('name')
+            ->get();
+        return view('insurance.create', compact('groups', 'nomenclators'));
     }
 
     /**
@@ -52,6 +59,7 @@ class InsuranceController extends Controller
                 'price' => $request->price,
                 'nbu' => $request->nbu,
                 'nbu_value' => $request->nbu_value,
+                'nomenclator_id' => $request->nomenclator_id,
                 'instructions' => strtolower($request->instructions),
                 'country' => $request->country,
                 'state' => $request->state,
@@ -72,7 +80,16 @@ class InsuranceController extends Controller
     public function edit(Insurance $insurance)
     {
         $groups = Group::all();
-        return view('insurance.edit', compact('insurance', 'groups'));
+        
+        // Obtener nomencladores disponibles (solo si no es un nomenclador)
+        $nomenclators = [];
+        if ($insurance->type !== 'nomenclador') {
+            $nomenclators = Insurance::where('type', 'nomenclador')
+                ->orderBy('name')
+                ->get();
+        }
+        
+        return view('insurance.edit', compact('insurance', 'groups', 'nomenclators'));
     }
 
     /**
@@ -98,6 +115,7 @@ class InsuranceController extends Controller
                 'price' => $request->price,
                 'nbu' => $request->nbu,
                 'nbu_value' => $request->nbu_value,
+                'nomenclator_id' => $request->nomenclator_id,
                 'instructions' => strtolower($request->instructions),
                 'country' => $request->country,
                 'state' => $request->state,
@@ -135,7 +153,7 @@ class InsuranceController extends Controller
     }
 
     /**
-     * Retorna los tipos de cobertura disponibles
+     * Retorna los tipos de cobertura disponibles (para clientes)
      */
     public static function types(): array
     {
@@ -143,6 +161,19 @@ class InsuranceController extends Controller
             'particular' => 'Particular',
             'obra_social' => 'Obra Social',
             'prepaga' => 'Prepaga',
+        ];
+    }
+
+    /**
+     * Retorna todos los tipos incluyendo nomencladores (para uso interno)
+     */
+    public static function allTypes(): array
+    {
+        return [
+            'particular' => 'Particular',
+            'obra_social' => 'Obra Social',
+            'prepaga' => 'Prepaga',
+            'nomenclador' => 'Nomenclador',
         ];
     }
 }

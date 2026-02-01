@@ -171,4 +171,27 @@ class TestController extends Controller
         return redirect()->route('tests.index')
             ->with('success', 'Determinación eliminada correctamente.');
     }
+
+    /**
+     * Actualización rápida de configuración (unidad, valores de referencia, método)
+     */
+    public function quickUpdate(Request $request, Test $test)
+    {
+        $validated = $request->validate([
+            'unit' => 'nullable|string|max:50',
+            'low' => 'nullable|string|max:50',
+            'high' => 'nullable|string|max:50',
+            'method' => 'nullable|string|max:255',
+        ]);
+
+        $test->update([
+            'unit' => $validated['unit'],
+            'low' => $validated['low'],
+            'high' => $validated['high'],
+            'method' => $validated['method'],
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Determinación configurada correctamente.');
+    }
 }

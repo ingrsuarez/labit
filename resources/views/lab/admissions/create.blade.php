@@ -176,8 +176,12 @@
                 <!-- Buscador de prácticas -->
                 <div class="mb-4 relative" x-show="insuranceId">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Agregar Práctica</label>
-                    <input type="text" x-model="testSearch" @input="searchTests" @focus="showTestDropdown = true"
-                           placeholder="Buscar por código o nombre..."
+                    <input type="text" x-model="testSearch" 
+                           @input="searchTests" 
+                           @focus="showTestDropdown = true"
+                           @keydown.enter.prevent="selectFirstTest()"
+                           @keydown.escape="showTestDropdown = false; testSearch = ''"
+                           placeholder="Buscar por código o nombre... (Enter para agregar)"
                            class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500">
                     
                     <!-- Dropdown de prácticas -->
@@ -386,9 +390,19 @@
                     }
                 },
 
+                selectFirstTest() {
+                    // Selecciona el primer resultado de la lista filtrada al presionar Enter
+                    if (this.filteredTests.length > 0) {
+                        this.addTest(this.filteredTests[0]);
+                    }
+                },
+
                 addTest(test) {
                     // Evitar duplicados
                     if (this.selectedTests.find(t => t.id === test.id)) {
+                        this.testSearch = '';
+                        this.filteredTests = [];
+                        this.showTestDropdown = false;
                         return;
                     }
 

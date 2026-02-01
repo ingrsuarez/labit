@@ -130,8 +130,7 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CUIT</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefono</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nomenclador</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor NBU</th>
                             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                         </tr>
@@ -170,17 +169,20 @@
                                     <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">Obra Social</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $insurance->tax_id ?? '-' }}
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                @if($insurance->nomenclator_id && $insurance->nomenclatorBase)
+                                    <span class="px-2 py-1 text-xs font-medium rounded bg-teal-100 text-teal-800">
+                                        {{ strtoupper($insurance->nomenclatorBase->name) }}
+                                    </span>
+                                @else
+                                    <span class="text-gray-400 text-xs">Sin asignar</span>
+                                @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $insurance->phone ?? '-' }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                                 @if($insurance->nbu_value)
                                     $ {{ number_format($insurance->nbu_value, 2, ',', '.') }}
                                 @else
-                                    -
+                                    <span class="text-gray-400">-</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -212,7 +214,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-12 text-center">
+                            <td colspan="5" class="px-6 py-12 text-center">
                                 <div class="flex flex-col items-center">
                                     <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
@@ -337,19 +339,37 @@
                                            class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
                                 </div>
 
+                                <!-- Nomenclador -->
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nomenclador para Facturar</label>
+                                    <select name="nomenclator_id" class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                                        <option value="">-- Sin nomenclador asignado --</option>
+                                        @foreach(\App\Models\Insurance::where('type', 'nomenclador')->orderBy('name')->get() as $nomenclator)
+                                            <option value="{{ $nomenclator->id }}">{{ strtoupper($nomenclator->name) }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="text-xs text-gray-500 mt-1">Lista de practicas con sus NBU para calcular facturacion</p>
+                                </div>
+
                                 <!-- Valor NBU -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Valor NBU</label>
-                                    <input type="number" step="0.01" name="nbu_value" placeholder="0.00"
-                                           class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                                    <p class="text-xs text-gray-500 mt-1">Valor por unidad de nomenclador</p>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                                        <input type="number" step="0.01" name="nbu_value" placeholder="0.00"
+                                               class="pl-8 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">Precio por cada unidad NBU</p>
                                 </div>
 
                                 <!-- Coseguro -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Coseguro por defecto</label>
-                                    <input type="number" step="0.01" name="price" placeholder="0.00"
-                                           class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                                        <input type="number" step="0.01" name="price" placeholder="0.00"
+                                               class="pl-8 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                                    </div>
                                 </div>
 
                                 <!-- Observaciones -->

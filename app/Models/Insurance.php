@@ -21,6 +21,7 @@ class Insurance extends Model
         'price',
         'nbu',
         'nbu_value',
+        'nomenclator_id',
         'group',
         'type',
         'instructions',
@@ -72,6 +73,22 @@ class Insurance extends Model
     public function groupRelation()
     {
         return $this->belongsTo(Group::class, 'group');
+    }
+
+    /**
+     * Relación con el nomenclador base que usa para facturar
+     */
+    public function nomenclatorBase()
+    {
+        return $this->belongsTo(Insurance::class, 'nomenclator_id');
+    }
+
+    /**
+     * Obras sociales que usan este nomenclador
+     */
+    public function clientsUsingThisNomenclator()
+    {
+        return $this->hasMany(Insurance::class, 'nomenclator_id');
     }
 
     /**

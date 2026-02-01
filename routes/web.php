@@ -70,6 +70,7 @@ Route::middleware([
     Route::post('/tests',[App\Http\Controllers\TestController::class, 'store'])->name('test.store');
     Route::get('/tests/{test}/edit',[App\Http\Controllers\TestController::class, 'edit'])->name('tests.edit')->where('test', '[0-9]+');
     Route::put('/tests/{test}',[App\Http\Controllers\TestController::class, 'update'])->name('tests.update')->where('test', '[0-9]+');
+    Route::patch('/tests/{test}/quick',[App\Http\Controllers\TestController::class, 'quickUpdate'])->name('tests.quickUpdate')->where('test', '[0-9]+');
     Route::delete('/tests/{test}',[App\Http\Controllers\TestController::class, 'destroy'])->name('tests.destroy')->where('test', '[0-9]+');
 
     // Test Reference Values (Valores de Referencia)
@@ -101,6 +102,7 @@ Route::middleware([
     Route::post('/nomenclator/{insurance}/bulk', [App\Http\Controllers\InsuranceNomenclatorController::class, 'bulkAdd'])->name('nomenclator.bulkAdd');
     Route::post('/nomenclator/{insurance}/recalculate', [App\Http\Controllers\InsuranceNomenclatorController::class, 'recalculatePrices'])->name('nomenclator.recalculate');
     Route::get('/nomenclator/{insurance}/search-tests', [App\Http\Controllers\InsuranceNomenclatorController::class, 'searchTests'])->name('nomenclator.searchTests');
+    Route::post('/nomenclator/{insurance}/copy-from', [App\Http\Controllers\InsuranceNomenclatorController::class, 'copyFromNomenclator'])->name('nomenclator.copyFrom');
 
     // LAB ADMISSIONS (Admisiones de Pacientes - Laboratorio)
     Route::get('lab/admissions', [App\Http\Controllers\LabAdmissionController::class, 'index'])->name('lab.admissions.index');
@@ -115,6 +117,14 @@ Route::middleware([
     Route::post('lab/admissions/{admission}/test', [App\Http\Controllers\LabAdmissionController::class, 'addTest'])->name('lab.admissions.addTest');
     Route::put('lab/admissions/{admission}/test/{test}', [App\Http\Controllers\LabAdmissionController::class, 'updateTest'])->name('lab.admissions.updateTest');
     Route::delete('lab/admissions/{admission}/test/{test}', [App\Http\Controllers\LabAdmissionController::class, 'removeTest'])->name('lab.admissions.removeTest');
+    
+    // Resultados y validación
+    Route::post('lab/admissions/{admission}/results', [App\Http\Controllers\LabAdmissionController::class, 'saveResults'])->name('lab.admissions.saveResults');
+    Route::post('lab/admissions/{admission}/test/{admissionTest}/result', [App\Http\Controllers\LabAdmissionController::class, 'saveResult'])->name('lab.admissions.saveResult');
+    Route::post('lab/admissions/{admission}/test/{admissionTest}/validate', [App\Http\Controllers\LabAdmissionController::class, 'validateTest'])->name('lab.admissions.validateTest');
+    Route::post('lab/admissions/{admission}/test/{admissionTest}/unvalidate', [App\Http\Controllers\LabAdmissionController::class, 'unvalidateTest'])->name('lab.admissions.unvalidateTest');
+    Route::post('lab/admissions/{admission}/validate-all', [App\Http\Controllers\LabAdmissionController::class, 'validateAll'])->name('lab.admissions.validateAll');
+    Route::post('lab/admissions/{admission}/sync-children', [App\Http\Controllers\LabAdmissionController::class, 'syncChildTests'])->name('lab.admissions.syncChildren');
 
     // LAB REPORTS (Reportes del Laboratorio)
     Route::get('lab/reports/monthly', [App\Http\Controllers\LabReportController::class, 'monthly'])->name('lab.reports.monthly');

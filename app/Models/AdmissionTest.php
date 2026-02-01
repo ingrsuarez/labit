@@ -19,6 +19,12 @@ class AdmissionTest extends Model
         'copago',
         'authorization_code',
         'observations',
+        'result',
+        'unit',
+        'reference_value',
+        'is_validated',
+        'validated_by',
+        'validated_at',
     ];
 
     protected $casts = [
@@ -26,6 +32,8 @@ class AdmissionTest extends Model
         'nbu_units' => 'decimal:2',
         'paid_by_patient' => 'boolean',
         'copago' => 'decimal:2',
+        'is_validated' => 'boolean',
+        'validated_at' => 'datetime',
     ];
 
     /**
@@ -50,6 +58,14 @@ class AdmissionTest extends Model
     public function test()
     {
         return $this->belongsTo(Test::class);
+    }
+
+    /**
+     * Relación con el usuario que validó
+     */
+    public function validator()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'validated_by');
     }
 
     /**

@@ -129,7 +129,8 @@ class LabAdmissionController extends Controller
             $copago = $testData['copago'] ?? 0;
             $price = $testData['price'];
 
-            AdmissionTest::create([
+            // Crear la práctica padre
+            $admissionTest = AdmissionTest::create([
                 'admission_id' => $admission->id,
                 'test_id' => $testData['test_id'],
                 'price' => $price,
@@ -140,6 +141,27 @@ class LabAdmissionController extends Controller
                 'authorization_code' => $testData['authorization_code'] ?? null,
                 'observations' => $testData['observations'] ?? null,
             ]);
+
+            // Si la práctica tiene hijos, agregarlos automáticamente (para cargar resultados individuales)
+            $children = $test->getAllChildren(false);
+            foreach ($children as $childTest) {
+                // Solo agregar si no existe ya
+                $exists = AdmissionTest::where('admission_id', $admission->id)
+                    ->where('test_id', $childTest->id)
+                    ->exists();
+                    
+                if (!$exists) {
+                    AdmissionTest::create([
+                        'admission_id' => $admission->id,
+                        'test_id' => $childTest->id,
+                        'price' => 0, // Los hijos no tienen precio adicional
+                        'nbu_units' => $childTest->nbu ?? 0,
+                        'authorization_status' => 'not_required',
+                        'paid_by_patient' => false,
+                        'copago' => 0,
+                    ]);
+                }
+            }
 
             // Calcular totales
             if ($paidByPatient || $testData['authorization_status'] === 'rejected') {
@@ -166,8 +188,20 @@ class LabAdmissionController extends Controller
      */
     public function show(Admission $admission)
     {
-        $admission->load(['patient', 'insuranceRelation', 'admissionTests.test', 'creator']);
-        return view('lab.admissions.show', compact('admission'));
+        $admission->load([
+            'patient', 
+            'insuranceRelation', 
+            'admissionTests.test.parentTests', 
+            'admissionTests.test.referenceValues.category',
+            'creator'
+        ]);
+        
+        // Tests disponibles para agregar al protocolo
+        $availableTests = Test::whereNull('parent')
+            ->orderBy('code')
+            ->get(['id', 'code', 'name', 'nbu', 'price']);
+        
+        return view('lab.admissions.show', compact('admission', 'availableTests'));
     }
 
     /**
@@ -225,6 +259,15 @@ class LabAdmissionController extends Controller
 
         $test = Test::find($request->test_id);
 
+        // Verificar si la práctica ya existe en el protocolo
+        $exists = AdmissionTest::where('admission_id', $admission->id)
+            ->where('test_id', $request->test_id)
+            ->exists();
+            
+        if ($exists) {
+            return redirect()->back()->with('error', 'La práctica "' . $test->code . ' - ' . $test->name . '" ya existe en este protocolo.');
+        }
+
         AdmissionTest::create([
             'admission_id' => $admission->id,
             'test_id' => $request->test_id,
@@ -237,9 +280,36 @@ class LabAdmissionController extends Controller
             'observations' => $request->observations,
         ]);
 
+        // Si la práctica tiene hijos, agregarlos automáticamente
+        $children = $test->getAllChildren(false);
+        $childrenAdded = 0;
+        foreach ($children as $childTest) {
+            $childExists = AdmissionTest::where('admission_id', $admission->id)
+                ->where('test_id', $childTest->id)
+                ->exists();
+                
+            if (!$childExists) {
+                AdmissionTest::create([
+                    'admission_id' => $admission->id,
+                    'test_id' => $childTest->id,
+                    'price' => 0,
+                    'nbu_units' => $childTest->nbu ?? 0,
+                    'authorization_status' => 'not_required',
+                    'paid_by_patient' => false,
+                    'copago' => 0,
+                ]);
+                $childrenAdded++;
+            }
+        }
+
         $admission->calculateTotals();
 
-        return redirect()->back()->with('success', 'Práctica agregada correctamente.');
+        $message = 'Práctica "' . $test->code . ' - ' . $test->name . '" agregada correctamente.';
+        if ($childrenAdded > 0) {
+            $message .= ' (' . $childrenAdded . ' determinaciones hijas incluidas)';
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 
     /**
@@ -271,6 +341,18 @@ class LabAdmissionController extends Controller
      */
     public function removeTest(Admission $admission, AdmissionTest $test)
     {
+        // Si es una práctica padre (precio > 0), eliminar también sus hijos
+        if ($test->price > 0) {
+            $parentTest = $test->test;
+            $children = $parentTest->getAllChildren(false);
+            
+            foreach ($children as $childTest) {
+                AdmissionTest::where('admission_id', $admission->id)
+                    ->where('test_id', $childTest->id)
+                    ->delete();
+            }
+        }
+        
         $test->delete();
         $admission->calculateTotals();
 
@@ -394,6 +476,140 @@ class LabAdmissionController extends Controller
         }
 
         return response()->json($tests);
+    }
+
+    /**
+     * Guardar resultado de una práctica
+     */
+    public function saveResult(Request $request, Admission $admission, AdmissionTest $admissionTest)
+    {
+        $request->validate([
+            'result' => 'nullable|string|max:255',
+            'unit' => 'nullable|string|max:50',
+            'reference_value' => 'nullable|string|max:255',
+        ]);
+
+        $admissionTest->update([
+            'result' => $request->result,
+            'unit' => $request->unit,
+            'reference_value' => $request->reference_value,
+        ]);
+
+        return redirect()->back()->with('success', 'Resultado guardado correctamente.');
+    }
+
+    /**
+     * Guardar resultados de múltiples prácticas
+     */
+    public function saveResults(Request $request, Admission $admission)
+    {
+        $request->validate([
+            'results' => 'required|array',
+            'results.*.id' => 'required|exists:admission_tests,id',
+            'results.*.result' => 'nullable|string|max:255',
+            'results.*.unit' => 'nullable|string|max:50',
+            'results.*.reference_value' => 'nullable|string|max:255',
+        ]);
+
+        foreach ($request->results as $data) {
+            $admissionTest = AdmissionTest::find($data['id']);
+            if ($admissionTest && $admissionTest->admission_id === $admission->id) {
+                $admissionTest->update([
+                    'result' => $data['result'] ?? null,
+                    'unit' => $data['unit'] ?? null,
+                    'reference_value' => $data['reference_value'] ?? null,
+                ]);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Resultados guardados correctamente.');
+    }
+
+    /**
+     * Validar una práctica
+     */
+    public function validateTest(Request $request, Admission $admission, AdmissionTest $admissionTest)
+    {
+        if (!$admissionTest->result) {
+            return redirect()->back()->with('error', 'No se puede validar una práctica sin resultado.');
+        }
+
+        $admissionTest->update([
+            'is_validated' => true,
+            'validated_by' => auth()->id(),
+            'validated_at' => now(),
+        ]);
+
+        return redirect()->back()->with('success', 'Práctica validada correctamente.');
+    }
+
+    /**
+     * Invalidar/desvalidar una práctica
+     */
+    public function unvalidateTest(Request $request, Admission $admission, AdmissionTest $admissionTest)
+    {
+        $admissionTest->update([
+            'is_validated' => false,
+            'validated_by' => null,
+            'validated_at' => null,
+        ]);
+
+        return redirect()->back()->with('success', 'Validación removida.');
+    }
+
+    /**
+     * Validar todas las prácticas con resultado
+     */
+    public function validateAll(Request $request, Admission $admission)
+    {
+        $count = 0;
+        foreach ($admission->admissionTests as $admissionTest) {
+            if ($admissionTest->result && !$admissionTest->is_validated) {
+                $admissionTest->update([
+                    'is_validated' => true,
+                    'validated_by' => auth()->id(),
+                    'validated_at' => now(),
+                ]);
+                $count++;
+            }
+        }
+
+        return redirect()->back()->with('success', "Se validaron {$count} prácticas.");
+    }
+
+    /**
+     * Sincronizar determinaciones hijas de las prácticas de una admisión
+     * Agrega las determinaciones faltantes que son hijas de las prácticas existentes
+     */
+    public function syncChildTests(Admission $admission)
+    {
+        $count = 0;
+        
+        foreach ($admission->admissionTests as $admissionTest) {
+            $test = $admissionTest->test;
+            $children = $test->getAllChildren(false);
+            
+            foreach ($children as $childTest) {
+                $exists = AdmissionTest::where('admission_id', $admission->id)
+                    ->where('test_id', $childTest->id)
+                    ->exists();
+                    
+                if (!$exists) {
+                    AdmissionTest::create([
+                        'admission_id' => $admission->id,
+                        'test_id' => $childTest->id,
+                        'price' => 0,
+                        'nbu_units' => $childTest->nbu ?? 0,
+                        'authorization_status' => 'not_required',
+                        'paid_by_patient' => false,
+                        'copago' => 0,
+                    ]);
+                    $count++;
+                }
+            }
+        }
+
+        return redirect()->back()->with('success', "Se sincronizaron {$count} determinaciones.");
     }
 }
 

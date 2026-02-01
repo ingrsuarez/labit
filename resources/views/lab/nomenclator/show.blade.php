@@ -29,9 +29,10 @@
             </div>
         @endif
 
-        <!-- Configuración NBU -->
+        <!-- Configuración NBU (solo para obras sociales, no para nomencladores base) -->
+        @if($insurance->type !== 'nomenclador')
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-            <h2 class="text-lg font-semibold text-gray-800 mb-4">Valor NBU</h2>
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Valor NBU de la Obra Social</h2>
             <form action="{{ route('nomenclator.updateNbu', $insurance) }}" method="POST" class="flex items-end gap-4">
                 @csrf
                 @method('PUT')
@@ -43,6 +44,7 @@
                                value="{{ $insurance->nbu_value }}"
                                class="pl-8 w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500">
                     </div>
+                    <p class="text-xs text-gray-500 mt-1">Precio final = NBU práctica × Valor NBU obra social</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <input type="checkbox" name="recalculate_prices" id="recalculate_prices" value="1"
@@ -54,6 +56,48 @@
                 </button>
             </form>
         </div>
+        @endif
+
+        <!-- Copiar desde Nomenclador Base (solo para obras sociales) -->
+        @if($insurance->type !== 'nomenclador' && isset($baseNomenclators) && count($baseNomenclators) > 0)
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-sm border border-blue-200 p-6 mb-6">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-2">Copiar desde Nomenclador Base</h2>
+                    <p class="text-sm text-gray-600 mb-4">Copie todas las prácticas de un nomenclador base a esta obra social. Los precios se calcularán automáticamente según el valor NBU configurado.</p>
+                    <form action="{{ route('nomenclator.copyFrom', $insurance) }}" method="POST" class="flex items-end gap-4"
+                          onsubmit="return confirm('¿Copiar todas las prácticas del nomenclador seleccionado? Las prácticas que ya existan se omitirán.')">
+                        @csrf
+                        <div class="flex-1 max-w-md">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Seleccionar Nomenclador Base</label>
+                            <select name="source_nomenclator_id" required
+                                    class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">-- Seleccione un nomenclador --</option>
+                                @foreach($baseNomenclators as $nomenclator)
+                                    <option value="{{ $nomenclator->id }}">
+                                        {{ strtoupper($nomenclator->name) }} ({{ $nomenclator->nomenclator_count }} prácticas)
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                            Copiar Prácticas
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        @endif
 
         <!-- Agregar Práctica -->
         <div x-data="nomenclatorManager()" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">

@@ -160,36 +160,63 @@
                     Facturacion y Precios
                 </h2>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Nomenclador a usar -->
+                    @if(isset($nomenclators) && count($nomenclators) > 0)
+                    <div class="lg:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nomenclador para Facturar</label>
+                        <select name="nomenclator_id" class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                            <option value="">-- Sin nomenclador asignado --</option>
+                            @foreach($nomenclators as $nomenclator)
+                                <option value="{{ $nomenclator->id }}" {{ old('nomenclator_id', $insurance->nomenclator_id) == $nomenclator->id ? 'selected' : '' }}>
+                                    {{ strtoupper($nomenclator->name) }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Lista de practicas y sus NBU para calcular la facturacion</p>
+                    </div>
+                    @endif
+
                     <!-- Valor NBU -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Valor NBU</label>
-                        <input type="number" step="0.01" name="nbu_value" 
-                               value="{{ old('nbu_value', $insurance->nbu_value) }}"
-                               placeholder="0.00"
-                               class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                        <p class="text-xs text-gray-500 mt-1">Valor por unidad de nomenclador bioquimico</p>
-                    </div>
-
-                    <!-- NBU Base -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">NBU Base</label>
-                        <input type="number" step="0.01" name="nbu" 
-                               value="{{ old('nbu', $insurance->nbu) }}"
-                               placeholder="0.00"
-                               class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                            <input type="number" step="0.01" name="nbu_value" 
+                                   value="{{ old('nbu_value', $insurance->nbu_value) }}"
+                                   placeholder="0.00"
+                                   class="pl-8 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Precio por cada unidad NBU</p>
                     </div>
 
                     <!-- Coseguro -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Coseguro por defecto</label>
-                        <input type="number" step="0.01" name="price" 
-                               value="{{ old('price', $insurance->price) }}"
-                               placeholder="0.00"
-                               class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                            <input type="number" step="0.01" name="price" 
+                                   value="{{ old('price', $insurance->price) }}"
+                                   placeholder="0.00"
+                                   class="pl-8 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                        </div>
                     </div>
                 </div>
+
+                <!-- Ejemplo de calculo -->
+                @if(isset($nomenclators) && count($nomenclators) > 0 && $insurance->nbu_value)
+                <div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <p class="text-sm text-blue-800">
+                        <strong>Ejemplo de calculo:</strong> Si una practica tiene <strong>5 NBU</strong> segun el nomenclador, 
+                        el precio a facturar seria: 5 × ${{ number_format($insurance->nbu_value, 2, ',', '.') }} = 
+                        <strong>${{ number_format(5 * $insurance->nbu_value, 2, ',', '.') }}</strong>
+                    </p>
+                </div>
+                @endif
             </div>
+
+            <!-- Campo oculto para NBU Base (mantener compatibilidad) -->
+            <input type="hidden" name="nbu" value="{{ old('nbu', $insurance->nbu) }}">
 
             <!-- Observaciones -->
             <div class="bg-white rounded-lg shadow-sm p-6 mb-6">

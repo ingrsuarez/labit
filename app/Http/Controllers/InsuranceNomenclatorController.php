@@ -10,12 +10,24 @@ use Illuminate\Http\Request;
 class InsuranceNomenclatorController extends Controller
 {
     /**
-     * Muestra el listado de obras sociales para seleccionar
+     * Muestra el listado de obras sociales para configurar sus nomencladores
+     * Excluye los nomencladores base (tipo = 'nomenclador')
      */
     public function index()
     {
-        $insurances = Insurance::withCount('nomenclator')->orderBy('name')->get();
-        return view('lab.nomenclator.index', compact('insurances'));
+        // Solo obras sociales/clientes, no nomencladores base
+        $insurances = Insurance::where('type', '!=', 'nomenclador')
+            ->withCount('nomenclator')
+            ->orderBy('name')
+            ->get();
+        
+        // Obtener nomencladores base disponibles para copiar
+        $baseNomenclators = Insurance::where('type', 'nomenclador')
+            ->withCount('nomenclator')
+            ->orderBy('name')
+            ->get();
+            
+        return view('lab.nomenclator.index', compact('insurances', 'baseNomenclators'));
     }
 
     /**
@@ -35,7 +47,16 @@ class InsuranceNomenclatorController extends Controller
             ->orderBy('code')
             ->get();
 
-        return view('lab.nomenclator.show', compact('insurance', 'nomenclator', 'availableTests'));
+        // Obtener nomencladores base disponibles para copiar (solo si NO es un nomenclador base)
+        $baseNomenclators = [];
+        if ($insurance->type !== 'nomenclador') {
+            $baseNomenclators = Insurance::where('type', 'nomenclador')
+                ->withCount('nomenclator')
+                ->orderBy('name')
+                ->get();
+        }
+
+        return view('lab.nomenclator.show', compact('insurance', 'nomenclator', 'availableTests', 'baseNomenclators'));
     }
 
     /**
@@ -206,6 +227,69 @@ class InsuranceNomenclatorController extends Controller
             ->get(['id', 'code', 'name', 'nbu', 'price']);
 
         return response()->json($tests);
+    }
+
+    /**
+     * Copiar todas las prácticas de un nomenclador base a una obra social
+     */
+    public function copyFromNomenclator(Request $request, Insurance $insurance)
+    {
+        $request->validate([
+            'source_nomenclator_id' => 'required|exists:insurances,id',
+        ]);
+
+        $source = Insurance::findOrFail($request->source_nomenclator_id);
+        
+        if ($source->type !== 'nomenclador') {
+            return redirect()->back()->with('error', 'El origen debe ser un nomenclador base.');
+        }
+
+        $nbuValue = $insurance->nbu_value ?? 0;
+        $copied = 0;
+        $skipped = 0;
+
+        foreach ($source->nomenclator as $item) {
+            // Verificar si ya existe
+            $exists = InsuranceTest::where('insurance_id', $insurance->id)
+                ->where('test_id', $item->test_id)
+                ->exists();
+
+            if ($exists) {
+                $skipped++;
+                continue;
+            }
+
+            InsuranceTest::create([
+                'insurance_id' => $insurance->id,
+                'test_id' => $item->test_id,
+                'nbu_units' => $item->nbu_units,
+                'price' => $item->nbu_units * $nbuValue, // Recalcular con el NBU de la obra social
+                'requires_authorization' => $item->requires_authorization ?? false,
+                'copago' => $item->copago ?? 0,
+                'observations' => $item->observations,
+            ]);
+            $copied++;
+        }
+
+        $message = "Se copiaron {$copied} prácticas desde {$source->name}.";
+        if ($skipped > 0) {
+            $message .= " Se omitieron {$skipped} que ya existían.";
+        }
+
+        return redirect()->back()->with('success', $message);
+    }
+
+    /**
+     * Listar nomencladores base disponibles
+     */
+    public function listNomenclators()
+    {
+        $nomenclators = Insurance::where('type', 'nomenclador')
+            ->withCount('nomenclator')
+            ->orderBy('name')
+            ->get();
+
+        return view('lab.nomenclator.base-list', compact('nomenclators'));
     }
 }
 
