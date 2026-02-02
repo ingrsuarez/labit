@@ -23,16 +23,23 @@ class PayrollController extends Controller
             ->orderBy('lastName')
             ->get();
 
+        // Determinar el mes por defecto: el último mes sin recibos cerrados
+        $defaultPeriod = $this->getLastOpenPeriod();
+        
         $selectedEmployee = null;
         $payroll = null;
-        $year = $request->input('year', now()->year);
-        $month = $request->input('month', now()->month);
+        $previousPayrolls = [];
+        $year = $request->input('year', $defaultPeriod['year']);
+        $month = $request->input('month', $defaultPeriod['month']);
 
         if ($request->filled('employee_id')) {
             $selectedEmployee = Employee::with(['jobs.category'])->find($request->employee_id);
             
             if ($selectedEmployee) {
                 $payroll = $this->calculatePayroll($selectedEmployee, $year, $month);
+                
+                // Obtener historial de netos de períodos anteriores (últimos 12 meses)
+                $previousPayrolls = $this->getPreviousPayrolls($selectedEmployee->id, $year, $month);
             }
         }
 
@@ -40,12 +47,86 @@ class PayrollController extends Controller
             'employees' => $employees,
             'selectedEmployee' => $selectedEmployee,
             'payroll' => $payroll,
+            'previousPayrolls' => $previousPayrolls,
             'filters' => [
                 'employee_id' => $request->employee_id,
                 'year' => $year,
                 'month' => $month,
             ],
         ]);
+    }
+
+    /**
+     * Obtener el último período sin recibos cerrados
+     * Retorna el mes más reciente donde no todos los empleados tienen recibos cerrados
+     */
+    private function getLastOpenPeriod(): array
+    {
+        $currentYear = now()->year;
+        $currentMonth = now()->month;
+        
+        // Buscar hacia atrás desde el mes actual hasta encontrar un mes sin cerrar
+        for ($i = 0; $i < 24; $i++) {
+            $checkDate = now()->subMonths($i);
+            $year = $checkDate->year;
+            $month = $checkDate->month;
+            
+            // Contar empleados activos
+            $totalEmployees = Employee::count();
+            
+            // Contar recibos cerrados para este período
+            $closedPayrolls = Payroll::forPeriod($year, $month)
+                ->where('month', '<', 100) // Excluir SAC (mes > 100)
+                ->whereIn('status', ['liquidado', 'pagado'])
+                ->count();
+            
+            // Si no todos los empleados tienen recibo cerrado, este es el período abierto
+            if ($closedPayrolls < $totalEmployees) {
+                return ['year' => $year, 'month' => $month];
+            }
+        }
+        
+        // Por defecto, mes actual
+        return ['year' => $currentYear, 'month' => $currentMonth];
+    }
+
+    /**
+     * Obtener historial de netos de períodos anteriores para un empleado
+     */
+    private function getPreviousPayrolls(int $employeeId, int $currentYear, int $currentMonth): array
+    {
+        // Obtener los últimos 12 períodos (excluyendo el actual)
+        $payrolls = Payroll::where('employee_id', $employeeId)
+            ->where('month', '<', 100) // Excluir SAC
+            ->where(function ($query) use ($currentYear, $currentMonth) {
+                $query->where('year', '<', $currentYear)
+                    ->orWhere(function ($q) use ($currentYear, $currentMonth) {
+                        $q->where('year', $currentYear)
+                          ->where('month', '<', $currentMonth);
+                    });
+            })
+            ->orderBy('year', 'desc')
+            ->orderBy('month', 'desc')
+            ->limit(12)
+            ->get()
+            ->map(function ($payroll) {
+                return [
+                    'year' => $payroll->year,
+                    'month' => $payroll->month,
+                    'period_label' => $payroll->period_label,
+                    'neto_a_cobrar' => (float) $payroll->neto_a_cobrar,
+                    'status' => $payroll->status,
+                    'status_label' => match($payroll->status) {
+                        'borrador' => 'Borrador',
+                        'liquidado' => 'Cerrado',
+                        'pagado' => 'Pagado',
+                        default => $payroll->status,
+                    },
+                ];
+            })
+            ->toArray();
+        
+        return $payrolls;
     }
 
     /**

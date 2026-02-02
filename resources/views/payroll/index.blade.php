@@ -206,6 +206,70 @@
                     </form>
                 </div>
             </div>
+
+            {{-- Historial de Períodos Anteriores --}}
+            @if(count($previousPayrolls) > 0)
+                <div class="bg-white rounded-xl shadow-sm mt-6 overflow-hidden">
+                    <div class="bg-gray-50 px-6 py-4 border-b">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                            📊 Historial de Netos - Períodos Anteriores
+                        </h3>
+                        <p class="text-sm text-gray-500 mt-1">Últimos períodos liquidados para {{ $selectedEmployee->name }} {{ $selectedEmployee->lastName }}</p>
+                    </div>
+                    <div class="p-4">
+                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                            @foreach($previousPayrolls as $prev)
+                                <div class="bg-gray-50 rounded-lg p-3 border {{ $prev['status'] === 'pagado' ? 'border-green-200' : ($prev['status'] === 'liquidado' ? 'border-blue-200' : 'border-gray-200') }}">
+                                    <div class="text-xs text-gray-500 mb-1 capitalize">{{ $prev['period_label'] }}</div>
+                                    <div class="text-lg font-bold {{ $prev['status'] === 'pagado' ? 'text-green-600' : ($prev['status'] === 'liquidado' ? 'text-blue-600' : 'text-gray-700') }}">
+                                        ${{ number_format($prev['neto_a_cobrar'], 2, ',', '.') }}
+                                    </div>
+                                    <div class="text-xs mt-1">
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium
+                                            {{ $prev['status'] === 'pagado' ? 'bg-green-100 text-green-700' : 
+                                               ($prev['status'] === 'liquidado' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600') }}">
+                                            {{ $prev['status_label'] }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        
+                        {{-- Resumen del historial --}}
+                        <div class="mt-4 pt-4 border-t flex flex-wrap gap-4 text-sm">
+                            <div class="bg-blue-50 rounded-lg px-4 py-2">
+                                <span class="text-blue-600 font-medium">Promedio:</span>
+                                <span class="text-blue-800 font-bold ml-1">
+                                    ${{ number_format(collect($previousPayrolls)->avg('neto_a_cobrar'), 2, ',', '.') }}
+                                </span>
+                            </div>
+                            <div class="bg-green-50 rounded-lg px-4 py-2">
+                                <span class="text-green-600 font-medium">Máximo:</span>
+                                <span class="text-green-800 font-bold ml-1">
+                                    ${{ number_format(collect($previousPayrolls)->max('neto_a_cobrar'), 2, ',', '.') }}
+                                </span>
+                            </div>
+                            <div class="bg-amber-50 rounded-lg px-4 py-2">
+                                <span class="text-amber-600 font-medium">Mínimo:</span>
+                                <span class="text-amber-800 font-bold ml-1">
+                                    ${{ number_format(collect($previousPayrolls)->min('neto_a_cobrar'), 2, ',', '.') }}
+                                </span>
+                            </div>
+                            @php
+                                $currentNeto = $payroll['neto_a_cobrar'];
+                                $avgNeto = collect($previousPayrolls)->avg('neto_a_cobrar');
+                                $diff = $avgNeto > 0 ? (($currentNeto - $avgNeto) / $avgNeto) * 100 : 0;
+                            @endphp
+                            <div class="bg-purple-50 rounded-lg px-4 py-2">
+                                <span class="text-purple-600 font-medium">vs Promedio:</span>
+                                <span class="font-bold ml-1 {{ $diff >= 0 ? 'text-green-700' : 'text-red-700' }}">
+                                    {{ $diff >= 0 ? '+' : '' }}{{ number_format($diff, 1, ',', '.') }}%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
         @else
             {{-- Estado vacío --}}
             <div class="bg-white rounded-xl shadow-sm p-12 text-center">
