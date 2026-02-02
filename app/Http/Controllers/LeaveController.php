@@ -202,6 +202,19 @@ class LeaveController extends Controller
             'file'        => ['nullable','image','max:5120'], // 5MB
         ]);
 
+        // Verificar si ya existe una licencia con los mismos datos (prevenir duplicados)
+        $existingLeave = Leave::where('employee_id', $validated['employee'])
+            ->where('type', $validated['type'])
+            ->where('start', $validated['start'])
+            ->where('end', $validated['end'])
+            ->first();
+
+        if ($existingLeave) {
+            return back()
+                ->withInput()
+                ->withErrors(['duplicate' => 'Ya existe una licencia con los mismos datos para este empleado.']);
+        }
+
         $leave = new Leave;
         $leave->description = strtolower($validated['description']);
         $leave->start       = $validated['start'];
