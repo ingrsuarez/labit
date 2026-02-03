@@ -114,6 +114,26 @@ class RolesAndPermissionsSeeder extends Seeder
             'customers.create',
             'customers.edit',
             'customers.delete',
+
+            // PAYROLL (Liquidación de Sueldos)
+            'payroll.index',
+            'payroll.show',
+            'payroll.store',
+            'payroll.closed',
+            'payroll.pdf',
+            'payroll.bulkPdf',
+            'payroll.liquidar',
+            'payroll.pagar',
+            'payroll.reabrir',
+            'payroll.delete',
+            'payroll.bulk',
+            'payroll.sac',
+
+            // SALARY ITEMS (Conceptos de Liquidación)
+            'salary.index',
+            'salary.create',
+            'salary.edit',
+            'salary.delete',
         ];
 
         // 3) Crear/asegurar permisos (idempotente)
@@ -132,6 +152,38 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // 5) Asignar todos los permisos al rol admin
         $adminRole->syncPermissions(Permission::whereIn('name', $permissions)->get());
+
+        // 5.1) Crear rol contador con permisos específicos
+        $contadorRole = Role::firstOrCreate([
+            'name'       => 'contador',
+            'guard_name' => 'web',
+        ]);
+
+        // Permisos del contador: liquidaciones, historial, PDFs y conceptos
+        $contadorPermissions = [
+            // Payroll - Ver y generar
+            'payroll.index',
+            'payroll.show',
+            'payroll.store',
+            'payroll.closed',
+            'payroll.pdf',
+            'payroll.bulkPdf',
+            'payroll.bulk',
+            'payroll.sac',
+            'payroll.liquidar',
+            'payroll.pagar',
+            
+            // Salary Items - Gestión completa de conceptos
+            'salary.index',
+            'salary.create',
+            'salary.edit',
+            'salary.delete',
+            
+            // Empleados - Solo lectura para ver datos en liquidaciones
+            'employee.show',
+        ];
+
+        $contadorRole->syncPermissions(Permission::whereIn('name', $contadorPermissions)->get());
 
         // 6) Crear/asegurar usuario admin (lee de .env con defaults)
         $email    = env('ADMIN_EMAIL', 'admin@admin');
