@@ -1359,5 +1359,70 @@ class PayrollController extends Controller
         
         return $pdf->download($filename);
     }
+
+    /**
+     * Descargar todos los recibos cerrados en PDFs individuales (ZIP)
+     */
+    public function downloadBulkPdf(Request $request)
+    {
+        $year = $request->input('year', now()->year);
+        $month = $request->input('month', now()->month);
+        
+        // Obtener solo liquidaciones cerradas (liquidado o pagado)
+        $payrolls = Payroll::where('year', $year)
+            ->where('month', $month)
+            ->whereIn('status', ['liquidado', 'pagado'])
+            ->orderBy('employee_name')
+            ->get();
+        
+        if ($payrolls->isEmpty()) {
+            return back()->with('error', 'No hay recibos cerrados para descargar en el período seleccionado.');
+        }
+        
+        // Nombre del mes para el archivo
+        $mesNombre = Carbon::createFromDate($year, $month, 1)
+            ->locale('es')
+            ->isoFormat('MMMM');
+        
+        // Crear archivo ZIP temporal
+        $zipFileName = "recibos-{$mesNombre}{$year}.zip";
+        $zipPath = storage_path("app/temp/{$zipFileName}");
+        
+        // Asegurar que el directorio existe
+        if (!file_exists(storage_path('app/temp'))) {
+            mkdir(storage_path('app/temp'), 0755, true);
+        }
+        
+        $zip = new \ZipArchive();
+        
+        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+            return back()->with('error', 'No se pudo crear el archivo ZIP.');
+        }
+        
+        foreach ($payrolls as $payroll) {
+            $payroll->load(['haberes', 'deducciones', 'approvedBy', 'employee']);
+            
+            // Limpiar el nombre del empleado para el archivo
+            $nombreEmpleado = str_replace(' ', '_', $payroll->employee_name);
+            $nombreEmpleado = preg_replace('/[^A-Za-z0-9_]/', '', $nombreEmpleado);
+            
+            $filename = "recibo-{$mesNombre}{$year}-{$nombreEmpleado}.pdf";
+            
+            // Generar el PDF
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payroll.pdf', [
+                'payroll' => $payroll,
+            ]);
+            
+            $pdf->setPaper('A4', 'portrait');
+            
+            // Agregar el PDF al ZIP
+            $zip->addFromString($filename, $pdf->output());
+        }
+        
+        $zip->close();
+        
+        // Descargar y eliminar el archivo temporal
+        return response()->download($zipPath, $zipFileName)->deleteFileAfterSend(true);
+    }
 }
 

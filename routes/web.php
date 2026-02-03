@@ -291,6 +291,7 @@ Route::middleware([
     Route::post('payroll/sac/store', [App\Http\Controllers\PayrollController::class, 'storeSAC'])->name('payroll.storeSAC');
     Route::post('payroll/store', [App\Http\Controllers\PayrollController::class, 'store'])->name('payroll.store');
     Route::post('payroll/store-bulk', [App\Http\Controllers\PayrollController::class, 'storeBulk'])->name('payroll.storeBulk');
+    Route::get('payroll/download-bulk-pdf', [App\Http\Controllers\PayrollController::class, 'downloadBulkPdf'])->name('payroll.downloadBulkPdf');
     Route::get('payroll/{payroll}', [App\Http\Controllers\PayrollController::class, 'show'])->name('payroll.show');
     Route::post('payroll/{payroll}/liquidar', [App\Http\Controllers\PayrollController::class, 'liquidar'])->name('payroll.liquidar');
     Route::post('payroll/{payroll}/pagar', [App\Http\Controllers\PayrollController::class, 'pagar'])->name('payroll.pagar');
