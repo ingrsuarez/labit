@@ -70,6 +70,21 @@ class TestController extends Controller
             'low' => 'nullable|string|max:50',
             'high' => 'nullable|string|max:50',
             'material' => 'nullable|integer',
+        ], [
+            'code.required' => 'El código es obligatorio.',
+            'code.unique' => 'Este código ya está en uso. Por favor, elija otro.',
+            'code.max' => 'El código no puede tener más de 50 caracteres.',
+            'name.required' => 'El nombre es obligatorio.',
+            'name.max' => 'El nombre no puede tener más de 255 caracteres.',
+            'unit.max' => 'La unidad no puede tener más de 50 caracteres.',
+            'method.max' => 'El método no puede tener más de 255 caracteres.',
+            'decimals.integer' => 'Los decimales deben ser un número entero.',
+            'decimals.min' => 'Los decimales no pueden ser negativos.',
+            'decimals.max' => 'Los decimales no pueden ser más de 6.',
+            'nbu.integer' => 'El NBU debe ser un número entero.',
+            'parent_ids.*.exists' => 'Uno de los análisis padre seleccionados no existe.',
+            'low.max' => 'El valor mínimo no puede tener más de 50 caracteres.',
+            'high.max' => 'El valor máximo no puede tener más de 50 caracteres.',
         ]);
 
         $test = Test::create([
@@ -132,6 +147,21 @@ class TestController extends Controller
             'low' => 'nullable|string|max:50',
             'high' => 'nullable|string|max:50',
             'material' => 'nullable|integer',
+        ], [
+            'code.required' => 'El código es obligatorio.',
+            'code.unique' => 'Este código ya está en uso. Por favor, elija otro.',
+            'code.max' => 'El código no puede tener más de 50 caracteres.',
+            'name.required' => 'El nombre es obligatorio.',
+            'name.max' => 'El nombre no puede tener más de 255 caracteres.',
+            'unit.max' => 'La unidad no puede tener más de 50 caracteres.',
+            'method.max' => 'El método no puede tener más de 255 caracteres.',
+            'decimals.integer' => 'Los decimales deben ser un número entero.',
+            'decimals.min' => 'Los decimales no pueden ser negativos.',
+            'decimals.max' => 'Los decimales no pueden ser más de 6.',
+            'nbu.integer' => 'El NBU debe ser un número entero.',
+            'parent_ids.*.exists' => 'Uno de los análisis padre seleccionados no existe.',
+            'low.max' => 'El valor mínimo no puede tener más de 50 caracteres.',
+            'high.max' => 'El valor máximo no puede tener más de 50 caracteres.',
         ]);
 
         $test->update([

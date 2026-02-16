@@ -162,48 +162,48 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Código *</label>
-                            <input type="text" name="code" required
-                                   class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                            <input type="text" name="code" required value="{{ old('code') }}"
+                                   class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 @error('code') border-red-500 @enderror"
                                    placeholder="Ej: COL-T">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
-                            <input type="text" name="name" required
-                                   class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                            <input type="text" name="name" required value="{{ old('name') }}"
+                                   class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 @error('name') border-red-500 @enderror"
                                    placeholder="Ej: Coliformes Totales">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Unidad</label>
-                            <input type="text" name="unit"
+                            <input type="text" name="unit" value="{{ old('unit') }}"
                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
                                    placeholder="Ej: UFC/100ml">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Método</label>
-                            <input type="text" name="method"
+                            <input type="text" name="method" value="{{ old('method') }}"
                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
                                    placeholder="Ej: Filtración por membrana">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Valor Mínimo</label>
-                            <input type="text" name="low"
+                            <input type="text" name="low" value="{{ old('low') }}"
                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
                                    placeholder="Valor de referencia mínimo">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Valor Máximo</label>
-                            <input type="text" name="high"
+                            <input type="text" name="high" value="{{ old('high') }}"
                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
                                    placeholder="Valor de referencia máximo">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Decimales</label>
-                            <input type="number" name="decimals" value="2" min="0" max="6"
+                            <input type="number" name="decimals" value="{{ old('decimals', 2) }}" min="0" max="6"
                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">NBU</label>
-                            <input type="number" name="nbu"
+                            <input type="number" name="nbu" value="{{ old('nbu') }}"
                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                         </div>
                         <div>
@@ -211,7 +211,7 @@
                             <select name="material" class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                                 <option value="">Ninguno</option>
                                 @foreach($materials as $material)
-                                    <option value="{{ $material->id }}">{{ $material->name }}</option>
+                                    <option value="{{ $material->id }}" {{ old('material') == $material->id ? 'selected' : '' }}>{{ $material->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -219,14 +219,15 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Análisis Padres</label>
                             <p class="text-xs text-gray-500 mb-2">Puede seleccionar múltiples padres. Dejar vacío si esta determinación es un padre.</p>
                             <input type="text" id="create-parent-search" 
-                                   placeholder="🔍 Buscar por código o nombre..."
+                                   placeholder="Buscar por código o nombre..."
                                    class="w-full mb-2 rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 text-sm"
                                    onkeyup="filterParentOptions('create-parent-search', 'create-parent-ids')">
                             <div class="relative">
                                 <select name="parent_ids[]" id="create-parent-ids" multiple size="6"
                                         class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                                    @php $oldParents = old('parent_ids', []); @endphp
                                     @foreach($parents as $parent)
-                                        <option value="{{ $parent->id }}" data-search="{{ strtolower($parent->code . ' ' . $parent->name) }}">{{ $parent->code }} - {{ ucfirst($parent->name) }}</option>
+                                        <option value="{{ $parent->id }}" data-search="{{ strtolower($parent->code . ' ' . $parent->name) }}" {{ in_array($parent->id, $oldParents) ? 'selected' : '' }}>{{ $parent->code }} - {{ ucfirst($parent->name) }}</option>
                                     @endforeach
                                 </select>
                                 <div id="create-parent-ids-count" class="absolute bottom-1 right-2 text-xs text-gray-400"></div>
@@ -238,7 +239,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Instrucciones</label>
                         <textarea name="instructions" rows="2"
                                   class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
-                                  placeholder="Instrucciones para la toma de muestra..."></textarea>
+                                  placeholder="Instrucciones para la toma de muestra...">{{ old('instructions') }}</textarea>
                     </div>
                 </div>
 
