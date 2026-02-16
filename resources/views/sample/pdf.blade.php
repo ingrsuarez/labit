@@ -19,30 +19,26 @@
         }
         
         @page {
-            margin: 110px 40px 50px 40px;
+            margin: 20px 30px;
         }
         
         .page {
-            padding: 0;
+            padding: 20px 30px;
             position: relative;
         }
         
-        /* Header con logo - FIJO EN CADA PÁGINA */
+        /* Header con logo */
         .header {
-            position: fixed;
-            top: -90px;
-            left: 0;
-            right: 0;
-            height: 80px;
-            border-bottom: 2px solid #030303;
-            padding: 5px 0;
-            background: #fff;
+            display: table;
+            width: 100%;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #030303;
+            padding-bottom: 10px;
         }
         
         .header-table {
             display: table;
             width: 100%;
-            height: 70px;
         }
         
         .header-left {
@@ -332,18 +328,14 @@
         }
         
         
-        /* Page Footer - Fijo en cada página */
+        /* Page Footer */
         .page-footer {
-            position: fixed;
-            bottom: -35px;
-            left: 0;
-            right: 0;
+            margin-top: 20px;
             font-size: 8px;
             color: #999;
             text-align: center;
             border-top: 1px solid #eee;
-            padding: 5px 0;
-            background: #fff;
+            padding-top: 5px;
         }
         
         /* Área de contenido */
@@ -422,19 +414,19 @@
         }
     @endphp
 
-    <!-- Header - Fijo en cada página (fuera del contenedor principal) -->
-    <div class="header">
-        <div class="header-table">
-            <div class="header-left">
-                <img src="{{ public_path('images/logo_ipac.png') }}" alt="IPAC" class="logo-img">
-            </div>
-            <div class="header-right">
-                <div class="company-name">IPAC Laboratorio de Aguas y Alimentos</div>
+    <div class="page content-area">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-table">
+                <div class="header-left">
+                    <img src="{{ public_path('images/logo_ipac.png') }}" alt="IPAC" class="logo-img">
+                </div>
+                <div class="header-right">
+                    <div class="company-name">IPAC Laboratorio de Aguas y Alimentos</div>
+                </div>
             </div>
         </div>
-    </div>
-
-    <div class="page content-area">
+        
         <!-- Sample Info -->
         <div class="sample-info-bar">
             <div class="sample-info-row" style="display: table; width: 100%;">
@@ -748,11 +740,10 @@
             
         </div>
         
-    </div>
-
-    <!-- Page Footer - Fijo en cada página (fuera del contenedor principal) -->
-    <div class="page-footer">
-        Protocolo {{ $sample->protocol_number }} | Generado: {{ now()->format('d/m/Y H:i') }}
+        <!-- Page Footer -->
+        <div class="page-footer">
+            Protocolo {{ $sample->protocol_number }} | Generado: {{ now()->format('d/m/Y H:i') }}
+        </div>
     </div>
 </body>
 </html>
