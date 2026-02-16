@@ -19,10 +19,7 @@
         }
         
         @page {
-            margin-top: 120px;
-            margin-bottom: 60px;
-            margin-left: 30px;
-            margin-right: 30px;
+            margin: 20px 30px;
         }
         
         .page {
@@ -33,12 +30,12 @@
         /* Header con logo - FIJO EN CADA PÁGINA */
         .header {
             position: fixed;
-            top: -100px;
-            left: -30px;
-            right: -30px;
-            height: 90px;
-            padding: 10px 30px;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
             border-bottom: 2px solid #030303;
+            padding-bottom: 10px;
             background: #fff;
         }
         
@@ -70,6 +67,11 @@
         .logo-img {
             max-height: 60px;
             max-width: 150px;
+        }
+        
+        /* Espacio para el header fijo */
+        .header-spacer {
+            height: 90px;
         }
         
         /* Sample Info Bar */
@@ -338,20 +340,20 @@
         /* Page Footer - Fijo en cada página */
         .page-footer {
             position: fixed;
-            bottom: -40px;
-            left: -30px;
-            right: -30px;
+            bottom: 0;
+            left: 0;
+            right: 0;
             font-size: 8px;
             color: #999;
             text-align: center;
             border-top: 1px solid #eee;
-            padding: 5px 30px;
+            padding: 5px 0;
             background: #fff;
         }
         
         /* Área de contenido */
         .content-area {
-            padding-bottom: 20px;
+            padding-bottom: 30px;
         }
     </style>
 </head>
@@ -437,6 +439,9 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Espaciador para el header fijo -->
+        <div class="header-spacer"></div>
         
         <!-- Sample Info -->
         <div class="sample-info-bar">
