@@ -30,11 +30,12 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <div>
-                    <p class="text-sm text-blue-800 font-medium">Navegación rápida con teclado</p>
+                    <p class="text-sm text-blue-800 font-medium">Carga rápida de resultados</p>
                     <p class="text-sm text-blue-700">
-                        Use <kbd class="px-1.5 py-0.5 bg-blue-100 rounded text-xs font-mono">Tab</kbd> o 
-                        <kbd class="px-1.5 py-0.5 bg-blue-100 rounded text-xs font-mono">Enter</kbd> para moverse al siguiente campo.
-                        <kbd class="px-1.5 py-0.5 bg-blue-100 rounded text-xs font-mono">Shift+Tab</kbd> para retroceder.
+                        <kbd class="px-1.5 py-0.5 bg-blue-100 rounded text-xs font-mono">Enter</kbd> o 
+                        <kbd class="px-1.5 py-0.5 bg-blue-100 rounded text-xs font-mono">Tab</kbd> salta al siguiente <strong>Resultado</strong>.
+                        <kbd class="px-1.5 py-0.5 bg-blue-100 rounded text-xs font-mono">Shift+Tab</kbd> retrocede.
+                        Los demás campos se editan con <strong>click del mouse</strong>.
                     </p>
                 </div>
             </div>
@@ -268,7 +269,7 @@
                                         <input type="text" 
                                                name="determinations[{{ $index }}][result]" 
                                                value="{{ $det->result }}"
-                                               class="result-input w-full text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500 font-medium"
+                                               class="result-only-input w-full text-sm rounded border-teal-400 border-2 focus:border-teal-500 focus:ring-teal-500 font-medium bg-teal-50"
                                                data-index="{{ $index }}"
                                                placeholder="Ej: < 0, Ausente">
                                     </div>
@@ -279,7 +280,7 @@
                                         @if($det->test->referenceValues && $det->test->referenceValues->count() > 0)
                                             {{-- Si hay valores predefinidos, mostrar select --}}
                                             <select name="determinations[{{ $index }}][reference_value]" 
-                                                    class="result-input child-ref-select w-full text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                                                    class="other-field child-ref-select w-full text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500"
                                                     data-index="{{ $index }}"
                                                     data-test-id="{{ $det->test_id }}"
                                                     data-parent-ids="{{ $parentIdsJson }}"
@@ -301,7 +302,7 @@
                                             <input type="text" 
                                                    name="determinations[{{ $index }}][reference_value_custom]" 
                                                    value="{{ !$det->test->referenceValues->pluck('value')->contains($det->reference_value) ? $det->reference_value : '' }}"
-                                                   class="result-input w-full text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500 mt-1 hidden"
+                                                   class="other-field w-full text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500 mt-1 hidden"
                                                    data-index="{{ $index }}"
                                                    data-custom-ref="{{ $index }}"
                                                    placeholder="Ingrese valor personalizado">
@@ -310,7 +311,7 @@
                                             <input type="text" 
                                                    name="determinations[{{ $index }}][reference_value]" 
                                                    value="{{ $det->reference_value }}"
-                                                   class="result-input w-full text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                                                   class="other-field w-full text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500"
                                                    data-index="{{ $index }}"
                                                    data-test-id="{{ $det->test_id }}"
                                                    data-parent-ids="{{ $parentIdsJson }}"
@@ -324,7 +325,7 @@
                                         <input type="text" 
                                                name="determinations[{{ $index }}][method]" 
                                                value="{{ $det->method }}"
-                                               class="result-input w-full text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                                               class="other-field w-full text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500"
                                                data-index="{{ $index }}"
                                                placeholder="ISO, etc.">
                                     </div>
@@ -335,7 +336,7 @@
                                         <input type="text" 
                                                name="determinations[{{ $index }}][observations]" 
                                                value="{{ $det->observations }}"
-                                               class="result-input w-full text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                                               class="other-field w-full text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500"
                                                data-index="{{ $index }}"
                                                placeholder="Opcional">
                                     </div>
@@ -344,7 +345,7 @@
                                     <div>
                                         <label class="block text-xs font-medium text-gray-600 mb-1">Estado</label>
                                         <select name="determinations[{{ $index }}][status]" 
-                                                class="result-input w-full text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                                                class="other-field w-full text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500"
                                                 data-index="{{ $index }}">
                                             <option value="pending" {{ $det->status == 'pending' ? 'selected' : '' }}>Pendiente</option>
                                             <option value="in_progress" {{ $det->status == 'in_progress' ? 'selected' : '' }}>En Proceso</option>
@@ -454,22 +455,35 @@
     </div>
 
     <script>
-        // Navegación con Enter para pasar al siguiente campo
-        document.querySelectorAll('.result-input').forEach(function(input) {
+        // Navegación con Enter y Tab SOLO entre campos de RESULTADO
+        const resultOnlyInputs = Array.from(document.querySelectorAll('.result-only-input'));
+        
+        resultOnlyInputs.forEach(function(input, idx) {
             input.addEventListener('keydown', function(e) {
+                // Enter: pasar al siguiente campo de resultado
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    
-                    // Obtener todos los inputs
-                    const inputs = Array.from(document.querySelectorAll('.result-input'));
-                    const currentIndex = inputs.indexOf(this);
-                    
-                    // Ir al siguiente input
-                    if (currentIndex < inputs.length - 1) {
-                        inputs[currentIndex + 1].focus();
-                        if (inputs[currentIndex + 1].tagName === 'INPUT') {
-                            inputs[currentIndex + 1].select();
-                        }
+                    if (idx < resultOnlyInputs.length - 1) {
+                        resultOnlyInputs[idx + 1].focus();
+                        resultOnlyInputs[idx + 1].select();
+                    }
+                }
+                
+                // Tab: pasar al siguiente campo de resultado (no a otros campos)
+                if (e.key === 'Tab' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (idx < resultOnlyInputs.length - 1) {
+                        resultOnlyInputs[idx + 1].focus();
+                        resultOnlyInputs[idx + 1].select();
+                    }
+                }
+                
+                // Shift+Tab: retroceder al campo de resultado anterior
+                if (e.key === 'Tab' && e.shiftKey) {
+                    e.preventDefault();
+                    if (idx > 0) {
+                        resultOnlyInputs[idx - 1].focus();
+                        resultOnlyInputs[idx - 1].select();
                     }
                 }
             });
@@ -488,6 +502,13 @@
                 }
             });
         });
+        
+        // Indicador visual de cambio para otros campos (accesibles con mouse)
+        document.querySelectorAll('.other-field').forEach(function(input) {
+            input.addEventListener('change', function() {
+                this.classList.add('ring-2', 'ring-yellow-400');
+            });
+        });
 
         // Marcar todas las determinaciones como completadas
         function markAllCompleted() {
@@ -497,8 +518,8 @@
             });
         }
 
-        // Auto-completar estado a "completado" si se ingresa un resultado
-        document.querySelectorAll('input[name$="[result]"]').forEach(function(input) {
+        // Auto-completar estado a "en proceso" si se ingresa un resultado
+        document.querySelectorAll('.result-only-input').forEach(function(input) {
             input.addEventListener('blur', function() {
                 if (this.value.trim() !== '') {
                     const index = this.dataset.index;
