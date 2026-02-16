@@ -19,8 +19,8 @@
         }
         
         @page {
-            margin-top: 100px;
-            margin-bottom: 80px;
+            margin-top: 120px;
+            margin-bottom: 60px;
             margin-left: 30px;
             margin-right: 30px;
         }
@@ -33,15 +33,19 @@
         /* Header con logo - FIJO EN CADA PÁGINA */
         .header {
             position: fixed;
-            top: -80px;
-            left: 0;
-            right: 0;
-            height: 70px;
+            top: -100px;
+            left: -30px;
+            right: -30px;
+            height: 90px;
+            padding: 10px 30px;
+            border-bottom: 2px solid #030303;
+            background: #fff;
+        }
+        
+        .header-table {
             display: table;
             width: 100%;
-            border-bottom: 1px solid #030303;
-            padding-bottom: 10px;
-            background: #fff;
+            height: 70px;
         }
         
         .header-left {
@@ -334,14 +338,14 @@
         /* Page Footer - Fijo en cada página */
         .page-footer {
             position: fixed;
-            bottom: -60px;
-            left: 0;
-            right: 0;
+            bottom: -40px;
+            left: -30px;
+            right: -30px;
             font-size: 8px;
             color: #999;
             text-align: center;
             border-top: 1px solid #eee;
-            padding-top: 5px;
+            padding: 5px 30px;
             background: #fff;
         }
         
@@ -422,13 +426,15 @@
     @endphp
 
     <div class="page content-area">
-        <!-- Header -->
+        <!-- Header - Fijo en cada página -->
         <div class="header">
-            <div class="header-left">
-                <img src="{{ public_path('images/logo_ipac.png') }}" alt="IPAC" class="logo-img">
-            </div>
-            <div class="header-right">
-                <div class="company-name">IPAC Laboratorio de Aguas y Alimentos</div>
+            <div class="header-table">
+                <div class="header-left">
+                    <img src="{{ public_path('images/logo_ipac.png') }}" alt="IPAC" class="logo-img">
+                </div>
+                <div class="header-right">
+                    <div class="company-name">IPAC Laboratorio de Aguas y Alimentos</div>
+                </div>
             </div>
         </div>
         
