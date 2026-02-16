@@ -432,6 +432,11 @@
                     <strong>{{ $sample->sampling_date?->format('d/m/Y') }} - {{ substr($sample->protocol_number, -2) }}</strong>
                 </span>
             </div>
+            @if($sample->address)
+            <div class="sample-info-row" style="margin-top: 4px;">
+                Dirección: <strong>{{ $sample->address }}</strong>
+            </div>
+            @endif
             <div class="sample-info-row" style="margin-top: 8px;">
                 Muestra: <strong style="font-size: 14px;">{{ strtoupper($sample->sample_type) }} - {{ strtoupper($sample->location) }}</strong>
             </div>
