@@ -19,7 +19,7 @@
         }
         
         @page {
-            margin: 30px 40px;
+            margin: 110px 40px 50px 40px;
         }
         
         .page {
@@ -30,19 +30,19 @@
         /* Header con logo - FIJO EN CADA PÁGINA */
         .header {
             position: fixed;
-            top: 0;
+            top: -90px;
             left: 0;
             right: 0;
-            height: 85px;
+            height: 80px;
             border-bottom: 2px solid #030303;
-            padding: 10px 40px 10px 40px;
+            padding: 5px 0;
             background: #fff;
         }
         
         .header-table {
             display: table;
             width: 100%;
-            height: 65px;
+            height: 70px;
         }
         
         .header-left {
@@ -67,11 +67,6 @@
         .logo-img {
             max-height: 70px;
             max-width: 170px;
-        }
-        
-        /* Espacio para el header fijo */
-        .header-spacer {
-            height: 95px;
         }
         
         /* Sample Info Bar */
@@ -340,7 +335,7 @@
         /* Page Footer - Fijo en cada página */
         .page-footer {
             position: fixed;
-            bottom: 0;
+            bottom: -35px;
             left: 0;
             right: 0;
             font-size: 8px;
@@ -353,7 +348,7 @@
         
         /* Área de contenido */
         .content-area {
-            padding-bottom: 30px;
+            padding-bottom: 10px;
         }
     </style>
 </head>
@@ -440,9 +435,6 @@
     </div>
 
     <div class="page content-area">
-        <!-- Espaciador para el header fijo -->
-        <div class="header-spacer"></div>
-        
         <!-- Sample Info -->
         <div class="sample-info-bar">
             <div class="sample-info-row" style="display: table; width: 100%;">
