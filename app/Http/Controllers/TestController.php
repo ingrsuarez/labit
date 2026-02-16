@@ -93,8 +93,9 @@ class TestController extends Controller
             $test->parentTests()->sync($validated['parent_ids']);
         }
 
-        return redirect()->route('tests.index')
-            ->with('success', 'Determinación creada correctamente.');
+        // Redirigir mostrando la nueva determinación (buscar por su código)
+        return redirect()->route('tests.index', ['search' => $test->code])
+            ->with('success', 'Determinación "' . strtoupper($test->code) . '" creada correctamente.');
     }
 
     /**

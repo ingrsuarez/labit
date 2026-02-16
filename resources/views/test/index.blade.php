@@ -150,6 +150,15 @@
                 </div>
                 
                 <div class="px-6 py-4">
+                    @if($errors->any())
+                        <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                            <ul class="list-disc list-inside">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Código *</label>
@@ -454,6 +463,11 @@
                     );
                 }
             }
+
+            // Auto-abrir modal de crear si hay errores de validación
+            @if($errors->any())
+                document.getElementById('modal-create').classList.remove('hidden');
+            @endif
         });
     </script>
 </x-lab-layout>
