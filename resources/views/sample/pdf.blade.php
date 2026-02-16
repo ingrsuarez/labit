@@ -19,7 +19,7 @@
         }
         
         @page {
-            margin: 20px 30px;
+            margin: 30px 40px;
         }
         
         .page {
@@ -33,16 +33,16 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 80px;
+            height: 85px;
             border-bottom: 2px solid #030303;
-            padding-bottom: 10px;
+            padding: 10px 40px 10px 40px;
             background: #fff;
         }
         
         .header-table {
             display: table;
             width: 100%;
-            height: 70px;
+            height: 65px;
         }
         
         .header-left {
@@ -65,13 +65,13 @@
         }
         
         .logo-img {
-            max-height: 60px;
-            max-width: 150px;
+            max-height: 70px;
+            max-width: 170px;
         }
         
         /* Espacio para el header fijo */
         .header-spacer {
-            height: 90px;
+            height: 95px;
         }
         
         /* Sample Info Bar */
@@ -427,19 +427,19 @@
         }
     @endphp
 
-    <div class="page content-area">
-        <!-- Header - Fijo en cada página -->
-        <div class="header">
-            <div class="header-table">
-                <div class="header-left">
-                    <img src="{{ public_path('images/logo_ipac.png') }}" alt="IPAC" class="logo-img">
-                </div>
-                <div class="header-right">
-                    <div class="company-name">IPAC Laboratorio de Aguas y Alimentos</div>
-                </div>
+    <!-- Header - Fijo en cada página (fuera del contenedor principal) -->
+    <div class="header">
+        <div class="header-table">
+            <div class="header-left">
+                <img src="{{ public_path('images/logo_ipac.png') }}" alt="IPAC" class="logo-img">
+            </div>
+            <div class="header-right">
+                <div class="company-name">IPAC Laboratorio de Aguas y Alimentos</div>
             </div>
         </div>
-        
+    </div>
+
+    <div class="page content-area">
         <!-- Espaciador para el header fijo -->
         <div class="header-spacer"></div>
         
@@ -756,10 +756,11 @@
             
         </div>
         
-        <!-- Page Footer -->
-        <div class="page-footer">
-            Protocolo {{ $sample->protocol_number }} | Generado: {{ now()->format('d/m/Y H:i') }}
-        </div>
+    </div>
+
+    <!-- Page Footer - Fijo en cada página (fuera del contenedor principal) -->
+    <div class="page-footer">
+        Protocolo {{ $sample->protocol_number }} | Generado: {{ now()->format('d/m/Y H:i') }}
     </div>
 </body>
 </html>
