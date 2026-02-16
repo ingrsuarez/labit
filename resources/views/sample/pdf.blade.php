@@ -18,18 +18,30 @@
             color: #333;
         }
         
+        @page {
+            margin-top: 100px;
+            margin-bottom: 80px;
+            margin-left: 30px;
+            margin-right: 30px;
+        }
+        
         .page {
-            padding: 20px 30px;
+            padding: 0;
             position: relative;
         }
         
-        /* Header con logo */
+        /* Header con logo - FIJO EN CADA PÁGINA */
         .header {
+            position: fixed;
+            top: -80px;
+            left: 0;
+            right: 0;
+            height: 70px;
             display: table;
             width: 100%;
-            margin-bottom: 15px;
             border-bottom: 1px solid #030303;
             padding-bottom: 10px;
+            background: #fff;
         }
         
         .header-left {
@@ -52,8 +64,8 @@
         }
         
         .logo-img {
-            max-height: 70px;
-            max-width: 170px;
+            max-height: 60px;
+            max-width: 150px;
         }
         
         /* Sample Info Bar */
@@ -258,15 +270,13 @@
             color: #555;
         }
         
-        /* Footer / Validation - Siempre al final de la página */
+        /* Footer / Validation - Siempre al final de la última página */
         .validation-section {
-            position: fixed;
-            bottom: 40px;
-            left: 30px;
-            right: 30px;
+            margin-top: 30px;
             padding-top: 15px;
             border-top: 2px solid #333;
             background: #fff;
+            page-break-inside: avoid;
         }
         
         .validation-row {
@@ -321,12 +331,12 @@
         }
         
         
-        /* Page Footer - Siempre al final absoluto */
+        /* Page Footer - Fijo en cada página */
         .page-footer {
             position: fixed;
-            bottom: 10px;
-            left: 30px;
-            right: 30px;
+            bottom: -60px;
+            left: 0;
+            right: 0;
             font-size: 8px;
             color: #999;
             text-align: center;
@@ -335,9 +345,9 @@
             background: #fff;
         }
         
-        /* Espacio reservado para el footer fijo */
+        /* Área de contenido */
         .content-area {
-            padding-bottom: 120px;
+            padding-bottom: 20px;
         }
     </style>
 </head>
