@@ -1,6 +1,15 @@
 <x-admin-layout title="Empleados">
     <div class="max-w-7xl mx-auto p-6">
-        <h1 class="text-2xl font-bold text-gray-900 mb-6">Empleados</h1>
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">Empleados</h1>
+            <a href="{{ route('employee.new') }}"
+               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Nuevo Empleado
+            </a>
+        </div>
 
         {{-- Filtros --}}
         <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-4 rounded-xl shadow mb-6">
@@ -105,7 +114,8 @@
                             $puestos = $e->jobs->pluck('name')->implode(', ');
                             $deptos  = $e->jobs->pluck('department')->filter()->unique()->implode(', ');
                         @endphp
-                        <tr class="hover:bg-gray-50">
+                        <tr class="hover:bg-gray-50 cursor-pointer"
+                            onclick="window.location='{{ route('employee.edit', $e) }}'">
                             <td class="px-4 py-3">
                                 <div class="font-medium text-gray-900 capitalize">{{ $e->name }} {{ $e->lastName }}</div>
                                 <div class="text-xs text-gray-500">#{{ $e->id }}</div>
@@ -128,10 +138,10 @@
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <div class="inline-flex gap-2">
-                                    <a href="{{ route('employee.edit',$e )}}"
-                                    class="text-blue-600 hover:text-blue-800 text-sm">Editar</a>
-                                    <a href="{{ route('employee.show') }}?id={{ $e->id }}"
-                                    class="text-gray-600 hover:text-gray-800 text-sm">Ver</a>
+                                    <a href="{{ route('employee.edit', $e) }}" onclick="event.stopPropagation()"
+                                       class="text-blue-600 hover:text-blue-800 text-sm">Editar</a>
+                                    <a href="{{ route('employee.show') }}?id={{ $e->id }}" onclick="event.stopPropagation()"
+                                       class="text-gray-600 hover:text-gray-800 text-sm">Ver</a>
                                 </div>
                             </td>
                         </tr>

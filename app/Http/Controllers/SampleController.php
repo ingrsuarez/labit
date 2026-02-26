@@ -7,7 +7,7 @@ use App\Models\SampleDetermination;
 use App\Models\Customer;
 use App\Models\Test;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
+use PDF; // mPDF facade
 
 class SampleController extends Controller
 {
@@ -323,11 +323,11 @@ class SampleController extends Controller
             }
 
             $updateData = [
-                'result' => $data['result'],
-                'reference_value' => $data['reference_value'],
+                'result' => $data['result'] ?? $determination->result,
+                'reference_value' => $data['reference_value'] ?? $determination->reference_value,
                 'method' => $data['method'] ?? $determination->method,
-                'observations' => $data['observations'],
-                'status' => $data['status'],
+                'observations' => $data['observations'] ?? $determination->observations,
+                'status' => $data['status'] ?? $determination->status,
             ];
 
             if ($data['status'] === 'completed' && !$determination->analyzed_at) {
@@ -704,8 +704,13 @@ class SampleController extends Controller
             'validator'
         ]);
 
-        $pdf = PDF::loadView('sample.pdf', compact('sample'));
-        $pdf->setPaper('A4', 'portrait');
+        // Usar mPDF para headers/footers repetidos en cada página
+        $pdf = PDF::loadView('sample.pdf-mpdf', compact('sample'), [], [
+            'margin_top' => 35,
+            'margin_bottom' => 20,
+            'margin_left' => 15,
+            'margin_right' => 15,
+        ]);
 
         return $pdf->download('Protocolo_' . $sample->protocol_number . '.pdf');
     }
@@ -732,8 +737,13 @@ class SampleController extends Controller
             'validator'
         ]);
 
-        $pdf = PDF::loadView('sample.pdf', compact('sample'));
-        $pdf->setPaper('A4', 'portrait');
+        // Usar mPDF para headers/footers repetidos en cada página
+        $pdf = PDF::loadView('sample.pdf-mpdf', compact('sample'), [], [
+            'margin_top' => 35,
+            'margin_bottom' => 20,
+            'margin_left' => 15,
+            'margin_right' => 15,
+        ]);
 
         return $pdf->stream('Protocolo_' . $sample->protocol_number . '.pdf');
     }

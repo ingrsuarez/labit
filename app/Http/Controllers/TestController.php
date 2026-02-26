@@ -70,6 +70,7 @@ class TestController extends Controller
             'low' => 'nullable|string|max:50',
             'high' => 'nullable|string|max:50',
             'material' => 'nullable|integer',
+            'price' => 'nullable|numeric|min:0',
         ], [
             'code.required' => 'El código es obligatorio.',
             'code.unique' => 'Este código ya está en uso. Por favor, elija otro.',
@@ -85,6 +86,8 @@ class TestController extends Controller
             'parent_ids.*.exists' => 'Uno de los análisis padre seleccionados no existe.',
             'low.max' => 'El valor mínimo no puede tener más de 50 caracteres.',
             'high.max' => 'El valor máximo no puede tener más de 50 caracteres.',
+            'price.numeric' => 'El precio debe ser un número.',
+            'price.min' => 'El precio no puede ser negativo.',
         ]);
 
         $test = Test::create([
@@ -95,11 +98,11 @@ class TestController extends Controller
             'instructions' => $validated['instructions'] ?? null,
             'decimals' => $validated['decimals'] ?? 2,
             'nbu' => $validated['nbu'] ?? null,
-            'parent' => null, // Ya no usamos el campo legacy para nuevos registros
+            'parent' => null,
             'low' => $validated['low'] ?? null,
             'high' => $validated['high'] ?? null,
             'material' => $validated['material'] ?? null,
-            'price' => 0,
+            'price' => $validated['price'] ?? 0,
             'cost' => 0,
         ]);
 
@@ -147,6 +150,7 @@ class TestController extends Controller
             'low' => 'nullable|string|max:50',
             'high' => 'nullable|string|max:50',
             'material' => 'nullable|integer',
+            'price' => 'nullable|numeric|min:0',
         ], [
             'code.required' => 'El código es obligatorio.',
             'code.unique' => 'Este código ya está en uso. Por favor, elija otro.',
@@ -162,6 +166,8 @@ class TestController extends Controller
             'parent_ids.*.exists' => 'Uno de los análisis padre seleccionados no existe.',
             'low.max' => 'El valor mínimo no puede tener más de 50 caracteres.',
             'high.max' => 'El valor máximo no puede tener más de 50 caracteres.',
+            'price.numeric' => 'El precio debe ser un número.',
+            'price.min' => 'El precio no puede ser negativo.',
         ]);
 
         $test->update([
@@ -172,10 +178,11 @@ class TestController extends Controller
             'instructions' => $validated['instructions'],
             'decimals' => $validated['decimals'] ?? 2,
             'nbu' => $validated['nbu'],
-            'parent' => null, // Limpiar campo legacy
+            'parent' => null,
             'low' => $validated['low'],
             'high' => $validated['high'],
             'material' => $validated['material'],
+            'price' => $validated['price'] ?? $test->price,
         ]);
 
         // Sincronizar múltiples padres (esto reemplaza los existentes)

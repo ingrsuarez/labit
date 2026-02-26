@@ -56,6 +56,12 @@ Route::middleware([
     
     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
+    // ADMIN SECTIONS (Páginas index de cada sección del sidebar administrativo)
+    Route::get('admin/personal', [App\Http\Controllers\AdminSectionController::class, 'personal'])->name('admin.section.personal');
+    Route::get('admin/ausencias', [App\Http\Controllers\AdminSectionController::class, 'ausencias'])->name('admin.section.ausencias');
+    Route::get('admin/liquidaciones', [App\Http\Controllers\AdminSectionController::class, 'liquidaciones'])->name('admin.section.liquidaciones');
+    Route::get('admin/configuracion', [App\Http\Controllers\AdminSectionController::class, 'configuracion'])->name('admin.section.configuracion');
+
     // PATIENTS ROUTES
     Route::get('/patient/new',[App\Http\Controllers\PatientController::class, 'index'])->name('patient.index');
     Route::get('/patient/show',[App\Http\Controllers\PatientController::class, 'show'])->name('patient.show');
@@ -103,6 +109,11 @@ Route::middleware([
     Route::post('/nomenclator/{insurance}/recalculate', [App\Http\Controllers\InsuranceNomenclatorController::class, 'recalculatePrices'])->name('nomenclator.recalculate');
     Route::get('/nomenclator/{insurance}/search-tests', [App\Http\Controllers\InsuranceNomenclatorController::class, 'searchTests'])->name('nomenclator.searchTests');
     Route::post('/nomenclator/{insurance}/copy-from', [App\Http\Controllers\InsuranceNomenclatorController::class, 'copyFromNomenclator'])->name('nomenclator.copyFrom');
+
+    // LAB SECTIONS (Páginas index de cada sección del sidebar)
+    Route::get('lab/clinico', [App\Http\Controllers\LabSectionController::class, 'clinico'])->name('lab.section.clinico');
+    Route::get('lab/muestras', [App\Http\Controllers\LabSectionController::class, 'muestras'])->name('lab.section.muestras');
+    Route::get('lab/configuracion', [App\Http\Controllers\LabSectionController::class, 'configuracion'])->name('lab.section.configuracion');
 
     // LAB ADMISSIONS (Admisiones de Pacientes - Laboratorio)
     Route::get('lab/admissions', [App\Http\Controllers\LabAdmissionController::class, 'index'])->name('lab.admissions.index');
@@ -195,6 +206,22 @@ Route::middleware([
     Route::post('customer', [App\Http\Controllers\CustomerController::class, 'store'])->name('customer.store');
     Route::get('customer/{customer}/edit', [App\Http\Controllers\CustomerController::class, 'edit'])->name('customer.edit');
     Route::put('customer/{customer}', [App\Http\Controllers\CustomerController::class, 'update'])->name('customer.update');
+
+    // SERVICES (Servicios adicionales)
+    Route::get('services', [App\Http\Controllers\ServiceController::class, 'index'])->name('services.index');
+    Route::post('services', [App\Http\Controllers\ServiceController::class, 'store'])->name('services.store');
+    Route::put('services/{service}', [App\Http\Controllers\ServiceController::class, 'update'])->name('services.update');
+    Route::delete('services/{service}', [App\Http\Controllers\ServiceController::class, 'destroy'])->name('services.destroy');
+
+    // QUOTES (Presupuestos)
+    Route::get('quotes/search-tests', [App\Http\Controllers\QuoteController::class, 'searchTests'])->name('quotes.searchTests');
+    Route::get('quotes/search-customers', [App\Http\Controllers\QuoteController::class, 'searchCustomers'])->name('quotes.searchCustomers');
+    Route::get('quotes/search-services', [App\Http\Controllers\QuoteController::class, 'searchServices'])->name('quotes.searchServices');
+    Route::resource('quotes', App\Http\Controllers\QuoteController::class);
+    Route::get('quotes/{quote}/pdf', [App\Http\Controllers\QuoteController::class, 'downloadPdf'])->name('quotes.pdf');
+    Route::post('quotes/{quote}/send-email', [App\Http\Controllers\QuoteController::class, 'sendEmail'])->name('quotes.sendEmail');
+    Route::patch('quotes/{quote}/status', [App\Http\Controllers\QuoteController::class, 'updateStatus'])->name('quotes.updateStatus');
+    Route::post('quotes/{quote}/duplicate', [App\Http\Controllers\QuoteController::class, 'duplicate'])->name('quotes.duplicate');
 
     //MANAGMENT
     Route::get('manage/index',[App\Http\Controllers\ManageController::class, 'index'])->name('manage.index');

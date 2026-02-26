@@ -30,21 +30,21 @@
 
         <!-- Filtros -->
         <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
-            <form method="GET" class="flex flex-wrap gap-4">
-                <div class="flex-1 min-w-[250px]">
-                    <input type="text" name="search" value="{{ request('search') }}" 
+            <div class="flex flex-wrap gap-4">
+                <div class="flex-1 min-w-[250px] relative">
+                    <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input type="text" id="search-tests-input" value="{{ request('search') }}" 
                            placeholder="Buscar por código o nombre..."
-                           class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                           class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 pl-10">
                 </div>
-                <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
-                    Buscar
-                </button>
                 @if(request('search'))
-                    <a href="{{ route('tests.index') }}" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                    <a href="{{ route('tests.index') }}" class="px-4 py-2 text-gray-500 hover:text-gray-700 text-sm font-medium">
                         Limpiar
                     </a>
                 @endif
-            </form>
+            </div>
         </div>
 
         <!-- Tabla de Determinaciones -->
@@ -74,7 +74,8 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($tests as $test)
-                        <tr class="hover:bg-gray-50">
+                        <tr class="hover:bg-teal-50 cursor-pointer transition-colors"
+                            onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}')">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="text-teal-600 font-medium">{{ $test->code }}</span>
                             </td>
@@ -87,7 +88,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ $test->method ?? '-' }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm" onclick="event.stopPropagation()">
                                 <a href="{{ route('tests.reference-values.index', $test) }}" 
                                    class="inline-flex items-center text-blue-600 hover:text-blue-800">
                                     @if($test->referenceValues && $test->referenceValues->count() > 0)
@@ -101,13 +102,13 @@
                                     @endif
                                 </a>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2" onclick="event.stopPropagation()">
                                 <a href="{{ route('tests.reference-values.index', $test) }}" 
                                    class="text-blue-600 hover:text-blue-900" title="Valores de referencia">
                                     Refs
                                 </a>
                                 <button type="button" 
-                                        onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }})"
+                                        onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}')"
                                         class="text-indigo-600 hover:text-indigo-900">
                                     Editar
                                 </button>
@@ -205,6 +206,12 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">NBU</label>
                             <input type="number" name="nbu" value="{{ old('nbu') }}"
                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Precio</label>
+                            <input type="number" name="price" value="{{ old('price') }}" step="0.01" min="0"
+                                   class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                                   placeholder="Precio para presupuestos">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Material</label>
@@ -309,6 +316,12 @@
                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                         </div>
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Precio</label>
+                            <input type="number" name="price" id="edit-price" step="0.01" min="0"
+                                   class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                                   placeholder="Precio para presupuestos">
+                        </div>
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Material</label>
                             <select name="material" id="edit-material" class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                                 <option value="">Ninguno</option>
@@ -400,7 +413,7 @@
             }
         }
 
-        function openEditModal(id, code, name, unit, method, low, high, decimals, nbu, instructions, material, parentIds) {
+        function openEditModal(id, code, name, unit, method, low, high, decimals, nbu, instructions, material, parentIds, price) {
             document.getElementById('form-edit').action = '/tests/' + id;
             document.getElementById('edit-code').value = code;
             document.getElementById('edit-name').value = name;
@@ -410,6 +423,7 @@
             document.getElementById('edit-high').value = high || '';
             document.getElementById('edit-decimals').value = decimals || 2;
             document.getElementById('edit-nbu').value = nbu || '';
+            document.getElementById('edit-price').value = price || '';
             document.getElementById('edit-instructions').value = instructions || '';
             document.getElementById('edit-material').value = material || '';
             
@@ -460,7 +474,8 @@
                         test.nbu,
                         test.instructions,
                         test.material,
-                        parentIds
+                        parentIds,
+                        test.price
                     );
                 }
             }
@@ -469,6 +484,30 @@
             @if($errors->any())
                 document.getElementById('modal-create').classList.remove('hidden');
             @endif
+
+            // Búsqueda activa mientras se tipea
+            let searchTimer = null;
+            const searchInput = document.getElementById('search-tests-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(searchTimer);
+                    searchTimer = setTimeout(() => {
+                        const query = this.value.trim();
+                        const url = new URL(window.location.href);
+                        if (query.length > 0) {
+                            url.searchParams.set('search', query);
+                        } else {
+                            url.searchParams.delete('search');
+                        }
+                        url.searchParams.delete('page');
+                        window.location.href = url.toString();
+                    }, 400);
+                });
+                searchInput.focus();
+                const val = searchInput.value;
+                searchInput.value = '';
+                searchInput.value = val;
+            }
         });
     </script>
 </x-lab-layout>
