@@ -211,7 +211,7 @@
                 searchTest: '',
                 showSuggestions: false,
                 selectedTests: [],
-                allTests: @json($tests->map(fn($t) => ['id' => $t->id, 'code' => $t->code, 'name' => $t->name])),
+                allTests: {!! json_encode($tests->map(function($t) { return ['id' => $t->id, 'code' => $t->code, 'name' => $t->name]; })->values()) !!},
                 
                 get filteredTests() {
                     if (!this.searchTest || this.searchTest.length < 1) return [];

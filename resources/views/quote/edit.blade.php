@@ -242,6 +242,16 @@
         </form>
     </div>
 
+    @php
+        $quoteItems = $quote->items->map(function($i) {
+            return [
+                'test_id' => $i->test_id,
+                'description' => $i->description,
+                'quantity' => $i->quantity,
+                'unit_price' => $i->unit_price,
+            ];
+        })->values();
+    @endphp
     <script>
         function quoteEditForm() {
             return {
@@ -254,12 +264,7 @@
                 searchResults: [],
                 serviceSearchQuery: '',
                 serviceSearchResults: [],
-                items: @json($quote->items->map(fn($i) => [
-                    'test_id' => $i->test_id,
-                    'description' => $i->description,
-                    'quantity' => $i->quantity,
-                    'unit_price' => $i->unit_price,
-                ])),
+                items: {!! json_encode($quoteItems) !!},
                 taxRate: {{ $quote->tax_rate }},
                 subtotal: 0,
                 taxAmount: 0,
