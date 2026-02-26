@@ -166,8 +166,30 @@ class Test extends Model
             3 => 'Orina',
             4 => 'Citrato',
             5 => 'Heparina',
+            6 => 'Frasco Estéril',
+            7 => 'Botella de Vidrio',
+            8 => 'Hemograma',
         ];
 
         return $materials[$this->material] ?? 'N/A';
+    }
+
+    /**
+     * Sigla corta del material para etiquetas
+     */
+    public function getMaterialAbbreviationAttribute(): string
+    {
+        $abbreviations = [
+            1 => 'EDTA',
+            2 => 'SUE',
+            3 => 'ORI',
+            4 => 'CIT',
+            5 => 'HEP',
+            6 => 'FE',
+            7 => 'BV',
+            8 => 'HEM',
+        ];
+
+        return $abbreviations[$this->material] ?? '?';
     }
 }

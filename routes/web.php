@@ -200,6 +200,10 @@ Route::middleware([
     Route::get('sample/{sample}/pdf/view', [App\Http\Controllers\SampleController::class, 'viewPdf'])->name('sample.pdf.view');
     Route::post('sample/{sample}/send-email', [App\Http\Controllers\SampleController::class, 'sendEmail'])->name('sample.sendEmail');
 
+    // Etiquetas
+    Route::get('sample/{sample}/label-data', [App\Http\Controllers\SampleController::class, 'labelData'])->name('sample.labelData');
+    Route::get('sample/{sample}/label', [App\Http\Controllers\SampleController::class, 'printLabel'])->name('sample.label');
+
     // CUSTOMERS (Clientes)
     Route::get('customer', [App\Http\Controllers\CustomerController::class, 'index'])->name('customer.index');
     Route::get('customer/create', [App\Http\Controllers\CustomerController::class, 'create'])->name('customer.create');

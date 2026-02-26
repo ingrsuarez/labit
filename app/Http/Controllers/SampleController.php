@@ -878,4 +878,49 @@ class SampleController extends Controller
 
         return $ordered;
     }
+
+    /**
+     * Devuelve los datos de la muestra en JSON para generar la etiqueta ZPL
+     */
+    public function labelData(Sample $sample)
+    {
+        $sample->load(['customer', 'determinations.test']);
+
+        $materials = $sample->determinations
+            ->pluck('test.material_abbreviation')
+            ->unique()
+            ->filter()
+            ->implode('/');
+
+        return response()->json([
+            'protocol_number' => $sample->protocol_number,
+            'customer_name' => $sample->customer->name ?? 'N/A',
+            'materials' => $materials ?: 'N/A',
+            'sample_type' => strtoupper($sample->sample_type),
+            'entry_date' => $sample->entry_date->format('d/m/Y'),
+        ]);
+    }
+
+    /**
+     * Vista HTML de la etiqueta (fallback para impresoras no-Zebra)
+     */
+    public function printLabel(Sample $sample)
+    {
+        $sample->load(['customer', 'determinations.test']);
+
+        $materials = $sample->determinations
+            ->pluck('test.material_abbreviation')
+            ->unique()
+            ->filter()
+            ->implode('/');
+
+        $barcode = new \Picqer\Barcode\BarcodeGeneratorSVG();
+        $barcodeSvg = $barcode->getBarcode($sample->protocol_number, $barcode::TYPE_CODE_128, 2, 60);
+
+        return view('sample.label', [
+            'sample' => $sample,
+            'materials' => $materials ?: 'N/A',
+            'barcodeSvg' => $barcodeSvg,
+        ]);
+    }
 }
