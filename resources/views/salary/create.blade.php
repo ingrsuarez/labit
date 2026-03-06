@@ -81,8 +81,63 @@
                             <option value="basic_antiguedad_titulo" {{ old('calculation_base') === 'basic_antiguedad_titulo' ? 'selected' : '' }}>Básico + Vacaciones + Antigüedad + Título</option>
                             <option value="basic_hours" {{ old('calculation_base') === 'basic_hours' ? 'selected' : '' }}>Básico + Horas Extras</option>
                             <option value="basic_hours_antiguedad" {{ old('calculation_base') === 'basic_hours_antiguedad' ? 'selected' : '' }}>Básico + Horas + Antigüedad</option>
+                            <option value="custom" {{ old('calculation_base') === 'custom' ? 'selected' : '' }}>Personalizada (elegir conceptos)</option>
                         </select>
                         <p class="mt-1 text-xs text-gray-500">Sobre qué monto se calcula el porcentaje</p>
+
+                        {{-- Panel de conceptos para base personalizada --}}
+                        <div id="custom_base_panel" class="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-lg {{ old('calculation_base') === 'custom' ? '' : 'hidden' }}">
+                            <p class="text-sm font-medium text-blue-800 mb-3">Seleccione los conceptos que componen la base de cálculo:</p>
+                            
+                            <div class="mb-3 pb-3 border-b border-blue-200">
+                                <p class="text-xs font-semibold text-blue-700 uppercase mb-2">Conceptos fijos del sistema</p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <label class="flex items-center p-2 rounded hover:bg-blue-100 transition-colors">
+                                        <input type="checkbox" name="base_items[]" value="basico"
+                                               {{ in_array('basico', old('base_items', [])) ? 'checked' : '' }}
+                                               class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                                        <span class="ml-2 text-sm text-gray-700">Sueldo Básico</span>
+                                    </label>
+                                    <label class="flex items-center p-2 rounded hover:bg-blue-100 transition-colors">
+                                        <input type="checkbox" name="base_items[]" value="vacaciones"
+                                               {{ in_array('vacaciones', old('base_items', [])) ? 'checked' : '' }}
+                                               class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                                        <span class="ml-2 text-sm text-gray-700">Vacaciones</span>
+                                    </label>
+                                    <label class="flex items-center p-2 rounded hover:bg-blue-100 transition-colors">
+                                        <input type="checkbox" name="base_items[]" value="antiguedad"
+                                               {{ in_array('antiguedad', old('base_items', [])) ? 'checked' : '' }}
+                                               class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                                        <span class="ml-2 text-sm text-gray-700">Antigüedad</span>
+                                    </label>
+                                    <label class="flex items-center p-2 rounded hover:bg-blue-100 transition-colors">
+                                        <input type="checkbox" name="base_items[]" value="horas_extras"
+                                               {{ in_array('horas_extras', old('base_items', [])) ? 'checked' : '' }}
+                                               class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                                        <span class="ml-2 text-sm text-gray-700">Horas Extras</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            @if($allHaberes->count() > 0)
+                            <div>
+                                <p class="text-xs font-semibold text-blue-700 uppercase mb-2">Otros conceptos (haberes)</p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    @foreach($allHaberes as $haber)
+                                    <label class="flex items-center p-2 rounded hover:bg-blue-100 transition-colors">
+                                        <input type="checkbox" name="base_items[]" value="{{ $haber->id }}"
+                                               {{ in_array($haber->id, old('base_items', [])) ? 'checked' : '' }}
+                                               class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                                        <span class="ml-2 text-sm text-gray-700">{{ $haber->name }}</span>
+                                        @if($haber->code)
+                                        <span class="ml-1 text-xs text-gray-400">({{ $haber->code }})</span>
+                                        @endif
+                                    </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endif
+                        </div>
                     </div>
                     
                     {{-- Info para Deducciones --}}
@@ -253,6 +308,12 @@
         document.getElementById('type').addEventListener('change', toggleCalculationBase);
         // Ejecutar al cargar
         toggleCalculationBase();
+
+        // Mostrar/ocultar panel de base personalizada
+        document.getElementById('calculation_base').addEventListener('change', function() {
+            const panel = document.getElementById('custom_base_panel');
+            panel.classList.toggle('hidden', this.value !== 'custom');
+        });
 
         // Actualizar sufijo y ayuda según tipo de cálculo
         document.getElementById('calculation_type').addEventListener('change', function() {

@@ -30,7 +30,8 @@ class SalaryItemController extends Controller
      */
     public function create()
     {
-        return view('salary.create');
+        $allHaberes = SalaryItem::haberes()->active()->orderBy('order')->get();
+        return view('salary.create', compact('allHaberes'));
     }
 
     /**
@@ -44,7 +45,7 @@ class SalaryItemController extends Controller
             'type' => ['required', 'in:haber,deduccion'],
             'calculation_type' => ['required', 'in:percentage,fixed,fixed_proportional,hours'],
             'value' => ['required', 'numeric', 'min:0'],
-            'calculation_base' => ['nullable', 'string', 'in:basic,basic_vacaciones,basic_antiguedad,basic_antiguedad_titulo,basic_hours,basic_hours_antiguedad'],
+            'calculation_base' => ['nullable', 'string', 'in:basic,basic_vacaciones,basic_antiguedad,basic_antiguedad_titulo,basic_hours,basic_hours_antiguedad,custom'],
             'is_remunerative' => ['nullable', 'boolean'],
             'is_active' => ['nullable', 'boolean'],
             'order' => ['nullable', 'integer', 'min:0'],
@@ -73,7 +74,11 @@ class SalaryItemController extends Controller
         // Limpiar campos no usados
         unset($validated['period_type']);
 
-        SalaryItem::create($validated);
+        $salaryItem = SalaryItem::create($validated);
+
+        if ($validated['calculation_base'] === 'custom') {
+            $salaryItem->syncBaseItemKeys($request->input('base_items', []));
+        }
 
         return redirect()->route('salary.index')
             ->with('success', 'Concepto de sueldo creado correctamente.');
@@ -84,7 +89,11 @@ class SalaryItemController extends Controller
      */
     public function edit(SalaryItem $salaryItem)
     {
-        return view('salary.edit', compact('salaryItem'));
+        $allHaberes = SalaryItem::haberes()->active()
+            ->where('id', '!=', $salaryItem->id)
+            ->orderBy('order')->get();
+        $selectedBaseItems = $salaryItem->getBaseItemKeys();
+        return view('salary.edit', compact('salaryItem', 'allHaberes', 'selectedBaseItems'));
     }
 
     /**
@@ -98,7 +107,7 @@ class SalaryItemController extends Controller
             'type' => ['required', 'in:haber,deduccion'],
             'calculation_type' => ['required', 'in:percentage,fixed,fixed_proportional,hours'],
             'value' => ['required', 'numeric', 'min:0'],
-            'calculation_base' => ['nullable', 'string', 'in:basic,basic_vacaciones,basic_antiguedad,basic_antiguedad_titulo,basic_hours,basic_hours_antiguedad'],
+            'calculation_base' => ['nullable', 'string', 'in:basic,basic_vacaciones,basic_antiguedad,basic_antiguedad_titulo,basic_hours,basic_hours_antiguedad,custom'],
             'is_remunerative' => ['nullable', 'boolean'],
             'is_active' => ['nullable', 'boolean'],
             'order' => ['nullable', 'integer', 'min:0'],
@@ -127,6 +136,12 @@ class SalaryItemController extends Controller
         unset($validated['period_type']);
 
         $salaryItem->update($validated);
+
+        if ($validated['calculation_base'] === 'custom') {
+            $salaryItem->syncBaseItemKeys($request->input('base_items', []));
+        } else {
+            $salaryItem->syncBaseItemKeys([]);
+        }
 
         return redirect()->route('salary.index')
             ->with('success', 'Concepto de sueldo actualizado correctamente.');

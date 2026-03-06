@@ -51,6 +51,40 @@ class SalaryItem extends Model
     }
 
     /**
+     * Conceptos que componen la base de cálculo personalizada de este concepto.
+     * Retorna un array de keys (ej: 'basico', 'vacaciones', 'antiguedad', 'horas_extras', o IDs numéricos de otros haberes)
+     */
+    public function getBaseItemKeys(): array
+    {
+        return \DB::table('salary_item_base_items')
+            ->where('salary_item_id', $this->id)
+            ->pluck('base_item_key')
+            ->toArray();
+    }
+
+    /**
+     * Sincronizar las keys de la base personalizada
+     */
+    public function syncBaseItemKeys(array $keys): void
+    {
+        \DB::table('salary_item_base_items')->where('salary_item_id', $this->id)->delete();
+
+        $rows = [];
+        foreach ($keys as $key) {
+            $rows[] = [
+                'salary_item_id' => $this->id,
+                'base_item_key' => $key,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        if (!empty($rows)) {
+            \DB::table('salary_item_base_items')->insert($rows);
+        }
+    }
+
+    /**
      * Scope para obtener solo haberes
      */
     public function scopeHaberes($query)

@@ -308,6 +308,25 @@ class PayrollController extends Controller
             'basic_antiguedad_titulo' => $basicSalary + $importeVacaciones + $antiguedad + $totalConceptosFijosZona,
         ];
 
+        // Componentes disponibles para bases personalizadas
+        $customBaseComponents = [
+            'basico' => $basicSalary,
+            'vacaciones' => $importeVacaciones,
+            'antiguedad' => $antiguedad,
+            'horas_extras' => $totalHorasExtras,
+        ];
+
+        // Precalcular importes de todos los haberes ya procesados (para referenciar desde bases custom)
+        $haberesImportes = [];
+        foreach ($conceptosAntiguedad as $concepto) {
+            foreach ($haberes as $h) {
+                if ($h->name === $concepto['nombre']) {
+                    $haberesImportes[$h->id] = $concepto['importe'];
+                    break;
+                }
+            }
+        }
+
         // Separar haberes remunerativos y no remunerativos
         $totalRemunerativo = $totalHaberes; // El básico, horas extras, conceptos especiales y antigüedad son remunerativos
         $totalNoRemunerativo = 0;
@@ -329,6 +348,18 @@ class PayrollController extends Controller
             // Obtener la base correcta para este concepto
             $baseCalculo = $bases[$haber->calculation_base] ?? $bases['basic_antiguedad'];
             
+            // Si es base personalizada, calcularla dinámicamente
+            if ($haber->calculation_base === 'custom') {
+                $baseCalculo = 0;
+                $baseItemKeys = $haber->getBaseItemKeys();
+                foreach ($baseItemKeys as $key) {
+                    if (isset($customBaseComponents[$key])) {
+                        $baseCalculo += $customBaseComponents[$key];
+                    } elseif (is_numeric($key) && isset($haberesImportes[(int)$key])) {
+                        $baseCalculo += $haberesImportes[(int)$key];
+                    }
+                }
+            }
             // Verificar si hay un valor personalizado para este empleado
             $customValue = null;
             if ($haber->requires_assignment) {
@@ -340,6 +371,7 @@ class PayrollController extends Controller
             
             $importe = $customValue ?? $this->calculateItem($haber, $baseCalculo, $leaves, $employee);
             if ($importe > 0) {
+                $haberesImportes[$haber->id] = $importe;
                 $haberesCalculados[] = [
                     'nombre' => $haber->name,
                     'porcentaje' => ($haber->calculation_type === 'percentage' && !$haber->hide_percentage_in_receipt) ? $haber->value . '%' : null,
