@@ -49,43 +49,46 @@
                     </button>
                 </div>
                 <div class="flex items-end gap-2">
-                    {{-- Acciones masivas --}}
-                    @if($payrolls->where('status', 'borrador')->count() > 0)
-                        <form action="{{ route('payroll.liquidarBulk') }}" method="POST" class="inline"
-                              onsubmit="return confirm('¿Cerrar todas las liquidaciones en borrador?')">
-                            @csrf
-                            <input type="hidden" name="year" value="{{ $year }}">
-                            <input type="hidden" name="month" value="{{ $month }}">
-                            <button type="submit" class="px-3 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-sm">
-                                Cerrar Todos
-                            </button>
-                        </form>
-                    @endif
-                    @if($payrolls->where('status', 'liquidado')->count() > 0)
-                        <form action="{{ route('payroll.pagarBulk') }}" method="POST" class="inline"
-                              onsubmit="return confirm('¿Marcar todas como pagadas?')">
-                            @csrf
-                            <input type="hidden" name="year" value="{{ $year }}">
-                            <input type="hidden" name="month" value="{{ $month }}">
-                            <button type="submit" class="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">
-                                Pagar Todos
-                            </button>
-                        </form>
-                    @endif
-                    {{-- Descargar PDFs masivamente --}}
-                    @if($payrolls->whereIn('status', ['liquidado', 'pagado'])->count() > 0)
-                        <a href="{{ route('payroll.downloadBulkPdf', ['year' => $year, 'month' => $month]) }}" 
-                           class="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm inline-flex items-center gap-1"
-                           title="Descargar todos los recibos cerrados en PDF">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                            </svg>
-                            Descargar PDFs
-                        </a>
-                    @endif
+                    {{-- Acciones masivas movidas fuera del form de filtros --}}
                 </div>
             </div>
         </form>
+
+        {{-- Acciones masivas (fuera del form de filtros para evitar forms anidados) --}}
+        <div class="flex items-center gap-2 mb-6">
+            @if($payrolls->where('status', 'borrador')->count() > 0)
+                <form action="{{ route('payroll.liquidarBulk') }}" method="POST" class="inline"
+                      onsubmit="return confirm('¿Cerrar todas las liquidaciones en borrador?')">
+                    @csrf
+                    <input type="hidden" name="year" value="{{ $year }}">
+                    <input type="hidden" name="month" value="{{ $month }}">
+                    <button type="submit" class="px-3 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-sm">
+                        Cerrar Todos
+                    </button>
+                </form>
+            @endif
+            @if($payrolls->where('status', 'liquidado')->count() > 0)
+                <form action="{{ route('payroll.pagarBulk') }}" method="POST" class="inline"
+                      onsubmit="return confirm('¿Marcar todas como pagadas?')">
+                    @csrf
+                    <input type="hidden" name="year" value="{{ $year }}">
+                    <input type="hidden" name="month" value="{{ $month }}">
+                    <button type="submit" class="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">
+                        Pagar Todos
+                    </button>
+                </form>
+            @endif
+            @if($payrolls->whereIn('status', ['liquidado', 'pagado'])->count() > 0)
+                <a href="{{ route('payroll.downloadBulkPdf', ['year' => $year, 'month' => $month]) }}" 
+                   class="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm inline-flex items-center gap-1"
+                   title="Descargar todos los recibos cerrados en PDF">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Descargar PDFs
+                </a>
+            @endif
+        </div>
 
         {{-- Resumen --}}
         @if($payrolls->count() > 0)
@@ -241,4 +244,22 @@
             </div>
         @endif
     </div>
+{{-- #region agent log --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var cerrarBtn = document.querySelector('button.bg-amber-600, [class*="bg-amber-600"]');
+    if (cerrarBtn) {
+        var parentForm = cerrarBtn.closest('form');
+        fetch('http://127.0.0.1:7245/ingest/27164436-3ec9-48b2-ae5b-41ab8181116b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'closed.blade.php:DOMContentLoaded',message:'Cerrar Todos button found',data:{btnText:cerrarBtn.textContent.trim(),parentFormAction:parentForm?parentForm.action:'NO_FORM',parentFormMethod:parentForm?parentForm.method:'NO_FORM',isNested:parentForm?!!parentForm.closest('form:not(:scope)'):'N/A'},timestamp:Date.now(),hypothesisId:'A'})}).catch(function(){});
+        cerrarBtn.addEventListener('click', function(e) {
+            fetch('http://127.0.0.1:7245/ingest/27164436-3ec9-48b2-ae5b-41ab8181116b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'closed.blade.php:click',message:'Cerrar Todos clicked',data:{formAction:parentForm?parentForm.action:'NO_FORM',formMethod:parentForm?parentForm.method:'NO_FORM'},timestamp:Date.now(),hypothesisId:'A'})}).catch(function(){});
+        });
+    } else {
+        fetch('http://127.0.0.1:7245/ingest/27164436-3ec9-48b2-ae5b-41ab8181116b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'closed.blade.php:DOMContentLoaded',message:'Cerrar Todos button NOT found',data:{},timestamp:Date.now(),hypothesisId:'D'})}).catch(function(){});
+    }
+    var allForms = document.querySelectorAll('form');
+    fetch('http://127.0.0.1:7245/ingest/27164436-3ec9-48b2-ae5b-41ab8181116b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'closed.blade.php:DOMContentLoaded',message:'All forms on page',data:{formCount:allForms.length,forms:Array.from(allForms).map(function(f){return{action:f.action,method:f.method,id:f.id}})},timestamp:Date.now(),hypothesisId:'A'})}).catch(function(){});
+});
+</script>
+{{-- #endregion --}}
 </x-admin-layout>

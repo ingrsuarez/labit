@@ -1329,6 +1329,10 @@ class PayrollController extends Controller
      */
     public function liquidarBulk(Request $request)
     {
+        // #region agent log
+        file_put_contents('c:\\wamp64\\www\\labit\\.cursor\\debug.log', json_encode(['location'=>'PayrollController.php:liquidarBulk','message'=>'Method entered','data'=>['year'=>$request->year,'month'=>$request->month,'all_input'=>$request->all()],'timestamp'=>round(microtime(true)*1000),'hypothesisId'=>'B'])."\n", FILE_APPEND);
+        // #endregion
+
         $request->validate([
             'year' => 'required|integer',
             'month' => 'required|integer|min:1|max:12',
@@ -1341,6 +1345,10 @@ class PayrollController extends Controller
                 'liquidated_at' => now(),
                 'approved_by' => auth()->id(),
             ]);
+
+        // #region agent log
+        file_put_contents('c:\\wamp64\\www\\labit\\.cursor\\debug.log', json_encode(['location'=>'PayrollController.php:liquidarBulk','message'=>'Update completed','data'=>['updated_count'=>$updated],'timestamp'=>round(microtime(true)*1000),'hypothesisId'=>'B'])."\n", FILE_APPEND);
+        // #endregion
 
         return back()->with('success', "Se cerraron {$updated} liquidaciones.");
     }
