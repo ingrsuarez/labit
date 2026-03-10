@@ -329,7 +329,10 @@
         {{-- Footer con Firmas --}}
         <div style="margin-top: 40px; display: table; width: 100%;">
             <div style="display: table-cell; width: 50%; text-align: center; padding: 0 30px;">
-                <div style="border-top: 1px solid #333; margin-top: 50px; padding-top: 8px;">
+                @if(!empty($employerSignature))
+                    <img src="{{ public_path('storage/' . $employerSignature) }}" alt="Firma Empleador" style="height: 60px; margin: 0 auto; display: block;">
+                @endif
+                <div style="border-top: 1px solid #333; margin-top: {{ !empty($employerSignature) ? '10px' : '50px' }}; padding-top: 8px;">
                     <p style="font-size: 11px; font-weight: bold;">Firma Empleador</p>
                 </div>
             </div>

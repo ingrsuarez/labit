@@ -317,6 +317,9 @@ Route::middleware([
     // PAYROLL (Liquidación de Sueldos)
     Route::get('payroll/index', [App\Http\Controllers\PayrollController::class, 'index'])->name('payroll.index');
     Route::get('payroll/bulk', [App\Http\Controllers\PayrollController::class, 'bulk'])->name('payroll.bulk');
+    Route::get('payroll/settings', [App\Http\Controllers\PayrollController::class, 'settings'])->name('payroll.settings');
+    Route::post('payroll/settings/signature', [App\Http\Controllers\PayrollController::class, 'updateSignature'])->name('payroll.updateSignature');
+    Route::delete('payroll/settings/signature', [App\Http\Controllers\PayrollController::class, 'deleteSignature'])->name('payroll.deleteSignature');
     Route::get('payroll/closed', [App\Http\Controllers\PayrollController::class, 'closed'])->name('payroll.closed');
     Route::get('payroll/sac', [App\Http\Controllers\PayrollController::class, 'sac'])->name('payroll.sac');
     Route::post('payroll/sac/store', [App\Http\Controllers\PayrollController::class, 'storeSAC'])->name('payroll.storeSAC');

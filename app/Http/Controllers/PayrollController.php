@@ -9,6 +9,7 @@ use App\Models\SalaryItem;
 use App\Models\Leave;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
+use App\Models\PayrollSetting;
 use App\Services\WorkingDaysService;
 use Illuminate\Support\Carbon;
 
@@ -1329,10 +1330,6 @@ class PayrollController extends Controller
      */
     public function liquidarBulk(Request $request)
     {
-        // #region agent log
-        file_put_contents('c:\\wamp64\\www\\labit\\.cursor\\debug.log', json_encode(['location'=>'PayrollController.php:liquidarBulk','message'=>'Method entered','data'=>['year'=>$request->year,'month'=>$request->month,'all_input'=>$request->all()],'timestamp'=>round(microtime(true)*1000),'hypothesisId'=>'B'])."\n", FILE_APPEND);
-        // #endregion
-
         $request->validate([
             'year' => 'required|integer',
             'month' => 'required|integer|min:1|max:12',
@@ -1345,10 +1342,6 @@ class PayrollController extends Controller
                 'liquidated_at' => now(),
                 'approved_by' => auth()->id(),
             ]);
-
-        // #region agent log
-        file_put_contents('c:\\wamp64\\www\\labit\\.cursor\\debug.log', json_encode(['location'=>'PayrollController.php:liquidarBulk','message'=>'Update completed','data'=>['updated_count'=>$updated],'timestamp'=>round(microtime(true)*1000),'hypothesisId'=>'B'])."\n", FILE_APPEND);
-        // #endregion
 
         return back()->with('success', "Se cerraron {$updated} liquidaciones.");
     }
@@ -1393,6 +1386,7 @@ class PayrollController extends Controller
         
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payroll.pdf', [
             'payroll' => $payroll,
+            'employerSignature' => PayrollSetting::get('employer_signature'),
         ]);
         
         $pdf->setPaper('A4', 'portrait');
@@ -1439,6 +1433,8 @@ class PayrollController extends Controller
             return back()->with('error', 'No se pudo crear el archivo ZIP.');
         }
         
+        $employerSignature = PayrollSetting::get('employer_signature');
+
         foreach ($payrolls as $payroll) {
             $payroll->load(['haberes', 'deducciones', 'approvedBy', 'employee']);
             
@@ -1451,6 +1447,7 @@ class PayrollController extends Controller
             // Generar el PDF
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payroll.pdf', [
                 'payroll' => $payroll,
+                'employerSignature' => $employerSignature,
             ]);
             
             $pdf->setPaper('A4', 'portrait');
@@ -1463,6 +1460,43 @@ class PayrollController extends Controller
         
         // Descargar y eliminar el archivo temporal
         return response()->download($zipPath, $zipFileName)->deleteFileAfterSend(true);
+    }
+
+    public function settings()
+    {
+        $signature = PayrollSetting::get('employer_signature');
+
+        return view('payroll.settings', compact('signature'));
+    }
+
+    public function updateSignature(Request $request)
+    {
+        $request->validate([
+            'signature' => 'required|image|mimes:png,jpg,jpeg|max:2048',
+        ]);
+
+        $oldSignature = PayrollSetting::get('employer_signature');
+        if ($oldSignature && \Storage::disk('public')->exists($oldSignature)) {
+            \Storage::disk('public')->delete($oldSignature);
+        }
+
+        $path = $request->file('signature')->store('payroll', 'public');
+        PayrollSetting::set('employer_signature', $path);
+
+        return back()->with('success', 'Firma del empleador actualizada correctamente.');
+    }
+
+    public function deleteSignature()
+    {
+        $signature = PayrollSetting::get('employer_signature');
+
+        if ($signature && \Storage::disk('public')->exists($signature)) {
+            \Storage::disk('public')->delete($signature);
+        }
+
+        PayrollSetting::set('employer_signature', null);
+
+        return back()->with('success', 'Firma del empleador eliminada.');
     }
 }
 

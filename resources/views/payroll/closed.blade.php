@@ -244,22 +244,4 @@
             </div>
         @endif
     </div>
-{{-- #region agent log --}}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    var cerrarBtn = document.querySelector('button.bg-amber-600, [class*="bg-amber-600"]');
-    if (cerrarBtn) {
-        var parentForm = cerrarBtn.closest('form');
-        fetch('http://127.0.0.1:7245/ingest/27164436-3ec9-48b2-ae5b-41ab8181116b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'closed.blade.php:DOMContentLoaded',message:'Cerrar Todos button found',data:{btnText:cerrarBtn.textContent.trim(),parentFormAction:parentForm?parentForm.action:'NO_FORM',parentFormMethod:parentForm?parentForm.method:'NO_FORM',isNested:parentForm?!!parentForm.closest('form:not(:scope)'):'N/A'},timestamp:Date.now(),hypothesisId:'A'})}).catch(function(){});
-        cerrarBtn.addEventListener('click', function(e) {
-            fetch('http://127.0.0.1:7245/ingest/27164436-3ec9-48b2-ae5b-41ab8181116b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'closed.blade.php:click',message:'Cerrar Todos clicked',data:{formAction:parentForm?parentForm.action:'NO_FORM',formMethod:parentForm?parentForm.method:'NO_FORM'},timestamp:Date.now(),hypothesisId:'A'})}).catch(function(){});
-        });
-    } else {
-        fetch('http://127.0.0.1:7245/ingest/27164436-3ec9-48b2-ae5b-41ab8181116b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'closed.blade.php:DOMContentLoaded',message:'Cerrar Todos button NOT found',data:{},timestamp:Date.now(),hypothesisId:'D'})}).catch(function(){});
-    }
-    var allForms = document.querySelectorAll('form');
-    fetch('http://127.0.0.1:7245/ingest/27164436-3ec9-48b2-ae5b-41ab8181116b',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'closed.blade.php:DOMContentLoaded',message:'All forms on page',data:{formCount:allForms.length,forms:Array.from(allForms).map(function(f){return{action:f.action,method:f.method,id:f.id}})},timestamp:Date.now(),hypothesisId:'A'})}).catch(function(){});
-});
-</script>
-{{-- #endregion --}}
 </x-admin-layout>
