@@ -105,6 +105,30 @@
             color: #000;
         }
 
+        .det-layout-table {
+            width: 100%;
+            border: none;
+            border-collapse: collapse;
+            margin-top: 2px;
+        }
+
+        .det-layout-table td {
+            border: none;
+            padding: 1px 5px;
+            vertical-align: top;
+            font-size: 11px;
+        }
+
+        .det-col-result {
+            font-weight: bold;
+            color: #000;
+        }
+
+        .det-col-ref {
+            color: #666;
+            text-align: right;
+        }
+
         /* Observations */
         .observations-block {
             margin: 15px 0;
@@ -351,20 +375,26 @@
             </div>
             
             @if(!$isParent)
-                <div class="det-data-row">
-                    <span class="det-label">Resultado:</span>
-                    <span class="det-value result">{{ $det->result ?? '-' }}@if($det->unit) {{ $det->unit }}@endif</span>
-                    @if($det->reference_value)
-                        <span style="margin-left: 20px; color: #666;">{{ $det->reference_value }}</span>
+                <table class="det-layout-table">
+                    <tr>
+                        <td width="45%" style="padding-left: 10px;">
+                            <span style="color: #666;">Resultado:</span>
+                            <span class="det-col-result">{{ $det->result ?? '-' }}@if($det->unit) {{ $det->unit }}@endif</span>
+                        </td>
+                        <td width="55%" class="det-col-ref">
+                            @if($det->reference_value)
+                                {{ $det->reference_value }}
+                            @endif
+                        </td>
+                    </tr>
+                    @if($det->method)
+                    <tr>
+                        <td colspan="2" style="padding-left: 10px; color: #666;">
+                            Método: <span style="color: #333;">{{ $det->method }}</span>
+                        </td>
+                    </tr>
                     @endif
-                </div>
-                
-                @if($det->method)
-                <div class="det-data-row">
-                    <span class="det-label">Método:</span>
-                    <span class="det-value">{{ $det->method }}</span>
-                </div>
-                @endif
+                </table>
             @endif
             
             @if($det->observations)
