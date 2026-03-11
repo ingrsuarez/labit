@@ -204,6 +204,66 @@ Route::middleware([
     Route::get('sample/{sample}/label-data', [App\Http\Controllers\SampleController::class, 'labelData'])->name('sample.labelData');
     Route::get('sample/{sample}/label', [App\Http\Controllers\SampleController::class, 'printLabel'])->name('sample.label');
 
+    // =============================================
+    // COMPRAS (requiere permiso compras.section)
+    // =============================================
+    Route::middleware('can:compras.section')->group(function () {
+        Route::get('purchases', [App\Http\Controllers\PurchaseSectionController::class, 'index'])->name('purchases.section');
+
+        // SUPPLIERS (Proveedores)
+        Route::get('suppliers/search', [App\Http\Controllers\SupplierController::class, 'search'])->name('suppliers.search');
+        Route::resource('suppliers', App\Http\Controllers\SupplierController::class);
+
+        // SUPPLY CATEGORIES (Categorías de Insumos)
+        Route::resource('supply-categories', App\Http\Controllers\SupplyCategoryController::class)->except(['show']);
+
+        // SUPPLIES (Insumos)
+        Route::get('supplies/search', [App\Http\Controllers\SupplyController::class, 'search'])->name('supplies.search');
+        Route::resource('supplies', App\Http\Controllers\SupplyController::class);
+
+        // STOCK MOVEMENTS (Movimientos de Stock)
+        Route::get('stock-movements', [App\Http\Controllers\StockMovementController::class, 'index'])->name('stock-movements.index');
+        Route::get('stock-movements/create', [App\Http\Controllers\StockMovementController::class, 'create'])->name('stock-movements.create');
+        Route::post('stock-movements', [App\Http\Controllers\StockMovementController::class, 'store'])->name('stock-movements.store');
+
+        // PURCHASE QUOTATION REQUESTS (Solicitudes de Cotización)
+        Route::resource('purchase-quotation-requests', App\Http\Controllers\PurchaseQuotationRequestController::class);
+        Route::patch('purchase-quotation-requests/{purchase_quotation_request}/status', [App\Http\Controllers\PurchaseQuotationRequestController::class, 'updateStatus'])->name('purchase-quotation-requests.updateStatus');
+
+        // PURCHASE ORDERS (Órdenes de Compra)
+        Route::resource('purchase-orders', App\Http\Controllers\PurchaseOrderController::class);
+        Route::patch('purchase-orders/{purchase_order}/status', [App\Http\Controllers\PurchaseOrderController::class, 'updateStatus'])->name('purchase-orders.updateStatus');
+
+        // DELIVERY NOTES (Remitos)
+        Route::resource('delivery-notes', App\Http\Controllers\DeliveryNoteController::class);
+        Route::post('delivery-notes/{delivery_note}/accept', [App\Http\Controllers\DeliveryNoteController::class, 'accept'])->name('delivery-notes.accept');
+
+        // PURCHASE INVOICES (Facturas de Compra)
+        Route::resource('purchase-invoices', App\Http\Controllers\PurchaseInvoiceController::class);
+
+        // PAYMENT ORDERS (Órdenes de Pago)
+        Route::resource('payment-orders', App\Http\Controllers\PaymentOrderController::class);
+        Route::post('payment-orders/{payment_order}/confirm', [App\Http\Controllers\PaymentOrderController::class, 'confirm'])->name('payment-orders.confirm');
+    });
+
+    // =============================================
+    // VENTAS (requiere permiso ventas.section)
+    // =============================================
+    Route::middleware('can:ventas.section')->group(function () {
+        Route::get('sales', [App\Http\Controllers\SalesSectionController::class, 'index'])->name('sales.section');
+
+        // SALES INVOICES (Facturas de Venta)
+        Route::resource('sales-invoices', App\Http\Controllers\SalesInvoiceController::class);
+        Route::get('sales-invoices-next-number', [App\Http\Controllers\SalesInvoiceController::class, 'nextNumber'])->name('sales-invoices.next-number');
+
+        // POINTS OF SALE (Puntos de Venta)
+        Route::resource('points-of-sale', App\Http\Controllers\PointOfSaleController::class)->except(['show']);
+
+        // COLLECTION RECEIPTS (Recibos de Cobro)
+        Route::resource('collection-receipts', App\Http\Controllers\CollectionReceiptController::class);
+        Route::post('collection-receipts/{collection_receipt}/confirm', [App\Http\Controllers\CollectionReceiptController::class, 'confirm'])->name('collection-receipts.confirm');
+    });
+
     // CUSTOMERS (Clientes)
     Route::get('customer', [App\Http\Controllers\CustomerController::class, 'index'])->name('customer.index');
     Route::get('customer/create', [App\Http\Controllers\CustomerController::class, 'create'])->name('customer.create');

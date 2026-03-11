@@ -92,6 +92,34 @@
                 Liquidaciones
             </a>
 
+            <!-- Compras -->
+            @can('compras.section')
+            <a href="{{ route('purchases.section') }}"
+               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                {{ request()->routeIs('purchases.*') || request()->routeIs('suppliers.*') || request()->routeIs('supplies.*') || request()->routeIs('supply-categories.*') || request()->routeIs('stock-movements.*') || request()->routeIs('purchase-quotation-requests.*') || request()->routeIs('purchase-orders.*') || request()->routeIs('delivery-notes.*') || request()->routeIs('purchase-invoices.*') || request()->routeIs('payment-orders.*')
+                    ? 'bg-zinc-700 text-white'
+                    : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
+                </svg>
+                Compras
+            </a>
+            @endcan
+
+            <!-- Ventas -->
+            @can('ventas.section')
+            <a href="{{ route('sales.section') }}"
+               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                {{ request()->routeIs('sales.*') || request()->routeIs('sales-invoices.*') || request()->routeIs('collection-receipts.*') || request()->routeIs('points-of-sale.*') || request()->routeIs('customer.*') || request()->routeIs('quotes.*')
+                    ? 'bg-zinc-700 text-white'
+                    : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
+                </svg>
+                Ventas
+            </a>
+            @endcan
+
             <!-- Configuración -->
             <a href="{{ route('admin.section.configuracion') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
