@@ -322,9 +322,21 @@
             $isChild = $item['isChild'];
             $isParent = $item['isParent'];
             
-            $parentCategories = null;
-            if ($isParent && $det->test->default_reference_category_id && $det->test->defaultReferenceCategory) {
-                $parentCategories = $det->test->defaultReferenceCategory->name;
+            $parentCategoryName = null;
+            if ($isParent) {
+                // Determinar la categoría real usada por los hijos de este padre
+                $childDets = $validatedDeterminations->filter(function($d) use ($det) {
+                    $childTest = $d->test;
+                    if (!$childTest) return false;
+                    if ($childTest->parent == $det->test_id) return true;
+                    return $childTest->parentTests()->where('parent_test_id', $det->test_id)->exists();
+                });
+                $childCategory = $childDets->first(function($d) { return $d->reference_category_id; });
+                if ($childCategory && $childCategory->referenceCategory) {
+                    $parentCategoryName = $childCategory->referenceCategory->name;
+                } elseif ($det->test->default_reference_category_id && $det->test->defaultReferenceCategory) {
+                    $parentCategoryName = $det->test->defaultReferenceCategory->name;
+                }
             }
         @endphp
         
@@ -333,8 +345,8 @@
                 <span class="det-name {{ $isChild ? 'is-child' : '' }} {{ $isParent ? 'is-parent' : '' }}">
                     {{ $det->test->name ?? 'N/A' }}
                 </span>
-                @if($isParent && $parentCategories)
-                    <span class="det-reference">Valores de referencia según {{ $parentCategories }}</span>
+                @if($isParent && $parentCategoryName)
+                    <span class="det-reference">Valores de referencia según {{ $parentCategoryName }}</span>
                 @endif
             </div>
             
@@ -381,17 +393,32 @@
             
             if ($isParent) continue;
             
+            // Usar la categoría guardada directamente en la determinación
+            if ($det->reference_category_id && $det->referenceCategory) {
+                if (!$categoriesUsed->contains('id', $det->referenceCategory->id)) {
+                    $categoriesUsed->push($det->referenceCategory);
+                }
+            } else {
+                // Fallback: buscar por valor de referencia en TestReferenceValue
+                $refValue = null;
+                if ($det->reference_value && $det->test) {
+                    $refValue = \App\Models\TestReferenceValue::where('test_id', $det->test_id)
+                        ->where('value', $det->reference_value)
+                        ->first();
+                }
+                
+                if ($refValue && $refValue->category) {
+                    if (!$categoriesUsed->contains('id', $refValue->category->id)) {
+                        $categoriesUsed->push($refValue->category);
+                    }
+                }
+            }
+
             $refValue = null;
             if ($det->reference_value && $det->test) {
                 $refValue = \App\Models\TestReferenceValue::where('test_id', $det->test_id)
                     ->where('value', $det->reference_value)
                     ->first();
-            }
-            
-            if ($refValue && $refValue->category) {
-                if (!$categoriesUsed->contains('id', $refValue->category->id)) {
-                    $categoriesUsed->push($refValue->category);
-                }
             }
             
             if ($det->result !== null && $det->result !== '' && $det->reference_value) {
@@ -473,15 +500,6 @@
                             $nonCompliantItems[] = $det->test->name;
                         }
                     }
-                }
-            }
-        }
-        
-        foreach ($orderedDeterminations as $item) {
-            if ($item['isParent'] && $item['det']->test && $item['det']->test->defaultReferenceCategory) {
-                $cat = $item['det']->test->defaultReferenceCategory;
-                if (!$categoriesUsed->contains('id', $cat->id)) {
-                    $categoriesUsed->push($cat);
                 }
             }
         }

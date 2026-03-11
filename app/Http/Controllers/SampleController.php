@@ -85,32 +85,31 @@ class SampleController extends Controller
         foreach ($request->determinations as $testId) {
             $test = Test::with(['children', 'childTests', 'referenceValues'])->find($testId);
             
-            // Obtener la categoría predeterminada del padre (si tiene)
             $parentCategoryId = $test->default_reference_category_id;
             
-            // Crear determinación padre
+            $parentRef = $this->buildReferenceValue($test);
             SampleDetermination::create([
                 'sample_id' => $sample->id,
                 'test_id' => $testId,
                 'unit' => $test->unit,
                 'method' => $test->method,
-                'reference_value' => $this->buildReferenceValue($test),
+                'reference_value' => $parentRef['value'],
+                'reference_category_id' => $parentRef['category_id'],
                 'status' => 'pending',
             ]);
             
-            // Agregar automáticamente los hijos si existen (combinar legacy y nueva relación)
             $allChildren = $test->getAllChildren();
             foreach ($allChildren as $childTest) {
-                // Verificar que no exista ya (un hijo puede pertenecer a múltiples padres)
                 $exists = $sample->determinations()->where('test_id', $childTest->id)->exists();
                 if (!$exists) {
+                    $childRef = $this->buildReferenceValue($childTest, $parentCategoryId);
                     SampleDetermination::create([
                         'sample_id' => $sample->id,
                         'test_id' => $childTest->id,
                         'unit' => $childTest->unit,
                         'method' => $childTest->method,
-                        // Usar la categoría predeterminada del padre para asignar el valor de referencia
-                        'reference_value' => $this->buildReferenceValue($childTest, $parentCategoryId),
+                        'reference_value' => $childRef['value'],
+                        'reference_category_id' => $childRef['category_id'],
                         'status' => 'pending',
                     ]);
                 }
@@ -193,32 +192,32 @@ class SampleController extends Controller
 
         $test = Test::with(['children', 'childTests', 'referenceValues'])->find($validated['test_id']);
         
-        // Obtener la categoría predeterminada del padre (si tiene)
         $parentCategoryId = $test->default_reference_category_id;
         
-        // Crear determinación padre
+        $parentRef = $this->buildReferenceValue($test);
         SampleDetermination::create([
             'sample_id' => $sample->id,
             'test_id' => $validated['test_id'],
             'unit' => $test->unit,
             'method' => $test->method,
-            'reference_value' => $this->buildReferenceValue($test),
+            'reference_value' => $parentRef['value'],
+            'reference_category_id' => $parentRef['category_id'],
             'status' => 'pending',
         ]);
 
-        // Agregar automáticamente los hijos si existen (combinar legacy y nueva relación)
         $childrenAdded = 0;
         $allChildren = $test->getAllChildren();
         foreach ($allChildren as $childTest) {
             $childExists = $sample->determinations()->where('test_id', $childTest->id)->exists();
             if (!$childExists) {
+                $childRef = $this->buildReferenceValue($childTest, $parentCategoryId);
                 SampleDetermination::create([
                     'sample_id' => $sample->id,
                     'test_id' => $childTest->id,
                     'unit' => $childTest->unit,
                     'method' => $childTest->method,
-                    // Usar la categoría predeterminada del padre para asignar el valor de referencia
-                    'reference_value' => $this->buildReferenceValue($childTest, $parentCategoryId),
+                    'reference_value' => $childRef['value'],
+                    'reference_category_id' => $childRef['category_id'],
                     'status' => 'pending',
                 ]);
                 $childrenAdded++;
@@ -291,6 +290,7 @@ class SampleController extends Controller
             'determinations.test.children',
             'determinations.test.childTests',
             'determinations.test.referenceValues.category',
+            'determinations.referenceCategory',
             'creator'
         ]);
         
@@ -310,6 +310,7 @@ class SampleController extends Controller
             'determinations.*.id' => 'required|exists:sample_determinations,id',
             'determinations.*.result' => 'nullable|string|max:255',
             'determinations.*.reference_value' => 'nullable|string|max:255',
+            'determinations.*.reference_category_id' => 'nullable|exists:reference_categories,id',
             'determinations.*.method' => 'nullable|string|max:255',
             'determinations.*.observations' => 'nullable|string',
             'determinations.*.status' => 'required|in:pending,in_progress,completed',
@@ -325,6 +326,7 @@ class SampleController extends Controller
             $updateData = [
                 'result' => $data['result'] ?? $determination->result,
                 'reference_value' => $data['reference_value'] ?? $determination->reference_value,
+                'reference_category_id' => $data['reference_category_id'] ?? $determination->reference_category_id,
                 'method' => $data['method'] ?? $determination->method,
                 'observations' => $data['observations'] ?? $determination->observations,
                 'status' => $data['status'] ?? $determination->status,
@@ -699,6 +701,8 @@ class SampleController extends Controller
             'determinations.test.parentTests',
             'determinations.test.children',
             'determinations.test.childTests',
+            'determinations.test.defaultReferenceCategory',
+            'determinations.referenceCategory',
             'determinations.determinationValidator', 
             'creator', 
             'validator'
@@ -732,6 +736,8 @@ class SampleController extends Controller
             'determinations.test.parentTests',
             'determinations.test.children',
             'determinations.test.childTests',
+            'determinations.test.defaultReferenceCategory',
+            'determinations.referenceCategory',
             'determinations.determinationValidator', 
             'creator', 
             'validator'
@@ -772,47 +778,42 @@ class SampleController extends Controller
      * Construye el valor de referencia basado en los valores predefinidos o campos low/high del test
      * @param Test $test El test para el cual construir el valor de referencia
      * @param int|null $parentCategoryId ID de la categoría predeterminada del padre (si aplica)
+     * @return array{value: string|null, category_id: int|null}
      */
-    private function buildReferenceValue(Test $test, ?int $parentCategoryId = null): ?string
+    private function buildReferenceValue(Test $test, ?int $parentCategoryId = null): array
     {
-        // Si hay una categoría del padre, buscar el valor de referencia del test para esa categoría
         if ($parentCategoryId) {
             $refValue = $test->referenceValues()
                 ->where('reference_category_id', $parentCategoryId)
                 ->first();
             if ($refValue) {
-                return $refValue->value;
+                return ['value' => $refValue->value, 'category_id' => $parentCategoryId];
             }
         }
 
-        // Luego verificar si tiene valores de referencia con default
         $defaultRef = $test->referenceValues()->where('is_default', true)->first();
         if ($defaultRef) {
-            return $defaultRef->value;
+            return ['value' => $defaultRef->value, 'category_id' => $defaultRef->reference_category_id];
         }
 
-        // Si tiene valores de referencia pero ninguno es default, no asignar automáticamente
         if ($test->referenceValues()->count() > 0) {
-            return null; // El usuario deberá seleccionar
+            return ['value' => null, 'category_id' => null];
         }
 
-        // Fallback a los campos low/high del test
         if (empty($test->low) && empty($test->high)) {
-            return null;
+            return ['value' => null, 'category_id' => null];
         }
 
-        // Si solo tiene valor máximo
+        $value = null;
         if (empty($test->low) && !empty($test->high)) {
-            return "< {$test->high}" . ($test->unit ? " {$test->unit}" : '');
+            $value = "< {$test->high}" . ($test->unit ? " {$test->unit}" : '');
+        } elseif (!empty($test->low) && empty($test->high)) {
+            $value = "> {$test->low}" . ($test->unit ? " {$test->unit}" : '');
+        } else {
+            $value = "{$test->low} - {$test->high}" . ($test->unit ? " {$test->unit}" : '');
         }
 
-        // Si solo tiene valor mínimo
-        if (!empty($test->low) && empty($test->high)) {
-            return "> {$test->low}" . ($test->unit ? " {$test->unit}" : '');
-        }
-
-        // Si tiene ambos valores
-        return "{$test->low} - {$test->high}" . ($test->unit ? " {$test->unit}" : '');
+        return ['value' => $value, 'category_id' => null];
     }
 
     /**

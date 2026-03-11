@@ -242,7 +242,6 @@
                             @else
                                 {{-- Determinación normal o hija: todos los campos --}}
                                 @php
-                                    // Obtener los IDs de los padres de esta determinación
                                     $parentIds = [];
                                     if ($det->test->parent) {
                                         $parentIds[] = $det->test->parent;
@@ -252,12 +251,13 @@
                                     }
                                     $parentIdsJson = json_encode(array_unique($parentIds));
                                     
-                                    // Crear mapa de categoría -> valor de referencia para este test
                                     $refValuesByCategory = [];
+                                    $refCategoryByValue = [];
                                     if ($det->test->referenceValues) {
                                         foreach ($det->test->referenceValues as $refVal) {
                                             if ($refVal->category) {
                                                 $refValuesByCategory[$refVal->category->id] = $refVal->value;
+                                                $refCategoryByValue[$refVal->value] = $refVal->category->id;
                                             }
                                         }
                                     }
@@ -284,7 +284,9 @@
                                                     data-index="{{ $index }}"
                                                     data-test-id="{{ $det->test_id }}"
                                                     data-parent-ids="{{ $parentIdsJson }}"
-                                                    data-ref-by-category="{{ json_encode($refValuesByCategory) }}">
+                                                    data-ref-by-category="{{ json_encode($refValuesByCategory) }}"
+                                                    data-category-by-value="{{ json_encode($refCategoryByValue) }}"
+                                                    onchange="updateCategoryHidden(this)">
                                                 <option value="">Seleccionar normativa...</option>
                                                 @foreach($det->test->referenceValues as $refValue)
                                                     <option value="{{ $refValue->value }}" 
@@ -298,6 +300,11 @@
                                                     -- Valor personalizado --
                                                 </option>
                                             </select>
+                                            <input type="hidden" 
+                                                   name="determinations[{{ $index }}][reference_category_id]" 
+                                                   value="{{ $det->reference_category_id }}"
+                                                   class="ref-category-hidden"
+                                                   data-index="{{ $index }}">
                                             {{-- Campo oculto para valor personalizado --}}
                                             <input type="text" 
                                                    name="determinations[{{ $index }}][reference_value_custom]" 
@@ -587,24 +594,20 @@
             const categoryId = selectElement.value;
             
             if (!categoryId) {
-                return; // No se seleccionó ninguna categoría
+                return;
             }
 
             let updatedCount = 0;
             
-            // Buscar todos los selects de hijos que tienen este padre
             document.querySelectorAll('.child-ref-select').forEach(function(childSelect) {
                 const parentIds = JSON.parse(childSelect.dataset.parentIds || '[]');
                 
-                // Verificar si este hijo pertenece al padre seleccionado
                 if (parentIds.includes(parseInt(parentId))) {
                     const refByCategory = JSON.parse(childSelect.dataset.refByCategory || '{}');
                     
-                    // Buscar si tiene un valor de referencia para esta categoría
                     if (refByCategory[categoryId]) {
                         const valueToSet = refByCategory[categoryId];
                         
-                        // Buscar la opción con ese valor y seleccionarla
                         Array.from(childSelect.options).forEach(function(option) {
                             if (option.value === valueToSet) {
                                 childSelect.value = valueToSet;
@@ -612,28 +615,29 @@
                                 updatedCount++;
                             }
                         });
+
+                        const idx = childSelect.dataset.index;
+                        const hiddenField = document.querySelector(`.ref-category-hidden[data-index="${idx}"]`);
+                        if (hiddenField) {
+                            hiddenField.value = categoryId;
+                        }
                     }
                 }
             });
 
-            // También buscar inputs de texto (para hijos sin valores predefinidos)
             document.querySelectorAll('input[name$="[reference_value]"]').forEach(function(input) {
                 if (!input.dataset.parentIds) return;
                 
                 const parentIds = JSON.parse(input.dataset.parentIds || '[]');
                 
                 if (parentIds.includes(parseInt(parentId))) {
-                    // Para inputs de texto, no podemos aplicar automáticamente
-                    // pero marcamos visualmente que hay que revisar
                     input.classList.add('ring-2', 'ring-yellow-400');
                 }
             });
 
-            // Feedback visual
             if (updatedCount > 0) {
                 const categoryName = selectElement.options[selectElement.selectedIndex].text;
                 
-                // Mostrar notificación temporal
                 const notification = document.createElement('div');
                 notification.className = 'fixed bottom-4 right-4 bg-teal-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 flex items-center';
                 notification.innerHTML = `
@@ -647,6 +651,19 @@
                 setTimeout(function() {
                     notification.remove();
                 }, 3000);
+            }
+        }
+
+        function updateCategoryHidden(selectElement) {
+            const idx = selectElement.dataset.index;
+            const hiddenField = document.querySelector(`.ref-category-hidden[data-index="${idx}"]`);
+            if (!hiddenField) return;
+
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            if (selectedOption && selectedOption.dataset.categoryId) {
+                hiddenField.value = selectedOption.dataset.categoryId;
+            } else {
+                hiddenField.value = '';
             }
         }
     </script>

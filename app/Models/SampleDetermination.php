@@ -16,6 +16,7 @@ class SampleDetermination extends Model
         'result',
         'unit',
         'reference_value',
+        'reference_category_id',
         'method',
         'observations',
         'analyzed_by',
@@ -45,6 +46,14 @@ class SampleDetermination extends Model
     public function test()
     {
         return $this->belongsTo(Test::class);
+    }
+
+    /**
+     * Relación con la categoría de referencia usada
+     */
+    public function referenceCategory()
+    {
+        return $this->belongsTo(ReferenceCategory::class, 'reference_category_id');
     }
 
     /**
