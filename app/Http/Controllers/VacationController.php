@@ -163,6 +163,26 @@ class VacationController extends Controller
             ])->withInput();
         }
         
+        $existingLeave = Leave::where('employee_id', $validated['employee_id'])
+            ->where('type', 'vacaciones')
+            ->where(function ($q) use ($start, $end) {
+                $q->where(function ($q2) use ($start, $end) {
+                    $q2->where('start', '<=', $end)->where('end', '>=', $start);
+                });
+            })
+            ->first();
+
+        if ($existingLeave) {
+            if ($existingLeave->status === 'rechazado') {
+                $existingLeave->delete();
+            } else {
+                $statusLabel = $existingLeave->status === 'aprobado' ? 'aprobada' : 'pendiente';
+                return back()->withErrors([
+                    'start' => "El empleado ya tiene una solicitud de vacaciones {$statusLabel} que se superpone con las fechas seleccionadas ({$existingLeave->start->format('d/m/Y')} - {$existingLeave->end->format('d/m/Y')})."
+                ])->withInput();
+            }
+        }
+
         // Si la fecha de inicio es pasada, aprobar automáticamente (registro histórico)
         $isPastDate = $start->lt(now()->startOfDay());
         $status = $isPastDate ? 'aprobado' : 'pendiente';
