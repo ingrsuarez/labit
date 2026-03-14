@@ -259,6 +259,10 @@ Route::middleware([
         // POINTS OF SALE (Puntos de Venta)
         Route::resource('points-of-sale', App\Http\Controllers\PointOfSaleController::class)->except(['show']);
 
+        // AFIP TEST (verificación de conexión con AFIP — solo homologación)
+        Route::get('afip/test', [App\Http\Controllers\AfipTestController::class, 'index'])
+            ->name('afip.test');
+
         // COLLECTION RECEIPTS (Recibos de Cobro)
         Route::resource('collection-receipts', App\Http\Controllers\CollectionReceiptController::class);
         Route::post('collection-receipts/{collection_receipt}/confirm', [App\Http\Controllers\CollectionReceiptController::class, 'confirm'])->name('collection-receipts.confirm');

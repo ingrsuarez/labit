@@ -16,10 +16,13 @@ class PointOfSale extends Model
         'name',
         'address',
         'is_active',
+        'is_electronic',
+        'afip_pos_number',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'is_electronic' => 'boolean',
     ];
 
     public function salesInvoices()

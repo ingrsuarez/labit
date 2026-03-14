@@ -50,6 +50,25 @@
                         </label>
                     </div>
                 </div>
+
+                <div class="border-t border-gray-100 mt-4 pt-4" x-data="{ isElectronic: {{ old('is_electronic', $pointOfSale->is_electronic) ? 'true' : 'false' }} }">
+                    <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Facturación electrónica</h3>
+
+                    <div class="mb-3">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="is_electronic" value="1" x-model="isElectronic"
+                                   class="rounded border-gray-300 text-zinc-700 focus:ring-zinc-500">
+                            <span class="text-sm font-medium text-gray-700">Habilitado para factura electrónica AFIP</span>
+                        </label>
+                    </div>
+
+                    <div x-show="isElectronic" x-transition class="mt-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nro. Punto de Venta AFIP <span class="text-red-500">*</span></label>
+                        <input type="number" name="afip_pos_number" value="{{ old('afip_pos_number', $pointOfSale->afip_pos_number) }}" min="1" max="99999"
+                               placeholder="Ej: 3" class="w-full md:w-1/2 rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500 font-mono">
+                        <p class="text-xs text-gray-400 mt-1">Número de punto de venta habilitado en AFIP</p>
+                    </div>
+                </div>
             </div>
 
             <div class="flex justify-end">
