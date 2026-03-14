@@ -7,6 +7,7 @@ use App\Models\SalesInvoiceItem;
 use App\Models\Customer;
 use App\Models\Quote;
 use App\Models\PointOfSale;
+use App\Services\AfipService;
 use Illuminate\Http\Request;
 
 class SalesInvoiceController extends Controller
@@ -66,8 +67,15 @@ class SalesInvoiceController extends Controller
     {
         $this->authorize('sales-invoices.create');
 
+        $pointOfSale = PointOfSale::find($request->point_of_sale_id);
+        $isElectronic = $pointOfSale && $pointOfSale->is_electronic;
+
+        $invoiceNumberRules = $isElectronic
+            ? 'nullable|string'
+            : 'required|string|unique:sales_invoices,invoice_number,NULL,id,voucher_type,' . $request->voucher_type . ',point_of_sale_id,' . $request->point_of_sale_id;
+
         $validated = $request->validate([
-            'invoice_number' => 'required|string|unique:sales_invoices,invoice_number,NULL,id,voucher_type,' . $request->voucher_type . ',point_of_sale_id,' . $request->point_of_sale_id,
+            'invoice_number' => $invoiceNumberRules,
             'voucher_type' => 'required|in:A,B,C',
             'point_of_sale_id' => 'required|exists:points_of_sale,id',
             'customer_id' => 'required|exists:customers,id',
@@ -110,7 +118,7 @@ class SalesInvoiceController extends Controller
         ]);
 
         $invoice = SalesInvoice::create([
-            'invoice_number' => $validated['invoice_number'],
+            'invoice_number' => $isElectronic ? 'PENDIENTE-AFIP' : $validated['invoice_number'],
             'voucher_type' => $validated['voucher_type'],
             'point_of_sale_id' => $validated['point_of_sale_id'],
             'customer_id' => $validated['customer_id'],
@@ -123,6 +131,7 @@ class SalesInvoiceController extends Controller
             'notes' => $validated['notes'] ?? null,
             'status' => 'pendiente',
             'amount_collected' => 0,
+            'is_electronic' => $isElectronic,
             'created_by' => auth()->id(),
         ]);
 
@@ -143,6 +152,54 @@ class SalesInvoiceController extends Controller
 
         $invoice->recalculate();
 
+        if ($isElectronic) {
+            $invoice->load(['pointOfSale', 'customer', 'items']);
+
+            try {
+                $afip = new AfipService();
+                $result = $afip->createVoucher($invoice);
+
+                if ($result['result'] === 'A' || $result['result'] === 'O') {
+                    $invoice->update([
+                        'cae' => $result['cae'],
+                        'cae_expiration' => $result['cae_expiration'],
+                        'afip_voucher_number' => $result['voucher_number'],
+                        'afip_result' => $result['result'],
+                        'afip_response' => $result['full_response'],
+                        'invoice_number' => str_pad($result['voucher_number'], 8, '0', STR_PAD_LEFT),
+                    ]);
+
+                    $msg = $result['result'] === 'A'
+                        ? 'Factura electrónica ' . $invoice->fresh()->full_number . ' autorizada por AFIP. CAE: ' . $result['cae']
+                        : 'Factura electrónica autorizada con observaciones. CAE: ' . $result['cae'];
+
+                    return redirect()->route('sales-invoices.show', $invoice)->with('success', $msg);
+                }
+
+                $invoice->update([
+                    'afip_result' => $result['result'] ?? 'R',
+                    'afip_response' => $result['full_response'],
+                ]);
+
+                $errorMsg = 'AFIP rechazó la factura.';
+                if (! empty($result['observations'])) {
+                    $obs = collect($result['observations'])->flatten()->implode(' | ');
+                    $errorMsg .= ' Observaciones: ' . $obs;
+                }
+
+                return redirect()->route('sales-invoices.show', $invoice)->with('error', $errorMsg);
+
+            } catch (\Exception $e) {
+                $invoice->update([
+                    'afip_result' => 'R',
+                    'afip_response' => ['error' => $e->getMessage()],
+                ]);
+
+                return redirect()->route('sales-invoices.show', $invoice)
+                    ->with('error', 'Error al comunicarse con AFIP: ' . $e->getMessage());
+            }
+        }
+
         return redirect()->route('sales-invoices.show', $invoice)
             ->with('success', 'Factura ' . $invoice->full_number . ' creada correctamente.');
     }
@@ -162,6 +219,11 @@ class SalesInvoiceController extends Controller
     public function edit(SalesInvoice $salesInvoice)
     {
         $this->authorize('sales-invoices.edit');
+
+        if ($salesInvoice->is_electronic && $salesInvoice->cae) {
+            return redirect()->route('sales-invoices.show', $salesInvoice)
+                ->with('error', 'Las facturas electrónicas autorizadas no se pueden editar.');
+        }
 
         if ($salesInvoice->status !== 'pendiente') {
             return redirect()->route('sales-invoices.show', $salesInvoice)
@@ -293,6 +355,27 @@ class SalesInvoiceController extends Controller
             'point_of_sale_id' => 'required|exists:points_of_sale,id',
         ]);
 
+        $pos = PointOfSale::findOrFail($request->point_of_sale_id);
+
+        if ($pos->is_electronic) {
+            try {
+                $afip = new AfipService();
+                $voucherTypeId = AfipService::getVoucherTypeId($request->voucher_type);
+                $last = $afip->getLastVoucher($pos->afip_pos_number, $voucherTypeId);
+
+                return response()->json([
+                    'next_number' => str_pad($last + 1, 8, '0', STR_PAD_LEFT),
+                    'is_electronic' => true,
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'next_number' => '',
+                    'is_electronic' => true,
+                    'error' => 'No se pudo consultar AFIP',
+                ]);
+            }
+        }
+
         $last = SalesInvoice::where('voucher_type', $request->voucher_type)
             ->where('point_of_sale_id', $request->point_of_sale_id)
             ->orderByDesc('invoice_number')
@@ -304,6 +387,54 @@ class SalesInvoiceController extends Controller
             $nextNumber = '';
         }
 
-        return response()->json(['next_number' => $nextNumber]);
+        return response()->json(['next_number' => $nextNumber, 'is_electronic' => false]);
+    }
+
+    public function retryAfip(SalesInvoice $salesInvoice)
+    {
+        $this->authorize('sales-invoices.edit');
+
+        if (! $salesInvoice->is_electronic || $salesInvoice->cae) {
+            return redirect()->route('sales-invoices.show', $salesInvoice)
+                ->with('error', 'Esta factura no requiere reintento de autorización.');
+        }
+
+        $salesInvoice->load(['pointOfSale', 'customer', 'items']);
+
+        try {
+            $afip = new AfipService();
+            $result = $afip->createVoucher($salesInvoice);
+
+            if ($result['result'] === 'A' || $result['result'] === 'O') {
+                $salesInvoice->update([
+                    'cae' => $result['cae'],
+                    'cae_expiration' => $result['cae_expiration'],
+                    'afip_voucher_number' => $result['voucher_number'],
+                    'afip_result' => $result['result'],
+                    'afip_response' => $result['full_response'],
+                    'invoice_number' => str_pad($result['voucher_number'], 8, '0', STR_PAD_LEFT),
+                ]);
+
+                return redirect()->route('sales-invoices.show', $salesInvoice)
+                    ->with('success', 'Factura autorizada por AFIP. CAE: ' . $result['cae']);
+            }
+
+            $salesInvoice->update([
+                'afip_result' => $result['result'] ?? 'R',
+                'afip_response' => $result['full_response'],
+            ]);
+
+            return redirect()->route('sales-invoices.show', $salesInvoice)
+                ->with('error', 'AFIP rechazó la factura nuevamente.');
+
+        } catch (\Exception $e) {
+            $salesInvoice->update([
+                'afip_result' => 'R',
+                'afip_response' => ['error' => $e->getMessage()],
+            ]);
+
+            return redirect()->route('sales-invoices.show', $salesInvoice)
+                ->with('error', 'Error al comunicarse con AFIP: ' . $e->getMessage());
+        }
     }
 }

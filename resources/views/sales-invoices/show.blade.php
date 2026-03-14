@@ -11,7 +11,7 @@
                 </span>
             </div>
             <div class="flex items-center gap-3 mt-3 md:mt-0">
-                @if($invoice->status === 'pendiente')
+                @if($invoice->status === 'pendiente' && !($invoice->is_electronic && $invoice->cae))
                     <a href="{{ route('sales-invoices.edit', $invoice) }}"
                        class="inline-flex items-center px-4 py-2 bg-zinc-700 text-white text-sm font-medium rounded-lg hover:bg-zinc-800 transition-colors">Editar</a>
                 @endif
@@ -108,6 +108,68 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
                 <p class="text-sm text-gray-600"><span class="font-medium">Notas:</span> {{ $invoice->notes }}</p>
             </div>
+        @endif
+
+        @if($invoice->is_electronic)
+            @if($invoice->cae)
+                <div class="bg-white rounded-xl shadow-sm border-2 border-indigo-200 p-5 mb-6">
+                    <div class="flex items-center gap-2 mb-3">
+                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        <h3 class="text-sm font-semibold text-indigo-600 uppercase tracking-wider">Datos AFIP</h3>
+                    </div>
+                    <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <dt class="text-xs text-gray-500 mb-1">CAE</dt>
+                            <dd class="text-sm font-mono font-semibold text-gray-800">{{ $invoice->cae }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs text-gray-500 mb-1">Vencimiento CAE</dt>
+                            <dd class="text-sm font-medium text-gray-800">{{ $invoice->cae_expiration?->format('d/m/Y') ?? '-' }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs text-gray-500 mb-1">N° Comprobante AFIP</dt>
+                            <dd class="text-sm font-mono font-medium text-gray-800">{{ $invoice->afip_voucher_number }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs text-gray-500 mb-1">Resultado</dt>
+                            <dd>
+                                @if($invoice->afip_result === 'A')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Aprobado</span>
+                                @elseif($invoice->afip_result === 'O')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Con Observaciones</span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Rechazado</span>
+                                @endif
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+            @else
+                <div class="bg-white rounded-xl shadow-sm border-2 border-red-200 p-5 mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                            </svg>
+                            <h3 class="text-sm font-semibold text-red-600 uppercase tracking-wider">Factura electrónica pendiente de autorización</h3>
+                        </div>
+                        <form method="POST" action="{{ route('sales-invoices.retry-afip', $invoice) }}">
+                            @csrf
+                            <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                </svg>
+                                Reintentar
+                            </button>
+                        </form>
+                    </div>
+                    @if($invoice->afip_response && isset($invoice->afip_response['error']))
+                        <p class="text-sm text-red-700 mt-2">Error: {{ $invoice->afip_response['error'] }}</p>
+                    @endif
+                </div>
+            @endif
         @endif
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
