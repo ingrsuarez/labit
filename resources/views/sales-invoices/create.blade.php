@@ -50,8 +50,11 @@
                          pointOfSaleId: '{{ old('point_of_sale_id', '') }}',
                          invoiceNumber: '{{ old('invoice_number', '') }}',
                          loading: false,
+                         isElectronic: false,
+                         posData: @js($pointsOfSale->mapWithKeys(fn($p) => [$p->id => ['is_electronic' => $p->is_electronic, 'afip_pos' => $p->afip_pos_number]])),
                          fetchNextNumber() {
                              if (!this.voucherType || !this.pointOfSaleId) return;
+                             this.isElectronic = this.posData[this.pointOfSaleId]?.is_electronic || false;
                              this.loading = true;
                              fetch(`{{ route('sales-invoices.next-number') }}?voucher_type=${this.voucherType}&point_of_sale_id=${this.pointOfSaleId}`)
                                  .then(r => r.json())
@@ -62,6 +65,15 @@
                                  .catch(() => this.loading = false);
                          }
                      }">
+
+                    <template x-if="isElectronic">
+                        <div class="lg:col-span-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg flex items-center gap-2">
+                            <svg class="w-5 h-5 text-indigo-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                            <p class="text-sm text-indigo-800 font-medium">Factura electrónica — El número de comprobante será asignado por AFIP al emitir</p>
+                        </div>
+                    </template>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Tipo Comprobante <span class="text-red-500">*</span></label>
                         <select name="voucher_type" x-model="voucherType" @change="fetchNextNumber()" required class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
@@ -81,11 +93,13 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">N° Factura <span class="text-red-500">*</span></label>
-                        <input type="text" name="invoice_number" x-model="invoiceNumber" required
-                               placeholder="Ej: 00012345"
+                        <label class="block text-sm font-medium text-gray-700 mb-1">N° Factura <span x-show="!isElectronic" class="text-red-500">*</span></label>
+                        <input type="text" name="invoice_number" x-model="invoiceNumber" :required="!isElectronic"
+                               :disabled="isElectronic" :placeholder="isElectronic ? 'Asignado por AFIP' : 'Ej: 00012345'"
+                               :class="isElectronic ? 'bg-gray-100 cursor-not-allowed' : ''"
                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                         <p x-show="loading" class="text-xs text-zinc-500 mt-1">Cargando número...</p>
+                        <p x-show="isElectronic && !loading" class="text-xs text-indigo-500 mt-1">AFIP asigna el número al autorizar</p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Cliente <span class="text-red-500">*</span></label>
@@ -240,9 +254,18 @@
             </div>
 
             <div class="flex justify-end">
-                <button type="submit" :disabled="items.length === 0"
-                        class="px-6 py-3 bg-zinc-700 text-white font-semibold rounded-lg hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm shadow-sm">
-                    Guardar Factura
+                <button type="submit" :disabled="items.length === 0 || submitting"
+                        @click="submitting = isElectronic"
+                        class="px-6 py-3 bg-zinc-700 text-white font-semibold rounded-lg hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm shadow-sm"
+                        :class="isElectronic ? 'bg-indigo-600 hover:bg-indigo-700' : ''">
+                    <span x-show="!submitting" x-text="isElectronic ? 'Emitir Factura Electrónica' : 'Guardar Factura'"></span>
+                    <span x-show="submitting" class="flex items-center gap-2">
+                        <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Autorizando en AFIP...
+                    </span>
                 </button>
             </div>
         </form>
@@ -268,6 +291,8 @@
                 items: quoteItems.length > 0 ? [...quoteItems] : [],
                 percepciones: {{ old('percepciones', 0) }},
                 otrosImpuestos: {{ old('otros_impuestos', 0) }},
+                submitting: false,
+                isElectronic: false,
 
                 addItem() {
                     this.items.push({ description: '', test_id: '', quantity: 1, unit_price: 0, iva_rate: '21' });

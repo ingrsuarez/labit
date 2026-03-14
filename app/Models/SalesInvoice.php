@@ -14,13 +14,15 @@ class SalesInvoice extends Model
         'quote_id', 'admission_id', 'issue_date', 'due_date',
         'subtotal', 'iva_21', 'iva_10_5', 'iva_27', 'percepciones', 'otros_impuestos',
         'total', 'amount_collected', 'balance', 'status', 'notes', 'created_by',
+        'cae', 'cae_expiration', 'afip_voucher_number', 'afip_result', 'afip_response', 'is_electronic',
     ];
 
     protected $casts = [
-        'issue_date' => 'date', 'due_date' => 'date',
+        'issue_date' => 'date', 'due_date' => 'date', 'cae_expiration' => 'date',
         'subtotal' => 'decimal:2', 'iva_21' => 'decimal:2', 'iva_10_5' => 'decimal:2',
         'iva_27' => 'decimal:2', 'percepciones' => 'decimal:2', 'otros_impuestos' => 'decimal:2',
         'total' => 'decimal:2', 'amount_collected' => 'decimal:2', 'balance' => 'decimal:2',
+        'afip_response' => 'array', 'is_electronic' => 'boolean',
     ];
 
     public function customer() { return $this->belongsTo(Customer::class); }
@@ -85,5 +87,10 @@ class SalesInvoice extends Model
     {
         $pv = $this->pointOfSale ? $this->pointOfSale->code . '-' : ($this->point_of_sale ? str_pad($this->point_of_sale, 5, '0', STR_PAD_LEFT) . '-' : '');
         return "FC {$this->voucher_type} {$pv}{$this->invoice_number}";
+    }
+
+    public function getIsAfipApprovedAttribute(): bool
+    {
+        return $this->afip_result === 'A';
     }
 }
