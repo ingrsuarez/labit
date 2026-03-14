@@ -4,9 +4,35 @@ namespace App\Services;
 
 use App\Models\SalesInvoice;
 use Exception;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use SoapClient;
+
+class AfipSoapClient extends SoapClient
+{
+    private ?int $condicionIvaReceptorId = null;
+
+    public function setCondicionIvaReceptorId(?int $value): void
+    {
+        $this->condicionIvaReceptorId = $value;
+    }
+
+    #[\Override]
+    public function __doRequest($request, $location, $action, $version, $oneWay = false): ?string
+    {
+        if ($this->condicionIvaReceptorId !== null && strpos($request, 'FECAESolicitar') !== false) {
+            $pattern = '/<([^>]*?)DocNro>(\d+)<\/([^>]*?)DocNro>/';
+            if (preg_match($pattern, $request, $m)) {
+                $prefix = $m[1];
+                $closePrefix = $m[3];
+                $tag = '<' . $prefix . 'CondicionIVAReceptorId>' . $this->condicionIvaReceptorId .
+                       '</' . $closePrefix . 'CondicionIVAReceptorId>';
+                $request = preg_replace($pattern, $m[0] . $tag, $request, 1);
+            }
+        }
+
+        return parent::__doRequest($request, $location, $action, $version, $oneWay);
+    }
+}
 
 class AfipService
 {
@@ -46,11 +72,27 @@ class AfipService
 
     protected function getTokenAuthorization(): object
     {
-        $cacheKey = 'afip_ta_wsfe_' . ($this->production ? 'prod' : 'homo');
+        $taFile = storage_path('app/afip/ta_wsfe_' . ($this->production ? 'prod' : 'homo') . '.json');
 
-        return Cache::remember($cacheKey, 600, function () {
-            return $this->authenticate('wsfe');
-        });
+        if (file_exists($taFile)) {
+            $data = json_decode(file_get_contents($taFile));
+            if ($data && isset($data->token, $data->sign, $data->expiration)) {
+                $expiration = new \DateTime($data->expiration);
+                if ($expiration > new \DateTime('now', new \DateTimeZone('America/Buenos_Aires'))) {
+                    return $data;
+                }
+            }
+        }
+
+        $ta = $this->authenticate('wsfe');
+
+        $ta->expiration = (new \DateTime('now', new \DateTimeZone('America/Buenos_Aires')))
+            ->modify('+11 hours')
+            ->format('Y-m-d\TH:i:s');
+
+        file_put_contents($taFile, json_encode($ta));
+
+        return $ta;
     }
 
     protected function authenticate(string $service): object
@@ -69,7 +111,33 @@ class AfipService
             ]),
         ]);
 
-        $response = $client->loginCms(['in0' => $cms]);
+        try {
+            $response = $client->loginCms(['in0' => $cms]);
+        } catch (\SoapFault $e) {
+            if (str_contains($e->getMessage(), 'ya posee un TA')) {
+                Log::warning('AFIP WSAA: TA still valid, waiting and retrying', ['service' => $service]);
+                sleep(5);
+
+                $tra = $this->createTRA($service);
+                $cms = $this->signTRA($tra);
+
+                try {
+                    $response = $client->loginCms(['in0' => $cms]);
+                } catch (\SoapFault $retryEx) {
+                    if (str_contains($retryEx->getMessage(), 'ya posee un TA')) {
+                        throw new Exception(
+                            'AFIP WSAA reporta un TA vigente que no tenemos en cache. ' .
+                            'Esto ocurre si el token fue emitido en otra sesión. ' .
+                            'Espere unos minutos e intente nuevamente.'
+                        );
+                    }
+                    throw $retryEx;
+                }
+            } else {
+                throw $e;
+            }
+        }
+
         $loginReturn = $response->loginCmsReturn;
 
         $xml = new \SimpleXMLElement($loginReturn);
@@ -149,14 +217,15 @@ XML;
 
     // ─── WSFEv1 ──────────────────────────────────────────────
 
-    protected function getWsfeClient(): SoapClient
+    protected function getWsfeClient(): AfipSoapClient
     {
         $wsdl = $this->production ? self::WSFE_WSDL_PROD : self::WSFE_WSDL_HOMO;
 
-        return new SoapClient($wsdl, [
+        return new AfipSoapClient($wsdl, [
             'soap_version' => SOAP_1_2,
             'trace' => true,
             'exceptions' => true,
+            'cache_wsdl' => WSDL_CACHE_NONE,
             'stream_context' => stream_context_create([
                 'ssl' => ['verify_peer' => false, 'verify_peer_name' => false],
             ]),
@@ -239,6 +308,24 @@ XML;
         };
     }
 
+    public static function getCondicionIvaReceptor(string $taxCondition, string $voucherType = 'B'): int
+    {
+        if ($voucherType === 'A') {
+            return match (strtolower($taxCondition)) {
+                'responsable inscripto', 'ri' => 1,
+                'monotributista', 'monotributo' => 6,
+                default => 1,
+            };
+        }
+
+        return match (strtolower($taxCondition)) {
+            'exento', 'iva exento' => 4,
+            'consumidor final', 'cf' => 5,
+            'monotributista', 'monotributo' => 6,
+            default => 5,
+        };
+    }
+
     public function createVoucher(SalesInvoice $invoice): array
     {
         $pointOfSale = $invoice->pointOfSale;
@@ -249,6 +336,7 @@ XML;
 
         $docTipo = self::getDocTipo($customer->tax ?? 'consumidor final');
         $docNro = $docTipo === 99 ? 0 : intval(str_replace('-', '', $customer->taxId ?? '0'));
+        $condIvaReceptor = self::getCondicionIvaReceptor($customer->tax ?? 'consumidor final', $invoice->voucher_type);
 
         $lastVoucher = $this->getLastVoucher($afipPosNumber, $voucherTypeId);
         $nextNumber = $lastVoucher + 1;
@@ -276,6 +364,8 @@ XML;
         }
 
         $totalTrib = floatval($invoice->percepciones) + floatval($invoice->otros_impuestos);
+        $totalIva = array_sum(array_column($ivaArray, 'Importe'));
+        $impTotal = round($netAmount + $exemptAmount + $totalIva + $totalTrib, 2);
 
         $feCaeReq = [
             'FeCabReq' => [
@@ -288,14 +378,15 @@ XML;
                     'Concepto' => 3,
                     'DocTipo' => $docTipo,
                     'DocNro' => $docNro,
+                    'CondicionIvaReceptor' => $condIvaReceptor,
                     'CbteDesde' => $nextNumber,
                     'CbteHasta' => $nextNumber,
                     'CbteFch' => $invoice->issue_date->format('Ymd'),
-                    'ImpTotal' => round(floatval($invoice->total), 2),
+                    'ImpTotal' => $impTotal,
                     'ImpTotConc' => 0,
                     'ImpNeto' => round($netAmount, 2),
                     'ImpOpEx' => round($exemptAmount, 2),
-                    'ImpIVA' => round(floatval($invoice->iva_21) + floatval($invoice->iva_10_5) + floatval($invoice->iva_27), 2),
+                    'ImpIVA' => round($totalIva, 2),
                     'ImpTrib' => round($totalTrib, 2),
                     'FchServDesde' => $invoice->issue_date->format('Ymd'),
                     'FchServHasta' => $invoice->issue_date->format('Ymd'),
@@ -335,6 +426,7 @@ XML;
 
         try {
             $client = $this->getWsfeClient();
+            $client->setCondicionIvaReceptorId($condIvaReceptor);
             $result = $client->FECAESolicitar([
                 'Auth' => $this->getAuthParams(),
                 'FeCAEReq' => $feCaeReq,
@@ -382,7 +474,10 @@ XML;
 
     public function invalidateTokenCache(): void
     {
-        Cache::forget('afip_ta_wsfe_' . ($this->production ? 'prod' : 'homo'));
+        $taFile = storage_path('app/afip/ta_wsfe_' . ($this->production ? 'prod' : 'homo') . '.json');
+        if (file_exists($taFile)) {
+            @unlink($taFile);
+        }
     }
 
     protected function formatAfipDate(string $date): string
