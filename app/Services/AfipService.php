@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\SalesInvoice;
 use Exception;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use SoapClient;
 
@@ -46,11 +45,27 @@ class AfipService
 
     protected function getTokenAuthorization(): object
     {
-        $cacheKey = 'afip_ta_wsfe_' . ($this->production ? 'prod' : 'homo');
+        $taFile = storage_path('app/afip/ta_wsfe_' . ($this->production ? 'prod' : 'homo') . '.json');
 
-        return Cache::remember($cacheKey, 600, function () {
-            return $this->authenticate('wsfe');
-        });
+        if (file_exists($taFile)) {
+            $data = json_decode(file_get_contents($taFile));
+            if ($data && isset($data->token, $data->sign, $data->expiration)) {
+                $expiration = new \DateTime($data->expiration);
+                if ($expiration > new \DateTime('now', new \DateTimeZone('America/Buenos_Aires'))) {
+                    return $data;
+                }
+            }
+        }
+
+        $ta = $this->authenticate('wsfe');
+
+        $ta->expiration = (new \DateTime('now', new \DateTimeZone('America/Buenos_Aires')))
+            ->modify('+11 hours')
+            ->format('Y-m-d\TH:i:s');
+
+        file_put_contents($taFile, json_encode($ta));
+
+        return $ta;
     }
 
     protected function authenticate(string $service): object
@@ -69,7 +84,33 @@ class AfipService
             ]),
         ]);
 
-        $response = $client->loginCms(['in0' => $cms]);
+        try {
+            $response = $client->loginCms(['in0' => $cms]);
+        } catch (\SoapFault $e) {
+            if (str_contains($e->getMessage(), 'ya posee un TA')) {
+                Log::warning('AFIP WSAA: TA still valid, waiting and retrying', ['service' => $service]);
+                sleep(5);
+
+                $tra = $this->createTRA($service);
+                $cms = $this->signTRA($tra);
+
+                try {
+                    $response = $client->loginCms(['in0' => $cms]);
+                } catch (\SoapFault $retryEx) {
+                    if (str_contains($retryEx->getMessage(), 'ya posee un TA')) {
+                        throw new Exception(
+                            'AFIP WSAA reporta un TA vigente que no tenemos en cache. ' .
+                            'Esto ocurre si el token fue emitido en otra sesión. ' .
+                            'Espere unos minutos e intente nuevamente.'
+                        );
+                    }
+                    throw $retryEx;
+                }
+            } else {
+                throw $e;
+            }
+        }
+
         $loginReturn = $response->loginCmsReturn;
 
         $xml = new \SimpleXMLElement($loginReturn);
@@ -239,6 +280,17 @@ XML;
         };
     }
 
+    public static function getCondicionIvaReceptor(string $taxCondition): int
+    {
+        return match (strtolower($taxCondition)) {
+            'responsable inscripto', 'ri' => 1,
+            'monotributista', 'monotributo' => 6,
+            'exento', 'iva exento' => 4,
+            'consumidor final', 'cf' => 5,
+            default => 5,
+        };
+    }
+
     public function createVoucher(SalesInvoice $invoice): array
     {
         $pointOfSale = $invoice->pointOfSale;
@@ -249,6 +301,7 @@ XML;
 
         $docTipo = self::getDocTipo($customer->tax ?? 'consumidor final');
         $docNro = $docTipo === 99 ? 0 : intval(str_replace('-', '', $customer->taxId ?? '0'));
+        $condIvaReceptor = self::getCondicionIvaReceptor($customer->tax ?? 'consumidor final');
 
         $lastVoucher = $this->getLastVoucher($afipPosNumber, $voucherTypeId);
         $nextNumber = $lastVoucher + 1;
@@ -288,6 +341,7 @@ XML;
                     'Concepto' => 3,
                     'DocTipo' => $docTipo,
                     'DocNro' => $docNro,
+                    'CondicionIvaReceptor' => $condIvaReceptor,
                     'CbteDesde' => $nextNumber,
                     'CbteHasta' => $nextNumber,
                     'CbteFch' => $invoice->issue_date->format('Ymd'),
@@ -382,7 +436,10 @@ XML;
 
     public function invalidateTokenCache(): void
     {
-        Cache::forget('afip_ta_wsfe_' . ($this->production ? 'prod' : 'homo'));
+        $taFile = storage_path('app/afip/ta_wsfe_' . ($this->production ? 'prod' : 'homo') . '.json');
+        if (file_exists($taFile)) {
+            @unlink($taFile);
+        }
     }
 
     protected function formatAfipDate(string $date): string
