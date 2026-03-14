@@ -7,6 +7,33 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 use SoapClient;
 
+class AfipSoapClient extends SoapClient
+{
+    private ?int $condicionIvaReceptorId = null;
+
+    public function setCondicionIvaReceptorId(?int $value): void
+    {
+        $this->condicionIvaReceptorId = $value;
+    }
+
+    #[\Override]
+    public function __doRequest($request, $location, $action, $version, $oneWay = false): ?string
+    {
+        if ($this->condicionIvaReceptorId !== null && strpos($request, 'FECAESolicitar') !== false) {
+            $pattern = '/<([^>]*?)DocNro>(\d+)<\/([^>]*?)DocNro>/';
+            if (preg_match($pattern, $request, $m)) {
+                $prefix = $m[1];
+                $closePrefix = $m[3];
+                $tag = '<' . $prefix . 'CondicionIVAReceptorId>' . $this->condicionIvaReceptorId .
+                       '</' . $closePrefix . 'CondicionIVAReceptorId>';
+                $request = preg_replace($pattern, $m[0] . $tag, $request, 1);
+            }
+        }
+
+        return parent::__doRequest($request, $location, $action, $version, $oneWay);
+    }
+}
+
 class AfipService
 {
     protected string $cuit;
@@ -190,14 +217,15 @@ XML;
 
     // ─── WSFEv1 ──────────────────────────────────────────────
 
-    protected function getWsfeClient(): SoapClient
+    protected function getWsfeClient(): AfipSoapClient
     {
         $wsdl = $this->production ? self::WSFE_WSDL_PROD : self::WSFE_WSDL_HOMO;
 
-        return new SoapClient($wsdl, [
+        return new AfipSoapClient($wsdl, [
             'soap_version' => SOAP_1_2,
             'trace' => true,
             'exceptions' => true,
+            'cache_wsdl' => WSDL_CACHE_NONE,
             'stream_context' => stream_context_create([
                 'ssl' => ['verify_peer' => false, 'verify_peer_name' => false],
             ]),
@@ -280,13 +308,20 @@ XML;
         };
     }
 
-    public static function getCondicionIvaReceptor(string $taxCondition): int
+    public static function getCondicionIvaReceptor(string $taxCondition, string $voucherType = 'B'): int
     {
+        if ($voucherType === 'A') {
+            return match (strtolower($taxCondition)) {
+                'responsable inscripto', 'ri' => 1,
+                'monotributista', 'monotributo' => 6,
+                default => 1,
+            };
+        }
+
         return match (strtolower($taxCondition)) {
-            'responsable inscripto', 'ri' => 1,
-            'monotributista', 'monotributo' => 6,
             'exento', 'iva exento' => 4,
             'consumidor final', 'cf' => 5,
+            'monotributista', 'monotributo' => 6,
             default => 5,
         };
     }
@@ -301,7 +336,7 @@ XML;
 
         $docTipo = self::getDocTipo($customer->tax ?? 'consumidor final');
         $docNro = $docTipo === 99 ? 0 : intval(str_replace('-', '', $customer->taxId ?? '0'));
-        $condIvaReceptor = self::getCondicionIvaReceptor($customer->tax ?? 'consumidor final');
+        $condIvaReceptor = self::getCondicionIvaReceptor($customer->tax ?? 'consumidor final', $invoice->voucher_type);
 
         $lastVoucher = $this->getLastVoucher($afipPosNumber, $voucherTypeId);
         $nextNumber = $lastVoucher + 1;
@@ -329,6 +364,8 @@ XML;
         }
 
         $totalTrib = floatval($invoice->percepciones) + floatval($invoice->otros_impuestos);
+        $totalIva = array_sum(array_column($ivaArray, 'Importe'));
+        $impTotal = round($netAmount + $exemptAmount + $totalIva + $totalTrib, 2);
 
         $feCaeReq = [
             'FeCabReq' => [
@@ -345,11 +382,11 @@ XML;
                     'CbteDesde' => $nextNumber,
                     'CbteHasta' => $nextNumber,
                     'CbteFch' => $invoice->issue_date->format('Ymd'),
-                    'ImpTotal' => round(floatval($invoice->total), 2),
+                    'ImpTotal' => $impTotal,
                     'ImpTotConc' => 0,
                     'ImpNeto' => round($netAmount, 2),
                     'ImpOpEx' => round($exemptAmount, 2),
-                    'ImpIVA' => round(floatval($invoice->iva_21) + floatval($invoice->iva_10_5) + floatval($invoice->iva_27), 2),
+                    'ImpIVA' => round($totalIva, 2),
                     'ImpTrib' => round($totalTrib, 2),
                     'FchServDesde' => $invoice->issue_date->format('Ymd'),
                     'FchServHasta' => $invoice->issue_date->format('Ymd'),
@@ -389,6 +426,7 @@ XML;
 
         try {
             $client = $this->getWsfeClient();
+            $client->setCondicionIvaReceptorId($condIvaReceptor);
             $result = $client->FECAESolicitar([
                 'Auth' => $this->getAuthParams(),
                 'FeCAEReq' => $feCaeReq,
