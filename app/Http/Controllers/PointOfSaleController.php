@@ -43,10 +43,17 @@ class PointOfSaleController extends Controller
             'name' => 'required|string|max:255',
             'address' => 'nullable|string|max:255',
             'is_active' => 'boolean',
+            'is_electronic' => 'boolean',
+            'afip_pos_number' => 'nullable|required_if:is_electronic,1|integer|min:1|max:99999',
         ]);
 
         $validated['is_active'] = $request->has('is_active');
+        $validated['is_electronic'] = $request->has('is_electronic');
         $validated['code'] = str_pad($validated['code'], 5, '0', STR_PAD_LEFT);
+
+        if (! $validated['is_electronic']) {
+            $validated['afip_pos_number'] = null;
+        }
 
         PointOfSale::create($validated);
 
@@ -70,10 +77,17 @@ class PointOfSaleController extends Controller
             'name' => 'required|string|max:255',
             'address' => 'nullable|string|max:255',
             'is_active' => 'boolean',
+            'is_electronic' => 'boolean',
+            'afip_pos_number' => 'nullable|required_if:is_electronic,1|integer|min:1|max:99999',
         ]);
 
         $validated['is_active'] = $request->has('is_active');
+        $validated['is_electronic'] = $request->has('is_electronic');
         $validated['code'] = str_pad($validated['code'], 5, '0', STR_PAD_LEFT);
+
+        if (! $validated['is_electronic']) {
+            $validated['afip_pos_number'] = null;
+        }
 
         $pointOfSale->update($validated);
 
