@@ -4,13 +4,22 @@ namespace App\Services;
 
 use App\Models\SalesInvoice;
 use Exception;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-
-require_once base_path('vendor/afipsdk/afip.php/src/Afip.php');
+use SoapClient;
 
 class AfipService
 {
-    protected \Afip $afip;
+    protected string $cuit;
+    protected string $certPath;
+    protected string $keyPath;
+    protected bool $production;
+
+    protected const WSAA_WSDL_HOMO = 'https://wsaahomo.afip.gov.ar/ws/services/LoginCms?WSDL';
+    protected const WSAA_WSDL_PROD = 'https://wsaa.afip.gov.ar/ws/services/LoginCms?WSDL';
+
+    protected const WSFE_WSDL_HOMO = 'https://wswhomo.afip.gov.ar/wsfev1/service.asmx?WSDL';
+    protected const WSFE_WSDL_PROD = 'https://servicios1.afip.gov.ar/wsfev1/service.asmx?WSDL';
 
     protected static array $voucherTypes = [
         'factura' => ['A' => 1, 'B' => 6, 'C' => 11],
@@ -27,24 +36,155 @@ class AfipService
 
     public function __construct()
     {
-        $this->afip = new \Afip([
-            'CUIT' => config('afip.cuit'),
-            'cert' => config('afip.cert_path'),
-            'key' => config('afip.key_path'),
-            'production' => config('afip.production'),
+        $this->cuit = config('afip.cuit');
+        $this->certPath = base_path(config('afip.cert_path'));
+        $this->keyPath = base_path(config('afip.key_path'));
+        $this->production = (bool) config('afip.production');
+    }
+
+    // ─── WSAA ────────────────────────────────────────────────
+
+    protected function getTokenAuthorization(): object
+    {
+        $cacheKey = 'afip_ta_wsfe_' . ($this->production ? 'prod' : 'homo');
+
+        return Cache::remember($cacheKey, 600, function () {
+            return $this->authenticate('wsfe');
+        });
+    }
+
+    protected function authenticate(string $service): object
+    {
+        $tra = $this->createTRA($service);
+        $cms = $this->signTRA($tra);
+
+        $wsaaWsdl = $this->production ? self::WSAA_WSDL_PROD : self::WSAA_WSDL_HOMO;
+
+        $client = new SoapClient($wsaaWsdl, [
+            'soap_version' => SOAP_1_1,
+            'trace' => true,
+            'exceptions' => true,
+            'stream_context' => stream_context_create([
+                'ssl' => ['verify_peer' => false, 'verify_peer_name' => false],
+            ]),
         ]);
+
+        $response = $client->loginCms(['in0' => $cms]);
+        $loginReturn = $response->loginCmsReturn;
+
+        $xml = new \SimpleXMLElement($loginReturn);
+        $token = (string) $xml->credentials->token;
+        $sign = (string) $xml->credentials->sign;
+
+        Log::info('AFIP WSAA authentication successful', ['service' => $service]);
+
+        return (object) ['token' => $token, 'sign' => $sign];
+    }
+
+    protected function createTRA(string $service): string
+    {
+        $now = new \DateTime('now', new \DateTimeZone('America/Buenos_Aires'));
+        $from = clone $now;
+        $from->modify('-2 minutes');
+        $to = clone $now;
+        $to->modify('+12 hours');
+
+        $uniqueId = $now->getTimestamp();
+        $generationTime = $from->format('Y-m-d\TH:i:s');
+        $expirationTime = $to->format('Y-m-d\TH:i:s');
+
+        return <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<loginTicketRequest version="1.0">
+    <header>
+        <uniqueId>{$uniqueId}</uniqueId>
+        <generationTime>{$generationTime}</generationTime>
+        <expirationTime>{$expirationTime}</expirationTime>
+    </header>
+    <service>{$service}</service>
+</loginTicketRequest>
+XML;
+    }
+
+    protected function signTRA(string $tra): string
+    {
+        $tempTra = tempnam(sys_get_temp_dir(), 'afip_tra_');
+        $tempCms = tempnam(sys_get_temp_dir(), 'afip_cms_');
+
+        file_put_contents($tempTra, $tra);
+
+        $certContent = file_get_contents($this->certPath);
+        $keyContent = file_get_contents($this->keyPath);
+
+        if (!$certContent || !$keyContent) {
+            throw new Exception('No se pudieron leer los certificados AFIP');
+        }
+
+        $signed = openssl_pkcs7_sign(
+            $tempTra,
+            $tempCms,
+            $certContent,
+            $keyContent,
+            [],
+            PKCS7_BINARY | PKCS7_NOSIGS
+        );
+
+        if (!$signed) {
+            @unlink($tempTra);
+            @unlink($tempCms);
+            throw new Exception('Error al firmar el TRA: ' . openssl_error_string());
+        }
+
+        $cmsContent = file_get_contents($tempCms);
+        @unlink($tempTra);
+        @unlink($tempCms);
+
+        $parts = explode("\n\n", $cmsContent);
+        if (count($parts) < 2) {
+            $parts = explode("\r\n\r\n", $cmsContent);
+        }
+
+        return trim($parts[1] ?? $cmsContent);
+    }
+
+    // ─── WSFEv1 ──────────────────────────────────────────────
+
+    protected function getWsfeClient(): SoapClient
+    {
+        $wsdl = $this->production ? self::WSFE_WSDL_PROD : self::WSFE_WSDL_HOMO;
+
+        return new SoapClient($wsdl, [
+            'soap_version' => SOAP_1_2,
+            'trace' => true,
+            'exceptions' => true,
+            'stream_context' => stream_context_create([
+                'ssl' => ['verify_peer' => false, 'verify_peer_name' => false],
+            ]),
+        ]);
+    }
+
+    protected function getAuthParams(): array
+    {
+        $ta = $this->getTokenAuthorization();
+
+        return [
+            'Token' => $ta->token,
+            'Sign' => $ta->sign,
+            'Cuit' => $this->cuit,
+        ];
     }
 
     public function getServerStatus(): array
     {
         try {
-            $status = $this->afip->ElectronicBilling->GetServerStatus();
+            $client = $this->getWsfeClient();
+            $result = $client->FEDummy();
 
             return [
                 'success' => true,
-                'AppServer' => $status->AppServer,
-                'DbServer' => $status->DbServer,
-                'AuthServer' => $status->AuthServer,
+                'AppServer' => $result->FEDummyResult->AppServer ?? 'N/A',
+                'DbServer' => $result->FEDummyResult->DbServer ?? 'N/A',
+                'AuthServer' => $result->FEDummyResult->AuthServer ?? 'N/A',
             ];
         } catch (Exception $e) {
             Log::error('AFIP server status check failed', ['error' => $e->getMessage()]);
@@ -58,7 +198,14 @@ class AfipService
 
     public function getLastVoucher(int $pointOfSale, int $voucherType): int
     {
-        return $this->afip->ElectronicBilling->GetLastVoucher($pointOfSale, $voucherType);
+        $client = $this->getWsfeClient();
+        $result = $client->FECompUltimoAutorizado([
+            'Auth' => $this->getAuthParams(),
+            'PtoVta' => $pointOfSale,
+            'CbteTipo' => $voucherType,
+        ]);
+
+        return $result->FECompUltimoAutorizadoResult->CbteNro;
     }
 
     public static function getVoucherTypeId(string $letter, string $type = 'factura'): int
@@ -103,6 +250,9 @@ class AfipService
         $docTipo = self::getDocTipo($customer->tax ?? 'consumidor final');
         $docNro = $docTipo === 99 ? 0 : intval(str_replace('-', '', $customer->taxId ?? '0'));
 
+        $lastVoucher = $this->getLastVoucher($afipPosNumber, $voucherTypeId);
+        $nextNumber = $lastVoucher + 1;
+
         $ivaArray = [];
         $netAmount = 0;
         $exemptAmount = 0;
@@ -127,29 +277,37 @@ class AfipService
 
         $totalTrib = floatval($invoice->percepciones) + floatval($invoice->otros_impuestos);
 
-        $data = [
-            'CantReg' => 1,
-            'PtoVta' => $afipPosNumber,
-            'CbteTipo' => $voucherTypeId,
-            'Concepto' => 3,
-            'DocTipo' => $docTipo,
-            'DocNro' => $docNro,
-            'CbteFch' => intval($invoice->issue_date->format('Ymd')),
-            'ImpTotal' => round(floatval($invoice->total), 2),
-            'ImpTotConc' => 0,
-            'ImpNeto' => round($netAmount, 2),
-            'ImpOpEx' => round($exemptAmount, 2),
-            'ImpIVA' => round(floatval($invoice->iva_21) + floatval($invoice->iva_10_5) + floatval($invoice->iva_27), 2),
-            'ImpTrib' => round($totalTrib, 2),
-            'FchServDesde' => intval($invoice->issue_date->format('Ymd')),
-            'FchServHasta' => intval($invoice->issue_date->format('Ymd')),
-            'FchVtoPago' => intval(($invoice->due_date ?? $invoice->issue_date)->format('Ymd')),
-            'MonId' => 'PES',
-            'MonCotiz' => 1,
+        $feCaeReq = [
+            'FeCabReq' => [
+                'CantReg' => 1,
+                'PtoVta' => $afipPosNumber,
+                'CbteTipo' => $voucherTypeId,
+            ],
+            'FeDetReq' => [
+                'FECAEDetRequest' => [
+                    'Concepto' => 3,
+                    'DocTipo' => $docTipo,
+                    'DocNro' => $docNro,
+                    'CbteDesde' => $nextNumber,
+                    'CbteHasta' => $nextNumber,
+                    'CbteFch' => $invoice->issue_date->format('Ymd'),
+                    'ImpTotal' => round(floatval($invoice->total), 2),
+                    'ImpTotConc' => 0,
+                    'ImpNeto' => round($netAmount, 2),
+                    'ImpOpEx' => round($exemptAmount, 2),
+                    'ImpIVA' => round(floatval($invoice->iva_21) + floatval($invoice->iva_10_5) + floatval($invoice->iva_27), 2),
+                    'ImpTrib' => round($totalTrib, 2),
+                    'FchServDesde' => $invoice->issue_date->format('Ymd'),
+                    'FchServHasta' => $invoice->issue_date->format('Ymd'),
+                    'FchVtoPago' => ($invoice->due_date ?? $invoice->issue_date)->format('Ymd'),
+                    'MonId' => 'PES',
+                    'MonCotiz' => 1,
+                ],
+            ],
         ];
 
         if (! empty($ivaArray)) {
-            $data['Iva'] = $ivaArray;
+            $feCaeReq['FeDetReq']['FECAEDetRequest']['Iva'] = ['AlicIva' => $ivaArray];
         }
 
         if ($totalTrib > 0) {
@@ -172,26 +330,34 @@ class AfipService
                     'Importe' => round(floatval($invoice->otros_impuestos), 2),
                 ];
             }
-            $data['Tributos'] = $tributos;
+            $feCaeReq['FeDetReq']['FECAEDetRequest']['Tributos'] = ['Tributo' => $tributos];
         }
 
         try {
-            $result = $this->afip->ElectronicBilling->CreateNextVoucher($data, true);
+            $client = $this->getWsfeClient();
+            $result = $client->FECAESolicitar([
+                'Auth' => $this->getAuthParams(),
+                'FeCAEReq' => $feCaeReq,
+            ]);
 
-            $detResponse = $result->FeDetResp->FECAEDetResponse;
+            $feCaeResult = $result->FECAESolicitarResult;
+            $detResponse = $feCaeResult->FeDetResp->FECAEDetResponse;
 
             $response = [
                 'cae' => $detResponse->CAE ?? null,
                 'cae_expiration' => isset($detResponse->CAEFchVto) ? $this->formatAfipDate($detResponse->CAEFchVto) : null,
-                'voucher_number' => $result->voucher_number ?? $detResponse->CbteDesde ?? null,
+                'voucher_number' => $nextNumber,
                 'result' => $detResponse->Resultado ?? null,
-                'observations' => isset($detResponse->Observaciones) ? json_decode(json_encode($detResponse->Observaciones), true) : null,
-                'full_response' => json_decode(json_encode($result), true),
+                'observations' => isset($detResponse->Observaciones)
+                    ? json_decode(json_encode($detResponse->Observaciones), true)
+                    : null,
+                'full_response' => json_decode(json_encode($feCaeResult), true),
             ];
 
             Log::info('AFIP voucher created', [
                 'invoice_id' => $invoice->id,
                 'cae' => $response['cae'],
+                'voucher_number' => $nextNumber,
                 'result' => $response['result'],
             ]);
 
@@ -212,6 +378,11 @@ class AfipService
                 'full_response' => ['error' => $e->getMessage()],
             ];
         }
+    }
+
+    public function invalidateTokenCache(): void
+    {
+        Cache::forget('afip_ta_wsfe_' . ($this->production ? 'prod' : 'homo'));
     }
 
     protected function formatAfipDate(string $date): string
