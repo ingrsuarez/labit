@@ -255,6 +255,7 @@ Route::middleware([
         // SALES INVOICES (Facturas de Venta)
         Route::resource('sales-invoices', App\Http\Controllers\SalesInvoiceController::class);
         Route::get('sales-invoices-next-number', [App\Http\Controllers\SalesInvoiceController::class, 'nextNumber'])->name('sales-invoices.next-number');
+        Route::post('sales-invoices/{salesInvoice}/retry-afip', [App\Http\Controllers\SalesInvoiceController::class, 'retryAfip'])->name('sales-invoices.retry-afip');
 
         // POINTS OF SALE (Puntos de Venta)
         Route::resource('points-of-sale', App\Http\Controllers\PointOfSaleController::class)->except(['show']);
