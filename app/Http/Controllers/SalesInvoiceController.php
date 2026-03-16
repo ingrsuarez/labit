@@ -9,6 +9,7 @@ use App\Models\Quote;
 use App\Models\PointOfSale;
 use App\Services\AfipService;
 use Illuminate\Http\Request;
+use PDF;
 
 class SalesInvoiceController extends Controller
 {
@@ -436,5 +437,26 @@ class SalesInvoiceController extends Controller
             return redirect()->route('sales-invoices.show', $salesInvoice)
                 ->with('error', 'Error al comunicarse con AFIP: ' . $e->getMessage());
         }
+    }
+
+    public function pdf(SalesInvoice $salesInvoice)
+    {
+        $this->authorize('sales-invoices.index');
+
+        $salesInvoice->load(['customer', 'pointOfSale', 'items.test', 'creator']);
+
+        $pdf = PDF::loadView('sales-invoices.pdf', ['invoice' => $salesInvoice], [], [
+            'margin_top' => 10,
+            'margin_bottom' => 10,
+            'margin_left' => 12,
+            'margin_right' => 12,
+            'format' => 'A4',
+        ]);
+
+        $filename = 'Factura_' . $salesInvoice->voucher_type . '_'
+            . ($salesInvoice->pointOfSale ? $salesInvoice->pointOfSale->code : '00000')
+            . '-' . $salesInvoice->invoice_number . '.pdf';
+
+        return $pdf->download($filename);
     }
 }
