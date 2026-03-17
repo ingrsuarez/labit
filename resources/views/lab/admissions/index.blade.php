@@ -6,6 +6,7 @@
                 <h1 class="text-2xl font-bold text-gray-900">Admisiones de Pacientes</h1>
                 <p class="mt-1 text-sm text-gray-600">Gestione las admisiones del laboratorio</p>
             </div>
+            @can('lab-admissions.create')
             <a href="{{ route('lab.admissions.create') }}" 
                class="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -13,6 +14,7 @@
                 </svg>
                 Nueva Admisión
             </a>
+            @endcan
         </div>
 
         @if(session('success'))
@@ -141,6 +143,7 @@
                     </svg>
                     <h3 class="mt-2 text-sm font-medium text-gray-900">No hay admisiones</h3>
                     <p class="mt-1 text-sm text-gray-500">Comience creando una nueva admisión.</p>
+                    @can('lab-admissions.create')
                     <div class="mt-6">
                         <a href="{{ route('lab.admissions.create') }}" 
                            class="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
@@ -150,6 +153,7 @@
                             Nueva Admisión
                         </a>
                     </div>
+                    @endcan
                 </div>
             @endif
         </div>

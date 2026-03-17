@@ -172,6 +172,23 @@ class RolesAndPermissionsSeeder extends Seeder
             'payment-orders.edit',
             'payment-orders.delete',
 
+            // LABORATORIO CLÍNICO
+            'lab.section',
+            'patients.index',
+            'patients.create',
+            'patients.edit',
+            'lab-admissions.index',
+            'lab-admissions.create',
+            'lab-admissions.edit',
+            'lab-admissions.show',
+            'lab-results.create',
+            'lab-results.edit',
+            'lab-results.validate',
+            'lab-reports.preview',
+            'lab-reports.print',
+            'lab-reports.send',
+            'lab-reports.index',
+
             // VENTAS (Módulo de Ventas)
             'ventas.section',
             'sales-invoices.index',
@@ -331,6 +348,51 @@ class RolesAndPermissionsSeeder extends Seeder
         ];
 
         $ventasRole->syncPermissions(Permission::whereIn('name', $ventasPermissions)->get());
+
+        // 5.4) Crear rol recepcion-lab
+        $recepcionLabRole = Role::firstOrCreate([
+            'name'       => 'recepcion-lab',
+            'guard_name' => 'web',
+        ]);
+
+        $recepcionLabPermissions = [
+            'lab.section',
+            'patients.index', 'patients.create', 'patients.edit',
+            'lab-admissions.index', 'lab-admissions.create', 'lab-admissions.edit', 'lab-admissions.show',
+            'lab-reports.print', 'lab-reports.send',
+        ];
+
+        $recepcionLabRole->syncPermissions(Permission::whereIn('name', $recepcionLabPermissions)->get());
+
+        // 5.5) Crear rol tecnico-lab
+        $tecnicoLabRole = Role::firstOrCreate([
+            'name'       => 'tecnico-lab',
+            'guard_name' => 'web',
+        ]);
+
+        $tecnicoLabPermissions = [
+            'lab.section',
+            'lab-admissions.index', 'lab-admissions.show',
+            'lab-results.create', 'lab-results.edit',
+            'lab-reports.preview',
+        ];
+
+        $tecnicoLabRole->syncPermissions(Permission::whereIn('name', $tecnicoLabPermissions)->get());
+
+        // 5.6) Crear rol bioquimico
+        $bioquimicoRole = Role::firstOrCreate([
+            'name'       => 'bioquimico',
+            'guard_name' => 'web',
+        ]);
+
+        $bioquimicoPermissions = [
+            'lab.section',
+            'lab-admissions.index', 'lab-admissions.show',
+            'lab-results.create', 'lab-results.edit', 'lab-results.validate',
+            'lab-reports.preview', 'lab-reports.print', 'lab-reports.send', 'lab-reports.index',
+        ];
+
+        $bioquimicoRole->syncPermissions(Permission::whereIn('name', $bioquimicoPermissions)->get());
 
         // 6) Crear/asegurar usuario admin (lee de .env con defaults)
         $email    = env('ADMIN_EMAIL', 'admin@admin');
