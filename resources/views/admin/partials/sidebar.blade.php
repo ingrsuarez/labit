@@ -110,7 +110,7 @@
             @can('ventas.section')
             <a href="{{ route('sales.section') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('sales.*') || request()->routeIs('sales-invoices.*') || request()->routeIs('collection-receipts.*') || request()->routeIs('points-of-sale.*') || request()->routeIs('customer.*') || request()->routeIs('quotes.*')
+                {{ request()->routeIs('sales.*') || request()->routeIs('sales-invoices.*') || request()->routeIs('collection-receipts.*') || request()->routeIs('points-of-sale.*') || request()->routeIs('customer.*') || request()->routeIs('quotes.*') || request()->routeIs('credit-notes.*')
                     ? 'bg-zinc-700 text-white'
                     : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

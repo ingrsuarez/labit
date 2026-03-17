@@ -31,6 +31,7 @@ class SalesInvoice extends Model
     public function creator() { return $this->belongsTo(User::class, 'created_by'); }
     public function items() { return $this->hasMany(SalesInvoiceItem::class)->orderBy('sort_order'); }
     public function collectionReceiptItems() { return $this->hasMany(CollectionReceiptItem::class); }
+    public function creditNotes() { return $this->hasMany(CreditNote::class); }
 
     public function recalculate(): void
     {
