@@ -298,33 +298,21 @@
                                                     <div class="flex items-center justify-center gap-2">
                                                         @if(!$hasChildren)
                                                             @if($admissionTest->is_validated)
-                                                                <form action="{{ route('lab.admissions.unvalidateTest', [$admission, $admissionTest]) }}" method="POST" class="inline">
-                                                                    @csrf
-                                                                    <button type="submit" class="text-orange-600 hover:text-orange-800 text-xs" title="Quitar validación">
-                                                                        Desvalidar
-                                                                    </button>
-                                                                </form>
+                                                                <button type="button" onclick="submitAction('{{ route('lab.admissions.unvalidateTest', [$admission, $admissionTest]) }}')" class="text-orange-600 hover:text-orange-800 text-xs" title="Quitar validación">
+                                                                    Desvalidar
+                                                                </button>
                                                             @elseif($admissionTest->result)
-                                                                <form action="{{ route('lab.admissions.validateTest', [$admission, $admissionTest]) }}" method="POST" class="inline">
-                                                                    @csrf
-                                                                    <button type="submit" class="text-green-600 hover:text-green-800 text-xs font-medium" title="Validar">
-                                                                        Validar
-                                                                    </button>
-                                                                </form>
+                                                                <button type="button" onclick="submitAction('{{ route('lab.admissions.validateTest', [$admission, $admissionTest]) }}')" class="text-green-600 hover:text-green-800 text-xs font-medium" title="Validar">
+                                                                    Validar
+                                                                </button>
                                                             @endif
                                                         @endif
-                                                        <!-- Botón eliminar práctica (solo si no está validada y no tiene hijos validados) -->
                                                         @if($canDelete)
-                                                            <form action="{{ route('lab.admissions.removeTest', [$admission, $admissionTest]) }}" method="POST" class="inline"
-                                                                  onsubmit="return confirm('¿Eliminar esta práctica del protocolo?{{ $hasChildren ? ' (Se eliminarán también las determinaciones hijas)' : '' }}')">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit" class="text-red-400 hover:text-red-600" title="Eliminar práctica">
-                                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                                    </svg>
-                                                                </button>
-                                                            </form>
+                                                            <button type="button" onclick="if(confirm('¿Eliminar esta práctica del protocolo?{{ $hasChildren ? " (Se eliminarán también las determinaciones hijas)" : "" }}')) submitAction('{{ route('lab.admissions.removeTest', [$admission, $admissionTest]) }}', 'DELETE')" class="text-red-400 hover:text-red-600" title="Eliminar práctica">
+                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                                </svg>
+                                                            </button>
                                                         @elseif($hasValidatedChildren)
                                                             <span class="text-gray-300 text-xs" title="Desvalide las determinaciones hijas primero">
                                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -420,19 +408,13 @@
                                                         </td>
                                                         <td class="px-4 py-2 text-center">
                                                             @if($childTest->is_validated)
-                                                                <form action="{{ route('lab.admissions.unvalidateTest', [$admission, $childTest]) }}" method="POST" class="inline">
-                                                                    @csrf
-                                                                    <button type="submit" class="text-orange-500 hover:text-orange-700 text-xs">
-                                                                        ✕
-                                                                    </button>
-                                                                </form>
+                                                                <button type="button" onclick="submitAction('{{ route('lab.admissions.unvalidateTest', [$admission, $childTest]) }}')" class="text-orange-500 hover:text-orange-700 text-xs">
+                                                                    ✕
+                                                                </button>
                                                             @elseif($childTest->result)
-                                                                <form action="{{ route('lab.admissions.validateTest', [$admission, $childTest]) }}" method="POST" class="inline">
-                                                                    @csrf
-                                                                    <button type="submit" class="text-green-500 hover:text-green-700 text-xs">
-                                                                        ✓
-                                                                    </button>
-                                                                </form>
+                                                                <button type="button" onclick="submitAction('{{ route('lab.admissions.validateTest', [$admission, $childTest]) }}')" class="text-green-500 hover:text-green-700 text-xs">
+                                                                    ✓
+                                                                </button>
                                                             @else
                                                                 <span class="text-gray-300 text-xs">-</span>
                                                             @endif
@@ -682,6 +664,27 @@
     </div>
 
     <script>
+        function submitAction(url, method) {
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+            form.style.display = 'none';
+            var csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = '_token';
+            csrf.value = '{{ csrf_token() }}';
+            form.appendChild(csrf);
+            if (method && method !== 'POST') {
+                var m = document.createElement('input');
+                m.type = 'hidden';
+                m.name = '_method';
+                m.value = method;
+                form.appendChild(m);
+            }
+            document.body.appendChild(form);
+            form.submit();
+        }
+
         // Variables para el buscador de prácticas
         let allTests = @json($availableTests);
         let filteredTests = [];
