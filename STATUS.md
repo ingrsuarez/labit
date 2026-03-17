@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-14
+> Última actualización: 2026-03-17
 
 ---
 
@@ -9,32 +9,37 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v1.0.0 |
-| **Última completada** | v1.0.0 — Línea base del proyecto |
+| **Versión actual** | v1.4.0 |
+| **Última completada** | v1.4.0 — Notas de crédito electrónicas |
 | **En proceso** | — |
-| **Próxima** | v1.0.1 — README del proyecto |
-| **Pendientes en cola** | 2 |
-| **Completadas** | 1 |
+| **Próxima** | v1.5.0 — Lector QR facturas de compra |
+| **Pendientes en cola** | 1 |
+| **Completadas** | 7 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (2)
+### Pendientes (1)
 
 | Versión | Nombre | Estimación | Dependencias | Archivo |
 |---|---|---|---|---|
-| v1.0.1 | README del proyecto | 30min | v1.0.0 | `pendientes/v1.0.1-readme-proyecto.md` |
-| v1.1.0 | Normalización de line endings | 30min | v1.0.0 | `pendientes/v1.1.0-line-endings.md` |
+| v1.5.0 | Lector QR facturas de compra | 2h | v1.3.0 | `pendientes/v1.5.0-qr-reader-compras.md` |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (1)
+### Completados (7)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.4.0 | Notas de crédito electrónicas | 2026-03-17 | v1.4.0 |
+| v1.3.1 | Fix AFIP CondicionIVAReceptorId + ImpTotal | 2026-03-15 | v1.3.1 |
+| v1.3.0 | Facturación electrónica WSFEv1 | 2026-03-14 | v1.3.0 |
+| v1.2.0 | Infraestructura AFIP | 2026-03-14 | v1.2.0 |
+| v1.1.0 | Normalización de line endings | 2026-03-16 | v1.1.0 |
+| v1.0.1 | README del proyecto | 2026-03-14 | v1.0.1 |
 | v1.0.0 | Línea base del proyecto | 2026-03-14 | v1.0.0 |
 
 ---
@@ -43,8 +48,13 @@ _Sin prompts en ejecución._
 
 ```
 v1.0.0 (completada)
-├── v1.0.1 — README del proyecto
-└── v1.1.0 — Normalización de line endings
+├── v1.0.1 — README del proyecto (completada)
+├── v1.1.0 — Normalización de line endings (completada)
+├── v1.2.0 — Infraestructura AFIP (completada)
+│   └── v1.3.0 — Facturación electrónica WSFEv1 (completada)
+│       ├── v1.3.1 — Fix AFIP CondicionIVAReceptorId + ImpTotal (completada)
+│       ├── v1.4.0 — Notas de crédito electrónicas (completada)
+│       └── v1.5.0 — Lector QR facturas de compra (pendiente)
 ```
 
 ---
@@ -66,7 +76,7 @@ v1.0.0 (completada)
 
 | Documento | Estado |
 |---|---|
-| `README.md` | Pendiente (v1.0.1) |
+| `README.md` | Actualizado (v1.0.1) |
 | `ROADMAP.md` | Actualizado |
 | `BLUEPRINT.md` | Actualizado |
 | `STATUS.md` | Actualizado (este archivo) |
