@@ -16,6 +16,7 @@ class SampleController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('samples.index');
         $query = Sample::with(['customer', 'determinations'])
             ->orderBy('created_at', 'desc');
 
@@ -48,6 +49,7 @@ class SampleController extends Controller
      */
     public function create()
     {
+        $this->authorize('samples.create');
         $customers = Customer::orderBy('name')->get();
         $tests = Test::orderBy('name')->get();
 
@@ -59,6 +61,7 @@ class SampleController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('samples.create');
         $validated = $request->validate([
             'sample_type' => 'required|in:agua,alimento',
             'entry_date' => 'required|date',
@@ -125,6 +128,7 @@ class SampleController extends Controller
      */
     public function show(Sample $sample)
     {
+        $this->authorize('samples.show');
         $sample->load([
             'customer', 
             'determinations.test.parentTest', 
@@ -143,6 +147,7 @@ class SampleController extends Controller
      */
     public function edit(Sample $sample)
     {
+        $this->authorize('samples.edit');
         $customers = Customer::orderBy('name')->get();
         $tests = Test::orderBy('name')->get();
         $sample->load('determinations');
@@ -155,6 +160,7 @@ class SampleController extends Controller
      */
     public function update(Request $request, Sample $sample)
     {
+        $this->authorize('samples.edit');
         $validated = $request->validate([
             'sample_type' => 'required|in:agua,alimento',
             'entry_date' => 'required|date',
@@ -283,6 +289,7 @@ class SampleController extends Controller
      */
     public function loadResults(Sample $sample)
     {
+        $this->authorize('samples-results.create');
         $sample->load([
             'customer', 
             'determinations.test.parentTest', 
@@ -305,6 +312,7 @@ class SampleController extends Controller
      */
     public function saveResults(Request $request, Sample $sample)
     {
+        $this->authorize('samples-results.create');
         $validated = $request->validate([
             'determinations' => 'required|array',
             'determinations.*.id' => 'required|exists:sample_determinations,id',
@@ -689,6 +697,7 @@ class SampleController extends Controller
      */
     public function downloadPdf(Sample $sample)
     {
+        $this->authorize('samples-reports.print');
         // Solo permitir descarga si tiene al menos una determinación validada
         $validatedCount = $sample->determinations()->where('is_validated', true)->count();
         if ($validatedCount === 0) {
@@ -724,6 +733,7 @@ class SampleController extends Controller
      */
     public function viewPdf(Sample $sample)
     {
+        $this->authorize('samples-reports.preview');
         // Solo permitir visualización si tiene al menos una determinación validada
         $validatedCount = $sample->determinations()->where('is_validated', true)->count();
         if ($validatedCount === 0) {
@@ -759,6 +769,7 @@ class SampleController extends Controller
      */
     public function sendEmail(Request $request, Sample $sample)
     {
+        $this->authorize('samples-reports.send');
         if (!$sample->isValidated()) {
             return back()->with('error', 'El protocolo debe estar validado para poder enviarlo.');
         }
@@ -907,6 +918,7 @@ class SampleController extends Controller
      */
     public function printLabel(Sample $sample)
     {
+        $this->authorize('samples-labels.print');
         $sample->load(['customer', 'determinations.test']);
 
         $materials = $sample->determinations

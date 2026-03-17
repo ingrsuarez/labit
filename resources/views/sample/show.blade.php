@@ -44,7 +44,7 @@
                 </div>
             </div>
             <div class="mt-4 md:mt-0 flex flex-wrap gap-2" x-data>
-                <!-- Botón cargar resultados -->
+                @can('samples-results.create')
                 <a href="{{ route('sample.loadResults', $sample) }}" 
                    class="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,9 +52,9 @@
                     </svg>
                     Cargar Resultados
                 </a>
+                @endcan
                 
-                <!-- Botón validar (solo para validadores) -->
-                @can('samples.validate')
+                @can('samples-results.validate')
                     <a href="{{ route('sample.validate.show', $sample) }}" 
                        class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,7 +64,7 @@
                     </a>
                 @endcan
                 
-                <!-- Botones PDF (si hay determinaciones validadas) -->
+                @can('samples-reports.preview')
                 @if($sample->determinations->where('is_validated', true)->count() > 0)
                     <a href="{{ route('sample.pdf.view', $sample) }}" target="_blank"
                        class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
@@ -74,6 +74,10 @@
                         </svg>
                         Ver PDF ({{ $sample->determinations->where('is_validated', true)->count() }})
                     </a>
+                @endif
+                @endcan
+                @can('samples-reports.print')
+                @if($sample->determinations->where('is_validated', true)->count() > 0)
                     <a href="{{ route('sample.pdf.download', $sample) }}" 
                        class="inline-flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,8 +86,9 @@
                         Descargar
                     </a>
                 @endif
+                @endcan
                 
-                <!-- Botón imprimir etiqueta -->
+                @can('samples-labels.print')
                 <button type="button"
                         @click="$dispatch('open-label-modal', { url: '{{ route('sample.labelData', $sample) }}' })"
                         class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
@@ -92,8 +97,9 @@
                     </svg>
                     Imprimir Etiqueta
                 </button>
+                @endcan
 
-                <!-- Botón editar -->
+                @can('samples.edit')
                 <a href="{{ route('sample.edit', $sample) }}" 
                    class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,6 +107,7 @@
                     </svg>
                     Editar
                 </a>
+                @endcan
             </div>
         </div>
 

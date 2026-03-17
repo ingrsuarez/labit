@@ -6,6 +6,7 @@
                 <h1 class="text-2xl font-bold text-gray-800">Protocolos de Muestras</h1>
                 <p class="text-gray-600 mt-1">Gestión de muestras de agua y alimentos</p>
             </div>
+            @can('samples.create')
             <a href="{{ route('sample.create') }}" 
                class="mt-4 md:mt-0 inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -13,6 +14,7 @@
                 </svg>
                 Nueva Muestra
             </a>
+            @endcan
         </div>
 
         <!-- Alertas -->
