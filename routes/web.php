@@ -110,36 +110,41 @@ Route::middleware([
     Route::get('/nomenclator/{insurance}/search-tests', [App\Http\Controllers\InsuranceNomenclatorController::class, 'searchTests'])->name('nomenclator.searchTests');
     Route::post('/nomenclator/{insurance}/copy-from', [App\Http\Controllers\InsuranceNomenclatorController::class, 'copyFromNomenclator'])->name('nomenclator.copyFrom');
 
-    // LAB SECTIONS (Páginas index de cada sección del sidebar)
-    Route::get('lab/clinico', [App\Http\Controllers\LabSectionController::class, 'clinico'])->name('lab.section.clinico');
-    Route::get('lab/muestras', [App\Http\Controllers\LabSectionController::class, 'muestras'])->name('lab.section.muestras');
-    Route::get('lab/configuracion', [App\Http\Controllers\LabSectionController::class, 'configuracion'])->name('lab.section.configuracion');
+    // LAB — Sección protegida por permiso lab.section
+    Route::middleware(['permission:lab.section'])->group(function () {
 
-    // LAB ADMISSIONS (Admisiones de Pacientes - Laboratorio)
-    Route::get('lab/admissions', [App\Http\Controllers\LabAdmissionController::class, 'index'])->name('lab.admissions.index');
-    Route::get('lab/admissions/create', [App\Http\Controllers\LabAdmissionController::class, 'create'])->name('lab.admissions.create');
-    Route::post('lab/admissions', [App\Http\Controllers\LabAdmissionController::class, 'store'])->name('lab.admissions.store');
-    Route::get('lab/admissions/search-patients', [App\Http\Controllers\LabAdmissionController::class, 'searchPatients'])->name('lab.admissions.searchPatients');
-    Route::get('lab/admissions/search-tests', [App\Http\Controllers\LabAdmissionController::class, 'searchTests'])->name('lab.admissions.searchTests');
-    Route::get('lab/admissions/test-price', [App\Http\Controllers\LabAdmissionController::class, 'getTestPrice'])->name('lab.admissions.getTestPrice');
-    Route::get('lab/admissions/{admission}', [App\Http\Controllers\LabAdmissionController::class, 'show'])->name('lab.admissions.show');
-    Route::get('lab/admissions/{admission}/edit', [App\Http\Controllers\LabAdmissionController::class, 'edit'])->name('lab.admissions.edit');
-    Route::put('lab/admissions/{admission}', [App\Http\Controllers\LabAdmissionController::class, 'update'])->name('lab.admissions.update');
-    Route::post('lab/admissions/{admission}/test', [App\Http\Controllers\LabAdmissionController::class, 'addTest'])->name('lab.admissions.addTest');
-    Route::put('lab/admissions/{admission}/test/{test}', [App\Http\Controllers\LabAdmissionController::class, 'updateTest'])->name('lab.admissions.updateTest');
-    Route::delete('lab/admissions/{admission}/test/{test}', [App\Http\Controllers\LabAdmissionController::class, 'removeTest'])->name('lab.admissions.removeTest');
-    
-    // Resultados y validación
-    Route::post('lab/admissions/{admission}/results', [App\Http\Controllers\LabAdmissionController::class, 'saveResults'])->name('lab.admissions.saveResults');
-    Route::post('lab/admissions/{admission}/test/{admissionTest}/result', [App\Http\Controllers\LabAdmissionController::class, 'saveResult'])->name('lab.admissions.saveResult');
-    Route::post('lab/admissions/{admission}/test/{admissionTest}/validate', [App\Http\Controllers\LabAdmissionController::class, 'validateTest'])->name('lab.admissions.validateTest');
-    Route::post('lab/admissions/{admission}/test/{admissionTest}/unvalidate', [App\Http\Controllers\LabAdmissionController::class, 'unvalidateTest'])->name('lab.admissions.unvalidateTest');
-    Route::post('lab/admissions/{admission}/validate-all', [App\Http\Controllers\LabAdmissionController::class, 'validateAll'])->name('lab.admissions.validateAll');
-    Route::post('lab/admissions/{admission}/sync-children', [App\Http\Controllers\LabAdmissionController::class, 'syncChildTests'])->name('lab.admissions.syncChildren');
+        // LAB SECTIONS (Páginas index de cada sección del sidebar)
+        Route::get('lab/clinico', [App\Http\Controllers\LabSectionController::class, 'clinico'])->name('lab.section.clinico');
+        Route::get('lab/muestras', [App\Http\Controllers\LabSectionController::class, 'muestras'])->name('lab.section.muestras');
+        Route::get('lab/configuracion', [App\Http\Controllers\LabSectionController::class, 'configuracion'])->name('lab.section.configuracion');
 
-    // LAB REPORTS (Reportes del Laboratorio)
-    Route::get('lab/reports/monthly', [App\Http\Controllers\LabReportController::class, 'monthly'])->name('lab.reports.monthly');
-    Route::get('lab/reports/monthly/export', [App\Http\Controllers\LabReportController::class, 'exportExcel'])->name('lab.reports.exportExcel');
+        // LAB ADMISSIONS (Admisiones de Pacientes - Laboratorio)
+        Route::get('lab/admissions', [App\Http\Controllers\LabAdmissionController::class, 'index'])->name('lab.admissions.index');
+        Route::get('lab/admissions/create', [App\Http\Controllers\LabAdmissionController::class, 'create'])->name('lab.admissions.create');
+        Route::post('lab/admissions', [App\Http\Controllers\LabAdmissionController::class, 'store'])->name('lab.admissions.store');
+        Route::get('lab/admissions/search-patients', [App\Http\Controllers\LabAdmissionController::class, 'searchPatients'])->name('lab.admissions.searchPatients');
+        Route::get('lab/admissions/search-tests', [App\Http\Controllers\LabAdmissionController::class, 'searchTests'])->name('lab.admissions.searchTests');
+        Route::get('lab/admissions/test-price', [App\Http\Controllers\LabAdmissionController::class, 'getTestPrice'])->name('lab.admissions.getTestPrice');
+        Route::get('lab/admissions/{admission}', [App\Http\Controllers\LabAdmissionController::class, 'show'])->name('lab.admissions.show');
+        Route::get('lab/admissions/{admission}/edit', [App\Http\Controllers\LabAdmissionController::class, 'edit'])->name('lab.admissions.edit');
+        Route::put('lab/admissions/{admission}', [App\Http\Controllers\LabAdmissionController::class, 'update'])->name('lab.admissions.update');
+        Route::post('lab/admissions/{admission}/test', [App\Http\Controllers\LabAdmissionController::class, 'addTest'])->name('lab.admissions.addTest');
+        Route::put('lab/admissions/{admission}/test/{test}', [App\Http\Controllers\LabAdmissionController::class, 'updateTest'])->name('lab.admissions.updateTest');
+        Route::delete('lab/admissions/{admission}/test/{test}', [App\Http\Controllers\LabAdmissionController::class, 'removeTest'])->name('lab.admissions.removeTest');
+
+        // Resultados y validación
+        Route::post('lab/admissions/{admission}/results', [App\Http\Controllers\LabAdmissionController::class, 'saveResults'])->name('lab.admissions.saveResults');
+        Route::post('lab/admissions/{admission}/test/{admissionTest}/result', [App\Http\Controllers\LabAdmissionController::class, 'saveResult'])->name('lab.admissions.saveResult');
+        Route::post('lab/admissions/{admission}/test/{admissionTest}/validate', [App\Http\Controllers\LabAdmissionController::class, 'validateTest'])->name('lab.admissions.validateTest');
+        Route::post('lab/admissions/{admission}/test/{admissionTest}/unvalidate', [App\Http\Controllers\LabAdmissionController::class, 'unvalidateTest'])->name('lab.admissions.unvalidateTest');
+        Route::post('lab/admissions/{admission}/validate-all', [App\Http\Controllers\LabAdmissionController::class, 'validateAll'])->name('lab.admissions.validateAll');
+        Route::post('lab/admissions/{admission}/sync-children', [App\Http\Controllers\LabAdmissionController::class, 'syncChildTests'])->name('lab.admissions.syncChildren');
+
+        // LAB REPORTS (Reportes del Laboratorio)
+        Route::get('lab/reports/monthly', [App\Http\Controllers\LabReportController::class, 'monthly'])->name('lab.reports.monthly');
+        Route::get('lab/reports/monthly/export', [App\Http\Controllers\LabReportController::class, 'exportExcel'])->name('lab.reports.exportExcel');
+
+    }); // fin lab.section
 
     // ADMISSION
     Route::get('/admission/new',[App\Http\Controllers\AdmissionController::class, 'index'])->name('admission.index');

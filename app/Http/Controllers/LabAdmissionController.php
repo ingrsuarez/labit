@@ -18,6 +18,7 @@ class LabAdmissionController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('lab-admissions.index');
         $query = Admission::with(['patient', 'insuranceRelation', 'admissionTests'])
             ->orderBy('date', 'desc')
             ->orderBy('id', 'desc');
@@ -61,6 +62,7 @@ class LabAdmissionController extends Controller
      */
     public function create(Request $request)
     {
+        $this->authorize('lab-admissions.create');
         $patient = null;
         if ($request->filled('patient_id')) {
             $patient = Patient::find($request->patient_id);
@@ -80,6 +82,7 @@ class LabAdmissionController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('lab-admissions.create');
         $request->validate([
             'patient_id' => 'required|exists:patients,id',
             'date' => 'required|date',
@@ -188,6 +191,7 @@ class LabAdmissionController extends Controller
      */
     public function show(Admission $admission)
     {
+        $this->authorize('lab-admissions.show');
         $admission->load([
             'patient', 
             'insuranceRelation', 
@@ -209,6 +213,7 @@ class LabAdmissionController extends Controller
      */
     public function edit(Admission $admission)
     {
+        $this->authorize('lab-admissions.edit');
         $admission->load(['patient', 'insuranceRelation', 'admissionTests.test']);
         $insurances = Insurance::orderByRaw("CASE WHEN type = 'particular' THEN 0 ELSE 1 END")
             ->orderBy('type')
@@ -224,6 +229,7 @@ class LabAdmissionController extends Controller
      */
     public function update(Request $request, Admission $admission)
     {
+        $this->authorize('lab-admissions.edit');
         $request->validate([
             'date' => 'required|date',
             'insurance_id' => 'required|exists:insurances,id',
@@ -483,6 +489,7 @@ class LabAdmissionController extends Controller
      */
     public function saveResult(Request $request, Admission $admission, AdmissionTest $admissionTest)
     {
+        $this->authorize('lab-results.create');
         $request->validate([
             'result' => 'nullable|string|max:255',
             'unit' => 'nullable|string|max:50',
@@ -503,6 +510,7 @@ class LabAdmissionController extends Controller
      */
     public function saveResults(Request $request, Admission $admission)
     {
+        $this->authorize('lab-results.create');
         $request->validate([
             'results' => 'required|array',
             'results.*.id' => 'required|exists:admission_tests,id',
@@ -530,6 +538,7 @@ class LabAdmissionController extends Controller
      */
     public function validateTest(Request $request, Admission $admission, AdmissionTest $admissionTest)
     {
+        $this->authorize('lab-results.validate');
         if (!$admissionTest->result) {
             return redirect()->back()->with('error', 'No se puede validar una práctica sin resultado.');
         }
@@ -548,6 +557,7 @@ class LabAdmissionController extends Controller
      */
     public function unvalidateTest(Request $request, Admission $admission, AdmissionTest $admissionTest)
     {
+        $this->authorize('lab-results.validate');
         $admissionTest->update([
             'is_validated' => false,
             'validated_by' => null,
@@ -562,6 +572,7 @@ class LabAdmissionController extends Controller
      */
     public function validateAll(Request $request, Admission $admission)
     {
+        $this->authorize('lab-results.validate');
         $count = 0;
         foreach ($admission->admissionTests as $admissionTest) {
             if ($admissionTest->result && !$admissionTest->is_validated) {

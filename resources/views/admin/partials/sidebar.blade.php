@@ -45,6 +45,7 @@
                 Dashboard
             </a>
 
+            @can('lab.section')
             <!-- Ir a Laboratorio -->
             <a href="{{ route('lab.section.clinico') }}" 
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors text-teal-400 hover:bg-teal-600/20 hover:text-teal-300">
@@ -53,6 +54,7 @@
                 </svg>
                 Ir a Laboratorio
             </a>
+            @endcan
 
             <div class="border-t border-zinc-700 my-2"></div>
 

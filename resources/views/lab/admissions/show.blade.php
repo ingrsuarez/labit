@@ -18,6 +18,7 @@
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
+                    @can('lab-admissions.edit')
                     <form action="{{ route('lab.admissions.syncChildren', $admission) }}" method="POST" class="inline">
                         @csrf
                         <button type="submit" 
@@ -30,6 +31,7 @@
                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
                         Editar
                     </a>
+                    @endcan
                 </div>
             </div>
         </div>
@@ -126,6 +128,7 @@
                                 <span class="font-medium text-blue-600">{{ $withResults }}</span> con resultado |
                                 <span class="font-medium text-green-600">{{ $validated }}</span> validados
                             </span>
+                            @can('lab-results.validate')
                             @if($withResults > $validated)
                                 <form action="{{ route('lab.admissions.validateAll', $admission) }}" method="POST" class="inline">
                                     @csrf
@@ -134,10 +137,13 @@
                                     </button>
                                 </form>
                             @endif
+                            @endcan
+                            @can('lab-admissions.edit')
                             <button type="button" onclick="openAddTestModal()" 
                                     class="px-3 py-1 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-700">
                                 + Agregar Práctica
                             </button>
+                            @endcan
                         </div>
                     </div>
 
@@ -175,6 +181,8 @@
                             // Combinar padres reales con huérfanas
                             $parentTests = $parentTests->concat($orphanTests);
                             $formIndex = 0;
+                            $canEditResults = auth()->user()->can('lab-results.create');
+                            $canValidate = auth()->user()->can('lab-results.validate');
                         @endphp
                         
                         <form action="{{ route('lab.admissions.saveResults', $admission) }}" method="POST">
@@ -244,8 +252,8 @@
                                                                name="results[{{ $formIndex }}][result]" 
                                                                value="{{ $admissionTest->result }}"
                                                                placeholder="Resultado"
-                                                               {{ $admissionTest->is_validated ? 'disabled' : '' }}
-                                                               class="w-full text-center border-gray-300 rounded text-sm {{ $admissionTest->is_validated ? 'bg-gray-100' : '' }}">
+                                                               {{ $admissionTest->is_validated || !$canEditResults ? 'disabled' : '' }}
+                                                               class="w-full text-center border-gray-300 rounded text-sm {{ $admissionTest->is_validated || !$canEditResults ? 'bg-gray-100' : '' }}">
                                                     </td>
                                                     <td class="px-4 py-2">
                                                         <!-- Unidad: solo lectura -->
@@ -296,7 +304,7 @@
                                                         $canDelete = !$admissionTest->is_validated && !$hasValidatedChildren;
                                                     @endphp
                                                     <div class="flex items-center justify-center gap-2">
-                                                        @if(!$hasChildren)
+                                                        @if(!$hasChildren && $canValidate)
                                                             @if($admissionTest->is_validated)
                                                                 <button type="button" onclick="submitAction('{{ route('lab.admissions.unvalidateTest', [$admission, $admissionTest]) }}')" class="text-orange-600 hover:text-orange-800 text-xs" title="Quitar validación">
                                                                     Desvalidar
@@ -370,8 +378,8 @@
                                                                    name="results[{{ $formIndex }}][result]" 
                                                                    value="{{ $childTest->result }}"
                                                                    placeholder="Resultado"
-                                                                   {{ $childTest->is_validated ? 'disabled' : '' }}
-                                                                   class="w-full text-center border-gray-300 rounded text-sm {{ $childTest->is_validated ? 'bg-gray-100' : '' }}">
+                                                                   {{ $childTest->is_validated || !$canEditResults ? 'disabled' : '' }}
+                                                                   class="w-full text-center border-gray-300 rounded text-sm {{ $childTest->is_validated || !$canEditResults ? 'bg-gray-100' : '' }}">
                                                         </td>
                                                         <td class="px-4 py-1">
                                                             <!-- Unidad: solo lectura, se guarda oculto -->
@@ -407,14 +415,18 @@
                                                             @endif
                                                         </td>
                                                         <td class="px-4 py-2 text-center">
-                                                            @if($childTest->is_validated)
-                                                                <button type="button" onclick="submitAction('{{ route('lab.admissions.unvalidateTest', [$admission, $childTest]) }}')" class="text-orange-500 hover:text-orange-700 text-xs">
-                                                                    ✕
-                                                                </button>
-                                                            @elseif($childTest->result)
-                                                                <button type="button" onclick="submitAction('{{ route('lab.admissions.validateTest', [$admission, $childTest]) }}')" class="text-green-500 hover:text-green-700 text-xs">
-                                                                    ✓
-                                                                </button>
+                                                            @if($canValidate)
+                                                                @if($childTest->is_validated)
+                                                                    <button type="button" onclick="submitAction('{{ route('lab.admissions.unvalidateTest', [$admission, $childTest]) }}')" class="text-orange-500 hover:text-orange-700 text-xs">
+                                                                        ✕
+                                                                    </button>
+                                                                @elseif($childTest->result)
+                                                                    <button type="button" onclick="submitAction('{{ route('lab.admissions.validateTest', [$admission, $childTest]) }}')" class="text-green-500 hover:text-green-700 text-xs">
+                                                                        ✓
+                                                                    </button>
+                                                                @else
+                                                                    <span class="text-gray-300 text-xs">-</span>
+                                                                @endif
                                                             @else
                                                                 <span class="text-gray-300 text-xs">-</span>
                                                             @endif
@@ -427,11 +439,13 @@
                                     </tbody>
                                 </table>
                             </div>
+                            @can('lab-results.create')
                             <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
                                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                                     Guardar Resultados
                                 </button>
                             </div>
+                            @endcan
                         </form>
                     @else
                         <div class="px-6 py-12 text-center text-gray-500">
