@@ -38,6 +38,7 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
+| v1.4.1 | Fix guardado de resultados de protocolo | 30min | ninguna | `pendientes/v1.4.1-fix-guardado-resultados-lab.md` |
 | v1.5.0 | Lector QR facturas de compra | 2h | v1.3.0 | `pendientes/v1.5.0-qr-reader-compras.md` |
 
 ---
@@ -55,9 +56,9 @@
 
 ```
 Completadas:  7 versiones (v1.0.0 → v1.4.0)
-Planificadas: 1 versión (v1.5.0)
+Planificadas: 2 versiones (v1.4.1, v1.5.0)
 En proceso:   0
-Próxima:      v1.5.0 — Lector QR facturas de compra
+Próxima:      v1.4.1 — Fix guardado de resultados de protocolo (hotfix)
 ```
 
 ---
