@@ -182,6 +182,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'collection-receipts.create',
             'collection-receipts.edit',
             'collection-receipts.delete',
+            'credit-notes.index',
+            'credit-notes.create',
+            'credit-notes.delete',
             'points-of-sale.index',
             'points-of-sale.create',
             'points-of-sale.edit',
@@ -281,6 +284,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'collection-receipts.create',
             'collection-receipts.edit',
             'collection-receipts.delete',
+            'credit-notes.index',
+            'credit-notes.create',
+            'credit-notes.delete',
             'points-of-sale.index',
             'points-of-sale.create',
             'points-of-sale.edit',
@@ -320,6 +326,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'ventas.section',
             'sales-invoices.index', 'sales-invoices.create', 'sales-invoices.edit', 'sales-invoices.delete',
             'collection-receipts.index', 'collection-receipts.create', 'collection-receipts.edit', 'collection-receipts.delete',
+            'credit-notes.index', 'credit-notes.create', 'credit-notes.delete',
             'points-of-sale.index', 'points-of-sale.create', 'points-of-sale.edit', 'points-of-sale.delete',
         ];
 

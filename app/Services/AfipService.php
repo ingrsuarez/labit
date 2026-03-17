@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\CreditNote;
 use App\Models\SalesInvoice;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -458,6 +459,166 @@ XML;
         } catch (Exception $e) {
             Log::error('AFIP voucher creation failed', [
                 'invoice_id' => $invoice->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'cae' => null,
+                'cae_expiration' => null,
+                'voucher_number' => null,
+                'result' => 'R',
+                'observations' => null,
+                'full_response' => ['error' => $e->getMessage()],
+            ];
+        }
+    }
+
+    public function createCreditNote(CreditNote $creditNote): array
+    {
+        $pointOfSale = $creditNote->pointOfSale;
+        $customer = $creditNote->customer;
+        $invoice = $creditNote->salesInvoice;
+
+        $voucherTypeId = self::getVoucherTypeId($creditNote->voucher_type, 'nota_credito');
+        $afipPosNumber = $pointOfSale->afip_pos_number;
+
+        $docTipo = self::getDocTipo($customer->tax ?? 'consumidor final');
+        $docNro = $docTipo === 99 ? 0 : intval(str_replace('-', '', $customer->taxId ?? '0'));
+        $condIvaReceptor = self::getCondicionIvaReceptor($customer->tax ?? 'consumidor final', $creditNote->voucher_type);
+
+        $lastVoucher = $this->getLastVoucher($afipPosNumber, $voucherTypeId);
+        $nextNumber = $lastVoucher + 1;
+
+        $ivaArray = [];
+        $netAmount = 0;
+        $exemptAmount = 0;
+
+        $itemsByIva = $creditNote->items->groupBy('iva_rate');
+
+        foreach ($itemsByIva as $rate => $items) {
+            $baseImp = $items->sum(fn ($item) => $item->quantity * $item->unit_price);
+            $ivaImporte = $items->sum('iva_amount');
+
+            if (floatval($rate) == 0) {
+                $exemptAmount += $baseImp;
+            } else {
+                $netAmount += $baseImp;
+                $ivaArray[] = [
+                    'Id' => self::getIvaId(floatval($rate)),
+                    'BaseImp' => round($baseImp, 2),
+                    'Importe' => round($ivaImporte, 2),
+                ];
+            }
+        }
+
+        $totalTrib = floatval($creditNote->percepciones) + floatval($creditNote->otros_impuestos);
+        $totalIva = array_sum(array_column($ivaArray, 'Importe'));
+        $impTotal = round($netAmount + $exemptAmount + $totalIva + $totalTrib, 2);
+
+        $invoiceTypeId = self::getVoucherTypeId($invoice->voucher_type, 'factura');
+        $invoicePosNumber = $invoice->pointOfSale ? $invoice->pointOfSale->afip_pos_number : $afipPosNumber;
+        $invoiceNumber = $invoice->afip_voucher_number ?? intval($invoice->invoice_number);
+
+        $feCaeReq = [
+            'FeCabReq' => [
+                'CantReg' => 1,
+                'PtoVta' => $afipPosNumber,
+                'CbteTipo' => $voucherTypeId,
+            ],
+            'FeDetReq' => [
+                'FECAEDetRequest' => [
+                    'Concepto' => 3,
+                    'DocTipo' => $docTipo,
+                    'DocNro' => $docNro,
+                    'CondicionIvaReceptor' => $condIvaReceptor,
+                    'CbteDesde' => $nextNumber,
+                    'CbteHasta' => $nextNumber,
+                    'CbteFch' => $creditNote->issue_date->format('Ymd'),
+                    'ImpTotal' => $impTotal,
+                    'ImpTotConc' => 0,
+                    'ImpNeto' => round($netAmount, 2),
+                    'ImpOpEx' => round($exemptAmount, 2),
+                    'ImpIVA' => round($totalIva, 2),
+                    'ImpTrib' => round($totalTrib, 2),
+                    'FchServDesde' => $creditNote->issue_date->format('Ymd'),
+                    'FchServHasta' => $creditNote->issue_date->format('Ymd'),
+                    'FchVtoPago' => $creditNote->issue_date->format('Ymd'),
+                    'MonId' => 'PES',
+                    'MonCotiz' => 1,
+                    'CbtesAsoc' => [
+                        'CbteAsoc' => [
+                            'Tipo' => $invoiceTypeId,
+                            'PtoVta' => $invoicePosNumber,
+                            'Nro' => $invoiceNumber,
+                            'Cuit' => $this->cuit,
+                            'CbteFch' => $invoice->issue_date->format('Ymd'),
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        if (! empty($ivaArray)) {
+            $feCaeReq['FeDetReq']['FECAEDetRequest']['Iva'] = ['AlicIva' => $ivaArray];
+        }
+
+        if ($totalTrib > 0) {
+            $tributos = [];
+            if (floatval($creditNote->percepciones) > 0) {
+                $tributos[] = [
+                    'Id' => 99,
+                    'Desc' => 'Percepciones',
+                    'BaseImp' => round($netAmount, 2),
+                    'Alic' => 0,
+                    'Importe' => round(floatval($creditNote->percepciones), 2),
+                ];
+            }
+            if (floatval($creditNote->otros_impuestos) > 0) {
+                $tributos[] = [
+                    'Id' => 99,
+                    'Desc' => 'Otros impuestos',
+                    'BaseImp' => round($netAmount, 2),
+                    'Alic' => 0,
+                    'Importe' => round(floatval($creditNote->otros_impuestos), 2),
+                ];
+            }
+            $feCaeReq['FeDetReq']['FECAEDetRequest']['Tributos'] = ['Tributo' => $tributos];
+        }
+
+        try {
+            $client = $this->getWsfeClient();
+            $client->setCondicionIvaReceptorId($condIvaReceptor);
+            $result = $client->FECAESolicitar([
+                'Auth' => $this->getAuthParams(),
+                'FeCAEReq' => $feCaeReq,
+            ]);
+
+            $feCaeResult = $result->FECAESolicitarResult;
+            $detResponse = $feCaeResult->FeDetResp->FECAEDetResponse;
+
+            $response = [
+                'cae' => $detResponse->CAE ?? null,
+                'cae_expiration' => isset($detResponse->CAEFchVto) ? $this->formatAfipDate($detResponse->CAEFchVto) : null,
+                'voucher_number' => $nextNumber,
+                'result' => $detResponse->Resultado ?? null,
+                'observations' => isset($detResponse->Observaciones)
+                    ? json_decode(json_encode($detResponse->Observaciones), true)
+                    : null,
+                'full_response' => json_decode(json_encode($feCaeResult), true),
+            ];
+
+            Log::info('AFIP credit note created', [
+                'credit_note_id' => $creditNote->id,
+                'cae' => $response['cae'],
+                'voucher_number' => $nextNumber,
+                'result' => $response['result'],
+            ]);
+
+            return $response;
+
+        } catch (Exception $e) {
+            Log::error('AFIP credit note creation failed', [
+                'credit_note_id' => $creditNote->id,
                 'error' => $e->getMessage(),
             ]);
 

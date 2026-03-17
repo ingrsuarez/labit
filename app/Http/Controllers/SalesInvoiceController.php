@@ -212,6 +212,7 @@ class SalesInvoiceController extends Controller
         $salesInvoice->load([
             'customer', 'quote', 'creator', 'pointOfSale',
             'items.test', 'collectionReceiptItems.collectionReceipt',
+            'creditNotes',
         ]);
 
         return view('sales-invoices.show', ['invoice' => $salesInvoice]);
