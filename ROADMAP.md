@@ -40,6 +40,8 @@
 |---|---|---|---|---|
 | v1.4.1 | Fix guardado de resultados de protocolo | 30min | ninguna | `pendientes/v1.4.1-fix-guardado-resultados-lab.md` |
 | v1.5.0 | Lector QR facturas de compra | 2h | v1.3.0 | `pendientes/v1.5.0-qr-reader-compras.md` |
+| v1.5.1 | Roles y permisos del módulo de laboratorio | 2h | v1.4.1 | `pendientes/v1.5.1-roles-permisos-laboratorio.md` |
+| v1.5.2 | Roles y permisos del módulo de muestras | 1h | v1.5.1 | `pendientes/v1.5.2-roles-permisos-muestras.md` |
 
 ---
 
@@ -56,7 +58,7 @@
 
 ```
 Completadas:  7 versiones (v1.0.0 → v1.4.0)
-Planificadas: 2 versiones (v1.4.1, v1.5.0)
+Planificadas: 4 versiones (v1.4.1, v1.5.0, v1.5.1, v1.5.2)
 En proceso:   0
 Próxima:      v1.4.1 — Fix guardado de resultados de protocolo (hotfix)
 ```
