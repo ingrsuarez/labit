@@ -18,6 +18,15 @@
                     </svg>
                     PDF
                 </a>
+                @if($invoice->status !== 'anulada')
+                    <a href="{{ route('credit-notes.create', ['sales_invoice_id' => $invoice->id]) }}"
+                       class="inline-flex items-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
+                        </svg>
+                        Crear NC
+                    </a>
+                @endif
                 @if($invoice->status === 'pendiente' && !($invoice->is_electronic && $invoice->cae))
                     <a href="{{ route('sales-invoices.edit', $invoice) }}"
                        class="inline-flex items-center px-4 py-2 bg-zinc-700 text-white text-sm font-medium rounded-lg hover:bg-zinc-800 transition-colors">Editar</a>
@@ -305,6 +314,40 @@
                     </svg>
                     Generar Recibo de Cobro
                 </a>
+            </div>
+        @endif
+
+        @if($invoice->creditNotes && $invoice->creditNotes->count())
+            <div class="bg-white rounded-xl shadow-sm border border-orange-200 mb-6">
+                <div class="p-5 border-b border-orange-100">
+                    <h3 class="text-sm font-semibold text-orange-700 uppercase tracking-wider">Notas de Crédito Asociadas</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-orange-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-orange-600 uppercase">Número</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-orange-600 uppercase">Fecha</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-orange-600 uppercase">Total</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold text-orange-600 uppercase">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-orange-100">
+                            @foreach($invoice->creditNotes as $cn)
+                                <tr class="hover:bg-orange-50/50">
+                                    <td class="px-4 py-3 text-sm">
+                                        <a href="{{ route('credit-notes.show', $cn) }}" class="text-orange-700 font-semibold hover:text-orange-900 underline">{{ $cn->full_number }}</a>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-500">{{ $cn->issue_date->format('d/m/Y') }}</td>
+                                    <td class="px-4 py-3 text-sm font-semibold text-gray-800 text-right">${{ number_format($cn->total, 2, ',', '.') }}</td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $cn->status_color }}-100 text-{{ $cn->status_color }}-700">{{ $cn->status_label }}</span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
         @endif
     </div>
