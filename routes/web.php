@@ -166,48 +166,52 @@ Route::middleware([
 
     Route::post('group/store',[App\Http\Controllers\GroupController::class, 'store'])->name('group.store');
 
-    // SAMPLES (Muestras de Agua y Alimentos)
-    Route::get('sample', [App\Http\Controllers\SampleController::class, 'index'])->name('sample.index');
-    Route::get('sample/create', [App\Http\Controllers\SampleController::class, 'create'])->name('sample.create');
-    Route::post('sample', [App\Http\Controllers\SampleController::class, 'store'])->name('sample.store');
-    Route::get('sample/{sample}', [App\Http\Controllers\SampleController::class, 'show'])->name('sample.show');
-    Route::get('sample/{sample}/edit', [App\Http\Controllers\SampleController::class, 'edit'])->name('sample.edit');
-    Route::put('sample/{sample}', [App\Http\Controllers\SampleController::class, 'update'])->name('sample.update');
-    Route::post('sample/{sample}/determination', [App\Http\Controllers\SampleController::class, 'addDetermination'])->name('sample.addDetermination');
-    Route::delete('sample/{sample}/determination/{determination}', [App\Http\Controllers\SampleController::class, 'removeDetermination'])->name('sample.removeDetermination');
-    Route::put('sample/determination/{determination}', [App\Http\Controllers\SampleController::class, 'updateDetermination'])->name('sample.updateDetermination');
-    
-    // Carga rápida de resultados
-    Route::get('sample/{sample}/load-results', [App\Http\Controllers\SampleController::class, 'loadResults'])->name('sample.loadResults');
-    Route::post('sample/{sample}/save-results', [App\Http\Controllers\SampleController::class, 'saveResults'])->name('sample.saveResults');
-    
-    // Validación de protocolos
-    Route::get('sample/{sample}/validate', [App\Http\Controllers\SampleController::class, 'showValidation'])
-        ->middleware('can:samples.validate')
-        ->name('sample.validate.show');
-    Route::post('sample/{sample}/validate', [App\Http\Controllers\SampleController::class, 'processValidation'])
-        ->middleware('can:samples.validate')
-        ->name('sample.validate');
-    Route::post('sample/{sample}/validate/revert', [App\Http\Controllers\SampleController::class, 'revertValidation'])
-        ->middleware('can:samples.validate')
-        ->name('sample.validate.revert');
-    
-    // Validación de determinaciones individuales
-    Route::post('sample/determination/{determination}/toggle-validation', [App\Http\Controllers\SampleController::class, 'toggleDeterminationValidation'])
-        ->middleware('can:samples.validate')
-        ->name('sample.determination.toggleValidation');
-    Route::post('sample/{sample}/validate-determinations', [App\Http\Controllers\SampleController::class, 'validateDeterminations'])
-        ->middleware('can:samples.validate')
-        ->name('sample.validateDeterminations');
-    
-    // PDF y envío
-    Route::get('sample/{sample}/pdf', [App\Http\Controllers\SampleController::class, 'downloadPdf'])->name('sample.pdf.download');
-    Route::get('sample/{sample}/pdf/view', [App\Http\Controllers\SampleController::class, 'viewPdf'])->name('sample.pdf.view');
-    Route::post('sample/{sample}/send-email', [App\Http\Controllers\SampleController::class, 'sendEmail'])->name('sample.sendEmail');
+    // SAMPLES — Sección protegida por permiso samples.section
+    Route::middleware(['permission:samples.section'])->group(function () {
 
-    // Etiquetas
-    Route::get('sample/{sample}/label-data', [App\Http\Controllers\SampleController::class, 'labelData'])->name('sample.labelData');
-    Route::get('sample/{sample}/label', [App\Http\Controllers\SampleController::class, 'printLabel'])->name('sample.label');
+        Route::get('sample', [App\Http\Controllers\SampleController::class, 'index'])->name('sample.index');
+        Route::get('sample/create', [App\Http\Controllers\SampleController::class, 'create'])->name('sample.create');
+        Route::post('sample', [App\Http\Controllers\SampleController::class, 'store'])->name('sample.store');
+        Route::get('sample/{sample}', [App\Http\Controllers\SampleController::class, 'show'])->name('sample.show');
+        Route::get('sample/{sample}/edit', [App\Http\Controllers\SampleController::class, 'edit'])->name('sample.edit');
+        Route::put('sample/{sample}', [App\Http\Controllers\SampleController::class, 'update'])->name('sample.update');
+        Route::post('sample/{sample}/determination', [App\Http\Controllers\SampleController::class, 'addDetermination'])->name('sample.addDetermination');
+        Route::delete('sample/{sample}/determination/{determination}', [App\Http\Controllers\SampleController::class, 'removeDetermination'])->name('sample.removeDetermination');
+        Route::put('sample/determination/{determination}', [App\Http\Controllers\SampleController::class, 'updateDetermination'])->name('sample.updateDetermination');
+
+        // Carga rápida de resultados
+        Route::get('sample/{sample}/load-results', [App\Http\Controllers\SampleController::class, 'loadResults'])->name('sample.loadResults');
+        Route::post('sample/{sample}/save-results', [App\Http\Controllers\SampleController::class, 'saveResults'])->name('sample.saveResults');
+
+        // Validación de protocolos
+        Route::get('sample/{sample}/validate', [App\Http\Controllers\SampleController::class, 'showValidation'])
+            ->middleware('permission:samples-results.validate')
+            ->name('sample.validate.show');
+        Route::post('sample/{sample}/validate', [App\Http\Controllers\SampleController::class, 'processValidation'])
+            ->middleware('permission:samples-results.validate')
+            ->name('sample.validate');
+        Route::post('sample/{sample}/validate/revert', [App\Http\Controllers\SampleController::class, 'revertValidation'])
+            ->middleware('permission:samples-results.validate')
+            ->name('sample.validate.revert');
+
+        // Validación de determinaciones individuales
+        Route::post('sample/determination/{determination}/toggle-validation', [App\Http\Controllers\SampleController::class, 'toggleDeterminationValidation'])
+            ->middleware('permission:samples-results.validate')
+            ->name('sample.determination.toggleValidation');
+        Route::post('sample/{sample}/validate-determinations', [App\Http\Controllers\SampleController::class, 'validateDeterminations'])
+            ->middleware('permission:samples-results.validate')
+            ->name('sample.validateDeterminations');
+
+        // PDF y envío
+        Route::get('sample/{sample}/pdf', [App\Http\Controllers\SampleController::class, 'downloadPdf'])->name('sample.pdf.download');
+        Route::get('sample/{sample}/pdf/view', [App\Http\Controllers\SampleController::class, 'viewPdf'])->name('sample.pdf.view');
+        Route::post('sample/{sample}/send-email', [App\Http\Controllers\SampleController::class, 'sendEmail'])->name('sample.sendEmail');
+
+        // Etiquetas
+        Route::get('sample/{sample}/label-data', [App\Http\Controllers\SampleController::class, 'labelData'])->name('sample.labelData');
+        Route::get('sample/{sample}/label', [App\Http\Controllers\SampleController::class, 'printLabel'])->name('sample.label');
+
+    }); // fin samples.section
 
     // =============================================
     // COMPRAS (requiere permiso compras.section)

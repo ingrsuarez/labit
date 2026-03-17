@@ -100,12 +100,21 @@ class RolesAndPermissionsSeeder extends Seeder
             'permission.edit',
 
             // SAMPLES/PROTOCOLOS
+            'samples.section',
             'samples.index',
             'samples.create',
             'samples.edit',
+            'samples.show',
             'samples.delete',
             'samples.loadResults',
-            'samples.validate',      // Permiso para validar protocolos
+            'samples.validate',
+            'samples-results.create',
+            'samples-results.edit',
+            'samples-results.validate',
+            'samples-reports.preview',
+            'samples-reports.print',
+            'samples-reports.send',
+            'samples-labels.print',
             'samples.downloadPdf',
             'samples.sendEmail',
 
@@ -360,6 +369,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'patients.index', 'patients.create', 'patients.edit',
             'lab-admissions.index', 'lab-admissions.create', 'lab-admissions.edit', 'lab-admissions.show',
             'lab-reports.print', 'lab-reports.send',
+            // Muestras
+            'samples.section', 'samples.index', 'samples.create', 'samples.edit', 'samples.show',
+            'samples-reports.preview', 'samples-reports.print', 'samples-reports.send',
+            'samples-labels.print',
         ];
 
         $recepcionLabRole->syncPermissions(Permission::whereIn('name', $recepcionLabPermissions)->get());
@@ -375,6 +388,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'lab-admissions.index', 'lab-admissions.show',
             'lab-results.create', 'lab-results.edit',
             'lab-reports.preview',
+            // Muestras
+            'samples.section', 'samples.index', 'samples.show',
+            'samples-results.create', 'samples-results.edit',
+            'samples-reports.preview', 'samples-reports.print', 'samples-reports.send',
+            'samples-labels.print',
         ];
 
         $tecnicoLabRole->syncPermissions(Permission::whereIn('name', $tecnicoLabPermissions)->get());
@@ -390,6 +408,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'lab-admissions.index', 'lab-admissions.show',
             'lab-results.create', 'lab-results.edit', 'lab-results.validate',
             'lab-reports.preview', 'lab-reports.print', 'lab-reports.send', 'lab-reports.index',
+            // Muestras
+            'samples.section', 'samples.index', 'samples.show',
+            'samples-results.create', 'samples-results.edit', 'samples-results.validate',
+            'samples-reports.preview', 'samples-reports.print', 'samples-reports.send',
+            'samples-labels.print',
         ];
 
         $bioquimicoRole->syncPermissions(Permission::whereIn('name', $bioquimicoPermissions)->get());
