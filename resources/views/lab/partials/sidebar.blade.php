@@ -33,6 +33,7 @@
         <!-- Navegación Principal -->
         <nav class="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
 
+            @can('lab-admissions.index')
             <a href="{{ route('lab.section.clinico') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
                 {{ request()->routeIs('lab.section.clinico') || request()->routeIs('lab.admissions.*') || request()->routeIs('lab.reports.*') || request()->routeIs('patient.*') || request()->routeIs('insurance.*')
@@ -43,7 +44,9 @@
                 </svg>
                 Laboratorio Clínico
             </a>
+            @endcan
 
+            @can('samples.index')
             <a href="{{ route('lab.section.muestras') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
                 {{ request()->routeIs('lab.section.muestras') || request()->routeIs('sample.*') || request()->routeIs('customer.*') || request()->routeIs('quotes.*')
@@ -54,6 +57,7 @@
                 </svg>
                 Lab. Aguas y Alimentos
             </a>
+            @endcan
 
             <a href="{{ route('lab.section.configuracion') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors

@@ -110,36 +110,41 @@ Route::middleware([
     Route::get('/nomenclator/{insurance}/search-tests', [App\Http\Controllers\InsuranceNomenclatorController::class, 'searchTests'])->name('nomenclator.searchTests');
     Route::post('/nomenclator/{insurance}/copy-from', [App\Http\Controllers\InsuranceNomenclatorController::class, 'copyFromNomenclator'])->name('nomenclator.copyFrom');
 
-    // LAB SECTIONS (Páginas index de cada sección del sidebar)
-    Route::get('lab/clinico', [App\Http\Controllers\LabSectionController::class, 'clinico'])->name('lab.section.clinico');
-    Route::get('lab/muestras', [App\Http\Controllers\LabSectionController::class, 'muestras'])->name('lab.section.muestras');
-    Route::get('lab/configuracion', [App\Http\Controllers\LabSectionController::class, 'configuracion'])->name('lab.section.configuracion');
+    // LAB — Sección protegida por permiso lab.section
+    Route::middleware(['permission:lab.section'])->group(function () {
 
-    // LAB ADMISSIONS (Admisiones de Pacientes - Laboratorio)
-    Route::get('lab/admissions', [App\Http\Controllers\LabAdmissionController::class, 'index'])->name('lab.admissions.index');
-    Route::get('lab/admissions/create', [App\Http\Controllers\LabAdmissionController::class, 'create'])->name('lab.admissions.create');
-    Route::post('lab/admissions', [App\Http\Controllers\LabAdmissionController::class, 'store'])->name('lab.admissions.store');
-    Route::get('lab/admissions/search-patients', [App\Http\Controllers\LabAdmissionController::class, 'searchPatients'])->name('lab.admissions.searchPatients');
-    Route::get('lab/admissions/search-tests', [App\Http\Controllers\LabAdmissionController::class, 'searchTests'])->name('lab.admissions.searchTests');
-    Route::get('lab/admissions/test-price', [App\Http\Controllers\LabAdmissionController::class, 'getTestPrice'])->name('lab.admissions.getTestPrice');
-    Route::get('lab/admissions/{admission}', [App\Http\Controllers\LabAdmissionController::class, 'show'])->name('lab.admissions.show');
-    Route::get('lab/admissions/{admission}/edit', [App\Http\Controllers\LabAdmissionController::class, 'edit'])->name('lab.admissions.edit');
-    Route::put('lab/admissions/{admission}', [App\Http\Controllers\LabAdmissionController::class, 'update'])->name('lab.admissions.update');
-    Route::post('lab/admissions/{admission}/test', [App\Http\Controllers\LabAdmissionController::class, 'addTest'])->name('lab.admissions.addTest');
-    Route::put('lab/admissions/{admission}/test/{test}', [App\Http\Controllers\LabAdmissionController::class, 'updateTest'])->name('lab.admissions.updateTest');
-    Route::delete('lab/admissions/{admission}/test/{test}', [App\Http\Controllers\LabAdmissionController::class, 'removeTest'])->name('lab.admissions.removeTest');
-    
-    // Resultados y validación
-    Route::post('lab/admissions/{admission}/results', [App\Http\Controllers\LabAdmissionController::class, 'saveResults'])->name('lab.admissions.saveResults');
-    Route::post('lab/admissions/{admission}/test/{admissionTest}/result', [App\Http\Controllers\LabAdmissionController::class, 'saveResult'])->name('lab.admissions.saveResult');
-    Route::post('lab/admissions/{admission}/test/{admissionTest}/validate', [App\Http\Controllers\LabAdmissionController::class, 'validateTest'])->name('lab.admissions.validateTest');
-    Route::post('lab/admissions/{admission}/test/{admissionTest}/unvalidate', [App\Http\Controllers\LabAdmissionController::class, 'unvalidateTest'])->name('lab.admissions.unvalidateTest');
-    Route::post('lab/admissions/{admission}/validate-all', [App\Http\Controllers\LabAdmissionController::class, 'validateAll'])->name('lab.admissions.validateAll');
-    Route::post('lab/admissions/{admission}/sync-children', [App\Http\Controllers\LabAdmissionController::class, 'syncChildTests'])->name('lab.admissions.syncChildren');
+        // LAB SECTIONS (Páginas index de cada sección del sidebar)
+        Route::get('lab/clinico', [App\Http\Controllers\LabSectionController::class, 'clinico'])->name('lab.section.clinico');
+        Route::get('lab/muestras', [App\Http\Controllers\LabSectionController::class, 'muestras'])->name('lab.section.muestras');
+        Route::get('lab/configuracion', [App\Http\Controllers\LabSectionController::class, 'configuracion'])->name('lab.section.configuracion');
 
-    // LAB REPORTS (Reportes del Laboratorio)
-    Route::get('lab/reports/monthly', [App\Http\Controllers\LabReportController::class, 'monthly'])->name('lab.reports.monthly');
-    Route::get('lab/reports/monthly/export', [App\Http\Controllers\LabReportController::class, 'exportExcel'])->name('lab.reports.exportExcel');
+        // LAB ADMISSIONS (Admisiones de Pacientes - Laboratorio)
+        Route::get('lab/admissions', [App\Http\Controllers\LabAdmissionController::class, 'index'])->name('lab.admissions.index');
+        Route::get('lab/admissions/create', [App\Http\Controllers\LabAdmissionController::class, 'create'])->name('lab.admissions.create');
+        Route::post('lab/admissions', [App\Http\Controllers\LabAdmissionController::class, 'store'])->name('lab.admissions.store');
+        Route::get('lab/admissions/search-patients', [App\Http\Controllers\LabAdmissionController::class, 'searchPatients'])->name('lab.admissions.searchPatients');
+        Route::get('lab/admissions/search-tests', [App\Http\Controllers\LabAdmissionController::class, 'searchTests'])->name('lab.admissions.searchTests');
+        Route::get('lab/admissions/test-price', [App\Http\Controllers\LabAdmissionController::class, 'getTestPrice'])->name('lab.admissions.getTestPrice');
+        Route::get('lab/admissions/{admission}', [App\Http\Controllers\LabAdmissionController::class, 'show'])->name('lab.admissions.show');
+        Route::get('lab/admissions/{admission}/edit', [App\Http\Controllers\LabAdmissionController::class, 'edit'])->name('lab.admissions.edit');
+        Route::put('lab/admissions/{admission}', [App\Http\Controllers\LabAdmissionController::class, 'update'])->name('lab.admissions.update');
+        Route::post('lab/admissions/{admission}/test', [App\Http\Controllers\LabAdmissionController::class, 'addTest'])->name('lab.admissions.addTest');
+        Route::put('lab/admissions/{admission}/test/{test}', [App\Http\Controllers\LabAdmissionController::class, 'updateTest'])->name('lab.admissions.updateTest');
+        Route::delete('lab/admissions/{admission}/test/{test}', [App\Http\Controllers\LabAdmissionController::class, 'removeTest'])->name('lab.admissions.removeTest');
+
+        // Resultados y validación
+        Route::post('lab/admissions/{admission}/results', [App\Http\Controllers\LabAdmissionController::class, 'saveResults'])->name('lab.admissions.saveResults');
+        Route::post('lab/admissions/{admission}/test/{admissionTest}/result', [App\Http\Controllers\LabAdmissionController::class, 'saveResult'])->name('lab.admissions.saveResult');
+        Route::post('lab/admissions/{admission}/test/{admissionTest}/validate', [App\Http\Controllers\LabAdmissionController::class, 'validateTest'])->name('lab.admissions.validateTest');
+        Route::post('lab/admissions/{admission}/test/{admissionTest}/unvalidate', [App\Http\Controllers\LabAdmissionController::class, 'unvalidateTest'])->name('lab.admissions.unvalidateTest');
+        Route::post('lab/admissions/{admission}/validate-all', [App\Http\Controllers\LabAdmissionController::class, 'validateAll'])->name('lab.admissions.validateAll');
+        Route::post('lab/admissions/{admission}/sync-children', [App\Http\Controllers\LabAdmissionController::class, 'syncChildTests'])->name('lab.admissions.syncChildren');
+
+        // LAB REPORTS (Reportes del Laboratorio)
+        Route::get('lab/reports/monthly', [App\Http\Controllers\LabReportController::class, 'monthly'])->name('lab.reports.monthly');
+        Route::get('lab/reports/monthly/export', [App\Http\Controllers\LabReportController::class, 'exportExcel'])->name('lab.reports.exportExcel');
+
+    }); // fin lab.section
 
     // ADMISSION
     Route::get('/admission/new',[App\Http\Controllers\AdmissionController::class, 'index'])->name('admission.index');
@@ -161,48 +166,52 @@ Route::middleware([
 
     Route::post('group/store',[App\Http\Controllers\GroupController::class, 'store'])->name('group.store');
 
-    // SAMPLES (Muestras de Agua y Alimentos)
-    Route::get('sample', [App\Http\Controllers\SampleController::class, 'index'])->name('sample.index');
-    Route::get('sample/create', [App\Http\Controllers\SampleController::class, 'create'])->name('sample.create');
-    Route::post('sample', [App\Http\Controllers\SampleController::class, 'store'])->name('sample.store');
-    Route::get('sample/{sample}', [App\Http\Controllers\SampleController::class, 'show'])->name('sample.show');
-    Route::get('sample/{sample}/edit', [App\Http\Controllers\SampleController::class, 'edit'])->name('sample.edit');
-    Route::put('sample/{sample}', [App\Http\Controllers\SampleController::class, 'update'])->name('sample.update');
-    Route::post('sample/{sample}/determination', [App\Http\Controllers\SampleController::class, 'addDetermination'])->name('sample.addDetermination');
-    Route::delete('sample/{sample}/determination/{determination}', [App\Http\Controllers\SampleController::class, 'removeDetermination'])->name('sample.removeDetermination');
-    Route::put('sample/determination/{determination}', [App\Http\Controllers\SampleController::class, 'updateDetermination'])->name('sample.updateDetermination');
-    
-    // Carga rápida de resultados
-    Route::get('sample/{sample}/load-results', [App\Http\Controllers\SampleController::class, 'loadResults'])->name('sample.loadResults');
-    Route::post('sample/{sample}/save-results', [App\Http\Controllers\SampleController::class, 'saveResults'])->name('sample.saveResults');
-    
-    // Validación de protocolos
-    Route::get('sample/{sample}/validate', [App\Http\Controllers\SampleController::class, 'showValidation'])
-        ->middleware('can:samples.validate')
-        ->name('sample.validate.show');
-    Route::post('sample/{sample}/validate', [App\Http\Controllers\SampleController::class, 'processValidation'])
-        ->middleware('can:samples.validate')
-        ->name('sample.validate');
-    Route::post('sample/{sample}/validate/revert', [App\Http\Controllers\SampleController::class, 'revertValidation'])
-        ->middleware('can:samples.validate')
-        ->name('sample.validate.revert');
-    
-    // Validación de determinaciones individuales
-    Route::post('sample/determination/{determination}/toggle-validation', [App\Http\Controllers\SampleController::class, 'toggleDeterminationValidation'])
-        ->middleware('can:samples.validate')
-        ->name('sample.determination.toggleValidation');
-    Route::post('sample/{sample}/validate-determinations', [App\Http\Controllers\SampleController::class, 'validateDeterminations'])
-        ->middleware('can:samples.validate')
-        ->name('sample.validateDeterminations');
-    
-    // PDF y envío
-    Route::get('sample/{sample}/pdf', [App\Http\Controllers\SampleController::class, 'downloadPdf'])->name('sample.pdf.download');
-    Route::get('sample/{sample}/pdf/view', [App\Http\Controllers\SampleController::class, 'viewPdf'])->name('sample.pdf.view');
-    Route::post('sample/{sample}/send-email', [App\Http\Controllers\SampleController::class, 'sendEmail'])->name('sample.sendEmail');
+    // SAMPLES — Sección protegida por permiso samples.section
+    Route::middleware(['permission:samples.section'])->group(function () {
 
-    // Etiquetas
-    Route::get('sample/{sample}/label-data', [App\Http\Controllers\SampleController::class, 'labelData'])->name('sample.labelData');
-    Route::get('sample/{sample}/label', [App\Http\Controllers\SampleController::class, 'printLabel'])->name('sample.label');
+        Route::get('sample', [App\Http\Controllers\SampleController::class, 'index'])->name('sample.index');
+        Route::get('sample/create', [App\Http\Controllers\SampleController::class, 'create'])->name('sample.create');
+        Route::post('sample', [App\Http\Controllers\SampleController::class, 'store'])->name('sample.store');
+        Route::get('sample/{sample}', [App\Http\Controllers\SampleController::class, 'show'])->name('sample.show');
+        Route::get('sample/{sample}/edit', [App\Http\Controllers\SampleController::class, 'edit'])->name('sample.edit');
+        Route::put('sample/{sample}', [App\Http\Controllers\SampleController::class, 'update'])->name('sample.update');
+        Route::post('sample/{sample}/determination', [App\Http\Controllers\SampleController::class, 'addDetermination'])->name('sample.addDetermination');
+        Route::delete('sample/{sample}/determination/{determination}', [App\Http\Controllers\SampleController::class, 'removeDetermination'])->name('sample.removeDetermination');
+        Route::put('sample/determination/{determination}', [App\Http\Controllers\SampleController::class, 'updateDetermination'])->name('sample.updateDetermination');
+
+        // Carga rápida de resultados
+        Route::get('sample/{sample}/load-results', [App\Http\Controllers\SampleController::class, 'loadResults'])->name('sample.loadResults');
+        Route::post('sample/{sample}/save-results', [App\Http\Controllers\SampleController::class, 'saveResults'])->name('sample.saveResults');
+
+        // Validación de protocolos
+        Route::get('sample/{sample}/validate', [App\Http\Controllers\SampleController::class, 'showValidation'])
+            ->middleware('permission:samples-results.validate')
+            ->name('sample.validate.show');
+        Route::post('sample/{sample}/validate', [App\Http\Controllers\SampleController::class, 'processValidation'])
+            ->middleware('permission:samples-results.validate')
+            ->name('sample.validate');
+        Route::post('sample/{sample}/validate/revert', [App\Http\Controllers\SampleController::class, 'revertValidation'])
+            ->middleware('permission:samples-results.validate')
+            ->name('sample.validate.revert');
+
+        // Validación de determinaciones individuales
+        Route::post('sample/determination/{determination}/toggle-validation', [App\Http\Controllers\SampleController::class, 'toggleDeterminationValidation'])
+            ->middleware('permission:samples-results.validate')
+            ->name('sample.determination.toggleValidation');
+        Route::post('sample/{sample}/validate-determinations', [App\Http\Controllers\SampleController::class, 'validateDeterminations'])
+            ->middleware('permission:samples-results.validate')
+            ->name('sample.validateDeterminations');
+
+        // PDF y envío
+        Route::get('sample/{sample}/pdf', [App\Http\Controllers\SampleController::class, 'downloadPdf'])->name('sample.pdf.download');
+        Route::get('sample/{sample}/pdf/view', [App\Http\Controllers\SampleController::class, 'viewPdf'])->name('sample.pdf.view');
+        Route::post('sample/{sample}/send-email', [App\Http\Controllers\SampleController::class, 'sendEmail'])->name('sample.sendEmail');
+
+        // Etiquetas
+        Route::get('sample/{sample}/label-data', [App\Http\Controllers\SampleController::class, 'labelData'])->name('sample.labelData');
+        Route::get('sample/{sample}/label', [App\Http\Controllers\SampleController::class, 'printLabel'])->name('sample.label');
+
+    }); // fin samples.section
 
     // =============================================
     // COMPRAS (requiere permiso compras.section)

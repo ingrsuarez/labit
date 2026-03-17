@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v1.4.0 |
-| **Última completada** | v1.4.0 — Notas de crédito electrónicas |
+| **Versión actual** | v1.5.2 |
+| **Última completada** | v1.5.2 — Roles y permisos del módulo de muestras |
 | **En proceso** | — |
 | **Próxima** | v1.5.0 — Lector QR facturas de compra |
 | **Pendientes en cola** | 1 |
-| **Completadas** | 7 |
+| **Completadas** | 10 |
 
 ---
 
@@ -30,10 +30,13 @@
 
 _Sin prompts en ejecución._
 
-### Completados (7)
+### Completados (10)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.5.2 | Roles y permisos del módulo de muestras | 2026-03-17 | v1.5.2 |
+| v1.5.1 | Roles y permisos del módulo de laboratorio | 2026-03-17 | v1.5.1 |
+| v1.4.1 | Fix guardado de resultados de protocolo | 2026-03-17 | v1.4.1 |
 | v1.4.0 | Notas de crédito electrónicas | 2026-03-17 | v1.4.0 |
 | v1.3.1 | Fix AFIP CondicionIVAReceptorId + ImpTotal | 2026-03-15 | v1.3.1 |
 | v1.3.0 | Facturación electrónica WSFEv1 | 2026-03-14 | v1.3.0 |
@@ -55,6 +58,9 @@ v1.0.0 (completada)
 │       ├── v1.3.1 — Fix AFIP CondicionIVAReceptorId + ImpTotal (completada)
 │       ├── v1.4.0 — Notas de crédito electrónicas (completada)
 │       └── v1.5.0 — Lector QR facturas de compra (pendiente)
+├── v1.4.1 — Fix guardado de resultados de protocolo (completada)
+│   └── v1.5.1 — Roles y permisos laboratorio clínico (completada)
+│       └── v1.5.2 — Roles y permisos muestras (completada)
 ```
 
 ---

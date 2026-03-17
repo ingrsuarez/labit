@@ -24,6 +24,9 @@
 | v1.3.0 | Facturación electrónica WSFEv1 | 2026-03-14 | Autorización automática, CAE, PDF con QR |
 | v1.3.1 | Fix AFIP CondicionIVAReceptorId + ImpTotal | 2026-03-15 | RG 5616, cálculo correcto de totales |
 | v1.4.0 | Notas de crédito electrónicas | 2026-03-17 | NC A/B/C con AFIP, comprobante asociado |
+| v1.4.1 | Fix guardado de resultados de protocolo | 2026-03-17 | Formularios anidados → submitAction() |
+| v1.5.1 | Roles y permisos del módulo de laboratorio | 2026-03-17 | 3 roles, 15 permisos, middleware + @can |
+| v1.5.2 | Roles y permisos del módulo de muestras | 2026-03-17 | Extiende roles con permisos de muestras |
 
 ---
 
@@ -54,7 +57,7 @@
 ## Progreso general
 
 ```
-Completadas:  7 versiones (v1.0.0 → v1.4.0)
+Completadas:  10 versiones (v1.0.0 → v1.5.2)
 Planificadas: 1 versión (v1.5.0)
 En proceso:   0
 Próxima:      v1.5.0 — Lector QR facturas de compra

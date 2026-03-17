@@ -5,6 +5,43 @@
 
 ---
 
+## [v1.5.2] — 2026-03-17 — Roles y permisos del módulo de muestras
+
+### Agregado
+- Permisos granulares para muestras: `samples.section`, `samples.show`, `samples-results.*`, `samples-reports.*`, `samples-labels.print`
+- Rutas de muestras protegidas con middleware `permission:samples.section`
+- `authorize()` en SampleController para cada método (index, create, store, show, edit, update, loadResults, saveResults, downloadPdf, viewPdf, sendEmail, printLabel)
+- Directivas `@can` en vistas: botones de cargar resultados, validar, PDF, etiquetas, editar
+- Sidebar del lab protegido con `@can('samples.index')`
+- Extensión de roles existentes (`recepcion-lab`, `tecnico-lab`, `bioquimico`) con permisos de muestras
+
+### Diferencias con lab clínico (v1.5.1)
+- Todos los roles pueden imprimir y enviar informes (no solo bioquímico y recepcionista)
+- Middleware de validación actualizado de `can:samples.validate` a `permission:samples-results.validate`
+
+---
+
+## [v1.5.1] — 2026-03-17 — Roles y permisos del módulo de laboratorio
+
+### Agregado
+- 3 roles nuevos: `recepcion-lab`, `tecnico-lab`, `bioquimico`
+- 15 permisos: `lab.section`, `patients.*`, `lab-admissions.*`, `lab-results.*`, `lab-reports.*`
+- Rutas del módulo de laboratorio protegidas con middleware `permission:lab.section`
+- `authorize()` en LabAdmissionController y LabReportController para cada método
+- Directivas `@can` en vistas: botones de crear admisión, editar, validar, guardar resultados
+- Variables `$canEditResults` y `$canValidate` para control granular de inputs y botones
+- Link "Ir a Laboratorio" en admin sidebar protegido con `@can('lab.section')`
+
+---
+
+## [v1.4.1] — 2026-03-17 — Fix guardado de resultados de protocolo
+
+### Corregido
+- Bug crítico: formularios anidados (DELETE dentro del form de POST) causaban `MethodNotAllowedHttpException` al guardar resultados
+- Reemplazados formularios anidados de validar/desvalidar/eliminar por botones con `submitAction()` (formularios dinámicos creados fuera del DOM del form principal)
+
+---
+
 ## [v1.4.0] — 2026-03-17 — Notas de crédito electrónicas
 
 ### Agregado

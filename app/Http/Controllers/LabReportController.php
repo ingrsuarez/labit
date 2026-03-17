@@ -17,6 +17,7 @@ class LabReportController extends Controller
      */
     public function monthly(Request $request)
     {
+        $this->authorize('lab-reports.index');
         $insurances = Insurance::orderBy('name')->get();
         
         // Valores por defecto: mes actual
@@ -94,6 +95,7 @@ class LabReportController extends Controller
      */
     public function exportExcel(Request $request)
     {
+        $this->authorize('lab-reports.index');
         $request->validate([
             'insurance_id' => 'required|exists:insurances,id',
             'month' => 'required|integer|min:1|max:12',
