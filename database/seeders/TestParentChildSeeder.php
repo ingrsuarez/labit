@@ -67,9 +67,9 @@ class TestParentChildSeeder extends Seeder
                 'leucocitos',
                 'eritrocitos',
             ],
-            'drogas x 2' => [
+            'drogas de abuso screening' => [
                 'cocaina',
-                'marihuana',
+                'cannabinoides',
             ],
         ];
 
