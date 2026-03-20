@@ -5,6 +5,24 @@
 
 ---
 
+## [v1.5.3] — 2026-03-20 — Seeder de jerarquía padre-hijo de prácticas
+
+### Agregado
+- `TestParentChildSeeder` para configurar relaciones en tabla pivote `test_parents`
+- 10 relaciones padre-hijo para 3 prácticas padre:
+  - Hemograma → Glóbulos Rojos, Hemoglobina, Hematocrito, Glóbulos Blancos (4 hijos)
+  - Fórmula Leucocitaria → Eosinófilos (1 hijo)
+  - Hepatograma → GOT, GPT, FAL, Colesterol Total, Proteína Totales (5 hijos)
+- Búsqueda por nombre con validación estricta (ratio >= 40%, anti-falsos positivos)
+- Seeder idempotente y tolerante: loguea warnings para tests no encontrados
+
+### Notas
+- 26 tests hijos no existen aún en la tabla `tests` (VCM, HCM, CHCM, RDW-CV, bilirrubinas, componentes de Orina Completa, Fórmula Leucocitaria parcial, Drogas X 2)
+- El seeder puede re-ejecutarse después de agregar los tests faltantes
+- Corregida relación incorrecta pre-existente: hemograma → glóbulos blancos materia fecal
+
+---
+
 ## [v1.5.2] — 2026-03-17 — Roles y permisos del módulo de muestras
 
 ### Agregado

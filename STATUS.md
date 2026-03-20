@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-17
+> Última actualización: 2026-03-20
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v1.5.2 |
-| **Última completada** | v1.5.2 — Roles y permisos del módulo de muestras |
+| **Versión actual** | v1.5.3 |
+| **Última completada** | v1.5.3 — Seeder de jerarquía padre-hijo de prácticas |
 | **En proceso** | — |
 | **Próxima** | v1.5.0 — Lector QR facturas de compra |
 | **Pendientes en cola** | 1 |
-| **Completadas** | 10 |
+| **Completadas** | 11 |
 
 ---
 
@@ -30,10 +30,11 @@
 
 _Sin prompts en ejecución._
 
-### Completados (10)
+### Completados (11)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.5.3 | Seeder de jerarquía padre-hijo de prácticas | 2026-03-20 | v1.5.3 |
 | v1.5.2 | Roles y permisos del módulo de muestras | 2026-03-17 | v1.5.2 |
 | v1.5.1 | Roles y permisos del módulo de laboratorio | 2026-03-17 | v1.5.1 |
 | v1.4.1 | Fix guardado de resultados de protocolo | 2026-03-17 | v1.4.1 |
@@ -58,6 +59,7 @@ v1.0.0 (completada)
 │       ├── v1.3.1 — Fix AFIP CondicionIVAReceptorId + ImpTotal (completada)
 │       ├── v1.4.0 — Notas de crédito electrónicas (completada)
 │       └── v1.5.0 — Lector QR facturas de compra (pendiente)
+├── v1.5.3 — Seeder jerarquía padre-hijo prácticas (completada)
 ├── v1.4.1 — Fix guardado de resultados de protocolo (completada)
 │   └── v1.5.1 — Roles y permisos laboratorio clínico (completada)
 │       └── v1.5.2 — Roles y permisos muestras (completada)
@@ -99,6 +101,8 @@ Ejecutar el siguiente prompt de la cola:
 ```
 Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
 ```
+
+Próximo en cola: **v1.5.0 — Lector QR facturas de compra**
 
 O arrancar una sesión de planificación:
 

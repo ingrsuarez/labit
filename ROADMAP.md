@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-03-17
+> Última actualización: 2026-03-20
 
 ---
 
@@ -27,6 +27,7 @@
 | v1.4.1 | Fix guardado de resultados de protocolo | 2026-03-17 | Formularios anidados → submitAction() |
 | v1.5.1 | Roles y permisos del módulo de laboratorio | 2026-03-17 | 3 roles, 15 permisos, middleware + @can |
 | v1.5.2 | Roles y permisos del módulo de muestras | 2026-03-17 | Extiende roles con permisos de muestras |
+| v1.5.3 | Seeder de jerarquía padre-hijo de prácticas | 2026-03-20 | 10 relaciones para 3 padres, 26 tests pendientes de crear |
 
 ---
 
@@ -57,7 +58,7 @@
 ## Progreso general
 
 ```
-Completadas:  10 versiones (v1.0.0 → v1.5.2)
+Completadas:  11 versiones (v1.0.0 → v1.5.3)
 Planificadas: 1 versión (v1.5.0)
 En proceso:   0
 Próxima:      v1.5.0 — Lector QR facturas de compra
