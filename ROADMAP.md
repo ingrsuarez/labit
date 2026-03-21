@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-03-20
+> Última actualización: 2026-03-21
 
 ---
 
@@ -42,12 +42,16 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v1.5.0 | Lector QR facturas de compra | 2h | v1.3.0 | `pendientes/v1.5.0-qr-reader-compras.md` |
+| v2.0.0 | Infraestructura multi-empresa | 2h | v1.5.3 | `pendientes/v2.0.0-multi-empresa-infra.md` |
+| v2.1.0 | Ventas y cobros multi-empresa | 2h | v2.0.0 | `pendientes/v2.1.0-multi-empresa-ventas.md` |
+| v2.2.0 | Compras y pagos multi-empresa | 2h | v2.0.0 | `pendientes/v2.2.0-multi-empresa-compras.md` |
+| v2.3.0 | RRHH multi-empresa | 2h | v2.0.0 | `pendientes/v2.3.0-multi-empresa-rrhh.md` |
 
 ---
 
 ## Áreas candidatas (sin planificar)
 
+- **Lector QR facturas de compra**: feature de v1.5.0, deprimerizada en favor de multi-empresa
 - **UI/UX**: auditoría visual, migración de componentes, design system
 - **Testing**: suite de tests automatizados, cobertura mínima
 - **DevOps**: CI/CD, ambientes de staging, deploy automatizado
@@ -59,9 +63,9 @@
 
 ```
 Completadas:  11 versiones (v1.0.0 → v1.5.3)
-Planificadas: 1 versión (v1.5.0)
+Planificadas: 4 versiones (v2.0.0 → v2.3.0) — bloque multi-empresa
 En proceso:   0
-Próxima:      v1.5.0 — Lector QR facturas de compra
+Próxima:      v2.0.0 — Infraestructura multi-empresa
 ```
 
 ---
