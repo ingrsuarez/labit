@@ -223,15 +223,12 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach($nomenclator as $item)
-                                @if(!is_object($item) || !$item->test)
-                                    @continue
-                                @endif
                                 <tr class="hover:bg-gray-50" x-data="{ editing: false }">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {{ $item->test->code }}
+                                        {{ $item->test?->code ?? '—' }}
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-900">
-                                        {{ $item->test->name }}
+                                        {{ $item->test?->name ?? 'Test eliminado' }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right">
                                         <span x-show="!editing">{{ number_format($item->nbu_units ?? 0, 2, ',', '.') }}</span>
