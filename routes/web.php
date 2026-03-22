@@ -120,6 +120,7 @@ Route::middleware([
     Route::post('/nomenclator/{insurance}/recalculate', [App\Http\Controllers\InsuranceNomenclatorController::class, 'recalculatePrices'])->name('nomenclator.recalculate');
     Route::get('/nomenclator/{insurance}/search-tests', [App\Http\Controllers\InsuranceNomenclatorController::class, 'searchTests'])->name('nomenclator.searchTests');
     Route::post('/nomenclator/{insurance}/copy-from', [App\Http\Controllers\InsuranceNomenclatorController::class, 'copyFromNomenclator'])->name('nomenclator.copyFrom');
+    Route::post('/nomenclator/{insurance}/cleanup', [App\Http\Controllers\InsuranceNomenclatorController::class, 'cleanupOrphans'])->name('nomenclator.cleanup');
 
     // LAB — Sección protegida por permiso lab.section
     Route::middleware(['permission:lab.section'])->group(function () {

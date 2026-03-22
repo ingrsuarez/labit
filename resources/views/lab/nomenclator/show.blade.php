@@ -188,14 +188,23 @@
                     Prácticas en Nomenclador 
                     <span class="text-sm font-normal text-gray-500">({{ $nomenclator->count() }})</span>
                 </h2>
-                @if($nomenclator->count() > 0)
-                    <form action="{{ route('nomenclator.recalculate', $insurance) }}" method="POST" class="inline">
+                <div class="flex items-center gap-4">
+                    <form action="{{ route('nomenclator.cleanup', $insurance) }}" method="POST" class="inline"
+                          onsubmit="return confirm('¿Eliminar registros huérfanos? Esto borra prácticas que apuntan a tests inexistentes.')">
                         @csrf
-                        <button type="submit" class="text-sm text-teal-600 hover:text-teal-800">
-                            Recalcular todos los precios
+                        <button type="submit" class="text-sm text-red-600 hover:text-red-800">
+                            Limpiar huérfanas
                         </button>
                     </form>
-                @endif
+                    @if($nomenclator->count() > 0)
+                        <form action="{{ route('nomenclator.recalculate', $insurance) }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit" class="text-sm text-teal-600 hover:text-teal-800">
+                                Recalcular todos los precios
+                            </button>
+                        </form>
+                    @endif
+                </div>
             </div>
 
             @if($nomenclator->count() > 0)
