@@ -33,6 +33,7 @@
 
 | v2.2.0 | Compras y pagos multi-empresa | 2026-03-22 | company_id en purchase_quotation_requests, purchase_orders, delivery_notes, purchase_invoices, payment_orders |
 | v2.2.1 | Fix columnas vacías en vista de protocolo | 2026-03-22 | Reemplazar template x-if por x-show en tabla de determinaciones |
+| v2.3.0 | RRHH multi-empresa | 2026-03-22 | company_id en employees, payrolls, leaves, documents |
 
 ---
 
@@ -47,7 +48,7 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v2.3.0 | RRHH multi-empresa | 2h | v2.0.0 | `pendientes/v2.3.0-multi-empresa-rrhh.md` |
+| v1.5.4 | Tests faltantes y jerarquía padre-hijo completa | 1h | v1.5.3 | `pendientes/v1.5.4-tests-faltantes-jerarquia-completa.md` |
 
 ---
 
@@ -64,10 +65,10 @@
 ## Progreso general
 
 ```
-Completadas:  17 versiones (v1.0.0 → v2.2.1)
-Planificadas: 1 versión (v2.3.0)
+Completadas:  18 versiones (v1.0.0 → v2.3.0)
+Planificadas: 1 versión (v1.5.4)
 En proceso:   0
-Próxima:      v2.3.0 — RRHH multi-empresa
+Próxima:      v1.5.4 — Tests faltantes y jerarquía padre-hijo completa
 ```
 
 ---
