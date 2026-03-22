@@ -29,6 +29,12 @@
             </div>
         @endif
 
+        @if(session('info'))
+            <div class="mb-6 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg">
+                {{ session('info') }}
+            </div>
+        @endif
+
         <!-- Configuración NBU (solo para obras sociales, no para nomencladores base) -->
         @if($insurance->type !== 'nomenclador')
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
@@ -80,9 +86,9 @@
                             <select name="source_nomenclator_id" required
                                     class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
                                 <option value="">-- Seleccione un nomenclador --</option>
-                                @foreach($baseNomenclators as $nomenclator)
-                                    <option value="{{ $nomenclator->id }}">
-                                        {{ strtoupper($nomenclator->name) }} ({{ $nomenclator->nomenclator_count }} prácticas)
+                                @foreach($baseNomenclators as $baseNom)
+                                    <option value="{{ $baseNom->id }}">
+                                        {{ strtoupper($baseNom->name) }} ({{ $baseNom->nomenclator_count }} prácticas)
                                     </option>
                                 @endforeach
                             </select>
@@ -186,7 +192,7 @@
             <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
                 <h2 class="text-lg font-semibold text-gray-800">
                     Prácticas en Nomenclador 
-                    <span class="text-sm font-normal text-gray-500">({{ $nomenclator->count() }})</span>
+                    <span class="text-sm font-normal text-gray-500">({{ $practices->count() }})</span>
                 </h2>
                 <div class="flex items-center gap-4">
                     <form action="{{ route('nomenclator.cleanup', $insurance) }}" method="POST" class="inline"
@@ -196,7 +202,7 @@
                             Limpiar huérfanas
                         </button>
                     </form>
-                    @if($nomenclator->count() > 0)
+                    @if($practices->count() > 0)
                         <form action="{{ route('nomenclator.recalculate', $insurance) }}" method="POST" class="inline">
                             @csrf
                             <button type="submit" class="text-sm text-teal-600 hover:text-teal-800">
@@ -207,7 +213,7 @@
                 </div>
             </div>
 
-            @if($nomenclator->count() > 0)
+            @if($practices->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
@@ -222,7 +228,7 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($nomenclator as $item)
+                            @foreach($practices as $item)
                                 <tr class="hover:bg-gray-50" x-data="{ editing: false }">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                         {{ $item->test?->code ?? '—' }}
@@ -360,4 +366,3 @@
         }
     </script>
 </x-lab-layout>
-
