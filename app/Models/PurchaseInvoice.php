@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PurchaseInvoice extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'invoice_number', 'voucher_type', 'point_of_sale', 'supplier_id',
+        'company_id', 'invoice_number', 'voucher_type', 'point_of_sale', 'supplier_id',
         'delivery_note_id', 'purchase_order_id', 'issue_date', 'due_date',
         'subtotal', 'iva_21', 'iva_10_5', 'iva_27', 'percepciones', 'otros_impuestos',
         'total', 'amount_paid', 'balance', 'status', 'notes', 'created_by',
@@ -23,12 +24,40 @@ class PurchaseInvoice extends Model
         'total' => 'decimal:2', 'amount_paid' => 'decimal:2', 'balance' => 'decimal:2',
     ];
 
-    public function supplier() { return $this->belongsTo(Supplier::class); }
-    public function deliveryNote() { return $this->belongsTo(DeliveryNote::class); }
-    public function purchaseOrder() { return $this->belongsTo(PurchaseOrder::class); }
-    public function creator() { return $this->belongsTo(User::class, 'created_by'); }
-    public function items() { return $this->hasMany(PurchaseInvoiceItem::class); }
-    public function paymentOrderItems() { return $this->hasMany(PaymentOrderItem::class); }
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    public function deliveryNote()
+    {
+        return $this->belongsTo(DeliveryNote::class);
+    }
+
+    public function purchaseOrder()
+    {
+        return $this->belongsTo(PurchaseOrder::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function items()
+    {
+        return $this->hasMany(PurchaseInvoiceItem::class);
+    }
+
+    public function paymentOrderItems()
+    {
+        return $this->hasMany(PaymentOrderItem::class);
+    }
 
     public function recalculate(): void
     {
@@ -72,7 +101,8 @@ class PurchaseInvoice extends Model
 
     public function getFullNumberAttribute(): string
     {
-        $pv = $this->point_of_sale ? str_pad($this->point_of_sale, 5, '0', STR_PAD_LEFT) . '-' : '';
+        $pv = $this->point_of_sale ? str_pad($this->point_of_sale, 5, '0', STR_PAD_LEFT).'-' : '';
+
         return "FC {$this->voucher_type} {$pv}{$this->invoice_number}";
     }
 }

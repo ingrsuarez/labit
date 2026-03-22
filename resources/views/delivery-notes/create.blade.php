@@ -188,10 +188,10 @@
         </form>
     </div>
 
-    <script>
-        function deliveryForm() {
-            const purchaseOrderData = @json(
-                $purchaseOrder ? $purchaseOrder->items->map(fn($item) => [
+    @php
+        $purchaseOrderDataJson = $purchaseOrder
+            ? $purchaseOrder->items->map(function ($item) {
+                return [
                     'supply_id' => $item->supply_id,
                     'supply_name' => $item->supply->name,
                     'unit' => $item->supply->unit,
@@ -201,14 +201,15 @@
                     'quantity_received' => $item->pending_quantity,
                     'notes' => '',
                     'from_po' => true,
-                ]) : []
-            );
-
-            const purchaseOrdersItemsMap = @json(
-                $purchaseOrders->mapWithKeys(fn($po) => [
-                    $po->id => $po->items
-                        ->filter(fn($item) => $item->pending_quantity > 0)
-                        ->map(fn($item) => [
+                ];
+            })->values()
+            : collect();
+        $poItemsMapJson = $purchaseOrders->mapWithKeys(function ($po) {
+            return [
+                $po->id => $po->items
+                    ->filter(function ($item) { return $item->pending_quantity > 0; })
+                    ->map(function ($item) {
+                        return [
                             'supply_id' => $item->supply_id,
                             'supply_name' => $item->supply->name,
                             'unit' => $item->supply->unit,
@@ -218,9 +219,16 @@
                             'quantity_received' => $item->pending_quantity,
                             'notes' => '',
                             'from_po' => true,
-                        ])->values()
-                ])
-            );
+                        ];
+                    })->values()
+            ];
+        });
+    @endphp
+    <script>
+        function deliveryForm() {
+            const purchaseOrderData = @json($purchaseOrderDataJson);
+
+            const purchaseOrdersItemsMap = @json($poItemsMapJson);
 
             return {
                 selectedPO: '{{ old("purchase_order_id", $purchaseOrder?->id ?? "") }}',

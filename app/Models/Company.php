@@ -40,15 +40,55 @@ class Company extends Model
         return $this->belongsToMany(User::class)->withPivot('is_default')->withTimestamps();
     }
 
-    public function salesInvoices(): HasMany { return $this->hasMany(SalesInvoice::class); }
+    public function salesInvoices(): HasMany
+    {
+        return $this->hasMany(SalesInvoice::class);
+    }
 
-    public function quotes(): HasMany { return $this->hasMany(Quote::class); }
+    public function quotes(): HasMany
+    {
+        return $this->hasMany(Quote::class);
+    }
 
-    public function collectionReceipts(): HasMany { return $this->hasMany(CollectionReceipt::class); }
+    public function collectionReceipts(): HasMany
+    {
+        return $this->hasMany(CollectionReceipt::class);
+    }
 
-    public function creditNotes(): HasMany { return $this->hasMany(CreditNote::class); }
+    public function creditNotes(): HasMany
+    {
+        return $this->hasMany(CreditNote::class);
+    }
 
-    public function pointsOfSale(): HasMany { return $this->hasMany(PointOfSale::class); }
+    public function pointsOfSale(): HasMany
+    {
+        return $this->hasMany(PointOfSale::class);
+    }
+
+    public function purchaseQuotationRequests(): HasMany
+    {
+        return $this->hasMany(PurchaseQuotationRequest::class);
+    }
+
+    public function purchaseOrders(): HasMany
+    {
+        return $this->hasMany(PurchaseOrder::class);
+    }
+
+    public function deliveryNotes(): HasMany
+    {
+        return $this->hasMany(DeliveryNote::class);
+    }
+
+    public function purchaseInvoices(): HasMany
+    {
+        return $this->hasMany(PurchaseInvoice::class);
+    }
+
+    public function paymentOrders(): HasMany
+    {
+        return $this->hasMany(PaymentOrder::class);
+    }
 
     public function displayName(): string
     {

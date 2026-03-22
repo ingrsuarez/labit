@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PurchaseOrder extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'number', 'supplier_id', 'quotation_request_id', 'date', 'expected_delivery_date',
+        'number', 'company_id', 'supplier_id', 'quotation_request_id', 'date', 'expected_delivery_date',
         'status', 'subtotal', 'tax_rate', 'tax_amount', 'total', 'notes',
         'created_by', 'approved_by', 'approved_at',
     ];
@@ -25,12 +26,40 @@ class PurchaseOrder extends Model
         'total' => 'decimal:2',
     ];
 
-    public function supplier() { return $this->belongsTo(Supplier::class); }
-    public function quotationRequest() { return $this->belongsTo(PurchaseQuotationRequest::class, 'quotation_request_id'); }
-    public function creator() { return $this->belongsTo(User::class, 'created_by'); }
-    public function approver() { return $this->belongsTo(User::class, 'approved_by'); }
-    public function items() { return $this->hasMany(PurchaseOrderItem::class)->orderBy('sort_order'); }
-    public function deliveryNotes() { return $this->hasMany(DeliveryNote::class); }
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    public function quotationRequest()
+    {
+        return $this->belongsTo(PurchaseQuotationRequest::class, 'quotation_request_id');
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function items()
+    {
+        return $this->hasMany(PurchaseOrderItem::class)->orderBy('sort_order');
+    }
+
+    public function deliveryNotes()
+    {
+        return $this->hasMany(DeliveryNote::class);
+    }
 
     public function recalculate(): void
     {
@@ -61,6 +90,7 @@ class PurchaseOrder extends Model
         $year = date('Y');
         $last = static::where('number', 'like', "OC-{$year}-%")->orderByDesc('number')->first();
         $nextNumber = $last ? ((int) substr($last->number, -5)) + 1 : 1;
-        return sprintf("OC-%s-%05d", $year, $nextNumber);
+
+        return sprintf('OC-%s-%05d', $year, $nextNumber);
     }
 }

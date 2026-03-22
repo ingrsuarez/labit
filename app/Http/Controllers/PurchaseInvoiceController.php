@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PurchaseInvoice;
-use App\Models\PurchaseInvoiceItem;
-use App\Models\Supplier;
-use App\Models\Supply;
-use App\Models\PurchaseOrder;
 use App\Models\DeliveryNote;
+use App\Models\PurchaseInvoice;
+use App\Models\PurchaseOrder;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 
 class PurchaseInvoiceController extends Controller
@@ -17,13 +15,14 @@ class PurchaseInvoiceController extends Controller
         $this->authorize('purchase-invoices.index');
 
         $query = PurchaseInvoice::with(['supplier', 'creator'])
+            ->where('company_id', active_company_id())
             ->orderByDesc('created_at');
 
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('invoice_number', 'like', "%{$search}%")
-                  ->orWhereHas('supplier', fn($sq) => $sq->where('name', 'like', "%{$search}%"));
+                    ->orWhereHas('supplier', fn ($sq) => $sq->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -37,7 +36,9 @@ class PurchaseInvoiceController extends Controller
 
         $invoices = $query->paginate(15)->withQueryString();
 
-        $total_balance = PurchaseInvoice::whereIn('status', ['pendiente', 'parcialmente_pagada'])->sum('balance');
+        $total_balance = PurchaseInvoice::where('company_id', active_company_id())
+            ->whereIn('status', ['pendiente', 'parcialmente_pagada'])
+            ->sum('balance');
 
         return view('purchase-invoices.index', compact('invoices', 'total_balance'));
     }
@@ -52,11 +53,14 @@ class PurchaseInvoiceController extends Controller
         $purchaseOrder = null;
 
         if ($request->filled('delivery_note_id')) {
-            $deliveryNote = DeliveryNote::with('items.supply')->findOrFail($request->delivery_note_id);
+            $deliveryNote = DeliveryNote::where('company_id', active_company_id())
+                ->with('items.supply')
+                ->findOrFail($request->delivery_note_id);
         }
 
         if ($request->filled('purchase_order_id')) {
-            $purchaseOrder = PurchaseOrder::findOrFail($request->purchase_order_id);
+            $purchaseOrder = PurchaseOrder::where('company_id', active_company_id())
+                ->findOrFail($request->purchase_order_id);
         }
 
         return view('purchase-invoices.create', [
@@ -115,6 +119,7 @@ class PurchaseInvoiceController extends Controller
 
         $invoice = PurchaseInvoice::create([
             'invoice_number' => $validated['invoice_number'],
+            'company_id' => active_company_id(),
             'voucher_type' => $validated['voucher_type'],
             'point_of_sale' => $validated['point_of_sale'] ?? null,
             'supplier_id' => $validated['supplier_id'],
@@ -148,11 +153,13 @@ class PurchaseInvoiceController extends Controller
         $invoice->recalculate();
 
         return redirect()->route('purchase-invoices.show', $invoice)
-            ->with('success', 'Factura ' . $invoice->full_number . ' creada correctamente.');
+            ->with('success', 'Factura '.$invoice->full_number.' creada correctamente.');
     }
 
     public function show(PurchaseInvoice $purchaseInvoice)
     {
+        abort_if($purchaseInvoice->company_id !== active_company_id(), 403);
+
         $this->authorize('purchase-invoices.index');
 
         $purchaseInvoice->load([
@@ -165,6 +172,8 @@ class PurchaseInvoiceController extends Controller
 
     public function edit(PurchaseInvoice $purchaseInvoice)
     {
+        abort_if($purchaseInvoice->company_id !== active_company_id(), 403);
+
         $this->authorize('purchase-invoices.edit');
 
         if ($purchaseInvoice->status !== 'pendiente') {
@@ -183,6 +192,8 @@ class PurchaseInvoiceController extends Controller
 
     public function update(Request $request, PurchaseInvoice $purchaseInvoice)
     {
+        abort_if($purchaseInvoice->company_id !== active_company_id(), 403);
+
         $this->authorize('purchase-invoices.edit');
 
         if ($purchaseInvoice->status !== 'pendiente') {
@@ -271,6 +282,8 @@ class PurchaseInvoiceController extends Controller
 
     public function destroy(PurchaseInvoice $purchaseInvoice)
     {
+        abort_if($purchaseInvoice->company_id !== active_company_id(), 403);
+
         $this->authorize('purchase-invoices.delete');
 
         if ($purchaseInvoice->status !== 'pendiente' || $purchaseInvoice->amount_paid > 0) {

@@ -156,17 +156,20 @@
         </form>
     </div>
 
+    @php
+        $orderItemsJson = $order->items->map(function ($i) {
+            return ['supply_id' => $i->supply_id, 'quantity' => $i->quantity, 'unit_price' => $i->unit_price, 'notes' => $i->notes ?? ''];
+        })->values();
+        $suppliesJson = $supplies->map(function ($s) {
+            return ['id' => $s->id, 'name' => $s->code . ' - ' . $s->name, 'last_price' => $s->last_price];
+        })->values();
+    @endphp
     <script>
         function orderEditForm() {
             return {
-                items: @json($order->items->map(fn($i) => [
-                    'supply_id' => $i->supply_id,
-                    'quantity' => $i->quantity,
-                    'unit_price' => $i->unit_price,
-                    'notes' => $i->notes ?? '',
-                ])),
+                items: @json($orderItemsJson),
                 taxRate: {{ old('tax_rate', $order->tax_rate) }},
-                supplies: @json($supplies->map(fn($s) => ['id' => $s->id, 'name' => $s->code . ' - ' . $s->name, 'last_price' => $s->last_price])),
+                supplies: @json($suppliesJson),
                 addItem() {
                     this.items.push({ supply_id: '', quantity: 1, unit_price: 0, notes: '' });
                 },
