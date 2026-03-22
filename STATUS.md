@@ -9,31 +9,30 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.2.1 |
-| **Última completada** | v2.2.1 — Fix columnas vacías en vista de protocolo |
+| **Versión actual** | v2.3.0 |
+| **Última completada** | v2.3.0 — RRHH multi-empresa |
 | **En proceso** | — |
-| **Próxima** | v2.3.0 — RRHH multi-empresa |
-| **Pendientes en cola** | 1 |
-| **Completadas** | 17 |
+| **Próxima** | — (cola vacía) |
+| **Pendientes en cola** | 0 |
+| **Completadas** | 18 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (1)
+### Pendientes (0)
 
-| Versión | Nombre | Estimación | Dependencias | Archivo |
-|---|---|---|---|---|
-| v2.3.0 | RRHH multi-empresa | 2h | v2.0.0 | `pendientes/v2.3.0-multi-empresa-rrhh.md` |
+_Sin prompts pendientes._
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (17)
+### Completados (18)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v2.3.0 | RRHH multi-empresa | 2026-03-22 | v2.3.0 |
 | v2.2.1 | Fix columnas vacías en vista de protocolo | 2026-03-22 | v2.2.1 |
 | v2.2.0 | Compras y pagos multi-empresa | 2026-03-22 | v2.2.0 |
 | v2.1.3 | UX feedback visual guardado resultados | 2026-03-22 | v2.1.3 |
@@ -71,7 +70,7 @@ v1.0.0 (completada)
 │       │       └── v2.1.3 — UX feedback guardado resultados (completada)
 │       ├── v2.2.0 — Compras y pagos multi-empresa (completada)
 │       │   └── v2.2.1 — Fix columnas vacías protocolo (completada)
-│       └── v2.3.0 — RRHH multi-empresa (pendiente)
+│       └── v2.3.0 — RRHH multi-empresa (completada)
 ├── v1.4.1 — Fix guardado de resultados de protocolo (completada)
 │   └── v1.5.1 — Roles y permisos laboratorio clínico (completada)
 │       └── v1.5.2 — Roles y permisos muestras (completada)
@@ -114,10 +113,7 @@ Ejecutar el siguiente prompt de la cola:
 Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
 ```
 
-Próximo en cola: **v2.3.0 — RRHH multi-empresa**
-
-Cola priorizada:
-1. v2.3.0 — RRHH multi-empresa (normal, 2h)
+Cola vacía. Todas las versiones planificadas han sido completadas.
 
 ---
 

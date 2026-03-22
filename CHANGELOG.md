@@ -5,6 +5,27 @@
 
 ---
 
+## [v2.3.0] — 2026-03-22 — RRHH multi-empresa
+
+### Agregado
+- Migración `add_company_id_to_employees_table`: columna `company_id` nullable en `employees`
+- Relación `company()` (BelongsTo) en modelo `Employee` y `company_id` en `$fillable`
+- Relación inversa `employees()` (HasMany) en modelo `Company`
+- Filtrado por empresa activa en `EmployeeController@show` (listado) y estadísticas de resumen
+- Asignación de `company_id` en `store()` (default: empresa activa) y `save()` (edición)
+- Campo select "Empresa Empleadora" en formularios de alta y edición de empleado
+- Columna "Empresa" en la tabla del listado de empleados
+- Empresa empleadora visible en perfil del empleado
+- `PayrollController`: filtrado por empresa activa en `index`, `sac`, `bulk`, `closed`, `liquidarBulk`, `pagarBulk`, `downloadBulkPdf`
+- Recibos PDF: encabezado dinámico con razón social, CUIT y domicilio de la empresa empleadora (`$payroll->employee->company`)
+- Portal del empleado: logo y nombre de la empresa del empleado en header y sidebar (sin selector de empresa)
+
+### Sin cambios
+- Organigrama: sigue mostrando todos los empleados sin filtrar por empresa (organización única)
+- Conceptos salariales (`salary_items`): siguen siendo globales
+
+---
+
 ## [v2.2.1] — 2026-03-22 — Fix columnas vacías en vista de protocolo de muestras
 
 ### Corregido
