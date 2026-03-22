@@ -36,6 +36,11 @@
                     <p class="text-indigo-300 text-xs truncate">
                         {{ $employee->jobs->first()->name ?? 'Empleado' }}
                     </p>
+                    @if($employee->company)
+                        <p class="text-indigo-400 text-xs truncate">
+                            {{ $employee->company->name }}
+                        </p>
+                    @endif
                 </div>
             </div>
         </div>

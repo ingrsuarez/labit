@@ -90,6 +90,11 @@ class Company extends Model
         return $this->hasMany(PaymentOrder::class);
     }
 
+    public function employees(): HasMany
+    {
+        return $this->hasMany(Employee::class);
+    }
+
     public function displayName(): string
     {
         return $this->short_name ?: $this->name;

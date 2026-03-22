@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Job;
-use App\Models\User;
-use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Employee extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'company_id',
         'name',
         'lastName',
         'employeeId',
@@ -42,6 +42,11 @@ class Employee extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
     public function jobs()
     {
         return $this->belongsToMany(\App\Models\Job::class, 'job_employee', 'employee_id', 'job_id')
@@ -59,6 +64,7 @@ class Employee extends Model
                 return true;
             }
         }
+
         return false;
     }
 
@@ -68,11 +74,11 @@ class Employee extends Model
     public function getSubordinates(): \Illuminate\Support\Collection
     {
         $subordinates = collect();
-        
+
         foreach ($this->jobs as $job) {
             $subordinates = $subordinates->merge($this->getSubordinatesFromJob($job));
         }
-        
+
         return $subordinates->unique('id');
     }
 
@@ -82,15 +88,15 @@ class Employee extends Model
     protected function getSubordinatesFromJob(Job $job): \Illuminate\Support\Collection
     {
         $subordinates = collect();
-        
+
         foreach ($job->childs as $childJob) {
             // Agregar empleados del puesto hijo
             $subordinates = $subordinates->merge($childJob->employees);
-            
+
             // Recursivamente obtener subordinados de puestos inferiores
             $subordinates = $subordinates->merge($this->getSubordinatesFromJob($childJob));
         }
-        
+
         return $subordinates;
     }
 
@@ -104,7 +110,7 @@ class Employee extends Model
 
     public function leaves()
     {
-        return $this->hasMany('App\Models\Leave','employee_id');
+        return $this->hasMany('App\Models\Leave', 'employee_id');
     }
 
     /**
@@ -113,8 +119,8 @@ class Employee extends Model
     public function salaryItems()
     {
         return $this->belongsToMany(SalaryItem::class, 'employee_salary_item')
-                    ->withPivot('is_active', 'custom_value')
-                    ->withTimestamps();
+            ->withPivot('is_active', 'custom_value')
+            ->withTimestamps();
     }
 
     /**
@@ -123,9 +129,9 @@ class Employee extends Model
     public function hasSalaryItem(int $salaryItemId): bool
     {
         return $this->salaryItems()
-                    ->where('salary_item_id', $salaryItemId)
-                    ->where('employee_salary_item.is_active', true)
-                    ->exists();
+            ->where('salary_item_id', $salaryItemId)
+            ->where('employee_salary_item.is_active', true)
+            ->exists();
     }
 
     /**
@@ -133,9 +139,10 @@ class Employee extends Model
      */
     public function getAntiquityYearsAttribute(): int
     {
-        if (!$this->start_date) {
+        if (! $this->start_date) {
             return 0;
         }
+
         return Carbon::parse($this->start_date)->diffInYears(now());
     }
 
@@ -164,7 +171,7 @@ class Employee extends Model
     /**
      * Días de vacaciones usados en un año específico (días hábiles)
      */
-    public function getUsedVacationDays(int $year = null): int
+    public function getUsedVacationDays(?int $year = null): int
     {
         $year = $year ?? now()->year;
 
@@ -182,7 +189,7 @@ class Employee extends Model
     /**
      * Días de vacaciones pendientes (solicitadas pero no aprobadas) - días hábiles
      */
-    public function getPendingVacationDays(int $year = null): int
+    public function getPendingVacationDays(?int $year = null): int
     {
         $year = $year ?? now()->year;
 
@@ -200,7 +207,7 @@ class Employee extends Model
     /**
      * Días de vacaciones disponibles en un año
      */
-    public function getAvailableVacationDays(int $year = null): int
+    public function getAvailableVacationDays(?int $year = null): int
     {
         $year = $year ?? now()->year;
         $totalDays = $this->vacation_days_by_law;
@@ -212,7 +219,7 @@ class Employee extends Model
     /**
      * Resumen completo de vacaciones del año
      */
-    public function getVacationSummary(int $year = null): array
+    public function getVacationSummary(?int $year = null): array
     {
         $year = $year ?? now()->year;
 
@@ -225,5 +232,4 @@ class Employee extends Model
             'antiquity_years' => $this->antiquity_years,
         ];
     }
-
 }

@@ -206,10 +206,22 @@
 </head>
 <body>
     <div class="container">
+        @php
+            $employerCompany = $payroll->employee?->company;
+        @endphp
+
         {{-- Header --}}
         <div class="header">
             <div class="header-left">
-                <img src="{{ public_path('images/logo_ipac.png') }}" alt="IPAC" style="height: 50px;">
+                @if($employerCompany && $employerCompany->logo_path && file_exists(public_path('storage/' . $employerCompany->logo_path)))
+                    <img src="{{ public_path('storage/' . $employerCompany->logo_path) }}" alt="{{ $employerCompany->name }}" style="height: 50px;">
+                @else
+                    <img src="{{ public_path('images/logo_ipac.png') }}" alt="IPAC" style="height: 50px;">
+                @endif
+                @if($employerCompany)
+                    <div class="company-name">{{ $employerCompany->name }}</div>
+                    <div class="company-sub">CUIT: {{ $employerCompany->tax_id }} — {{ $employerCompany->address }}</div>
+                @endif
             </div>
             <div class="header-right">
                 <p style="font-size: 14px; font-weight: bold;">{{ ucfirst(\Carbon\Carbon::createFromDate($payroll->year, $payroll->month, 1)->locale('es')->translatedFormat('F Y')) }}</p>
