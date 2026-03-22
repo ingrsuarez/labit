@@ -31,6 +31,8 @@
 | v2.0.0 | Infraestructura multi-empresa | 2026-03-21 | Modelo Company, pivot, middleware, CRUD, selector en header |
 | v2.1.0 | Ventas y cobros multi-empresa | 2026-03-22 | company_id en ventas, filtrado por empresa, AfipService multi-empresa |
 
+| v2.2.0 | Compras y pagos multi-empresa | 2026-03-22 | company_id en purchase_quotation_requests, purchase_orders, delivery_notes, purchase_invoices, payment_orders |
+
 ---
 
 ## En progreso
@@ -44,9 +46,6 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v2.1.1 | Fix "Aplicar a todos" no persiste valores de referencia | 30min | ninguna | `pendientes/v2.1.1-fix-aplicar-todos-ref-values.md` |
-| v2.1.2 | UX: feedback visual de guardado en carga de resultados | 30min | v2.1.1 | `pendientes/v2.1.2-ux-feedback-guardado-resultados.md` |
-| v2.2.0 | Compras y pagos multi-empresa | 2h | v2.0.0 | `pendientes/v2.2.0-multi-empresa-compras.md` |
 | v2.3.0 | RRHH multi-empresa | 2h | v2.0.0 | `pendientes/v2.3.0-multi-empresa-rrhh.md` |
 
 ---
@@ -64,10 +63,10 @@
 ## Progreso general
 
 ```
-Completadas:  13 versiones (v1.0.0 → v2.1.0)
-Planificadas: 4 versiones (v2.1.1, v2.1.2, v2.2.0, v2.3.0)
+Completadas:  16 versiones (v1.0.0 → v2.2.0)
+Planificadas: 1 versión (v2.3.0)
 En proceso:   0
-Próxima:      v2.1.1 — Fix "Aplicar a todos" no persiste valores de referencia
+Próxima:      v2.3.0 — RRHH multi-empresa
 ```
 
 ---

@@ -5,6 +5,28 @@
 
 ---
 
+## [v2.2.0] — 2026-03-22 — Compras y pagos multi-empresa
+
+### Agregado
+- Migración `add_company_id_to_purchase_tables`: columna `company_id` nullable en `purchase_quotation_requests`, `purchase_orders`, `delivery_notes`, `purchase_invoices`, `payment_orders`
+- Relación `company()` (BelongsTo) en los 5 modelos de compras y `company_id` en `$fillable`
+- Relaciones inversas en `Company`: `purchaseQuotationRequests()`, `purchaseOrders()`, `deliveryNotes()`, `purchaseInvoices()`, `paymentOrders()`
+- Filtrado por empresa activa en `index()` de todos los controladores de compras
+- Asignación automática de `company_id` en `store()` de todos los controladores
+- Guard `abort_if(403)` en `show()`, `edit()`, `update()`, `destroy()` y métodos de acción (`updateStatus`, `accept`, `confirm`) de todos los controladores
+- Dropdowns de documentos relacionados (OC, remitos, facturas) filtrados por empresa activa en formularios de creación/edición
+- Cálculo de `total_balance` en facturas de compra filtrado por empresa activa
+
+### Corregido
+- Bug de compilación Blade: `@json()` con arrow functions multi-línea (`fn()`) extraídas a bloques `@php` en 8 vistas del módulo de compras (create/edit de purchase-orders, delivery-notes, purchase-invoices, payment-orders)
+
+### Notas
+- Proveedores, insumos y categorías son GLOBALES — no llevan `company_id`
+- Movimientos de stock son globales por ahora (inventario físico compartido)
+- Los ítems de cada documento no necesitan `company_id` — se acceden a través de su documento padre
+
+---
+
 ## [v2.1.0] — 2026-03-22 — Ventas y cobros multi-empresa
 
 ### Agregado
