@@ -194,6 +194,20 @@
             </select>
         </div>
 
+        <!-- Empresa Empleadora -->
+        <div>
+            <label for="company_id" class="block text-sm font-medium text-gray-700">Empresa Empleadora</label>
+            <select name="company_id" id="company_id"
+                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                <option value="">— Sin asignar —</option>
+                @foreach($companies as $company)
+                    <option value="{{ $company->id }}" {{ old('company_id', $employee->company_id) == $company->id ? 'selected' : '' }}>
+                        {{ $company->name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
         <!-- Botón -->
         <div class="md:col-span-2 flex justify-end mt-6">
             <button type="submit" 

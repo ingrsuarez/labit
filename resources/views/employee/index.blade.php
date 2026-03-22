@@ -100,6 +100,7 @@
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Empleado</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cuil</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Empresa</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Puesto(s)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Depto</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
@@ -121,6 +122,7 @@
                                 <div class="text-xs text-gray-500">#{{ $e->id }}</div>
                             </td>
                             <td class="px-4 py-3 text-gray-700">{{ $e->employeeId }}</td>
+                            <td class="px-4 py-3 text-gray-700">{{ $e->company?->name ?? '—' }}</td>
                             <td class="px-4 py-3 text-gray-700">{{ $puestos ?: '—' }}</td>
                             <td class="px-4 py-3 text-gray-700">{{ $deptos ?: '—' }}</td>
                             <td class="px-4 py-3 text-gray-700">{{ $e->email ?? '—' }}</td>
@@ -146,7 +148,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="8" class="px-4 py-6 text-center text-gray-500">Sin resultados.</td></tr>
+                        <tr><td colspan="9" class="px-4 py-6 text-center text-gray-500">Sin resultados.</td></tr>
                     @endforelse
                 </tbody>
             </table>

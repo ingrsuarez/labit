@@ -2,15 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Employee;
 use App\Models\Category;
-use App\Models\SalaryItem;
+use App\Models\Employee;
 use App\Models\Leave;
 use App\Models\Payroll;
-use App\Models\PayrollItem;
 use App\Models\PayrollSetting;
-use App\Services\WorkingDaysService;
+use App\Models\SalaryItem;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 class PayrollController extends Controller
@@ -20,13 +18,14 @@ class PayrollController extends Controller
      */
     public function index(Request $request)
     {
-        $employees = Employee::with(['jobs.category'])
+        $employees = Employee::where('company_id', active_company_id())
+            ->with(['jobs.category'])
             ->orderBy('lastName')
             ->get();
 
         // Determinar el mes por defecto: el último mes sin recibos cerrados
         $defaultPeriod = $this->getLastOpenPeriod();
-        
+
         $selectedEmployee = null;
         $payroll = null;
         $previousPayrolls = [];
@@ -35,10 +34,10 @@ class PayrollController extends Controller
 
         if ($request->filled('employee_id')) {
             $selectedEmployee = Employee::with(['jobs.category'])->find($request->employee_id);
-            
+
             if ($selectedEmployee) {
                 $payroll = $this->calculatePayroll($selectedEmployee, $year, $month);
-                
+
                 // Obtener historial de netos de períodos anteriores (últimos 12 meses)
                 $previousPayrolls = $this->getPreviousPayrolls($selectedEmployee->id, $year, $month);
             }
@@ -65,28 +64,28 @@ class PayrollController extends Controller
     {
         $currentYear = now()->year;
         $currentMonth = now()->month;
-        
+
         // Buscar hacia atrás desde el mes actual hasta encontrar un mes sin cerrar
         for ($i = 0; $i < 24; $i++) {
             $checkDate = now()->subMonths($i);
             $year = $checkDate->year;
             $month = $checkDate->month;
-            
-            // Contar empleados activos
-            $totalEmployees = Employee::count();
-            
+
+            $totalEmployees = Employee::where('company_id', active_company_id())->count();
+
             // Contar recibos cerrados para este período
             $closedPayrolls = Payroll::forPeriod($year, $month)
-                ->where('month', '<', 100) // Excluir SAC (mes > 100)
+                ->where('month', '<', 100)
                 ->whereIn('status', ['liquidado', 'pagado'])
+                ->whereHas('employee', fn ($q) => $q->where('company_id', active_company_id()))
                 ->count();
-            
+
             // Si no todos los empleados tienen recibo cerrado, este es el período abierto
             if ($closedPayrolls < $totalEmployees) {
                 return ['year' => $year, 'month' => $month];
             }
         }
-        
+
         // Por defecto, mes actual
         return ['year' => $currentYear, 'month' => $currentMonth];
     }
@@ -103,7 +102,7 @@ class PayrollController extends Controller
                 $query->where('year', '<', $currentYear)
                     ->orWhere(function ($q) use ($currentYear, $currentMonth) {
                         $q->where('year', $currentYear)
-                          ->where('month', '<', $currentMonth);
+                            ->where('month', '<', $currentMonth);
                     });
             })
             ->orderBy('year', 'desc')
@@ -117,7 +116,7 @@ class PayrollController extends Controller
                     'period_label' => $payroll->period_label,
                     'neto_a_cobrar' => (float) $payroll->neto_a_cobrar,
                     'status' => $payroll->status,
-                    'status_label' => match($payroll->status) {
+                    'status_label' => match ($payroll->status) {
                         'borrador' => 'Borrador',
                         'liquidado' => 'Cerrado',
                         'pagado' => 'Pagado',
@@ -126,7 +125,7 @@ class PayrollController extends Controller
                 ];
             })
             ->toArray();
-        
+
         return $payrolls;
     }
 
@@ -137,15 +136,15 @@ class PayrollController extends Controller
     {
         // Obtener categoría y salario básico del empleado
         $category = $this->getEmployeeCategory($employee);
-        $basicoCategoria = $category ? (float)$category->wage : 0;
-        
+        $basicoCategoria = $category ? (float) $category->wage : 0;
+
         // Calcular básico proporcional según horas semanales del empleado
         // Horas base de la categoría (jornada completa)
         $horasBaseCategoria = $category ? ($category->base_weekly_hours ?? 48) : 48;
         $horasSemanalesEmpleado = $employee->weekly_hours ?? $horasBaseCategoria;
-        
+
         // Básico proporcional = básico categoría × (horas empleado / horas base categoría)
-        $basicSalary = $horasBaseCategoria > 0 
+        $basicSalary = $horasBaseCategoria > 0
             ? $basicoCategoria * ($horasSemanalesEmpleado / $horasBaseCategoria)
             : $basicoCategoria;
 
@@ -159,26 +158,26 @@ class PayrollController extends Controller
         // Calcular haberes
         $haberesCalculados = [];
         $basicoOriginal = $basicSalary; // Guardamos el básico proporcional como referencia
-        
+
         // Obtener días de licencias
         $diasVacaciones = $leaves['dias_vacaciones'] ?? 0;
         $diasEnfermedad = $leaves['dias_enfermedad'] ?? 0;
         $diasInasistencia = $leaves['dias_inasistencia'] ?? 0;
-        
+
         // Calcular días trabajados (30 - vacaciones - enfermedad - inasistencia)
         $diasTrabajados = 30 - $diasVacaciones - $diasEnfermedad - $diasInasistencia;
-        
+
         // Sueldo básico proporcional a días trabajados
         $basicoTrabajado = $basicoOriginal * ($diasTrabajados / 30);
         $totalHaberes = $basicoTrabajado;
-        
+
         $haberesCalculados[] = [
             'nombre' => 'Sueldo Básico',
-            'porcentaje' => $diasTrabajados < 30 ? $diasTrabajados . ' días' : null,
+            'porcentaje' => $diasTrabajados < 30 ? $diasTrabajados.' días' : null,
             'importe' => $basicoTrabajado,
             'tipo' => 'fixed',
         ];
-        
+
         // Vacaciones: se pagan con divisor 25 (mejor que días normales)
         // vacaciones = basico * (dias_vacaciones / 25)
         $importeVacaciones = 0;
@@ -186,53 +185,53 @@ class PayrollController extends Controller
             $importeVacaciones = $basicoOriginal * ($diasVacaciones / 25);
             $haberesCalculados[] = [
                 'nombre' => 'Vacaciones',
-                'porcentaje' => $diasVacaciones . ' días',
+                'porcentaje' => $diasVacaciones.' días',
                 'importe' => $importeVacaciones,
                 'tipo' => 'fixed',
             ];
             $totalHaberes += $importeVacaciones;
         }
-        
+
         // Días de enfermedad (con certificado y aprobados): se pagan igual que días normales
         if ($diasEnfermedad > 0) {
             $importeEnfermedad = $basicoOriginal * ($diasEnfermedad / 30);
             $haberesCalculados[] = [
                 'nombre' => 'Días Enfermedad',
-                'porcentaje' => $diasEnfermedad . ' días',
+                'porcentaje' => $diasEnfermedad.' días',
                 'importe' => $importeEnfermedad,
                 'tipo' => 'fixed',
             ];
             $totalHaberes += $importeEnfermedad;
         }
-        
+
         // Días de inasistencia: NO se pagan (sin certificado o no aprobados)
         if ($diasInasistencia > 0) {
             $importeInasistencia = $basicoOriginal * ($diasInasistencia / 30);
             $haberesCalculados[] = [
                 'nombre' => 'Inasistencia',
-                'porcentaje' => $diasInasistencia . ' días',
+                'porcentaje' => $diasInasistencia.' días',
                 'importe' => -$importeInasistencia, // Negativo porque es descuento (no se paga)
                 'tipo' => 'descuento',
             ];
             // No se suma al total porque ya está descontado del básico
         }
-        
+
         // El básico para cálculos de otros conceptos es el básico reducido
         // (sin vacaciones, enfermedad ni inasistencia)
         $basicSalary = $basicoTrabajado;
-        
+
         // A partir de aquí, $basicSalary es el básico reducido
         // Todos los demás conceptos se calculan sobre este nuevo básico
 
         // 1. PRIMERO: Calcular horas extras (sobre el básico)
         $horasExtras = $this->calculateHorasExtras($employee, $basicSalary, $leaves);
         $totalHorasExtras = $horasExtras['total'];
-        
+
         if ($totalHorasExtras > 0) {
             if ($horasExtras['horas_50'] > 0) {
                 $haberesCalculados[] = [
                     'nombre' => 'Horas Extras 50%',
-                    'porcentaje' => $leaves['horas_50'] . ' hs',
+                    'porcentaje' => $leaves['horas_50'].' hs',
                     'importe' => $horasExtras['horas_50'],
                     'tipo' => 'hours',
                 ];
@@ -240,7 +239,7 @@ class PayrollController extends Controller
             if ($horasExtras['horas_100'] > 0) {
                 $haberesCalculados[] = [
                     'nombre' => 'Horas Extras 100%',
-                    'porcentaje' => $leaves['horas_100'] . ' hs',
+                    'porcentaje' => $leaves['horas_100'].' hs',
                     'importe' => $horasExtras['horas_100'],
                     'tipo' => 'hours',
                 ];
@@ -251,20 +250,20 @@ class PayrollController extends Controller
         // 2. SEGUNDO: Calcular conceptos que afectan la base de antigüedad (ej: Adicional Título)
         $baseParaAntiguedad = $basicSalary + $totalHorasExtras;
         $conceptosAntiguedad = [];
-        
+
         // Buscar haberes que se incluyen en la base de antigüedad
         $haberesAntiguedad = $haberes->where('includes_in_antiguedad_base', true);
         foreach ($haberesAntiguedad as $haber) {
             // Si requiere asignación, verificar que el empleado lo tenga
-            if ($haber->requires_assignment && !$employee->hasSalaryItem($haber->id)) {
+            if ($haber->requires_assignment && ! $employee->hasSalaryItem($haber->id)) {
                 continue;
             }
-            
+
             $importe = $this->calculateItem($haber, $basicSalary, $leaves, $employee);
             if ($importe > 0) {
                 $conceptosAntiguedad[] = [
                     'nombre' => $haber->name,
-                    'porcentaje' => ($haber->calculation_type === 'percentage' && !$haber->hide_percentage_in_receipt) ? $haber->value . '%' : null,
+                    'porcentaje' => ($haber->calculation_type === 'percentage' && ! $haber->hide_percentage_in_receipt) ? $haber->value.'%' : null,
                     'importe' => $importe,
                     'tipo' => $haber->calculation_type,
                     'remunerativo' => $haber->is_remunerative,
@@ -273,15 +272,15 @@ class PayrollController extends Controller
                 $totalHaberes += $importe;
             }
         }
-        
+
         // Agregar conceptos que afectan antigüedad al listado de haberes
         foreach ($conceptosAntiguedad as $concepto) {
             $haberesCalculados[] = $concepto;
         }
-        
+
         // 3. TERCERO: Calcular antigüedad SOLO sobre el básico (según CCT 108/75)
         $antiguedad = $this->calculateAntiguedad($employee, $basicSalary, $year, $month);
-        
+
         if ($antiguedad > 0) {
             $haberesCalculados[] = [
                 'nombre' => 'Antigüedad',
@@ -296,7 +295,7 @@ class PayrollController extends Controller
         // Calcular el total de conceptos fijos que se incluyen en base de zona
         // (conceptos con includes_in_antiguedad_base = true, como Adicional Título)
         $totalConceptosFijosZona = collect($conceptosAntiguedad)->sum('importe');
-        
+
         // Preparar las diferentes bases
         $bases = [
             'basic' => $basicSalary,
@@ -340,15 +339,15 @@ class PayrollController extends Controller
             if (in_array($haber->id, $haberesYaProcesados)) {
                 continue;
             }
-            
+
             // Si el concepto requiere asignación, verificar que el empleado lo tenga
-            if ($haber->requires_assignment && !$employee->hasSalaryItem($haber->id)) {
+            if ($haber->requires_assignment && ! $employee->hasSalaryItem($haber->id)) {
                 continue; // Saltar este concepto si no está asignado al empleado
             }
-            
+
             // Obtener la base correcta para este concepto
             $baseCalculo = $bases[$haber->calculation_base] ?? $bases['basic_antiguedad'];
-            
+
             // Si es base personalizada, calcularla dinámicamente
             if ($haber->calculation_base === 'custom') {
                 $baseCalculo = 0;
@@ -356,8 +355,8 @@ class PayrollController extends Controller
                 foreach ($baseItemKeys as $key) {
                     if (isset($customBaseComponents[$key])) {
                         $baseCalculo += $customBaseComponents[$key];
-                    } elseif (is_numeric($key) && isset($haberesImportes[(int)$key])) {
-                        $baseCalculo += $haberesImportes[(int)$key];
+                    } elseif (is_numeric($key) && isset($haberesImportes[(int) $key])) {
+                        $baseCalculo += $haberesImportes[(int) $key];
                     }
                 }
             }
@@ -369,20 +368,20 @@ class PayrollController extends Controller
                     $customValue = $assignment->pivot->custom_value;
                 }
             }
-            
+
             $importe = $customValue ?? $this->calculateItem($haber, $baseCalculo, $leaves, $employee);
             if ($importe > 0) {
                 $haberesImportes[$haber->id] = $importe;
                 $haberesCalculados[] = [
                     'nombre' => $haber->name,
-                    'porcentaje' => ($haber->calculation_type === 'percentage' && !$haber->hide_percentage_in_receipt) ? $haber->value . '%' : null,
+                    'porcentaje' => ($haber->calculation_type === 'percentage' && ! $haber->hide_percentage_in_receipt) ? $haber->value.'%' : null,
                     'importe' => $importe,
                     'tipo' => $haber->calculation_type,
                     'remunerativo' => $haber->is_remunerative,
                     'base' => $haber->calculation_base,
                 ];
                 $totalHaberes += $importe;
-                
+
                 // Separar remunerativo de no remunerativo
                 if ($haber->is_remunerative) {
                     $totalRemunerativo += $importe;
@@ -394,7 +393,7 @@ class PayrollController extends Controller
 
         // Subtotal remunerativo (base para deducciones)
         $subtotalRemunerativo = $totalRemunerativo;
-        
+
         // Subtotal total (incluye no remunerativo)
         $subtotal = $totalHaberes;
 
@@ -404,16 +403,16 @@ class PayrollController extends Controller
 
         foreach ($deducciones as $deduccion) {
             // Si el concepto requiere asignación, verificar que el empleado lo tenga
-            if ($deduccion->requires_assignment && !$employee->hasSalaryItem($deduccion->id)) {
+            if ($deduccion->requires_assignment && ! $employee->hasSalaryItem($deduccion->id)) {
                 continue;
             }
-            
+
             // Las deducciones se calculan sobre el SUBTOTAL REMUNERATIVO (excluye no remunerativos)
             $importe = $this->calculateItem($deduccion, $subtotalRemunerativo, $leaves, $employee);
             if ($importe > 0) {
                 $deduccionesCalculadas[] = [
                     'nombre' => $deduccion->name,
-                    'porcentaje' => ($deduccion->calculation_type === 'percentage' && !$deduccion->hide_percentage_in_receipt) ? $deduccion->value . '%' : null,
+                    'porcentaje' => ($deduccion->calculation_type === 'percentage' && ! $deduccion->hide_percentage_in_receipt) ? $deduccion->value.'%' : null,
                     'importe' => $importe,
                     'tipo' => $deduccion->calculation_type,
                 ];
@@ -425,20 +424,22 @@ class PayrollController extends Controller
         $netoACobrar = $subtotal - $totalDeducciones;
 
         // Redondear importes de haberes solo al final
-        $haberesRedondeados = array_map(function($haber) {
+        $haberesRedondeados = array_map(function ($haber) {
             $haber['importe'] = round($haber['importe'], 2);
+
             return $haber;
         }, $haberesCalculados);
 
         // Redondear importes de deducciones solo al final
-        $deduccionesRedondeadas = array_map(function($deduccion) {
+        $deduccionesRedondeadas = array_map(function ($deduccion) {
             $deduccion['importe'] = round($deduccion['importe'], 2);
+
             return $deduccion;
         }, $deduccionesCalculadas);
 
         return [
             'empleado' => [
-                'nombre' => $employee->name . ' ' . $employee->lastName,
+                'nombre' => $employee->name.' '.$employee->lastName,
                 'cuil' => $employee->employeeId,
                 'categoria' => $category ? $category->name : 'Sin categoría',
                 'convenio' => $category ? $category->agreement : 'CCT 108/75',
@@ -477,7 +478,7 @@ class PayrollController extends Controller
 
         // Si no tiene puesto, buscar por el campo position
         if ($employee->position) {
-            return Category::where('name', 'like', '%' . $employee->position . '%')->first();
+            return Category::where('name', 'like', '%'.$employee->position.'%')->first();
         }
 
         return null;
@@ -498,24 +499,24 @@ class PayrollController extends Controller
         // Calcular días de vacaciones: todos los días hábiles de la licencia completa
         // (se contabilizan en el mes donde empiezan, aunque terminen en otro mes)
         $diasVacaciones = $leaves->where('type', 'vacaciones')
-            ->sum(fn($l) => $l->working_days);
+            ->sum(fn ($l) => $l->working_days);
 
         // Separar licencias por enfermedad: válidas (justificadas o con certificado y aprobadas) vs inasistencias
         $enfermedadLeaves = $leaves->where('type', 'enfermedad');
-        
+
         // Días de enfermedad válidos: justificada O (con archivo Y aprobado)
         $diasEnfermedadValidos = $enfermedadLeaves
-            ->filter(fn($l) => $l->is_justified || (!empty($l->file) && $l->status === 'aprobado'))
-            ->sum(fn($l) => $l->days ?? (Carbon::parse($l->end)->diffInDays(Carbon::parse($l->start)) + 1));
-        
+            ->filter(fn ($l) => $l->is_justified || (! empty($l->file) && $l->status === 'aprobado'))
+            ->sum(fn ($l) => $l->days ?? (Carbon::parse($l->end)->diffInDays(Carbon::parse($l->start)) + 1));
+
         // Días de inasistencia: NO justificada Y (sin archivo O no aprobado)
         $diasInasistencia = $enfermedadLeaves
-            ->filter(fn($l) => !$l->is_justified && (empty($l->file) || $l->status !== 'aprobado'))
-            ->sum(fn($l) => $l->days ?? (Carbon::parse($l->end)->diffInDays(Carbon::parse($l->start)) + 1));
+            ->filter(fn ($l) => ! $l->is_justified && (empty($l->file) || $l->status !== 'aprobado'))
+            ->sum(fn ($l) => $l->days ?? (Carbon::parse($l->end)->diffInDays(Carbon::parse($l->start)) + 1));
 
         // Días de embarazo
         $diasEmbarazo = $leaves->where('type', 'embarazo')
-            ->sum(fn($l) => $l->days ?? (Carbon::parse($l->end)->diffInDays(Carbon::parse($l->start)) + 1));
+            ->sum(fn ($l) => $l->days ?? (Carbon::parse($l->end)->diffInDays(Carbon::parse($l->start)) + 1));
 
         return [
             'dias_vacaciones' => $diasVacaciones,
@@ -532,7 +533,7 @@ class PayrollController extends Controller
      */
     private function calculateItem(SalaryItem $item, float $base, array $leaves, ?Employee $employee = null): float
     {
-        return match($item->calculation_type) {
+        return match ($item->calculation_type) {
             'percentage' => $base * ($item->value / 100),
             'fixed' => $item->value,
             'fixed_proportional' => $this->calculateFixedProportional($item, $employee),
@@ -546,7 +547,7 @@ class PayrollController extends Controller
      */
     private function calculateFixedProportional(SalaryItem $item, ?Employee $employee): float
     {
-        if (!$employee) {
+        if (! $employee) {
             return $item->value;
         }
 
@@ -569,12 +570,14 @@ class PayrollController extends Controller
     {
         $years = $this->calculateAntiguedadYears($employee, $year, $month);
         $percentage = $years * 2; // 2% por año completo
+
         return $basicSalary * ($percentage / 100);
     }
 
     private function getAntiguedadPercentage(Employee $employee, int $year, int $month): int
     {
         $years = $this->calculateAntiguedadYears($employee, $year, $month);
+
         return $years * 2; // 2% por año completo
     }
 
@@ -584,14 +587,14 @@ class PayrollController extends Controller
      */
     private function calculateAntiguedadYears(Employee $employee, int $year, int $month): int
     {
-        if (!$employee->start_date) {
+        if (! $employee->start_date) {
             return 0;
         }
-        
+
         // Calcular al último día del mes del período
         $endOfPeriod = Carbon::createFromDate($year, $month, 1)->endOfMonth();
         $startDate = Carbon::parse($employee->start_date);
-        
+
         // diffInYears retorna solo años completos (enteros)
         return (int) $startDate->diffInYears($endOfPeriod);
     }
@@ -621,12 +624,9 @@ class PayrollController extends Controller
     /**
      * Calcular SAC (Sueldo Anual Complementario / Medio Aguinaldo)
      * Según Ley 20.744, Art. 122: 50% de la mejor remuneración mensual del semestre
-     * 
-     * @param Employee $employee
-     * @param int $year
-     * @param int $month Debe ser 6 (junio) o 12 (diciembre)
-     * @param float|null $currentMonthRemunerativo Total remunerativo del mes actual (para incluir en comparación)
-     * @return array
+     *
+     * @param  int  $month  Debe ser 6 (junio) o 12 (diciembre)
+     * @param  float|null  $currentMonthRemunerativo  Total remunerativo del mes actual (para incluir en comparación)
      */
     private function calculateSAC(Employee $employee, int $year, int $month, ?float $currentMonthRemunerativo = null): array
     {
@@ -634,17 +634,17 @@ class PayrollController extends Controller
         $semester = $month <= 6 ? 1 : 2;
         $startMonth = $semester === 1 ? 1 : 7;
         $endMonth = $semester === 1 ? 6 : 12;
-        
+
         $inicioSemestre = Carbon::createFromDate($year, $startMonth, 1);
         $finSemestre = Carbon::createFromDate($year, $endMonth, 1)->endOfMonth();
-        
+
         // Determinar meses trabajados basándose en la FECHA DE INGRESO del empleado
         $mesesTrabajados = 6; // Por defecto, semestre completo
         $esProporcional = false;
-        
+
         if ($employee->start_date) {
             $fechaIngreso = Carbon::parse($employee->start_date);
-            
+
             // Si ingresó DURANTE este semestre, calcular meses proporcionales
             if ($fechaIngreso->between($inicioSemestre, $finSemestre)) {
                 // Contar meses calendario desde el mes de ingreso hasta el fin del semestre
@@ -664,24 +664,24 @@ class PayrollController extends Controller
             }
             // Si ingresó ANTES del inicio del semestre, trabajó los 6 meses completos
         }
-        
+
         // Buscar liquidaciones guardadas del semestre para obtener el mejor sueldo
         $payrolls = Payroll::where('employee_id', $employee->id)
             ->where('year', $year)
             ->whereBetween('month', [$startMonth, $endMonth])
             ->where('month', '!=', $month) // Excluir el mes actual
             ->get();
-        
+
         // Obtener los totales remunerativos de cada mes guardado
         $sueldosRemunerativos = $payrolls->pluck('total_remunerativo')
-            ->map(fn($v) => (float) $v)
+            ->map(fn ($v) => (float) $v)
             ->toArray();
-        
+
         // Agregar el sueldo remunerativo del mes actual
         if ($currentMonthRemunerativo !== null && $currentMonthRemunerativo > 0) {
             $sueldosRemunerativos[] = $currentMonthRemunerativo;
         }
-        
+
         // Si no hay sueldos guardados, usar el sueldo actual como referencia
         if (empty($sueldosRemunerativos)) {
             return [
@@ -694,10 +694,10 @@ class PayrollController extends Controller
                 'mensaje' => 'No hay sueldos registrados en el semestre',
             ];
         }
-        
+
         // Obtener el mejor sueldo remunerativo del semestre
         $mejorSueldo = max($sueldosRemunerativos);
-        
+
         // SAC = Mejor sueldo / 2 (o proporcional si no trabajó todo el semestre)
         if ($esProporcional) {
             // Proporcional: (Mejor sueldo × Meses trabajados) / 12
@@ -706,7 +706,7 @@ class PayrollController extends Controller
             // Completo: Mejor sueldo / 2
             $sacBruto = $mejorSueldo / 2;
         }
-        
+
         return [
             'mejor_sueldo' => round($mejorSueldo, 2),
             'meses_trabajados' => $mesesTrabajados,
@@ -735,22 +735,22 @@ class PayrollController extends Controller
         $month = $semester === 1 ? 6 : 12;
         $startMonth = $semester === 1 ? 1 : 7;
         $endMonth = $semester === 1 ? 6 : 12;
-        
+
         // Obtener categoría del empleado
         $category = $this->getEmployeeCategory($employee);
-        
+
         // Calcular el SAC usando la función existente
         // Primero necesitamos el mejor sueldo del semestre
         $inicioSemestre = Carbon::createFromDate($year, $startMonth, 1);
         $finSemestre = Carbon::createFromDate($year, $endMonth, 1)->endOfMonth();
-        
+
         // Determinar meses trabajados basándose en la fecha de ingreso
         $mesesTrabajados = 6;
         $esProporcional = false;
-        
+
         if ($employee->start_date) {
             $fechaIngreso = Carbon::parse($employee->start_date);
-            
+
             if ($fechaIngreso->between($inicioSemestre, $finSemestre)) {
                 // Contar meses calendario desde el mes de ingreso hasta el fin del semestre
                 // Ej: ingreso noviembre, fin diciembre = 2 meses (noviembre + diciembre)
@@ -760,7 +760,7 @@ class PayrollController extends Controller
                 // No corresponde SAC
                 return [
                     'empleado' => [
-                        'nombre' => $employee->name . ' ' . $employee->lastName,
+                        'nombre' => $employee->name.' '.$employee->lastName,
                         'cuil' => $employee->employeeId,
                         'categoria' => $category ? $category->name : 'Sin categoría',
                         'convenio' => $category ? $category->agreement : 'CCT 108/75',
@@ -770,7 +770,7 @@ class PayrollController extends Controller
                     'periodo' => [
                         'year' => $year,
                         'semester' => $semester,
-                        'label' => 'SAC ' . ($semester === 1 ? '1er' : '2do') . ' Semestre ' . $year,
+                        'label' => 'SAC '.($semester === 1 ? '1er' : '2do').' Semestre '.$year,
                     ],
                     'error' => 'El empleado ingresó después del fin del semestre',
                     'sac_bruto' => 0,
@@ -778,39 +778,39 @@ class PayrollController extends Controller
                 ];
             }
         }
-        
+
         // Buscar liquidaciones del semestre para obtener el mejor sueldo
         $payrolls = Payroll::where('employee_id', $employee->id)
             ->where('year', $year)
             ->whereBetween('month', [$startMonth, $endMonth])
             ->get();
-        
+
         $sueldosRemunerativos = $payrolls->pluck('total_remunerativo')
-            ->map(fn($v) => (float) $v)
+            ->map(fn ($v) => (float) $v)
             ->toArray();
-        
+
         // Si no hay sueldos guardados, calcular el sueldo actual
         if (empty($sueldosRemunerativos)) {
             // Calcular liquidación del mes actual para tener un sueldo de referencia
             $payrollActual = $this->calculatePayroll($employee, $year, $month);
             $sueldosRemunerativos[] = $payrollActual['total_remunerativo'];
         }
-        
+
         $mejorSueldo = max($sueldosRemunerativos);
-        
+
         // Calcular SAC bruto
         if ($esProporcional) {
             $sacBruto = ($mejorSueldo * $mesesTrabajados) / 12;
         } else {
             $sacBruto = $mejorSueldo / 2;
         }
-        
+
         // Construir el haber del SAC
-        $sacLabel = 'SAC ' . ($semester === 1 ? '1er' : '2do') . ' Semestre ' . $year;
+        $sacLabel = 'SAC '.($semester === 1 ? '1er' : '2do').' Semestre '.$year;
         if ($esProporcional) {
-            $sacLabel .= ' (Proporcional ' . number_format($mesesTrabajados, 1, ',', '.') . ' meses)';
+            $sacLabel .= ' (Proporcional '.number_format($mesesTrabajados, 1, ',', '.').' meses)';
         }
-        
+
         $haberesCalculados = [
             [
                 'nombre' => $sacLabel,
@@ -818,22 +818,22 @@ class PayrollController extends Controller
                 'importe' => round($sacBruto, 2),
                 'tipo' => 'sac',
                 'remunerativo' => true,
-            ]
+            ],
         ];
-        
+
         // Obtener deducciones activas
         $deducciones = SalaryItem::deducciones()->active()->forPeriod($month, $year)->orderBy('order')->get();
-        
+
         // Calcular deducciones sobre el SAC bruto
         $deduccionesCalculadas = [];
         $totalDeducciones = 0;
-        
+
         foreach ($deducciones as $deduccion) {
             // Si el concepto requiere asignación, verificar que el empleado lo tenga
-            if ($deduccion->requires_assignment && !$employee->hasSalaryItem($deduccion->id)) {
+            if ($deduccion->requires_assignment && ! $employee->hasSalaryItem($deduccion->id)) {
                 continue;
             }
-            
+
             // Calcular la deducción sobre el SAC bruto
             $importe = 0;
             if ($deduccion->calculation_type === 'percentage') {
@@ -843,24 +843,24 @@ class PayrollController extends Controller
                 // (el SAC es medio mes, así que aplicar proporción)
                 $importe = $deduccion->value / 2;
             }
-            
+
             if ($importe > 0) {
                 $deduccionesCalculadas[] = [
                     'nombre' => $deduccion->name,
-                    'porcentaje' => ($deduccion->calculation_type === 'percentage' && !$deduccion->hide_percentage_in_receipt) 
-                        ? $deduccion->value . '%' : null,
+                    'porcentaje' => ($deduccion->calculation_type === 'percentage' && ! $deduccion->hide_percentage_in_receipt)
+                        ? $deduccion->value.'%' : null,
                     'importe' => round($importe, 2),
                     'tipo' => $deduccion->calculation_type,
                 ];
                 $totalDeducciones += $importe;
             }
         }
-        
+
         $netoACobrar = $sacBruto - $totalDeducciones;
-        
+
         return [
             'empleado' => [
-                'nombre' => $employee->name . ' ' . $employee->lastName,
+                'nombre' => $employee->name.' '.$employee->lastName,
                 'cuil' => $employee->employeeId,
                 'categoria' => $category ? $category->name : 'Sin categoría',
                 'convenio' => $category ? $category->agreement : 'CCT 108/75',
@@ -871,7 +871,7 @@ class PayrollController extends Controller
                 'year' => $year,
                 'month' => $month,
                 'semester' => $semester,
-                'label' => 'SAC ' . ($semester === 1 ? '1er' : '2do') . ' Semestre ' . $year,
+                'label' => 'SAC '.($semester === 1 ? '1er' : '2do').' Semestre '.$year,
             ],
             'mejor_sueldo' => round($mejorSueldo, 2),
             'meses_trabajados' => $mesesTrabajados,
@@ -889,7 +889,8 @@ class PayrollController extends Controller
      */
     public function sac(Request $request)
     {
-        $employees = Employee::with(['jobs.category'])
+        $employees = Employee::where('company_id', active_company_id())
+            ->with(['jobs.category'])
             ->orderBy('lastName')
             ->get();
 
@@ -900,7 +901,7 @@ class PayrollController extends Controller
 
         if ($request->filled('employee_id')) {
             $selectedEmployee = Employee::with(['jobs.category'])->find($request->employee_id);
-            
+
             if ($selectedEmployee) {
                 $sacPayroll = $this->calculateSACPayroll($selectedEmployee, $year, $semester);
             }
@@ -1020,8 +1021,11 @@ class PayrollController extends Controller
         $year = $request->input('year', now()->year);
         $month = $request->input('month', now()->month);
 
-        $employees = Employee::with(['jobs.category'])->orderBy('lastName')->get();
-        
+        $employees = Employee::where('company_id', active_company_id())
+            ->with(['jobs.category'])
+            ->orderBy('lastName')
+            ->get();
+
         $payrolls = [];
         foreach ($employees as $employee) {
             $payrolls[] = $this->calculatePayroll($employee, $year, $month);
@@ -1049,6 +1053,7 @@ class PayrollController extends Controller
 
         $payrolls = Payroll::with(['employee', 'items'])
             ->forPeriod($year, $month)
+            ->whereHas('employee', fn ($q) => $q->where('company_id', active_company_id()))
             ->orderBy('employee_name')
             ->get();
 
@@ -1261,11 +1266,14 @@ class PayrollController extends Controller
 
             if ($existing) {
                 $skipped++;
+
                 continue;
             }
 
             $employee = Employee::with(['jobs.category'])->find($employeeId);
-            if (!$employee) continue;
+            if (! $employee) {
+                continue;
+            }
 
             $payrollData = $this->calculatePayroll($employee, $year, $month);
 
@@ -1337,6 +1345,7 @@ class PayrollController extends Controller
 
         $updated = Payroll::forPeriod($request->year, $request->month)
             ->where('status', 'borrador')
+            ->whereHas('employee', fn ($q) => $q->where('company_id', active_company_id()))
             ->update([
                 'status' => 'liquidado',
                 'liquidated_at' => now(),
@@ -1358,6 +1367,7 @@ class PayrollController extends Controller
 
         $updated = Payroll::forPeriod($request->year, $request->month)
             ->where('status', 'liquidado')
+            ->whereHas('employee', fn ($q) => $q->where('company_id', active_company_id()))
             ->update([
                 'status' => 'pagado',
                 'paid_at' => now(),
@@ -1372,25 +1382,25 @@ class PayrollController extends Controller
     public function downloadPdf(Payroll $payroll)
     {
         $payroll->load(['haberes', 'deducciones', 'approvedBy', 'employee']);
-        
+
         // Nombre del archivo: recibo-mesaño-nombreempleado.pdf
         $mesNombre = Carbon::createFromDate($payroll->year, $payroll->month, 1)
             ->locale('es')
             ->isoFormat('MMMM');
-        
+
         // Limpiar el nombre del empleado para el archivo
         $nombreEmpleado = str_replace(' ', '_', $payroll->employee_name);
         $nombreEmpleado = preg_replace('/[^A-Za-z0-9_]/', '', $nombreEmpleado);
-        
+
         $filename = "recibo-{$mesNombre}{$payroll->year}-{$nombreEmpleado}.pdf";
-        
+
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payroll.pdf', [
             'payroll' => $payroll,
             'employerSignature' => PayrollSetting::get('employer_signature'),
         ]);
-        
+
         $pdf->setPaper('A4', 'portrait');
-        
+
         return $pdf->download($filename);
     }
 
@@ -1401,63 +1411,63 @@ class PayrollController extends Controller
     {
         $year = $request->input('year', now()->year);
         $month = $request->input('month', now()->month);
-        
-        // Obtener solo liquidaciones cerradas (liquidado o pagado)
+
         $payrolls = Payroll::where('year', $year)
             ->where('month', $month)
             ->whereIn('status', ['liquidado', 'pagado'])
+            ->whereHas('employee', fn ($q) => $q->where('company_id', active_company_id()))
             ->orderBy('employee_name')
             ->get();
-        
+
         if ($payrolls->isEmpty()) {
             return back()->with('error', 'No hay recibos cerrados para descargar en el período seleccionado.');
         }
-        
+
         // Nombre del mes para el archivo
         $mesNombre = Carbon::createFromDate($year, $month, 1)
             ->locale('es')
             ->isoFormat('MMMM');
-        
+
         // Crear archivo ZIP temporal
         $zipFileName = "recibos-{$mesNombre}{$year}.zip";
         $zipPath = storage_path("app/temp/{$zipFileName}");
-        
+
         // Asegurar que el directorio existe
-        if (!file_exists(storage_path('app/temp'))) {
+        if (! file_exists(storage_path('app/temp'))) {
             mkdir(storage_path('app/temp'), 0755, true);
         }
-        
-        $zip = new \ZipArchive();
-        
+
+        $zip = new \ZipArchive;
+
         if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
             return back()->with('error', 'No se pudo crear el archivo ZIP.');
         }
-        
+
         $employerSignature = PayrollSetting::get('employer_signature');
 
         foreach ($payrolls as $payroll) {
             $payroll->load(['haberes', 'deducciones', 'approvedBy', 'employee']);
-            
+
             // Limpiar el nombre del empleado para el archivo
             $nombreEmpleado = str_replace(' ', '_', $payroll->employee_name);
             $nombreEmpleado = preg_replace('/[^A-Za-z0-9_]/', '', $nombreEmpleado);
-            
+
             $filename = "recibo-{$mesNombre}{$year}-{$nombreEmpleado}.pdf";
-            
+
             // Generar el PDF
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payroll.pdf', [
                 'payroll' => $payroll,
                 'employerSignature' => $employerSignature,
             ]);
-            
+
             $pdf->setPaper('A4', 'portrait');
-            
+
             // Agregar el PDF al ZIP
             $zip->addFromString($filename, $pdf->output());
         }
-        
+
         $zip->close();
-        
+
         // Descargar y eliminar el archivo temporal
         return response()->download($zipPath, $zipFileName)->deleteFileAfterSend(true);
     }
@@ -1499,4 +1509,3 @@ class PayrollController extends Controller
         return back()->with('success', 'Firma del empleador eliminada.');
     }
 }
-
