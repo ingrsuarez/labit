@@ -9,22 +9,21 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.1.2 |
-| **Última completada** | v2.1.2 — Fix "Aplicar a todos" valores de referencia |
+| **Versión actual** | v2.1.3 |
+| **Última completada** | v2.1.3 — UX feedback visual guardado resultados |
 | **En proceso** | — |
-| **Próxima** | v2.1.2 — UX feedback guardado resultados |
-| **Pendientes en cola** | 3 |
-| **Completadas** | 14 |
+| **Próxima** | v2.2.0 — Compras y pagos multi-empresa |
+| **Pendientes en cola** | 2 |
+| **Completadas** | 15 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (3)
+### Pendientes (2)
 
 | Versión | Nombre | Estimación | Dependencias | Archivo |
 |---|---|---|---|---|
-| v2.1.2 | UX: feedback visual de guardado en carga de resultados | 30min | v2.1.1 | `pendientes/v2.1.2-ux-feedback-guardado-resultados.md` |
 | v2.2.0 | Compras y pagos multi-empresa | 2h | v2.0.0 | `pendientes/v2.2.0-multi-empresa-compras.md` |
 | v2.3.0 | RRHH multi-empresa | 2h | v2.0.0 | `pendientes/v2.3.0-multi-empresa-rrhh.md` |
 
@@ -32,10 +31,11 @@
 
 _Sin prompts en ejecución._
 
-### Completados (14)
+### Completados (15)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v2.1.3 | UX feedback visual guardado resultados | 2026-03-22 | v2.1.3 |
 | v2.1.2 | Fix "Aplicar a todos" valores de referencia | 2026-03-22 | v2.1.2 |
 | v2.1.0 | Ventas y cobros multi-empresa | 2026-03-22 | v2.1.0 |
 | v2.0.0 | Infraestructura multi-empresa | 2026-03-21 | v2.0.0 |
@@ -67,7 +67,7 @@ v1.0.0 (completada)
 │   └── v2.0.0 — Infraestructura multi-empresa (completada)
 │       ├── v2.1.0 — Ventas y cobros multi-empresa (completada)
 │       │   └── v2.1.2 — Fix Aplicar a todos ref values (completada)
-│       │       └── v2.1.2 — UX feedback guardado resultados (pendiente)
+│       │       └── v2.1.3 — UX feedback guardado resultados (completada)
 │       ├── v2.2.0 — Compras y pagos multi-empresa (pendiente)
 │       └── v2.3.0 — RRHH multi-empresa (pendiente)
 ├── v1.4.1 — Fix guardado de resultados de protocolo (completada)
@@ -112,7 +112,7 @@ Ejecutar el siguiente prompt de la cola:
 Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
 ```
 
-Próximo en cola: **v2.1.2 — UX feedback visual de guardado** (dependencia de v2.1.1 satisfecha)
+Próximo en cola: **v2.2.0 — Compras y pagos multi-empresa**
 
 Bloque multi-empresa restante (2 versiones):
 1. v2.2.0 — Compras (dep: v2.0.0)
