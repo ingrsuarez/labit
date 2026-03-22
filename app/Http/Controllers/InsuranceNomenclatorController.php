@@ -35,13 +35,11 @@ class InsuranceNomenclatorController extends Controller
      */
     public function show(Insurance $insurance)
     {
-        $nomenclator = $insurance->nomenclator()
-            ->whereHas('test')
+        $nomenclator = InsuranceTest::where('insurance_id', $insurance->id)
+            ->whereIn('test_id', Test::select('id'))
             ->with('test')
             ->orderBy('id')
-            ->get()
-            ->filter(fn ($item) => $item instanceof \App\Models\InsuranceTest)
-            ->values();
+            ->get();
 
         // Obtener prácticas que no están en el nomenclador
         $existingTestIds = $nomenclator->pluck('test_id')->toArray();
