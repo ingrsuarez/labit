@@ -36,6 +36,7 @@ class InsuranceNomenclatorController extends Controller
     public function show(Insurance $insurance)
     {
         $nomenclator = $insurance->nomenclator()
+            ->whereHas('test')
             ->with('test')
             ->orderBy('id')
             ->get();

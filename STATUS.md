@@ -12,17 +12,19 @@
 | **Versión actual** | v2.3.0 |
 | **Última completada** | v2.3.0 — RRHH multi-empresa |
 | **En proceso** | — |
-| **Próxima** | — (cola vacía) |
-| **Pendientes en cola** | 0 |
+| **Próxima** | v1.5.4 — Tests faltantes y jerarquía padre-hijo completa |
+| **Pendientes en cola** | 1 |
 | **Completadas** | 18 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (0)
+### Pendientes (1)
 
-_Sin prompts pendientes._
+| Versión | Nombre | Estimación | Dependencias | Archivo |
+|---|---|---|---|---|
+| v1.5.4 | Tests faltantes y jerarquía padre-hijo completa | 1h | v1.5.3 | `pendientes/v1.5.4-tests-faltantes-jerarquia-completa.md` |
 
 ### En proceso (0)
 
@@ -64,6 +66,7 @@ v1.0.0 (completada)
 │       ├── v1.3.1 — Fix AFIP CondicionIVAReceptorId + ImpTotal (completada)
 │       └── v1.4.0 — Notas de crédito electrónicas (completada)
 ├── v1.5.3 — Seeder jerarquía padre-hijo prácticas (completada)
+│   ├── v1.5.4 — Tests faltantes y jerarquía completa (pendiente)
 │   └── v2.0.0 — Infraestructura multi-empresa (completada)
 │       ├── v2.1.0 — Ventas y cobros multi-empresa (completada)
 │       │   └── v2.1.2 — Fix Aplicar a todos ref values (completada)
@@ -113,7 +116,10 @@ Ejecutar el siguiente prompt de la cola:
 Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
 ```
 
-Cola vacía. Todas las versiones planificadas han sido completadas.
+Próximo en cola: **v1.5.4 — Tests faltantes y jerarquía padre-hijo completa**
+
+Cola priorizada:
+1. v1.5.4 — Tests faltantes y jerarquía completa (alta, 1h)
 
 ---
 
