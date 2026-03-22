@@ -5,6 +5,66 @@
 
 ---
 
+## [v2.1.0] — 2026-03-22 — Ventas y cobros multi-empresa
+
+### Agregado
+- Migración `add_company_id_to_sales_tables`: columna `company_id` nullable en `sales_invoices`, `quotes`, `collection_receipts`, `credit_notes`, `points_of_sale`
+- Relación `company()` (BelongsTo) en los 5 modelos de ventas y `company_id` en `$fillable`
+- Relaciones inversas en `Company`: `salesInvoices()`, `quotes()`, `collectionReceipts()`, `creditNotes()`, `pointsOfSale()`
+- Filtrado por empresa activa en `index()` de todos los controladores de ventas
+- Asignación automática de `company_id` en `store()` de todos los controladores
+- Guard `abort_if(403)` en `show()`, `edit()`, `update()`, `destroy()` de todos los controladores
+- Puntos de venta filtrados por empresa en dropdowns de creación/edición de facturas
+- Facturas pendientes filtradas por empresa en recibos de cobro y notas de crédito
+
+### Modificado
+- PDF de factura: datos del emisor (razón social, CUIT, domicilio, condición IVA, IIBB, inicio actividades) leídos desde `$invoice->company` con fallback a `config('afip.emisor')`
+- `AfipService`: constructor acepta `?Company` opcional, resuelve CUIT/certificados/modo desde el modelo Company con fallback a `config/afip.php`
+- Cache de token AFIP (TA) separado por CUIT para evitar colisiones entre empresas
+
+---
+
+## [v2.0.0] — 2026-03-21 — Infraestructura multi-empresa
+
+### Agregado
+- Modelo `Company` con datos fiscales (CUIT, condición IVA, IIBB), dirección, configuración AFIP (cert, key, producción) y estado activo/inactivo
+- Migración `create_companies_table` y tabla pivot `company_user` con flag `is_default`
+- Relaciones `User::companies()` (BelongsToMany) y `User::defaultCompany()`
+- Helper global `active_company_id()` y `active_company()` con autoload en `composer.json`
+- Middleware `SetActiveCompany` en grupo `web`: inicializa empresa activa desde default del usuario, comparte `$activeCompany` y `$userCompanies` con todas las vistas
+- Selector de empresa en header (Alpine.js dropdown) visible cuando el usuario tiene más de una empresa asignada
+- Ruta `POST /switch-company` para cambiar empresa activa en sesión
+- `CompanyController` con CRUD completo: index, create, store, show, edit, update, destroy (soft delete por `is_active`)
+- Gestión de usuarios por empresa: attach, detach, set default
+- 5 permisos nuevos: `companies.section`, `companies.create`, `companies.edit`, `companies.delete`, `companies.assign-users`
+- Enlace "Empresas" en sidebar bajo sección Configuración, protegido por `@can('companies.section')`
+- Vistas: `companies/index`, `create`, `edit`, `_form`, `show` con listado de usuarios asignados
+- `CompanySeeder` con 2 empresas iniciales (unipersonal + SAS) asignadas al admin
+
+### Corregido
+- `phpunit.xml`: habilitado SQLite in-memory para evitar wipe accidental de la base de datos real durante tests
+- `.gitignore`: excluido `.env.testing`
+
+---
+
+## [v1.5.3] — 2026-03-20 — Seeder de jerarquía padre-hijo de prácticas
+
+### Agregado
+- `TestParentChildSeeder` para configurar relaciones en tabla pivote `test_parents`
+- 10 relaciones padre-hijo para 3 prácticas padre:
+  - Hemograma → Glóbulos Rojos, Hemoglobina, Hematocrito, Glóbulos Blancos (4 hijos)
+  - Fórmula Leucocitaria → Eosinófilos (1 hijo)
+  - Hepatograma → GOT, GPT, FAL, Colesterol Total, Proteína Totales (5 hijos)
+- Búsqueda por nombre con validación estricta (ratio >= 40%, anti-falsos positivos)
+- Seeder idempotente y tolerante: loguea warnings para tests no encontrados
+
+### Notas
+- 26 tests hijos no existen aún en la tabla `tests` (VCM, HCM, CHCM, RDW-CV, bilirrubinas, componentes de Orina Completa, Fórmula Leucocitaria parcial, Drogas X 2)
+- El seeder puede re-ejecutarse después de agregar los tests faltantes
+- Corregida relación incorrecta pre-existente: hemograma → glóbulos blancos materia fecal
+
+---
+
 ## [v1.5.2] — 2026-03-17 — Roles y permisos del módulo de muestras
 
 ### Agregado

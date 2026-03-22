@@ -10,6 +10,7 @@ class Quote extends Model
     use HasFactory;
 
     protected $fillable = [
+        'company_id',
         'quote_number',
         'customer_id',
         'customer_name',
@@ -40,6 +41,11 @@ class Quote extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
     }
 
     public function creator()

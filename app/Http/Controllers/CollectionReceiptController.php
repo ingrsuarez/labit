@@ -16,6 +16,7 @@ class CollectionReceiptController extends Controller
         $this->authorize('collection-receipts.index');
 
         $query = CollectionReceipt::with(['customer', 'creator', 'confirmer'])
+            ->where('company_id', active_company_id())
             ->orderByDesc('created_at');
 
         if ($request->filled('search')) {
@@ -47,6 +48,7 @@ class CollectionReceiptController extends Controller
             $selectedCustomer = Customer::find($request->customer_id);
             if ($selectedCustomer) {
                 $pendingInvoices = SalesInvoice::where('customer_id', $selectedCustomer->id)
+                    ->where('company_id', active_company_id())
                     ->whereIn('status', ['pendiente', 'parcialmente_cobrada'])
                     ->orderByDesc('issue_date')
                     ->get();
@@ -81,6 +83,7 @@ class CollectionReceiptController extends Controller
 
         $collectionReceipt = CollectionReceipt::create([
             'number' => CollectionReceipt::generateNumber(),
+            'company_id' => active_company_id(),
             'customer_id' => $validated['customer_id'],
             'date' => $validated['date'],
             'payment_method' => $validated['payment_method'] ?? null,
@@ -107,6 +110,8 @@ class CollectionReceiptController extends Controller
     {
         $this->authorize('collection-receipts.index');
 
+        abort_if($collectionReceipt->company_id !== active_company_id(), 403);
+
         $collectionReceipt->load(['customer', 'creator', 'confirmer', 'items.invoice.customer']);
         return view('collection-receipts.show', compact('collectionReceipt'));
     }
@@ -114,6 +119,8 @@ class CollectionReceiptController extends Controller
     public function edit(CollectionReceipt $collectionReceipt)
     {
         $this->authorize('collection-receipts.edit');
+
+        abort_if($collectionReceipt->company_id !== active_company_id(), 403);
 
         if ($collectionReceipt->status !== 'borrador') {
             return redirect()->route('collection-receipts.show', $collectionReceipt)
@@ -126,6 +133,7 @@ class CollectionReceiptController extends Controller
         $existingInvoiceIds = $collectionReceipt->items->pluck('sales_invoice_id')->toArray();
 
         $pendingInvoices = SalesInvoice::where('customer_id', $collectionReceipt->customer_id)
+            ->where('company_id', active_company_id())
             ->where(function ($q) use ($existingInvoiceIds) {
                 $q->whereIn('status', ['pendiente', 'parcialmente_cobrada'])
                   ->orWhereIn('id', $existingInvoiceIds);
@@ -139,6 +147,8 @@ class CollectionReceiptController extends Controller
     public function update(Request $request, CollectionReceipt $collectionReceipt)
     {
         $this->authorize('collection-receipts.edit');
+
+        abort_if($collectionReceipt->company_id !== active_company_id(), 403);
 
         if ($collectionReceipt->status !== 'borrador') {
             return redirect()->route('collection-receipts.show', $collectionReceipt)
@@ -191,6 +201,8 @@ class CollectionReceiptController extends Controller
     {
         $this->authorize('collection-receipts.delete');
 
+        abort_if($collectionReceipt->company_id !== active_company_id(), 403);
+
         if ($collectionReceipt->status !== 'borrador') {
             return redirect()->route('collection-receipts.show', $collectionReceipt)
                 ->with('error', 'Solo se pueden eliminar recibos de cobro en estado borrador.');
@@ -206,6 +218,8 @@ class CollectionReceiptController extends Controller
     public function confirm(CollectionReceipt $collectionReceipt)
     {
         $this->authorize('collection-receipts.edit');
+
+        abort_if($collectionReceipt->company_id !== active_company_id(), 403);
 
         if ($collectionReceipt->status !== 'borrador') {
             return back()->with('error', 'Solo se pueden confirmar recibos en estado borrador.');

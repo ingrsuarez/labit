@@ -56,6 +56,17 @@ Route::middleware([
     
     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
+    // SWITCH COMPANY (cambiar empresa activa)
+    Route::post('/switch-company', [App\Http\Controllers\CompanyController::class, 'switchCompany'])->name('company.switch');
+
+    // COMPANIES (Empresas)
+    Route::middleware('can:companies.section')->group(function () {
+        Route::resource('companies', App\Http\Controllers\CompanyController::class);
+        Route::post('companies/{company}/attach-user', [App\Http\Controllers\CompanyController::class, 'attachUser'])->name('companies.attach-user');
+        Route::delete('companies/{company}/detach-user/{user}', [App\Http\Controllers\CompanyController::class, 'detachUser'])->name('companies.detach-user');
+        Route::post('companies/{company}/set-default/{user}', [App\Http\Controllers\CompanyController::class, 'setDefaultCompany'])->name('companies.set-default');
+    });
+
     // ADMIN SECTIONS (Páginas index de cada sección del sidebar administrativo)
     Route::get('admin/personal', [App\Http\Controllers\AdminSectionController::class, 'personal'])->name('admin.section.personal');
     Route::get('admin/ausencias', [App\Http\Controllers\AdminSectionController::class, 'ausencias'])->name('admin.section.ausencias');
@@ -281,14 +292,14 @@ Route::middleware([
         // CREDIT NOTES (Notas de Crédito)
         Route::resource('credit-notes', App\Http\Controllers\CreditNoteController::class)->except(['edit', 'update']);
         Route::post('credit-notes/{creditNote}/retry-afip', [App\Http\Controllers\CreditNoteController::class, 'retryAfip'])->name('credit-notes.retry-afip');
-    });
 
-    // CUSTOMERS (Clientes)
-    Route::get('customer', [App\Http\Controllers\CustomerController::class, 'index'])->name('customer.index');
-    Route::get('customer/create', [App\Http\Controllers\CustomerController::class, 'create'])->name('customer.create');
-    Route::post('customer', [App\Http\Controllers\CustomerController::class, 'store'])->name('customer.store');
-    Route::get('customer/{customer}/edit', [App\Http\Controllers\CustomerController::class, 'edit'])->name('customer.edit');
-    Route::put('customer/{customer}', [App\Http\Controllers\CustomerController::class, 'update'])->name('customer.update');
+        // CUSTOMERS (Clientes)
+        Route::get('customer', [App\Http\Controllers\CustomerController::class, 'index'])->name('customer.index');
+        Route::get('customer/create', [App\Http\Controllers\CustomerController::class, 'create'])->name('customer.create');
+        Route::post('customer', [App\Http\Controllers\CustomerController::class, 'store'])->name('customer.store');
+        Route::get('customer/{customer}/edit', [App\Http\Controllers\CustomerController::class, 'edit'])->name('customer.edit');
+        Route::put('customer/{customer}', [App\Http\Controllers\CustomerController::class, 'update'])->name('customer.update');
+    });
 
     // SERVICES (Servicios adicionales)
     Route::get('services', [App\Http\Controllers\ServiceController::class, 'index'])->name('services.index');

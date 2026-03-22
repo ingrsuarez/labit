@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-03-17
+> Última actualización: 2026-03-21
 
 ---
 
@@ -27,6 +27,9 @@
 | v1.4.1 | Fix guardado de resultados de protocolo | 2026-03-17 | Formularios anidados → submitAction() |
 | v1.5.1 | Roles y permisos del módulo de laboratorio | 2026-03-17 | 3 roles, 15 permisos, middleware + @can |
 | v1.5.2 | Roles y permisos del módulo de muestras | 2026-03-17 | Extiende roles con permisos de muestras |
+| v1.5.3 | Seeder de jerarquía padre-hijo de prácticas | 2026-03-20 | 10 relaciones para 3 padres, 26 tests pendientes de crear |
+| v2.0.0 | Infraestructura multi-empresa | 2026-03-21 | Modelo Company, pivot, middleware, CRUD, selector en header |
+| v2.1.0 | Ventas y cobros multi-empresa | 2026-03-22 | company_id en ventas, filtrado por empresa, AfipService multi-empresa |
 
 ---
 
@@ -41,12 +44,14 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v1.5.0 | Lector QR facturas de compra | 2h | v1.3.0 | `pendientes/v1.5.0-qr-reader-compras.md` |
+| v2.2.0 | Compras y pagos multi-empresa | 2h | v2.0.0 | `pendientes/v2.2.0-multi-empresa-compras.md` |
+| v2.3.0 | RRHH multi-empresa | 2h | v2.0.0 | `pendientes/v2.3.0-multi-empresa-rrhh.md` |
 
 ---
 
 ## Áreas candidatas (sin planificar)
 
+- **Lector QR facturas de compra**: feature de v1.5.0, deprimerizada en favor de multi-empresa
 - **UI/UX**: auditoría visual, migración de componentes, design system
 - **Testing**: suite de tests automatizados, cobertura mínima
 - **DevOps**: CI/CD, ambientes de staging, deploy automatizado
@@ -57,10 +62,10 @@
 ## Progreso general
 
 ```
-Completadas:  10 versiones (v1.0.0 → v1.5.2)
-Planificadas: 1 versión (v1.5.0)
+Completadas:  13 versiones (v1.0.0 → v2.1.0)
+Planificadas: 2 versiones (v2.2.0 → v2.3.0) — bloque multi-empresa
 En proceso:   0
-Próxima:      v1.5.0 — Lector QR facturas de compra
+Próxima:      v2.2.0 — Compras y pagos multi-empresa
 ```
 
 ---

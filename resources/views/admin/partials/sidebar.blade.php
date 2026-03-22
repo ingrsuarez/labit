@@ -125,7 +125,7 @@
             <!-- Configuración -->
             <a href="{{ route('admin.section.configuracion') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('admin.section.configuracion') || request()->routeIs('user.*') || request()->routeIs('role.*') || request()->routeIs('permission.*')
+                {{ request()->routeIs('admin.section.configuracion') || request()->routeIs('user.*') || request()->routeIs('role.*') || request()->routeIs('permission.*') || request()->routeIs('companies.*')
                     ? 'bg-zinc-700 text-white'
                     : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,6 +134,19 @@
                 </svg>
                 Configuración
             </a>
+
+            @can('companies.section')
+            <a href="{{ route('companies.index') }}"
+               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                {{ request()->routeIs('companies.*')
+                    ? 'bg-zinc-700 text-white'
+                    : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                Empresas
+            </a>
+            @endcan
 
         </nav>
 

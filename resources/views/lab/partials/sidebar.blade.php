@@ -49,7 +49,7 @@
             @can('samples.index')
             <a href="{{ route('lab.section.muestras') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('lab.section.muestras') || request()->routeIs('sample.*') || request()->routeIs('customer.*') || request()->routeIs('quotes.*')
+                {{ request()->routeIs('lab.section.muestras') || request()->routeIs('sample.*') || request()->routeIs('quotes.*')
                     ? 'bg-teal-600 text-white'
                     : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
