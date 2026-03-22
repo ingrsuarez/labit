@@ -9,32 +9,33 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.1.3 |
-| **Última completada** | v2.1.3 — UX feedback visual guardado resultados |
+| **Versión actual** | v2.2.1 |
+| **Última completada** | v2.2.1 — Fix columnas vacías en vista de protocolo |
 | **En proceso** | — |
-| **Próxima** | v2.2.0 — Compras y pagos multi-empresa |
-| **Pendientes en cola** | 2 |
-| **Completadas** | 15 |
+| **Próxima** | v2.3.0 — RRHH multi-empresa |
+| **Pendientes en cola** | 1 |
+| **Completadas** | 17 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (2)
+### Pendientes (1)
 
 | Versión | Nombre | Estimación | Dependencias | Archivo |
 |---|---|---|---|---|
-| v2.2.0 | Compras y pagos multi-empresa | 2h | v2.0.0 | `pendientes/v2.2.0-multi-empresa-compras.md` |
 | v2.3.0 | RRHH multi-empresa | 2h | v2.0.0 | `pendientes/v2.3.0-multi-empresa-rrhh.md` |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (15)
+### Completados (17)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v2.2.1 | Fix columnas vacías en vista de protocolo | 2026-03-22 | v2.2.1 |
+| v2.2.0 | Compras y pagos multi-empresa | 2026-03-22 | v2.2.0 |
 | v2.1.3 | UX feedback visual guardado resultados | 2026-03-22 | v2.1.3 |
 | v2.1.2 | Fix "Aplicar a todos" valores de referencia | 2026-03-22 | v2.1.2 |
 | v2.1.0 | Ventas y cobros multi-empresa | 2026-03-22 | v2.1.0 |
@@ -68,7 +69,8 @@ v1.0.0 (completada)
 │       ├── v2.1.0 — Ventas y cobros multi-empresa (completada)
 │       │   └── v2.1.2 — Fix Aplicar a todos ref values (completada)
 │       │       └── v2.1.3 — UX feedback guardado resultados (completada)
-│       ├── v2.2.0 — Compras y pagos multi-empresa (pendiente)
+│       ├── v2.2.0 — Compras y pagos multi-empresa (completada)
+│       │   └── v2.2.1 — Fix columnas vacías protocolo (completada)
 │       └── v2.3.0 — RRHH multi-empresa (pendiente)
 ├── v1.4.1 — Fix guardado de resultados de protocolo (completada)
 │   └── v1.5.1 — Roles y permisos laboratorio clínico (completada)
@@ -112,13 +114,10 @@ Ejecutar el siguiente prompt de la cola:
 Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
 ```
 
-Próximo en cola: **v2.2.0 — Compras y pagos multi-empresa**
+Próximo en cola: **v2.3.0 — RRHH multi-empresa**
 
-Bloque multi-empresa restante (2 versiones):
-1. v2.2.0 — Compras (dep: v2.0.0)
-2. v2.3.0 — RRHH (dep: v2.0.0)
-
-> v2.1.0, v2.2.0 y v2.3.0 son independientes entre sí y pueden ejecutarse en paralelo.
+Cola priorizada:
+1. v2.3.0 — RRHH multi-empresa (normal, 2h)
 
 ---
 

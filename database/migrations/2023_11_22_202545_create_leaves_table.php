@@ -2,13 +2,11 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('leaves', function (Blueprint $table) {
@@ -29,8 +27,16 @@ return new class extends Migration
             $table->string('type');
             $table->integer('hour_50')->nullable();
             $table->integer('hour_100')->nullable();
-            $table->integer('days')->storedAs('((to_days(`end`) - to_days(`start`)) + 1)');
-            $table->integer('year')->storedAs('year(`start`)');
+
+            $driver = DB::getDriverName();
+            if ($driver === 'sqlite') {
+                $table->integer('days')->nullable();
+                $table->integer('year')->nullable();
+            } else {
+                $table->integer('days')->storedAs('((to_days(`end`) - to_days(`start`)) + 1)');
+                $table->integer('year')->storedAs('year(`start`)');
+            }
+
             $table->string('status');
             $table->string('doctor')->nullable();
             $table->string('file')->nullable();

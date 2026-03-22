@@ -24,10 +24,11 @@ return new class extends Migration
             $table->unique(['employee_id', 'salary_item_id']);
         });
 
-        // Agregar campo para indicar si el concepto requiere asignación individual
-        Schema::table('salary_items', function (Blueprint $table) {
-            $table->boolean('requires_assignment')->default(false)->after('is_active');
-        });
+        if (! Schema::hasColumn('salary_items', 'requires_assignment')) {
+            Schema::table('salary_items', function (Blueprint $table) {
+                $table->boolean('requires_assignment')->default(false)->after('is_active');
+            });
+        }
     }
 
     /**
@@ -35,9 +36,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('salary_items', function (Blueprint $table) {
-            $table->dropColumn('requires_assignment');
-        });
+        if (Schema::hasColumn('salary_items', 'requires_assignment')) {
+            Schema::table('salary_items', function (Blueprint $table) {
+                $table->dropColumn('requires_assignment');
+            });
+        }
         Schema::dropIfExists('employee_salary_item');
     }
 };

@@ -13,16 +13,24 @@ return new class extends Migration
     {
         Schema::create('salary_items', function (Blueprint $table) {
             $table->id();
-            $table->string('name');                          // Nombre del concepto (ej: "Antigüedad", "Jubilación")
-            $table->string('code')->nullable();              // Código interno (ej: "ANT", "JUB")
-            $table->enum('type', ['haber', 'deduccion']);    // Tipo: haber (suma) o deduccion (resta)
-            $table->enum('calculation_type', ['percentage', 'fixed', 'hours']); // Tipo de cálculo
-            $table->decimal('value', 10, 2)->default(0);     // Valor (porcentaje o monto fijo)
-            $table->string('base')->default('basic_salary'); // Base de cálculo: basic_salary, subtotal, etc.
-            $table->boolean('is_remunerative')->default(true); // Si es remunerativo o no
-            $table->boolean('is_active')->default(true);     // Si está activo
-            $table->integer('order')->default(0);            // Orden de aparición en el recibo
-            $table->text('description')->nullable();         // Descripción opcional
+            $table->string('name');
+            $table->string('code')->nullable();
+            $table->string('type')->default('haber');
+            $table->string('calculation_type')->default('percentage');
+            $table->string('calculation_base')->nullable();
+            $table->decimal('value', 10, 2)->default(0);
+            $table->string('base')->default('basic_salary');
+            $table->boolean('is_remunerative')->default(true);
+            $table->boolean('is_active')->default(true);
+            $table->boolean('requires_assignment')->default(false);
+            $table->boolean('hide_percentage_in_receipt')->default(false);
+            $table->boolean('includes_in_antiguedad_base')->default(false);
+            $table->boolean('applies_all_year')->default(true);
+            $table->integer('recurrent_month')->nullable();
+            $table->integer('specific_month')->nullable();
+            $table->integer('specific_year')->nullable();
+            $table->integer('order')->default(0);
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }

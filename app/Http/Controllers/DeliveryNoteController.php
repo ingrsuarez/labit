@@ -3,12 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\DeliveryNote;
-use App\Models\DeliveryNoteItem;
 use App\Models\PurchaseOrder;
-use App\Models\PurchaseOrderItem;
 use App\Models\StockMovement;
 use App\Models\Supplier;
-use App\Models\Supply;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -19,13 +16,14 @@ class DeliveryNoteController extends Controller
         $this->authorize('delivery-notes.index');
 
         $query = DeliveryNote::with(['supplier', 'purchaseOrder', 'receiver'])
+            ->where('company_id', active_company_id())
             ->orderByDesc('created_at');
 
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('remito_number', 'like', "%{$search}%")
-                  ->orWhereHas('supplier', fn($sq) => $sq->where('name', 'like', "%{$search}%"));
+                    ->orWhereHas('supplier', fn ($sq) => $sq->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -47,18 +45,20 @@ class DeliveryNoteController extends Controller
         $purchaseOrder = null;
         if ($request->filled('purchase_order_id')) {
             $purchaseOrder = PurchaseOrder::with(['items.supply', 'supplier'])
+                ->where('company_id', active_company_id())
                 ->find($request->purchase_order_id);
 
             if ($purchaseOrder) {
                 $purchaseOrder->setRelation(
                     'items',
-                    $purchaseOrder->items->filter(fn($item) => $item->pending_quantity > 0)->values()
+                    $purchaseOrder->items->filter(fn ($item) => $item->pending_quantity > 0)->values()
                 );
             }
         }
 
         $purchaseOrders = PurchaseOrder::whereIn('status', ['aprobada', 'parcial'])
-            ->whereHas('items', fn($q) => $q->whereRaw('quantity > received_quantity'))
+            ->where('company_id', active_company_id())
+            ->whereHas('items', fn ($q) => $q->whereRaw('quantity > received_quantity'))
             ->with(['supplier', 'items.supply'])
             ->orderByDesc('date')
             ->get();
@@ -94,6 +94,7 @@ class DeliveryNoteController extends Controller
 
         $deliveryNote = DeliveryNote::create([
             'remito_number' => $validated['remito_number'],
+            'company_id' => active_company_id(),
             'supplier_id' => $validated['supplier_id'],
             'purchase_order_id' => $validated['purchase_order_id'] ?? null,
             'date' => $validated['date'],
@@ -112,19 +113,24 @@ class DeliveryNoteController extends Controller
         }
 
         return redirect()->route('delivery-notes.show', $deliveryNote)
-            ->with('success', 'Remito ' . $deliveryNote->remito_number . ' creado correctamente.');
+            ->with('success', 'Remito '.$deliveryNote->remito_number.' creado correctamente.');
     }
 
     public function show(DeliveryNote $deliveryNote)
     {
+        abort_if($deliveryNote->company_id !== active_company_id(), 403);
+
         $this->authorize('delivery-notes.index');
 
         $deliveryNote->load(['supplier', 'purchaseOrder', 'receiver', 'items.supply', 'items.purchaseOrderItem']);
+
         return view('delivery-notes.show', ['deliveryNote' => $deliveryNote]);
     }
 
     public function edit(DeliveryNote $deliveryNote)
     {
+        abort_if($deliveryNote->company_id !== active_company_id(), 403);
+
         $this->authorize('delivery-notes.edit');
 
         if ($deliveryNote->status !== 'pendiente') {
@@ -138,11 +144,13 @@ class DeliveryNoteController extends Controller
         $purchaseOrder = null;
         if ($deliveryNote->purchase_order_id) {
             $purchaseOrder = PurchaseOrder::with(['items.supply', 'supplier'])
+                ->where('company_id', active_company_id())
                 ->find($deliveryNote->purchase_order_id);
         }
 
         $purchaseOrders = PurchaseOrder::whereIn('status', ['aprobada', 'parcial'])
-            ->whereHas('items', fn($q) => $q->whereRaw('quantity > received_quantity'))
+            ->where('company_id', active_company_id())
+            ->whereHas('items', fn ($q) => $q->whereRaw('quantity > received_quantity'))
             ->with(['supplier', 'items.supply'])
             ->orderByDesc('date')
             ->get();
@@ -157,6 +165,8 @@ class DeliveryNoteController extends Controller
 
     public function update(Request $request, DeliveryNote $deliveryNote)
     {
+        abort_if($deliveryNote->company_id !== active_company_id(), 403);
+
         $this->authorize('delivery-notes.edit');
 
         if ($deliveryNote->status !== 'pendiente') {
@@ -211,6 +221,8 @@ class DeliveryNoteController extends Controller
 
     public function destroy(DeliveryNote $deliveryNote)
     {
+        abort_if($deliveryNote->company_id !== active_company_id(), 403);
+
         $this->authorize('delivery-notes.delete');
 
         if ($deliveryNote->status !== 'pendiente') {
@@ -227,6 +239,8 @@ class DeliveryNoteController extends Controller
 
     public function accept(Request $request, DeliveryNote $deliveryNote)
     {
+        abort_if($deliveryNote->company_id !== active_company_id(), 403);
+
         $this->authorize('delivery-notes.edit');
 
         if ($deliveryNote->status !== 'pendiente') {
@@ -246,7 +260,7 @@ class DeliveryNoteController extends Controller
             }
         }
 
-        if (!empty($rules)) {
+        if (! empty($rules)) {
             $request->validate($rules, $messages);
         }
 
@@ -291,13 +305,17 @@ class DeliveryNoteController extends Controller
             }
 
             if ($deliveryNote->purchase_order_id) {
-                $purchaseOrder = PurchaseOrder::with('items')->find($deliveryNote->purchase_order_id);
-                $allReceived = $purchaseOrder->items->every(
-                    fn($poItem) => $poItem->received_quantity >= $poItem->quantity
-                );
-                $purchaseOrder->update([
-                    'status' => $allReceived ? 'recibida' : 'parcial',
-                ]);
+                $purchaseOrder = PurchaseOrder::with('items')
+                    ->where('company_id', active_company_id())
+                    ->find($deliveryNote->purchase_order_id);
+                if ($purchaseOrder) {
+                    $allReceived = $purchaseOrder->items->every(
+                        fn ($poItem) => $poItem->received_quantity >= $poItem->quantity
+                    );
+                    $purchaseOrder->update([
+                        'status' => $allReceived ? 'recibida' : 'parcial',
+                    ]);
+                }
             }
 
             $deliveryNote->update(['status' => 'aceptado']);
@@ -305,7 +323,8 @@ class DeliveryNoteController extends Controller
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Error al aceptar el remito: ' . $e->getMessage());
+
+            return back()->with('error', 'Error al aceptar el remito: '.$e->getMessage());
         }
 
         return redirect()->route('delivery-notes.show', $deliveryNote)

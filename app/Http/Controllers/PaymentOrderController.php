@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\PaymentOrder;
-use App\Models\PaymentOrderItem;
 use App\Models\PurchaseInvoice;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
@@ -15,13 +14,14 @@ class PaymentOrderController extends Controller
         $this->authorize('payment-orders.index');
 
         $query = PaymentOrder::with(['supplier', 'creator', 'approver'])
+            ->where('company_id', active_company_id())
             ->orderByDesc('created_at');
 
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('number', 'like', "%{$search}%")
-                  ->orWhereHas('supplier', fn($sq) => $sq->where('name', 'like', "%{$search}%"));
+                    ->orWhereHas('supplier', fn ($sq) => $sq->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -45,7 +45,8 @@ class PaymentOrderController extends Controller
         if ($request->filled('supplier_id')) {
             $selectedSupplier = Supplier::find($request->supplier_id);
             if ($selectedSupplier) {
-                $pendingInvoices = PurchaseInvoice::where('supplier_id', $selectedSupplier->id)
+                $pendingInvoices = PurchaseInvoice::where('company_id', active_company_id())
+                    ->where('supplier_id', $selectedSupplier->id)
                     ->whereIn('status', ['pendiente', 'parcialmente_pagada'])
                     ->orderByDesc('issue_date')
                     ->get();
@@ -80,6 +81,7 @@ class PaymentOrderController extends Controller
 
         $paymentOrder = PaymentOrder::create([
             'number' => PaymentOrder::generateNumber(),
+            'company_id' => active_company_id(),
             'supplier_id' => $validated['supplier_id'],
             'date' => $validated['date'],
             'payment_method' => $validated['payment_method'] ?? null,
@@ -99,19 +101,24 @@ class PaymentOrderController extends Controller
         $paymentOrder->recalculate();
 
         return redirect()->route('payment-orders.show', $paymentOrder)
-            ->with('success', 'Orden de pago ' . $paymentOrder->number . ' creada correctamente.');
+            ->with('success', 'Orden de pago '.$paymentOrder->number.' creada correctamente.');
     }
 
     public function show(PaymentOrder $paymentOrder)
     {
+        abort_if($paymentOrder->company_id !== active_company_id(), 403);
+
         $this->authorize('payment-orders.index');
 
         $paymentOrder->load(['supplier', 'creator', 'approver', 'items.invoice.supplier']);
+
         return view('payment-orders.show', compact('paymentOrder'));
     }
 
     public function edit(PaymentOrder $paymentOrder)
     {
+        abort_if($paymentOrder->company_id !== active_company_id(), 403);
+
         $this->authorize('payment-orders.edit');
 
         if ($paymentOrder->status !== 'borrador') {
@@ -124,10 +131,11 @@ class PaymentOrderController extends Controller
 
         $existingInvoiceIds = $paymentOrder->items->pluck('purchase_invoice_id')->toArray();
 
-        $pendingInvoices = PurchaseInvoice::where('supplier_id', $paymentOrder->supplier_id)
+        $pendingInvoices = PurchaseInvoice::where('company_id', active_company_id())
+            ->where('supplier_id', $paymentOrder->supplier_id)
             ->where(function ($q) use ($existingInvoiceIds) {
                 $q->whereIn('status', ['pendiente', 'parcialmente_pagada'])
-                  ->orWhereIn('id', $existingInvoiceIds);
+                    ->orWhereIn('id', $existingInvoiceIds);
             })
             ->orderByDesc('issue_date')
             ->get();
@@ -137,6 +145,8 @@ class PaymentOrderController extends Controller
 
     public function update(Request $request, PaymentOrder $paymentOrder)
     {
+        abort_if($paymentOrder->company_id !== active_company_id(), 403);
+
         $this->authorize('payment-orders.edit');
 
         if ($paymentOrder->status !== 'borrador') {
@@ -188,6 +198,8 @@ class PaymentOrderController extends Controller
 
     public function destroy(PaymentOrder $paymentOrder)
     {
+        abort_if($paymentOrder->company_id !== active_company_id(), 403);
+
         $this->authorize('payment-orders.delete');
 
         if ($paymentOrder->status !== 'borrador') {
@@ -204,9 +216,11 @@ class PaymentOrderController extends Controller
 
     public function confirm(PaymentOrder $paymentOrder)
     {
+        abort_if($paymentOrder->company_id !== active_company_id(), 403);
+
         $this->authorize('payment-orders.edit');
 
-        if (!in_array($paymentOrder->status, ['borrador', 'aprobada'])) {
+        if (! in_array($paymentOrder->status, ['borrador', 'aprobada'])) {
             return back()->with('error', 'Solo se pueden confirmar órdenes en estado borrador o aprobada.');
         }
 
@@ -221,6 +235,6 @@ class PaymentOrderController extends Controller
         $paymentOrder->approved_by = auth()->id();
         $paymentOrder->save();
 
-        return back()->with('success', 'Orden de pago ' . $paymentOrder->number . ' confirmada y pagada.');
+        return back()->with('success', 'Orden de pago '.$paymentOrder->number.' confirmada y pagada.');
     }
 }

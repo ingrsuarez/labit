@@ -132,38 +132,39 @@
         </form>
     </div>
 
+    @php
+        $invoiceMapFn = function ($inv) {
+            return [
+                'id' => $inv->id,
+                'full_number' => $inv->full_number,
+                'issue_date' => $inv->issue_date->format('d/m/Y'),
+                'total' => (float) $inv->total,
+                'amount_paid' => (float) $inv->amount_paid,
+                'balance' => (float) $inv->balance,
+                'selected' => false,
+                'amount' => (float) $inv->balance,
+            ];
+        };
+        $invoicesBySupplierJson = $suppliers->mapWithKeys(function ($s) use ($invoiceMapFn) {
+            return [
+                $s->id => \App\Models\PurchaseInvoice::where('supplier_id', $s->id)
+                    ->where('company_id', active_company_id())
+                    ->whereIn('status', ['pendiente', 'parcialmente_pagada'])
+                    ->orderByDesc('issue_date')
+                    ->get()
+                    ->map($invoiceMapFn)
+            ];
+        });
+        $preloadedInvoicesJson = isset($selectedSupplier) && $pendingInvoices->count() > 0
+            ? $pendingInvoices->map($invoiceMapFn)->values()
+            : collect();
+    @endphp
     <script>
         function paymentForm() {
-            const invoicesBySupplier = @json(
-                $suppliers->mapWithKeys(fn($s) => [
-                    $s->id => \App\Models\PurchaseInvoice::where('supplier_id', $s->id)
-                        ->whereIn('status', ['pendiente', 'parcialmente_pagada'])
-                        ->orderByDesc('issue_date')
-                        ->get()
-                        ->map(fn($inv) => [
-                            'id' => $inv->id,
-                            'full_number' => $inv->full_number,
-                            'issue_date' => $inv->issue_date->format('d/m/Y'),
-                            'total' => (float) $inv->total,
-                            'amount_paid' => (float) $inv->amount_paid,
-                            'balance' => (float) $inv->balance,
-                            'selected' => false,
-                            'amount' => (float) $inv->balance,
-                        ])
-                ])
-            );
+            const invoicesBySupplier = @json($invoicesBySupplierJson);
 
             @if($selectedSupplier && $pendingInvoices->count() > 0)
-                const preloaded = @json($pendingInvoices->map(fn($inv) => [
-                    'id' => $inv->id,
-                    'full_number' => $inv->full_number,
-                    'issue_date' => $inv->issue_date->format('d/m/Y'),
-                    'total' => (float) $inv->total,
-                    'amount_paid' => (float) $inv->amount_paid,
-                    'balance' => (float) $inv->balance,
-                    'selected' => false,
-                    'amount' => (float) $inv->balance,
-                ]));
+                const preloaded = @json($preloadedInvoicesJson);
                 if ('{{ $selectedSupplier->id }}' in invoicesBySupplier) {
                     invoicesBySupplier['{{ $selectedSupplier->id }}'] = preloaded;
                 }

@@ -252,23 +252,28 @@
         </form>
     </div>
 
-    <script>
-        function invoiceForm() {
-            const deliveryNoteItems = @json(
-                $deliveryNote ? $deliveryNote->items->map(fn($i) => [
+    @php
+        $deliveryNoteItemsJson = $deliveryNote
+            ? $deliveryNote->items->map(function ($i) {
+                return [
                     'description' => $i->supply ? $i->supply->name : ('Ítem remito - Cant: ' . $i->quantity_received),
                     'supply_id' => $i->supply_id,
                     'quantity' => floatval($i->quantity_received),
                     'unit_price' => $i->supply ? floatval($i->supply->last_price ?? 0) : 0,
                     'iva_rate' => '21',
-                ]) : []
-            );
+                ];
+            })->values()
+            : collect();
+    @endphp
+    <script>
+        function invoiceForm() {
+            const deliveryNoteItems = @json($deliveryNoteItemsJson);
 
             return {
                 items: deliveryNoteItems.length > 0 ? [...deliveryNoteItems] : [],
                 percepciones: {{ old('percepciones', 0) }},
                 otrosImpuestos: {{ old('otros_impuestos', 0) }},
-                supplies: @json(\App\Models\Supply::active()->orderBy('name')->get()->map(fn($s) => ['id' => $s->id, 'name' => $s->code . ' - ' . $s->name])),
+                supplies: @json(\App\Models\Supply::active()->orderBy('name')->get()->map(function ($s) { return ['id' => $s->id, 'name' => $s->code . ' - ' . $s->name]; })),
 
                 addItem() {
                     this.items.push({ description: '', supply_id: '', quantity: 1, unit_price: 0, iva_rate: '21' });

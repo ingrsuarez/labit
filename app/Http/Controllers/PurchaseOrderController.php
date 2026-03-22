@@ -15,13 +15,14 @@ class PurchaseOrderController extends Controller
         $this->authorize('purchase-orders.index');
 
         $query = PurchaseOrder::with(['supplier', 'creator', 'items'])
+            ->where('company_id', active_company_id())
             ->orderByDesc('created_at');
 
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('number', 'like', "%{$search}%")
-                  ->orWhereHas('supplier', fn($sq) => $sq->where('name', 'like', "%{$search}%"));
+                    ->orWhereHas('supplier', fn ($sq) => $sq->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -44,6 +45,7 @@ class PurchaseOrderController extends Controller
 
         if ($request->filled('from_quotation')) {
             $quotation = PurchaseQuotationRequest::with('items.supply')
+                ->where('company_id', active_company_id())
                 ->find($request->from_quotation);
         }
 
@@ -83,6 +85,7 @@ class PurchaseOrderController extends Controller
 
         $po = PurchaseOrder::create([
             'number' => PurchaseOrder::generateNumber(),
+            'company_id' => active_company_id(),
             'supplier_id' => $validated['supplier_id'],
             'quotation_request_id' => $validated['quotation_request_id'] ?? null,
             'date' => $validated['date'],
@@ -107,19 +110,24 @@ class PurchaseOrderController extends Controller
         $po->recalculate();
 
         return redirect()->route('purchase-orders.show', $po)
-            ->with('success', 'Orden de compra ' . $po->number . ' creada correctamente.');
+            ->with('success', 'Orden de compra '.$po->number.' creada correctamente.');
     }
 
     public function show(PurchaseOrder $purchaseOrder)
     {
+        abort_if($purchaseOrder->company_id !== active_company_id(), 403);
+
         $this->authorize('purchase-orders.index');
 
         $purchaseOrder->load(['supplier', 'creator', 'approver', 'items.supply', 'quotationRequest', 'deliveryNotes']);
+
         return view('purchase-orders.show', ['order' => $purchaseOrder]);
     }
 
     public function edit(PurchaseOrder $purchaseOrder)
     {
+        abort_if($purchaseOrder->company_id !== active_company_id(), 403);
+
         $this->authorize('purchase-orders.edit');
 
         if ($purchaseOrder->status !== 'borrador') {
@@ -140,6 +148,8 @@ class PurchaseOrderController extends Controller
 
     public function update(Request $request, PurchaseOrder $purchaseOrder)
     {
+        abort_if($purchaseOrder->company_id !== active_company_id(), 403);
+
         $this->authorize('purchase-orders.edit');
 
         if ($purchaseOrder->status !== 'borrador') {
@@ -204,6 +214,8 @@ class PurchaseOrderController extends Controller
 
     public function destroy(PurchaseOrder $purchaseOrder)
     {
+        abort_if($purchaseOrder->company_id !== active_company_id(), 403);
+
         $this->authorize('purchase-orders.delete');
 
         if ($purchaseOrder->status !== 'borrador') {
@@ -220,6 +232,8 @@ class PurchaseOrderController extends Controller
 
     public function updateStatus(Request $request, PurchaseOrder $purchaseOrder)
     {
+        abort_if($purchaseOrder->company_id !== active_company_id(), 403);
+
         $this->authorize('purchase-orders.edit');
 
         $validated = $request->validate([
@@ -234,6 +248,6 @@ class PurchaseOrderController extends Controller
         $purchaseOrder->status = $validated['status'];
         $purchaseOrder->save();
 
-        return back()->with('success', 'Estado actualizado a: ' . $purchaseOrder->status_label);
+        return back()->with('success', 'Estado actualizado a: '.$purchaseOrder->status_label);
     }
 }

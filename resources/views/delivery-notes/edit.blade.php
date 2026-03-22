@@ -189,9 +189,9 @@
         </form>
     </div>
 
-    <script>
-        function deliveryEditForm() {
-            const existingItems = @json($deliveryNote->items->map(fn($item) => [
+    @php
+        $existingItemsJson = $deliveryNote->items->map(function ($item) {
+            return [
                 'supply_id' => $item->supply_id,
                 'supply_name' => $item->supply->name ?? 'Insumo eliminado',
                 'unit' => $item->supply->unit ?? '',
@@ -201,13 +201,14 @@
                 'quantity_received' => $item->quantity_received,
                 'notes' => $item->notes ?? '',
                 'from_po' => $item->purchase_order_item_id !== null,
-            ]));
-
-            const purchaseOrdersItemsMap = @json(
-                $purchaseOrders->mapWithKeys(fn($po) => [
-                    $po->id => $po->items
-                        ->filter(fn($item) => $item->pending_quantity > 0)
-                        ->map(fn($item) => [
+            ];
+        })->values();
+        $poItemsMap = $purchaseOrders->mapWithKeys(function ($po) {
+            return [
+                $po->id => $po->items
+                    ->filter(function ($item) { return $item->pending_quantity > 0; })
+                    ->map(function ($item) {
+                        return [
                             'supply_id' => $item->supply_id,
                             'supply_name' => $item->supply->name,
                             'unit' => $item->supply->unit,
@@ -217,9 +218,16 @@
                             'quantity_received' => $item->pending_quantity,
                             'notes' => '',
                             'from_po' => true,
-                        ])->values()
-                ])
-            );
+                        ];
+                    })->values()
+            ];
+        });
+    @endphp
+    <script>
+        function deliveryEditForm() {
+            const existingItems = @json($existingItemsJson);
+
+            const purchaseOrdersItemsMap = @json($poItemsMap);
 
             return {
                 selectedPO: '{{ old("purchase_order_id", $deliveryNote->purchase_order_id ?? "") }}',
