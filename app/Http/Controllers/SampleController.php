@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use App\Models\Sample;
 use App\Models\SampleDetermination;
-use App\Models\Customer;
 use App\Models\Test;
 use Illuminate\Http\Request;
 use PDF; // mPDF facade
@@ -31,11 +31,11 @@ class SampleController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('protocol_number', 'like', "%{$search}%")
-                  ->orWhereHas('customer', function($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%");
-                  });
+                    ->orWhereHas('customer', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -87,9 +87,9 @@ class SampleController extends Controller
         // Agregar las determinaciones (incluyendo hijos automáticamente)
         foreach ($request->determinations as $testId) {
             $test = Test::with(['children', 'childTests', 'referenceValues'])->find($testId);
-            
+
             $parentCategoryId = $test->default_reference_category_id;
-            
+
             $parentRef = $this->buildReferenceValue($test);
             SampleDetermination::create([
                 'sample_id' => $sample->id,
@@ -100,11 +100,11 @@ class SampleController extends Controller
                 'reference_category_id' => $parentRef['category_id'],
                 'status' => 'pending',
             ]);
-            
+
             $allChildren = $test->getAllChildren();
             foreach ($allChildren as $childTest) {
                 $exists = $sample->determinations()->where('test_id', $childTest->id)->exists();
-                if (!$exists) {
+                if (! $exists) {
                     $childRef = $this->buildReferenceValue($childTest, $parentCategoryId);
                     SampleDetermination::create([
                         'sample_id' => $sample->id,
@@ -120,7 +120,7 @@ class SampleController extends Controller
         }
 
         return redirect()->route('sample.show', $sample)
-            ->with('success', 'Protocolo ' . $sample->protocol_number . ' creado correctamente.');
+            ->with('success', 'Protocolo '.$sample->protocol_number.' creado correctamente.');
     }
 
     /**
@@ -130,15 +130,15 @@ class SampleController extends Controller
     {
         $this->authorize('samples.show');
         $sample->load([
-            'customer', 
-            'determinations.test.parentTest', 
+            'customer',
+            'determinations.test.parentTest',
             'determinations.test.parentTests',
             'determinations.test.children',
             'determinations.test.childTests',
-            'creator', 
-            'validator'
+            'creator',
+            'validator',
         ]);
-        
+
         return view('sample.show', compact('sample'));
     }
 
@@ -191,15 +191,15 @@ class SampleController extends Controller
 
         // Verificar que no exista ya esta determinaci?n
         $exists = $sample->determinations()->where('test_id', $validated['test_id'])->exists();
-        
+
         if ($exists) {
             return back()->with('error', 'Esta determinaci?n ya existe en el protocolo.');
         }
 
         $test = Test::with(['children', 'childTests', 'referenceValues'])->find($validated['test_id']);
-        
+
         $parentCategoryId = $test->default_reference_category_id;
-        
+
         $parentRef = $this->buildReferenceValue($test);
         SampleDetermination::create([
             'sample_id' => $sample->id,
@@ -215,7 +215,7 @@ class SampleController extends Controller
         $allChildren = $test->getAllChildren();
         foreach ($allChildren as $childTest) {
             $childExists = $sample->determinations()->where('test_id', $childTest->id)->exists();
-            if (!$childExists) {
+            if (! $childExists) {
                 $childRef = $this->buildReferenceValue($childTest, $parentCategoryId);
                 SampleDetermination::create([
                     'sample_id' => $sample->id,
@@ -264,7 +264,7 @@ class SampleController extends Controller
             'status' => 'required|in:pending,in_progress,completed',
         ]);
 
-        if ($validated['status'] === 'completed' && !$determination->analyzed_at) {
+        if ($validated['status'] === 'completed' && ! $determination->analyzed_at) {
             $validated['analyzed_at'] = now();
             $validated['analyzed_by'] = auth()->id();
         }
@@ -274,10 +274,10 @@ class SampleController extends Controller
         // Verificar si todas las determinaciones est?n completadas
         $sample = $determination->sample;
         $allCompleted = $sample->determinations()->where('status', '!=', 'completed')->count() === 0;
-        
+
         if ($allCompleted && $sample->status !== 'completed') {
             $sample->update(['status' => 'completed']);
-        } elseif (!$allCompleted && $sample->status === 'pending') {
+        } elseif (! $allCompleted && $sample->status === 'pending') {
             $sample->update(['status' => 'in_progress']);
         }
 
@@ -291,19 +291,19 @@ class SampleController extends Controller
     {
         $this->authorize('samples-results.create');
         $sample->load([
-            'customer', 
-            'determinations.test.parentTest', 
+            'customer',
+            'determinations.test.parentTest',
             'determinations.test.parentTests',
             'determinations.test.children',
             'determinations.test.childTests',
             'determinations.test.referenceValues.category',
             'determinations.referenceCategory',
-            'creator'
+            'creator',
         ]);
-        
+
         // Cargar categorías de referencia activas
         $referenceCategories = \App\Models\ReferenceCategory::active()->ordered()->get();
-        
+
         return view('sample.load-results', compact('sample', 'referenceCategories'));
     }
 
@@ -326,27 +326,27 @@ class SampleController extends Controller
 
         foreach ($validated['determinations'] as $data) {
             $determination = SampleDetermination::find($data['id']);
-            
+
             if ($determination->sample_id !== $sample->id) {
                 continue;
             }
 
             $updateData = [
-                'result' => $data['result'] ?? $determination->result,
-                'reference_value' => $data['reference_value'] ?? $determination->reference_value,
-                'reference_category_id' => $data['reference_category_id'] ?? $determination->reference_category_id,
-                'method' => $data['method'] ?? $determination->method,
-                'observations' => $data['observations'] ?? $determination->observations,
-                'status' => $data['status'] ?? $determination->status,
+                'result' => array_key_exists('result', $data) ? $data['result'] : $determination->result,
+                'reference_value' => array_key_exists('reference_value', $data) ? $data['reference_value'] : $determination->reference_value,
+                'reference_category_id' => array_key_exists('reference_category_id', $data) ? $data['reference_category_id'] : $determination->reference_category_id,
+                'method' => array_key_exists('method', $data) ? $data['method'] : $determination->method,
+                'observations' => array_key_exists('observations', $data) ? $data['observations'] : $determination->observations,
+                'status' => array_key_exists('status', $data) ? $data['status'] : $determination->status,
             ];
 
-            if ($data['status'] === 'completed' && !$determination->analyzed_at) {
+            if ($data['status'] === 'completed' && ! $determination->analyzed_at) {
                 $updateData['analyzed_at'] = now();
                 $updateData['analyzed_by'] = auth()->id();
             }
 
             $determination->update($updateData);
-            
+
             // Si es hijo, actualizar estado del padre
             $this->updateParentDeterminationStatus($determination, $sample);
         }
@@ -354,7 +354,7 @@ class SampleController extends Controller
         // Actualizar estado del protocolo
         $allCompleted = $sample->determinations()->where('status', '!=', 'completed')->count() === 0;
         $anyInProgress = $sample->determinations()->where('status', '!=', 'pending')->count() > 0;
-        
+
         if ($allCompleted) {
             $sample->update(['status' => 'completed']);
         } elseif ($anyInProgress) {
@@ -374,16 +374,16 @@ class SampleController extends Controller
     public function showValidation(Sample $sample)
     {
         $sample->load([
-            'customer', 
+            'customer',
             'determinations.test.parentTest',
             'determinations.test.parentTests',
             'determinations.test.children',
             'determinations.test.childTests',
-            'determinations.analyzer', 
-            'creator', 
-            'validator'
+            'determinations.analyzer',
+            'creator',
+            'validator',
         ]);
-        
+
         return view('sample.validate', compact('sample'));
     }
 
@@ -393,12 +393,12 @@ class SampleController extends Controller
     public function processValidation(Request $request, Sample $sample)
     {
         // Verificar permiso de validaci?n
-        if (!auth()->user()->can('samples.validate')) {
+        if (! auth()->user()->can('samples.validate')) {
             return back()->with('error', 'No tiene permisos para validar protocolos.');
         }
 
         // Verificar que el protocolo pueda ser validado
-        if (!$sample->canBeValidated()) {
+        if (! $sample->canBeValidated()) {
             return back()->with('error', 'El protocolo no puede ser validado. Todas las determinaciones deben estar completadas.');
         }
 
@@ -442,7 +442,7 @@ class SampleController extends Controller
      */
     public function toggleDeterminationValidation(Request $request, SampleDetermination $determination)
     {
-        if (!auth()->user()->can('samples.validate')) {
+        if (! auth()->user()->can('samples.validate')) {
             return back()->with('error', 'No tiene permisos para validar determinaciones.');
         }
 
@@ -489,7 +489,7 @@ class SampleController extends Controller
      */
     public function validateDeterminations(Request $request, Sample $sample)
     {
-        if (!auth()->user()->can('samples.validate')) {
+        if (! auth()->user()->can('samples.validate')) {
             return back()->with('error', 'No tiene permisos para validar determinaciones.');
         }
 
@@ -508,7 +508,7 @@ class SampleController extends Controller
         $count = 0;
         foreach ($validated['determinations'] as $detId) {
             $determination = SampleDetermination::find($detId);
-            
+
             if ($determination->sample_id !== $sample->id) {
                 continue;
             }
@@ -535,7 +535,7 @@ class SampleController extends Controller
         }
 
         // Guardar notas del validador si se proporcionaron
-        if (!empty($validated['validator_notes'])) {
+        if (! empty($validated['validator_notes'])) {
             $sample->update(['validator_notes' => $validated['validator_notes']]);
         }
 
@@ -543,19 +543,20 @@ class SampleController extends Controller
         $this->updateSampleValidationStatus($sample);
 
         $actionText = $validated['action'] === 'validate' ? 'validadas' : 'desmarcadas';
+
         return back()->with('success', "{$count} determinaciones {$actionText} correctamente.");
     }
 
     /**
      * Actualiza el estado de validación del protocolo basado en sus determinaciones
      * - Validado: TODAS las determinaciones están validadas
-     * - Completo: Todos los resultados cargados O algunas validadas  
+     * - Completo: Todos los resultados cargados O algunas validadas
      * - Incompleto: No tiene todas las determinaciones con resultado
      */
     private function updateSampleValidationStatus(Sample $sample)
     {
         $sample->refresh();
-        
+
         $total = $sample->determinations()->count();
         $totalCompleted = $sample->determinations()->where('status', 'completed')->count();
         $totalValidated = $sample->determinations()->where('is_validated', true)->count();
@@ -596,18 +597,18 @@ class SampleController extends Controller
     private function updateParentDeterminationStatus(SampleDetermination $determination, Sample $sample)
     {
         $test = $determination->test;
-        if (!$test) {
+        if (! $test) {
             return;
         }
 
         // Obtener todos los padres de este test (legacy + nueva tabla pivote)
         $parentIds = collect();
-        
+
         // Parent legacy
         if ($test->parent) {
             $parentIds->push($test->parent);
         }
-        
+
         // Parents de la tabla pivote
         $pivotParentIds = $test->parentTests()->pluck('tests.id');
         $parentIds = $parentIds->merge($pivotParentIds)->unique();
@@ -622,14 +623,14 @@ class SampleController extends Controller
                 ->where('test_id', $parentId)
                 ->first();
 
-            if (!$parentDetermination) {
+            if (! $parentDetermination) {
                 continue;
             }
 
             // Obtener todos los hijos de este padre que están en esta muestra
             $parentTest = Test::with(['children', 'childTests'])->find($parentId);
             $allChildIds = $parentTest->getAllChildren()->pluck('id');
-            
+
             $childDeterminations = $sample->determinations()
                 ->whereIn('test_id', $allChildIds)
                 ->get();
@@ -656,12 +657,12 @@ class SampleController extends Controller
             // Actualizar el padre si cambió el estado
             if ($parentDetermination->status !== $newStatus) {
                 $updateData = ['status' => $newStatus];
-                
-                if ($newStatus === 'completed' && !$parentDetermination->analyzed_at) {
+
+                if ($newStatus === 'completed' && ! $parentDetermination->analyzed_at) {
                     $updateData['analyzed_at'] = now();
                     $updateData['analyzed_by'] = auth()->id();
                 }
-                
+
                 $parentDetermination->update($updateData);
             }
         }
@@ -672,7 +673,7 @@ class SampleController extends Controller
      */
     public function revertValidation(Sample $sample)
     {
-        if (!auth()->user()->can('samples.validate')) {
+        if (! auth()->user()->can('samples.validate')) {
             return back()->with('error', 'No tiene permisos para modificar validaciones.');
         }
 
@@ -705,16 +706,16 @@ class SampleController extends Controller
         }
 
         $sample->load([
-            'customer', 
+            'customer',
             'determinations.test.parentTest',
             'determinations.test.parentTests',
             'determinations.test.children',
             'determinations.test.childTests',
             'determinations.test.defaultReferenceCategory',
             'determinations.referenceCategory',
-            'determinations.determinationValidator', 
-            'creator', 
-            'validator'
+            'determinations.determinationValidator',
+            'creator',
+            'validator',
         ]);
 
         // Usar mPDF para headers/footers repetidos en cada página
@@ -725,7 +726,7 @@ class SampleController extends Controller
             'margin_right' => 15,
         ]);
 
-        return $pdf->download('Protocolo_' . $sample->protocol_number . '.pdf');
+        return $pdf->download('Protocolo_'.$sample->protocol_number.'.pdf');
     }
 
     /**
@@ -741,16 +742,16 @@ class SampleController extends Controller
         }
 
         $sample->load([
-            'customer', 
+            'customer',
             'determinations.test.parentTest',
             'determinations.test.parentTests',
             'determinations.test.children',
             'determinations.test.childTests',
             'determinations.test.defaultReferenceCategory',
             'determinations.referenceCategory',
-            'determinations.determinationValidator', 
-            'creator', 
-            'validator'
+            'determinations.determinationValidator',
+            'creator',
+            'validator',
         ]);
 
         // Usar mPDF para headers/footers repetidos en cada página
@@ -761,7 +762,7 @@ class SampleController extends Controller
             'margin_right' => 15,
         ]);
 
-        return $pdf->stream('Protocolo_' . $sample->protocol_number . '.pdf');
+        return $pdf->stream('Protocolo_'.$sample->protocol_number.'.pdf');
     }
 
     /**
@@ -770,7 +771,7 @@ class SampleController extends Controller
     public function sendEmail(Request $request, Sample $sample)
     {
         $this->authorize('samples-reports.send');
-        if (!$sample->isValidated()) {
+        if (! $sample->isValidated()) {
             return back()->with('error', 'El protocolo debe estar validado para poder enviarlo.');
         }
 
@@ -781,14 +782,15 @@ class SampleController extends Controller
 
         // TODO: Implementar env?o de email con el PDF adjunto
         // Por ahora solo retornamos un mensaje de ?xito simulado
-        
-        return back()->with('success', 'Protocolo enviado correctamente a ' . $validated['email']);
+
+        return back()->with('success', 'Protocolo enviado correctamente a '.$validated['email']);
     }
 
     /**
      * Construye el valor de referencia basado en los valores predefinidos o campos low/high del test
-     * @param Test $test El test para el cual construir el valor de referencia
-     * @param int|null $parentCategoryId ID de la categoría predeterminada del padre (si aplica)
+     *
+     * @param  Test  $test  El test para el cual construir el valor de referencia
+     * @param  int|null  $parentCategoryId  ID de la categoría predeterminada del padre (si aplica)
      * @return array{value: string|null, category_id: int|null}
      */
     private function buildReferenceValue(Test $test, ?int $parentCategoryId = null): array
@@ -816,12 +818,12 @@ class SampleController extends Controller
         }
 
         $value = null;
-        if (empty($test->low) && !empty($test->high)) {
-            $value = "< {$test->high}" . ($test->unit ? " {$test->unit}" : '');
-        } elseif (!empty($test->low) && empty($test->high)) {
-            $value = "> {$test->low}" . ($test->unit ? " {$test->unit}" : '');
+        if (empty($test->low) && ! empty($test->high)) {
+            $value = "< {$test->high}".($test->unit ? " {$test->unit}" : '');
+        } elseif (! empty($test->low) && empty($test->high)) {
+            $value = "> {$test->low}".($test->unit ? " {$test->unit}" : '');
         } else {
-            $value = "{$test->low} - {$test->high}" . ($test->unit ? " {$test->unit}" : '');
+            $value = "{$test->low} - {$test->high}".($test->unit ? " {$test->unit}" : '');
         }
 
         return ['value' => $value, 'category_id' => null];
@@ -833,12 +835,12 @@ class SampleController extends Controller
      */
     public function getOrderedDeterminations(Sample $sample)
     {
-        if (!$sample->relationLoaded('determinations')) {
+        if (! $sample->relationLoaded('determinations')) {
             $sample->load(['determinations.test.parentTest', 'determinations.test.parentTests', 'determinations.test.children', 'determinations.test.childTests']);
         }
-        
+
         $determinations = $sample->determinations;
-        
+
         $ordered = collect();
         $processedAsParent = [];
         $processedAsChild = [];
@@ -883,7 +885,7 @@ class SampleController extends Controller
 
         // Agregar cualquier determinación que no fue procesada (huérfanas o sin padre en muestra)
         foreach ($determinations as $det) {
-            if (!in_array($det->id, $processedAsParent) && !in_array($det->id, $processedAsChild)) {
+            if (! in_array($det->id, $processedAsParent) && ! in_array($det->id, $processedAsChild)) {
                 $ordered->push($det);
             }
         }
@@ -927,7 +929,7 @@ class SampleController extends Controller
             ->filter()
             ->implode('/');
 
-        $barcode = new \Picqer\Barcode\BarcodeGeneratorSVG();
+        $barcode = new \Picqer\Barcode\BarcodeGeneratorSVG;
         $barcodeSvg = $barcode->getBarcode($sample->protocol_number, $barcode::TYPE_CODE_128, 2, 60);
 
         return view('sample.label', [

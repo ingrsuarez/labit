@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-21
+> Última actualización: 2026-03-22
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.1.0 |
-| **Última completada** | v2.1.0 — Ventas y cobros multi-empresa |
+| **Versión actual** | v2.1.3 |
+| **Última completada** | v2.1.3 — UX feedback visual guardado resultados |
 | **En proceso** | — |
 | **Próxima** | v2.2.0 — Compras y pagos multi-empresa |
 | **Pendientes en cola** | 2 |
-| **Completadas** | 13 |
+| **Completadas** | 15 |
 
 ---
 
@@ -31,10 +31,12 @@
 
 _Sin prompts en ejecución._
 
-### Completados (13)
+### Completados (15)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v2.1.3 | UX feedback visual guardado resultados | 2026-03-22 | v2.1.3 |
+| v2.1.2 | Fix "Aplicar a todos" valores de referencia | 2026-03-22 | v2.1.2 |
 | v2.1.0 | Ventas y cobros multi-empresa | 2026-03-22 | v2.1.0 |
 | v2.0.0 | Infraestructura multi-empresa | 2026-03-21 | v2.0.0 |
 | v1.5.3 | Seeder de jerarquía padre-hijo de prácticas | 2026-03-20 | v1.5.3 |
@@ -64,6 +66,8 @@ v1.0.0 (completada)
 ├── v1.5.3 — Seeder jerarquía padre-hijo prácticas (completada)
 │   └── v2.0.0 — Infraestructura multi-empresa (completada)
 │       ├── v2.1.0 — Ventas y cobros multi-empresa (completada)
+│       │   └── v2.1.2 — Fix Aplicar a todos ref values (completada)
+│       │       └── v2.1.3 — UX feedback guardado resultados (completada)
 │       ├── v2.2.0 — Compras y pagos multi-empresa (pendiente)
 │       └── v2.3.0 — RRHH multi-empresa (pendiente)
 ├── v1.4.1 — Fix guardado de resultados de protocolo (completada)

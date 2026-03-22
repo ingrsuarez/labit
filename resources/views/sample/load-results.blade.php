@@ -395,7 +395,7 @@
                                 </svg>
                                 Marcar Todo Completado
                             </button>
-                            <button type="submit" 
+                            <button type="submit" id="btnSaveAll"
                                     class="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium">
                                 <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -543,7 +543,26 @@
             // Ctrl+S para guardar
             if (e.ctrlKey && e.key === 's') {
                 e.preventDefault();
-                document.getElementById('resultsForm').submit();
+                const btn = document.getElementById('btnSaveAll');
+                if (btn && !btn.disabled) {
+                    document.getElementById('resultsForm').submit();
+                }
+            }
+        });
+
+        // Feedback visual al guardar
+        document.getElementById('resultsForm').addEventListener('submit', function() {
+            const btn = document.getElementById('btnSaveAll');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `
+                    <svg class="w-5 h-5 inline mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    Guardando...
+                `;
+                btn.classList.add('opacity-75', 'cursor-not-allowed');
             }
         });
 
@@ -636,8 +655,21 @@
             });
 
             if (updatedCount > 0) {
+                const applyBtn = selectElement.nextElementSibling;
+                if (applyBtn && applyBtn.tagName === 'BUTTON') {
+                    applyBtn.disabled = true;
+                    applyBtn.innerHTML = `
+                        <svg class="w-4 h-4 inline mr-1 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                        Guardando...
+                    `;
+                    applyBtn.classList.add('opacity-75', 'cursor-not-allowed');
+                }
+
                 const categoryName = selectElement.options[selectElement.selectedIndex].text;
-                
+
                 const notification = document.createElement('div');
                 notification.className = 'fixed bottom-4 right-4 bg-teal-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 flex items-center';
                 notification.innerHTML = `
@@ -647,10 +679,10 @@
                     <span>${updatedCount} valores de referencia actualizados según ${categoryName}</span>
                 `;
                 document.body.appendChild(notification);
-                
+
                 setTimeout(function() {
-                    notification.remove();
-                }, 3000);
+                    document.getElementById('resultsForm').submit();
+                }, 500);
             }
         }
 
