@@ -5,6 +5,25 @@
 
 ---
 
+## [v2.1.0] — 2026-03-22 — Ventas y cobros multi-empresa
+
+### Agregado
+- Migración `add_company_id_to_sales_tables`: columna `company_id` nullable en `sales_invoices`, `quotes`, `collection_receipts`, `credit_notes`, `points_of_sale`
+- Relación `company()` (BelongsTo) en los 5 modelos de ventas y `company_id` en `$fillable`
+- Relaciones inversas en `Company`: `salesInvoices()`, `quotes()`, `collectionReceipts()`, `creditNotes()`, `pointsOfSale()`
+- Filtrado por empresa activa en `index()` de todos los controladores de ventas
+- Asignación automática de `company_id` en `store()` de todos los controladores
+- Guard `abort_if(403)` en `show()`, `edit()`, `update()`, `destroy()` de todos los controladores
+- Puntos de venta filtrados por empresa en dropdowns de creación/edición de facturas
+- Facturas pendientes filtradas por empresa en recibos de cobro y notas de crédito
+
+### Modificado
+- PDF de factura: datos del emisor (razón social, CUIT, domicilio, condición IVA, IIBB, inicio actividades) leídos desde `$invoice->company` con fallback a `config('afip.emisor')`
+- `AfipService`: constructor acepta `?Company` opcional, resuelve CUIT/certificados/modo desde el modelo Company con fallback a `config/afip.php`
+- Cache de token AFIP (TA) separado por CUIT para evitar colisiones entre empresas
+
+---
+
 ## [v2.0.0] — 2026-03-21 — Infraestructura multi-empresa
 
 ### Agregado
