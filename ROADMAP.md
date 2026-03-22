@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-03-21
+> Última actualización: 2026-03-22
 
 ---
 
@@ -32,6 +32,7 @@
 | v2.1.0 | Ventas y cobros multi-empresa | 2026-03-22 | company_id en ventas, filtrado por empresa, AfipService multi-empresa |
 
 | v2.2.0 | Compras y pagos multi-empresa | 2026-03-22 | company_id en purchase_quotation_requests, purchase_orders, delivery_notes, purchase_invoices, payment_orders |
+| v2.2.1 | Fix columnas vacías en vista de protocolo | 2026-03-22 | Reemplazar template x-if por x-show en tabla de determinaciones |
 
 ---
 
@@ -63,7 +64,7 @@
 ## Progreso general
 
 ```
-Completadas:  16 versiones (v1.0.0 → v2.2.0)
+Completadas:  17 versiones (v1.0.0 → v2.2.1)
 Planificadas: 1 versión (v2.3.0)
 En proceso:   0
 Próxima:      v2.3.0 — RRHH multi-empresa
