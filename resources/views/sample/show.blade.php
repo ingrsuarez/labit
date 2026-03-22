@@ -327,70 +327,60 @@
                                             </td>
                                             
                                             <!-- Modo Ver -->
-                                            <template x-if="!editing">
-                                                <td class="px-4 py-3 text-sm {{ $isParent ? 'text-gray-400 italic' : 'text-gray-900' }}">
-                                                    {{ $isParent ? '-' : ($det->result ?? '-') }}
-                                                </td>
-                                            </template>
-                                            <template x-if="!editing">
-                                                <td class="px-4 py-3 text-sm text-gray-500">{{ $isParent ? '-' : ($det->unit ?? '-') }}</td>
-                                            </template>
-                                            <template x-if="!editing">
-                                                <td class="px-4 py-3">
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
-                                                        @switch($det->status)
-                                                            @case('pending') bg-yellow-100 text-yellow-800 @break
-                                                            @case('in_progress') bg-blue-100 text-blue-800 @break
-                                                            @case('completed') bg-green-100 text-green-800 @break
-                                                        @endswitch">
-                                                        {{ $det->status_label }}
-                                                    </span>
-                                                </td>
-                                            </template>
-                                            <template x-if="!editing">
-                                                <td class="px-4 py-3 text-right text-sm">
-                                                    <button @click="editing = true" class="text-indigo-600 hover:text-indigo-900 mr-2">
-                                                        Cargar
-                                                    </button>
-                                                    <form action="{{ route('sample.removeDetermination', [$sample, $det]) }}" method="POST" class="inline"
-                                                          onsubmit="return confirm('¿Eliminar esta determinación?')">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="text-red-600 hover:text-red-900">Eliminar</button>
-                                                    </form>
-                                                </td>
-                                            </template>
+                                            <td x-show="!editing" class="px-4 py-3 text-sm {{ $isParent ? 'text-gray-400 italic' : 'text-gray-900' }}">
+                                                {{ $isParent ? '-' : ($det->result ?? '-') }}
+                                            </td>
+                                            <td x-show="!editing" class="px-4 py-3 text-sm text-gray-500">{{ $isParent ? '-' : ($det->unit ?? '-') }}</td>
+                                            <td x-show="!editing" class="px-4 py-3">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                                    @switch($det->status)
+                                                        @case('pending') bg-yellow-100 text-yellow-800 @break
+                                                        @case('in_progress') bg-blue-100 text-blue-800 @break
+                                                        @case('completed') bg-green-100 text-green-800 @break
+                                                    @endswitch">
+                                                    {{ $det->status_label }}
+                                                </span>
+                                            </td>
+                                            <td x-show="!editing" class="px-4 py-3 text-right text-sm">
+                                                <button @click="editing = true" class="text-indigo-600 hover:text-indigo-900 mr-2">
+                                                    Cargar
+                                                </button>
+                                                <form action="{{ route('sample.removeDetermination', [$sample, $det]) }}" method="POST" class="inline"
+                                                      onsubmit="return confirm('¿Eliminar esta determinación?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-600 hover:text-red-900">Eliminar</button>
+                                                </form>
+                                            </td>
 
                                             <!-- Modo Editar -->
-                                            <template x-if="editing">
-                                                <td colspan="4" class="px-4 py-3">
-                                                    <form action="{{ route('sample.updateDetermination', $det) }}" method="POST" class="flex items-center gap-2">
-                                                        @csrf
-                                                        @method('PUT')
-                                                        @if(!$isParent)
-                                                            <input type="text" name="result" value="{{ $det->result }}" placeholder="Resultado"
-                                                                   class="w-24 text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500">
-                                                            <input type="text" name="reference_value" value="{{ $det->reference_value }}" placeholder="Ref."
-                                                                   class="w-20 text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500">
-                                                        @else
-                                                            <input type="hidden" name="result" value="">
-                                                            <input type="hidden" name="reference_value" value="">
-                                                            <span class="text-sm text-gray-500 italic">Grupo sin resultado</span>
-                                                        @endif
-                                                        <select name="status" class="text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500">
-                                                            <option value="pending" {{ $det->status == 'pending' ? 'selected' : '' }}>Pendiente</option>
-                                                            <option value="in_progress" {{ $det->status == 'in_progress' ? 'selected' : '' }}>En Proceso</option>
-                                                            <option value="completed" {{ $det->status == 'completed' ? 'selected' : '' }}>Completado</option>
-                                                        </select>
-                                                        <button type="submit" class="px-3 py-1 bg-teal-600 text-white rounded text-sm hover:bg-teal-700">
-                                                            Guardar
-                                                        </button>
-                                                        <button type="button" @click="editing = false" class="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300">
-                                                            Cancelar
-                                                        </button>
-                                                    </form>
-                                                </td>
-                                            </template>
+                                            <td x-show="editing" colspan="4" class="px-4 py-3">
+                                                <form action="{{ route('sample.updateDetermination', $det) }}" method="POST" class="flex items-center gap-2">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    @if(!$isParent)
+                                                        <input type="text" name="result" value="{{ $det->result }}" placeholder="Resultado"
+                                                               class="w-24 text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                                                        <input type="text" name="reference_value" value="{{ $det->reference_value }}" placeholder="Ref."
+                                                               class="w-20 text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                                                    @else
+                                                        <input type="hidden" name="result" value="">
+                                                        <input type="hidden" name="reference_value" value="">
+                                                        <span class="text-sm text-gray-500 italic">Grupo sin resultado</span>
+                                                    @endif
+                                                    <select name="status" class="text-sm rounded border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                                                        <option value="pending" {{ $det->status == 'pending' ? 'selected' : '' }}>Pendiente</option>
+                                                        <option value="in_progress" {{ $det->status == 'in_progress' ? 'selected' : '' }}>En Proceso</option>
+                                                        <option value="completed" {{ $det->status == 'completed' ? 'selected' : '' }}>Completado</option>
+                                                    </select>
+                                                    <button type="submit" class="px-3 py-1 bg-teal-600 text-white rounded text-sm hover:bg-teal-700">
+                                                        Guardar
+                                                    </button>
+                                                    <button type="button" @click="editing = false" class="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300">
+                                                        Cancelar
+                                                    </button>
+                                                </form>
+                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>

@@ -5,6 +5,15 @@
 
 ---
 
+## [v2.2.1] — 2026-03-22 — Fix columnas vacías en vista de protocolo de muestras
+
+### Corregido
+- Columnas Resultado, Unidad, Estado y Acciones vacías en la vista de detalle de protocolo (`sample/show`)
+- Causa: `<template x-if>` de Alpine.js dentro de `<tr>` causa "foster-parenting" en el parser HTML, sacando los `<td>` fuera de la fila
+- Fix: reemplazar `<template x-if>` por `x-show` directamente en los `<td>` (5 bloques afectados: 4 de modo ver + 1 de modo editar)
+
+---
+
 ## [v2.2.0] — 2026-03-22 — Compras y pagos multi-empresa
 
 ### Agregado
