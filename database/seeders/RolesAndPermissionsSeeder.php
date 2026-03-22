@@ -215,6 +215,13 @@ class RolesAndPermissionsSeeder extends Seeder
             'points-of-sale.create',
             'points-of-sale.edit',
             'points-of-sale.delete',
+
+            // EMPRESAS (Módulo de Empresas)
+            'companies.section',
+            'companies.create',
+            'companies.edit',
+            'companies.delete',
+            'companies.assign-users',
         ];
 
         // 3) Crear/asegurar permisos (idempotente)

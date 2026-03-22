@@ -56,6 +56,17 @@ Route::middleware([
     
     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
+    // SWITCH COMPANY (cambiar empresa activa)
+    Route::post('/switch-company', [App\Http\Controllers\CompanyController::class, 'switchCompany'])->name('company.switch');
+
+    // COMPANIES (Empresas)
+    Route::middleware('can:companies.section')->group(function () {
+        Route::resource('companies', App\Http\Controllers\CompanyController::class);
+        Route::post('companies/{company}/attach-user', [App\Http\Controllers\CompanyController::class, 'attachUser'])->name('companies.attach-user');
+        Route::delete('companies/{company}/detach-user/{user}', [App\Http\Controllers\CompanyController::class, 'detachUser'])->name('companies.detach-user');
+        Route::post('companies/{company}/set-default/{user}', [App\Http\Controllers\CompanyController::class, 'setDefaultCompany'])->name('companies.set-default');
+    });
+
     // ADMIN SECTIONS (Páginas index de cada sección del sidebar administrativo)
     Route::get('admin/personal', [App\Http\Controllers\AdminSectionController::class, 'personal'])->name('admin.section.personal');
     Route::get('admin/ausencias', [App\Http\Controllers\AdminSectionController::class, 'ausencias'])->name('admin.section.ausencias');

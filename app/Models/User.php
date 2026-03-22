@@ -13,6 +13,8 @@ use Spatie\Permission\Traits\HasRoles;
 
 
 
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
 class User extends Authenticatable
 {
     use HasApiTokens;
@@ -68,5 +70,15 @@ class User extends Authenticatable
     public function employee()
     {
         return $this->hasOne(\App\Models\Employee::class, 'user_id');
+    }
+
+    public function companies(): BelongsToMany
+    {
+        return $this->belongsToMany(Company::class)->withPivot('is_default')->withTimestamps();
+    }
+
+    public function defaultCompany(): ?Company
+    {
+        return $this->companies()->wherePivot('is_default', true)->first();
     }
 }
