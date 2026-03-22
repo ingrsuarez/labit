@@ -35,14 +35,14 @@ class InsuranceNomenclatorController extends Controller
      */
     public function show(Insurance $insurance)
     {
-        $nomenclator = InsuranceTest::where('insurance_id', $insurance->id)
+        $practices = InsuranceTest::where('insurance_id', $insurance->id)
             ->whereIn('test_id', Test::select('id'))
             ->with('test')
             ->orderBy('id')
             ->get();
 
         // Obtener prácticas que no están en el nomenclador
-        $existingTestIds = $nomenclator->pluck('test_id')->toArray();
+        $existingTestIds = $practices->pluck('test_id')->toArray();
         $availableTests = Test::whereNotIn('id', $existingTestIds)
             ->whereNull('parent') // Solo prácticas padre (no sub-tests)
             ->orderBy('code')
@@ -57,7 +57,7 @@ class InsuranceNomenclatorController extends Controller
                 ->get();
         }
 
-        return view('lab.nomenclator.show', compact('insurance', 'nomenclator', 'availableTests', 'baseNomenclators'));
+        return view('lab.nomenclator.show', compact('insurance', 'practices', 'availableTests', 'baseNomenclators'));
     }
 
     /**
