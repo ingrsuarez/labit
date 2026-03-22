@@ -17,6 +17,7 @@ class QuoteController extends Controller
     public function index(Request $request)
     {
         $query = Quote::with(['customer', 'creator', 'items'])
+            ->where('company_id', active_company_id())
             ->orderByDesc('created_at');
 
         if ($request->filled('search')) {
@@ -69,6 +70,7 @@ class QuoteController extends Controller
 
         $quote = Quote::create([
             'quote_number' => Quote::generateQuoteNumber(),
+            'company_id' => active_company_id(),
             'customer_id' => $validated['customer_id'],
             'customer_name' => $validated['customer_name'],
             'customer_email' => $validated['customer_email'] ?? null,
@@ -99,18 +101,21 @@ class QuoteController extends Controller
 
     public function show(Quote $quote)
     {
+        abort_if($quote->company_id !== active_company_id(), 403);
         $quote->load(['customer', 'creator', 'items.test']);
         return view('quote.show', compact('quote'));
     }
 
     public function edit(Quote $quote)
     {
+        abort_if($quote->company_id !== active_company_id(), 403);
         $quote->load(['items.test']);
         return view('quote.edit', compact('quote'));
     }
 
     public function update(Request $request, Quote $quote)
     {
+        abort_if($quote->company_id !== active_company_id(), 403);
         $validated = $request->validate([
             'customer_id' => 'nullable|exists:customers,id',
             'customer_name' => 'required|string|max:255',
@@ -166,6 +171,7 @@ class QuoteController extends Controller
 
     public function destroy(Quote $quote)
     {
+        abort_if($quote->company_id !== active_company_id(), 403);
         $number = $quote->quote_number;
         $quote->delete();
 
@@ -230,6 +236,7 @@ class QuoteController extends Controller
 
     public function downloadPdf(Quote $quote)
     {
+        abort_if($quote->company_id !== active_company_id(), 403);
         $quote->load(['customer', 'creator', 'items.test']);
 
         $pdf = PDF::loadView('quote.pdf', compact('quote'), [], [
@@ -244,6 +251,7 @@ class QuoteController extends Controller
 
     public function sendEmail(Quote $quote)
     {
+        abort_if($quote->company_id !== active_company_id(), 403);
         if (!$quote->customer_email) {
             return back()->with('error', 'El presupuesto no tiene un email de cliente configurado.');
         }
@@ -261,6 +269,7 @@ class QuoteController extends Controller
 
     public function updateStatus(Request $request, Quote $quote)
     {
+        abort_if($quote->company_id !== active_company_id(), 403);
         $validated = $request->validate([
             'status' => 'required|in:draft,sent,accepted,rejected',
         ]);
@@ -272,12 +281,14 @@ class QuoteController extends Controller
 
     public function duplicate(Quote $quote)
     {
+        abort_if($quote->company_id !== active_company_id(), 403);
         $quote->load('items');
 
         $newQuote = $quote->replicate();
         $newQuote->quote_number = Quote::generateQuoteNumber();
         $newQuote->status = 'draft';
         $newQuote->created_by = auth()->id();
+        $newQuote->company_id = active_company_id();
         $newQuote->save();
 
         foreach ($quote->items as $item) {

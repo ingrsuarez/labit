@@ -12,6 +12,7 @@ class PointOfSale extends Model
     protected $table = 'points_of_sale';
 
     protected $fillable = [
+        'company_id',
         'code',
         'name',
         'address',
@@ -28,6 +29,11 @@ class PointOfSale extends Model
     public function salesInvoices()
     {
         return $this->hasMany(SalesInvoice::class);
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
     }
 
     public function getFullNameAttribute(): string

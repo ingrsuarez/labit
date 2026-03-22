@@ -10,6 +10,7 @@ class CollectionReceipt extends Model
     use HasFactory;
 
     protected $fillable = [
+        'company_id',
         'number', 'customer_id', 'date', 'total', 'status',
         'payment_method', 'payment_reference', 'notes',
         'created_by', 'confirmed_by',
@@ -20,6 +21,7 @@ class CollectionReceipt extends Model
     ];
 
     public function customer() { return $this->belongsTo(Customer::class); }
+    public function company() { return $this->belongsTo(Company::class); }
     public function creator() { return $this->belongsTo(User::class, 'created_by'); }
     public function confirmer() { return $this->belongsTo(User::class, 'confirmed_by'); }
     public function items() { return $this->hasMany(CollectionReceiptItem::class); }

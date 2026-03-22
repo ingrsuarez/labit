@@ -11,7 +11,7 @@ class PointOfSaleController extends Controller
     {
         $this->authorize('points-of-sale.index');
 
-        $query = PointOfSale::orderBy('code');
+        $query = PointOfSale::where('company_id', active_company_id())->orderBy('code');
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -55,6 +55,8 @@ class PointOfSaleController extends Controller
             $validated['afip_pos_number'] = null;
         }
 
+        $validated['company_id'] = active_company_id();
+
         PointOfSale::create($validated);
 
         return redirect()->route('points-of-sale.index')
@@ -65,12 +67,16 @@ class PointOfSaleController extends Controller
     {
         $this->authorize('points-of-sale.edit');
 
+        abort_if($pointOfSale->company_id !== active_company_id(), 403);
+
         return view('points-of-sale.edit', compact('pointOfSale'));
     }
 
     public function update(Request $request, PointOfSale $pointOfSale)
     {
         $this->authorize('points-of-sale.edit');
+
+        abort_if($pointOfSale->company_id !== active_company_id(), 403);
 
         $validated = $request->validate([
             'code' => 'required|string|max:5|unique:points_of_sale,code,' . $pointOfSale->id,
@@ -98,6 +104,8 @@ class PointOfSaleController extends Controller
     public function destroy(PointOfSale $pointOfSale)
     {
         $this->authorize('points-of-sale.delete');
+
+        abort_if($pointOfSale->company_id !== active_company_id(), 403);
 
         if ($pointOfSale->salesInvoices()->exists()) {
             return back()->with('error', 'No se puede eliminar: tiene facturas asociadas.');
