@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('samples', function (Blueprint $table) {
             // Estado de validación del protocolo
-            $table->enum('validation_status', ['pending', 'validated', 'rejected'])
+            $table->enum('validation_status', ['pending', 'partial', 'validated', 'rejected'])
                 ->default('pending')
                 ->after('status');
             

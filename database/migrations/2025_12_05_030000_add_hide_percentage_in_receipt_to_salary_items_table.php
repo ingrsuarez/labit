@@ -11,19 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('salary_items', function (Blueprint $table) {
-            $table->boolean('hide_percentage_in_receipt')->default(false)->after('requires_assignment');
-        });
+        if (! Schema::hasColumn('salary_items', 'hide_percentage_in_receipt')) {
+            Schema::table('salary_items', function (Blueprint $table) {
+                $table->boolean('hide_percentage_in_receipt')->default(false)->after('requires_assignment');
+            });
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('salary_items', function (Blueprint $table) {
-            $table->dropColumn('hide_percentage_in_receipt');
-        });
+        if (Schema::hasColumn('salary_items', 'hide_percentage_in_receipt')) {
+            Schema::table('salary_items', function (Blueprint $table) {
+                $table->dropColumn('hide_percentage_in_receipt');
+            });
+        }
     }
 };
 

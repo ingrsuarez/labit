@@ -26,7 +26,7 @@ return new class extends Migration
         Schema::create('test_reference_values', function (Blueprint $table) {
             $table->id();
             $table->foreignId('test_id')->constrained('tests')->onDelete('cascade');
-            $table->foreignId('reference_category_id')->constrained('reference_categories')->onDelete('cascade');
+            $table->foreignId('reference_category_id')->nullable()->constrained('reference_categories')->onDelete('cascade');
             $table->string('value'); // El valor de referencia (ej: "< 500 UFC/ml", "Ausente", "0 - 10")
             $table->string('min_value')->nullable(); // Valor mínimo numérico (para comparaciones)
             $table->string('max_value')->nullable(); // Valor máximo numérico (para comparaciones)

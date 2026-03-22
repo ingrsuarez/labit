@@ -25,23 +25,24 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Actualizar Zona 30% para usar la nueva base que incluye Adicional Título
+        if (! Schema::hasColumn('salary_items', 'calculation_base')) {
+            return;
+        }
+
         DB::table('salary_items')
             ->where('code', 'Z30')
             ->update([
                 'calculation_base' => 'basic_antiguedad_titulo',
-                'order' => 10, // Se calcula después de antigüedad y adicional título
+                'order' => 10,
             ]);
 
-        // Marcar Adicional Título para que se incluya en la base de antigüedad y zona
         DB::table('salary_items')
             ->where('code', 'ADTIT')
             ->update([
                 'includes_in_antiguedad_base' => true,
-                'order' => 2, // Se calcula antes de antigüedad y zona
+                'order' => 2,
             ]);
 
-        // Ajustar orden de Puesto Jerárquico (se calcula después de zona)
         DB::table('salary_items')
             ->where('code', 'PJER')
             ->update([
