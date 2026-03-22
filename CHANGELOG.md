@@ -5,6 +5,29 @@
 
 ---
 
+## [v2.0.0] — 2026-03-21 — Infraestructura multi-empresa
+
+### Agregado
+- Modelo `Company` con datos fiscales (CUIT, condición IVA, IIBB), dirección, configuración AFIP (cert, key, producción) y estado activo/inactivo
+- Migración `create_companies_table` y tabla pivot `company_user` con flag `is_default`
+- Relaciones `User::companies()` (BelongsToMany) y `User::defaultCompany()`
+- Helper global `active_company_id()` y `active_company()` con autoload en `composer.json`
+- Middleware `SetActiveCompany` en grupo `web`: inicializa empresa activa desde default del usuario, comparte `$activeCompany` y `$userCompanies` con todas las vistas
+- Selector de empresa en header (Alpine.js dropdown) visible cuando el usuario tiene más de una empresa asignada
+- Ruta `POST /switch-company` para cambiar empresa activa en sesión
+- `CompanyController` con CRUD completo: index, create, store, show, edit, update, destroy (soft delete por `is_active`)
+- Gestión de usuarios por empresa: attach, detach, set default
+- 5 permisos nuevos: `companies.section`, `companies.create`, `companies.edit`, `companies.delete`, `companies.assign-users`
+- Enlace "Empresas" en sidebar bajo sección Configuración, protegido por `@can('companies.section')`
+- Vistas: `companies/index`, `create`, `edit`, `_form`, `show` con listado de usuarios asignados
+- `CompanySeeder` con 2 empresas iniciales (unipersonal + SAS) asignadas al admin
+
+### Corregido
+- `phpunit.xml`: habilitado SQLite in-memory para evitar wipe accidental de la base de datos real durante tests
+- `.gitignore`: excluido `.env.testing`
+
+---
+
 ## [v1.5.3] — 2026-03-20 — Seeder de jerarquía padre-hijo de prácticas
 
 ### Agregado

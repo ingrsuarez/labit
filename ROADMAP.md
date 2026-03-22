@@ -28,6 +28,7 @@
 | v1.5.1 | Roles y permisos del módulo de laboratorio | 2026-03-17 | 3 roles, 15 permisos, middleware + @can |
 | v1.5.2 | Roles y permisos del módulo de muestras | 2026-03-17 | Extiende roles con permisos de muestras |
 | v1.5.3 | Seeder de jerarquía padre-hijo de prácticas | 2026-03-20 | 10 relaciones para 3 padres, 26 tests pendientes de crear |
+| v2.0.0 | Infraestructura multi-empresa | 2026-03-21 | Modelo Company, pivot, middleware, CRUD, selector en header |
 
 ---
 
@@ -42,7 +43,6 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v2.0.0 | Infraestructura multi-empresa | 2h | v1.5.3 | `pendientes/v2.0.0-multi-empresa-infra.md` |
 | v2.1.0 | Ventas y cobros multi-empresa | 2h | v2.0.0 | `pendientes/v2.1.0-multi-empresa-ventas.md` |
 | v2.2.0 | Compras y pagos multi-empresa | 2h | v2.0.0 | `pendientes/v2.2.0-multi-empresa-compras.md` |
 | v2.3.0 | RRHH multi-empresa | 2h | v2.0.0 | `pendientes/v2.3.0-multi-empresa-rrhh.md` |
@@ -62,10 +62,10 @@
 ## Progreso general
 
 ```
-Completadas:  11 versiones (v1.0.0 → v1.5.3)
-Planificadas: 4 versiones (v2.0.0 → v2.3.0) — bloque multi-empresa
+Completadas:  12 versiones (v1.0.0 → v2.0.0)
+Planificadas: 3 versiones (v2.1.0 → v2.3.0) — bloque multi-empresa
 En proceso:   0
-Próxima:      v2.0.0 — Infraestructura multi-empresa
+Próxima:      v2.1.0 — Ventas y cobros multi-empresa
 ```
 
 ---

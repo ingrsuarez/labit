@@ -9,22 +9,21 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v1.5.3 |
-| **Última completada** | v1.5.3 — Seeder de jerarquía padre-hijo de prácticas |
+| **Versión actual** | v2.0.0 |
+| **Última completada** | v2.0.0 — Infraestructura multi-empresa |
 | **En proceso** | — |
-| **Próxima** | v2.0.0 — Infraestructura multi-empresa |
-| **Pendientes en cola** | 4 |
-| **Completadas** | 11 |
+| **Próxima** | v2.1.0 — Ventas y cobros multi-empresa |
+| **Pendientes en cola** | 3 |
+| **Completadas** | 12 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (4)
+### Pendientes (3)
 
 | Versión | Nombre | Estimación | Dependencias | Archivo |
 |---|---|---|---|---|
-| v2.0.0 | Infraestructura multi-empresa | 2h | v1.5.3 | `pendientes/v2.0.0-multi-empresa-infra.md` |
 | v2.1.0 | Ventas y cobros multi-empresa | 2h | v2.0.0 | `pendientes/v2.1.0-multi-empresa-ventas.md` |
 | v2.2.0 | Compras y pagos multi-empresa | 2h | v2.0.0 | `pendientes/v2.2.0-multi-empresa-compras.md` |
 | v2.3.0 | RRHH multi-empresa | 2h | v2.0.0 | `pendientes/v2.3.0-multi-empresa-rrhh.md` |
@@ -33,10 +32,11 @@
 
 _Sin prompts en ejecución._
 
-### Completados (11)
+### Completados (12)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v2.0.0 | Infraestructura multi-empresa | 2026-03-21 | v2.0.0 |
 | v1.5.3 | Seeder de jerarquía padre-hijo de prácticas | 2026-03-20 | v1.5.3 |
 | v1.5.2 | Roles y permisos del módulo de muestras | 2026-03-17 | v1.5.2 |
 | v1.5.1 | Roles y permisos del módulo de laboratorio | 2026-03-17 | v1.5.1 |
@@ -62,7 +62,7 @@ v1.0.0 (completada)
 │       ├── v1.3.1 — Fix AFIP CondicionIVAReceptorId + ImpTotal (completada)
 │       └── v1.4.0 — Notas de crédito electrónicas (completada)
 ├── v1.5.3 — Seeder jerarquía padre-hijo prácticas (completada)
-│   └── v2.0.0 — Infraestructura multi-empresa (pendiente)
+│   └── v2.0.0 — Infraestructura multi-empresa (completada)
 │       ├── v2.1.0 — Ventas y cobros multi-empresa (pendiente)
 │       ├── v2.2.0 — Compras y pagos multi-empresa (pendiente)
 │       └── v2.3.0 — RRHH multi-empresa (pendiente)
@@ -108,13 +108,12 @@ Ejecutar el siguiente prompt de la cola:
 Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
 ```
 
-Próximo en cola: **v2.0.0 — Infraestructura multi-empresa**
+Próximo en cola: **v2.1.0 — Ventas y cobros multi-empresa**
 
-Bloque multi-empresa completo (4 versiones):
-1. v2.0.0 — Infraestructura (base)
-2. v2.1.0 — Ventas (dep: v2.0.0)
-3. v2.2.0 — Compras (dep: v2.0.0)
-4. v2.3.0 — RRHH (dep: v2.0.0)
+Bloque multi-empresa restante (3 versiones):
+1. v2.1.0 — Ventas (dep: v2.0.0)
+2. v2.2.0 — Compras (dep: v2.0.0)
+3. v2.3.0 — RRHH (dep: v2.0.0)
 
 > v2.1.0, v2.2.0 y v2.3.0 son independientes entre sí y pueden ejecutarse en paralelo.
 
