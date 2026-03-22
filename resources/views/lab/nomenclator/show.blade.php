@@ -214,29 +214,32 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach($nomenclator as $item)
+                                @if(!is_object($item) || !$item->test)
+                                    @continue
+                                @endif
                                 <tr class="hover:bg-gray-50" x-data="{ editing: false }">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {{ $item->test?->code ?? '—' }}
+                                        {{ $item->test->code }}
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-900">
-                                        {{ $item->test?->name ?? 'Test eliminado' }}
+                                        {{ $item->test->name }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right">
-                                        <span x-show="!editing">{{ number_format($item->nbu_units, 2, ',', '.') }}</span>
+                                        <span x-show="!editing">{{ number_format($item->nbu_units ?? 0, 2, ',', '.') }}</span>
                                         <input x-show="editing" type="number" step="0.01" name="nbu_units" 
-                                               value="{{ $item->nbu_units }}" form="form-{{ $item->id }}"
+                                               value="{{ $item->nbu_units ?? 0 }}" form="form-{{ $item->id }}"
                                                class="w-20 text-right border-gray-300 rounded text-sm">
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium">
-                                        <span x-show="!editing">${{ number_format($item->price, 2, ',', '.') }}</span>
+                                        <span x-show="!editing">${{ number_format($item->price ?? 0, 2, ',', '.') }}</span>
                                         <input x-show="editing" type="number" step="0.01" name="price" 
-                                               value="{{ $item->price }}" form="form-{{ $item->id }}"
+                                               value="{{ $item->price ?? 0 }}" form="form-{{ $item->id }}"
                                                class="w-28 text-right border-gray-300 rounded text-sm">
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right">
-                                        <span x-show="!editing">${{ number_format($item->copago, 2, ',', '.') }}</span>
+                                        <span x-show="!editing">${{ number_format($item->copago ?? 0, 2, ',', '.') }}</span>
                                         <input x-show="editing" type="number" step="0.01" name="copago" 
-                                               value="{{ $item->copago }}" form="form-{{ $item->id }}"
+                                               value="{{ $item->copago ?? 0 }}" form="form-{{ $item->id }}"
                                                class="w-24 text-right border-gray-300 rounded text-sm">
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center">
