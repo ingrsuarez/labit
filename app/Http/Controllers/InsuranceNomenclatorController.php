@@ -281,6 +281,29 @@ class InsuranceNomenclatorController extends Controller
     }
 
     /**
+     * Eliminar registros insurance_tests huérfanos (test_id apunta a tests inexistentes)
+     */
+    public function cleanupOrphans(Insurance $insurance)
+    {
+        $orphanIds = $insurance->nomenclator()
+            ->whereNotIn('test_id', \DB::table('tests')->select('id'))
+            ->pluck('id');
+
+        $count = $orphanIds->count();
+
+        if ($count > 0) {
+            InsuranceTest::whereIn('id', $orphanIds)->delete();
+        }
+
+        return redirect()->back()->with(
+            $count > 0 ? 'success' : 'info',
+            $count > 0
+                ? "Se eliminaron {$count} registros huérfanos del nomenclador."
+                : 'No se encontraron registros huérfanos.'
+        );
+    }
+
+    /**
      * Listar nomencladores base disponibles
      */
     public function listNomenclators()
