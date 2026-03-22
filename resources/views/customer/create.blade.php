@@ -1,8 +1,8 @@
-<x-lab-layout>
+<x-admin-layout>
     <div class="py-6 px-4 md:px-6">
         <!-- Header -->
         <div class="mb-6">
-            <a href="{{ route('customer.index') }}" class="text-teal-600 hover:text-teal-800 text-sm flex items-center mb-2">
+            <a href="{{ route('customer.index') }}" class="text-zinc-600 hover:text-zinc-800 text-sm flex items-center mb-2">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
@@ -33,20 +33,20 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Razón Social *</label>
                         <input type="text" name="name" value="{{ old('name') }}" required
-                               class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                               class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500"
                                placeholder="Nombre o razón social">
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">CUIT *</label>
                         <input type="text" name="taxId" value="{{ old('taxId') }}" required
-                               class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                               class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500"
                                placeholder="XX-XXXXXXXX-X">
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Condición IVA</label>
-                        <select name="tax" class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                        <select name="tax" class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
                             <option value="">Seleccionar...</option>
                             <option value="Responsable Inscripto" {{ old('tax') == 'Responsable Inscripto' ? 'selected' : '' }}>Responsable Inscripto</option>
                             <option value="Monotributista" {{ old('tax') == 'Monotributista' ? 'selected' : '' }}>Monotributista</option>
@@ -58,41 +58,41 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                         <input type="email" name="email" value="{{ old('email') }}"
-                               class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                               class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500"
                                placeholder="email@ejemplo.com">
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
                         <input type="text" name="phone" value="{{ old('phone') }}"
-                               class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                               class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500"
                                placeholder="(XXX) XXX-XXXX">
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Código Postal</label>
                         <input type="text" name="postal" value="{{ old('postal') }}"
-                               class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                               class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500"
                                placeholder="XXXX">
                     </div>
 
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
                         <input type="text" name="address" value="{{ old('address') }}"
-                               class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                               class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500"
                                placeholder="Calle, número, piso, depto...">
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Ciudad</label>
                         <input type="text" name="city" value="{{ old('city') }}"
-                               class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                               class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500"
                                placeholder="Ciudad">
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
-                        <select name="state" class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                        <select name="state" class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
                             <option value="">Seleccionar...</option>
                             <option value="Buenos Aires" {{ old('state') == 'Buenos Aires' ? 'selected' : '' }}>Buenos Aires</option>
                             <option value="CABA" {{ old('state') == 'CABA' ? 'selected' : '' }}>Ciudad Autónoma de Buenos Aires</option>
@@ -123,7 +123,7 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">País</label>
-                        <select name="country" class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                        <select name="country" class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
                             <option value="Argentina" selected>Argentina</option>
                             <option value="Uruguay">Uruguay</option>
                             <option value="Chile">Chile</option>
@@ -141,10 +141,10 @@
                     Cancelar
                 </a>
                 <button type="submit" 
-                        class="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
+                        class="px-6 py-2 bg-zinc-700 text-white rounded-lg hover:bg-zinc-800">
                     Crear Cliente
                 </button>
             </div>
         </form>
     </div>
-</x-lab-layout>
+</x-admin-layout>

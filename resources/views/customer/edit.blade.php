@@ -1,8 +1,8 @@
-<x-lab-layout>
+<x-admin-layout>
     <div class="py-6 px-4 md:px-6">
         <!-- Header -->
         <div class="mb-6">
-            <a href="{{ route('customer.index') }}" class="text-teal-600 hover:text-teal-800 text-sm flex items-center mb-2">
+            <a href="{{ route('customer.index') }}" class="text-zinc-600 hover:text-zinc-800 text-sm flex items-center mb-2">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
@@ -34,18 +34,18 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Razón Social *</label>
                         <input type="text" name="name" value="{{ old('name', $customer->name) }}" required
-                               class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                               class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">CUIT *</label>
                         <input type="text" name="taxId" value="{{ old('taxId', $customer->taxId) }}" required
-                               class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                               class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Condición IVA</label>
-                        <select name="tax" class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                        <select name="tax" class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
                             <option value="">Seleccionar...</option>
                             <option value="Responsable Inscripto" {{ old('tax', $customer->tax) == 'Responsable Inscripto' ? 'selected' : '' }}>Responsable Inscripto</option>
                             <option value="Monotributista" {{ old('tax', $customer->tax) == 'Monotributista' ? 'selected' : '' }}>Monotributista</option>
@@ -57,36 +57,36 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                         <input type="email" name="email" value="{{ old('email', $customer->email) }}"
-                               class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                               class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
                         <input type="text" name="phone" value="{{ old('phone', $customer->phone) }}"
-                               class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                               class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Código Postal</label>
                         <input type="text" name="postal" value="{{ old('postal', $customer->postal) }}"
-                               class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                               class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
 
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
                         <input type="text" name="address" value="{{ old('address', $customer->address) }}"
-                               class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                               class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Ciudad</label>
                         <input type="text" name="city" value="{{ old('city', $customer->city) }}"
-                               class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                               class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
-                        <select name="state" class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                        <select name="state" class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
                             <option value="">Seleccionar...</option>
                             @foreach(['Buenos Aires', 'CABA', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba', 'Corrientes', 'Entre Ríos', 'Formosa', 'Jujuy', 'La Pampa', 'La Rioja', 'Mendoza', 'Misiones', 'Neuquén', 'Río Negro', 'Salta', 'San Juan', 'San Luis', 'Santa Cruz', 'Santa Fe', 'Santiago del Estero', 'Tierra del Fuego', 'Tucumán'] as $state)
                                 <option value="{{ $state }}" {{ old('state', $customer->state) == $state ? 'selected' : '' }}>{{ $state }}</option>
@@ -96,7 +96,7 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">País</label>
-                        <select name="country" class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                        <select name="country" class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
                             <option value="Argentina" {{ old('country', $customer->country) == 'Argentina' ? 'selected' : '' }}>Argentina</option>
                             <option value="Uruguay" {{ old('country', $customer->country) == 'Uruguay' ? 'selected' : '' }}>Uruguay</option>
                             <option value="Chile" {{ old('country', $customer->country) == 'Chile' ? 'selected' : '' }}>Chile</option>
@@ -107,7 +107,7 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Estado *</label>
-                        <select name="status" required class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                        <select name="status" required class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
                             <option value="activo" {{ old('status', $customer->status) == 'activo' ? 'selected' : '' }}>Activo</option>
                             <option value="inactivo" {{ old('status', $customer->status) == 'inactivo' ? 'selected' : '' }}>Inactivo</option>
                         </select>
@@ -122,10 +122,10 @@
                     Cancelar
                 </a>
                 <button type="submit" 
-                        class="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
+                        class="px-6 py-2 bg-zinc-700 text-white rounded-lg hover:bg-zinc-800">
                     Guardar Cambios
                 </button>
             </div>
         </form>
     </div>
-</x-lab-layout>
+</x-admin-layout>

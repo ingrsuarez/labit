@@ -292,14 +292,14 @@ Route::middleware([
         // CREDIT NOTES (Notas de Crédito)
         Route::resource('credit-notes', App\Http\Controllers\CreditNoteController::class)->except(['edit', 'update']);
         Route::post('credit-notes/{creditNote}/retry-afip', [App\Http\Controllers\CreditNoteController::class, 'retryAfip'])->name('credit-notes.retry-afip');
-    });
 
-    // CUSTOMERS (Clientes)
-    Route::get('customer', [App\Http\Controllers\CustomerController::class, 'index'])->name('customer.index');
-    Route::get('customer/create', [App\Http\Controllers\CustomerController::class, 'create'])->name('customer.create');
-    Route::post('customer', [App\Http\Controllers\CustomerController::class, 'store'])->name('customer.store');
-    Route::get('customer/{customer}/edit', [App\Http\Controllers\CustomerController::class, 'edit'])->name('customer.edit');
-    Route::put('customer/{customer}', [App\Http\Controllers\CustomerController::class, 'update'])->name('customer.update');
+        // CUSTOMERS (Clientes)
+        Route::get('customer', [App\Http\Controllers\CustomerController::class, 'index'])->name('customer.index');
+        Route::get('customer/create', [App\Http\Controllers\CustomerController::class, 'create'])->name('customer.create');
+        Route::post('customer', [App\Http\Controllers\CustomerController::class, 'store'])->name('customer.store');
+        Route::get('customer/{customer}/edit', [App\Http\Controllers\CustomerController::class, 'edit'])->name('customer.edit');
+        Route::put('customer/{customer}', [App\Http\Controllers\CustomerController::class, 'update'])->name('customer.update');
+    });
 
     // SERVICES (Servicios adicionales)
     Route::get('services', [App\Http\Controllers\ServiceController::class, 'index'])->name('services.index');

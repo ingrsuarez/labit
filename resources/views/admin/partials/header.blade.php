@@ -44,6 +44,14 @@
                         Organigrama
                     @elseif(request()->routeIs('manage.*'))
                         Administración
+                    @elseif(request()->routeIs('customer.*'))
+                        Gestión de Clientes
+                    @elseif(request()->routeIs('sales.*') || request()->routeIs('sales-invoices.*') || request()->routeIs('quotes.*') || request()->routeIs('collection-receipts.*') || request()->routeIs('credit-notes.*') || request()->routeIs('points-of-sale.*'))
+                        Ventas
+                    @elseif(request()->routeIs('suppliers.*') || request()->routeIs('purchases.*') || request()->routeIs('purchase-orders.*') || request()->routeIs('delivery-notes.*') || request()->routeIs('purchase-invoices.*') || request()->routeIs('payment-orders.*'))
+                        Compras
+                    @elseif(request()->routeIs('companies.*'))
+                        Empresas
                     @else
                         Panel Administrativo
                     @endif
@@ -76,7 +84,8 @@
                          x-transition:leave="transition ease-in duration-75"
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
-                         @click.away="open = false"
+                         @click.outside="open = false"
+                         x-cloak
                          class="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border py-1 z-50">
                         <div class="px-3 py-2 text-xs font-medium text-gray-400 uppercase">Empresa activa</div>
                         @foreach($userCompanies as $comp)
@@ -132,7 +141,8 @@
                          x-transition:leave="transition ease-in duration-75"
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
-                         @click.away="open = false"
+                         @click.outside="open = false"
+                         x-cloak
                          class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border py-1 z-50">
                         
                         <a href="{{ route('profile.show') }}" 

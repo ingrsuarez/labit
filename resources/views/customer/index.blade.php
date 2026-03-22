@@ -1,13 +1,13 @@
-<x-lab-layout>
+<x-admin-layout>
     <div class="py-6 px-4 md:px-6">
         <!-- Header -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Clientes</h1>
-                <p class="text-gray-600 mt-1">Gestión de clientes del laboratorio</p>
+                <p class="text-gray-600 mt-1">Gestión de clientes</p>
             </div>
             <a href="{{ route('customer.create') }}" 
-               class="mt-4 md:mt-0 inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
+               class="mt-4 md:mt-0 inline-flex items-center px-4 py-2 bg-zinc-700 text-white rounded-lg hover:bg-zinc-800 transition-colors shadow-sm">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -28,10 +28,10 @@
                 <div class="flex-1 min-w-[250px]">
                     <input type="text" name="search" value="{{ request('search') }}" 
                            placeholder="Buscar por nombre, CUIT o email..."
-                           class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                           class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
                 </div>
                 <div>
-                    <select name="status" class="rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                    <select name="status" class="rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
                         <option value="">Todos los estados</option>
                         <option value="activo" {{ request('status') == 'activo' ? 'selected' : '' }}>Activo</option>
                         <option value="inactivo" {{ request('status') == 'inactivo' ? 'selected' : '' }}>Inactivo</option>
@@ -96,7 +96,7 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="{{ route('customer.edit', $customer) }}" class="text-indigo-600 hover:text-indigo-900">
+                                <a href="{{ route('customer.edit', $customer) }}" class="text-zinc-700 hover:text-zinc-900">
                                     Editar
                                 </a>
                             </td>
@@ -108,7 +108,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                 </svg>
                                 <p class="mt-2">No hay clientes registrados</p>
-                                <a href="{{ route('customer.create') }}" class="mt-2 inline-block text-teal-600 hover:text-teal-800">
+                                <a href="{{ route('customer.create') }}" class="mt-2 inline-block text-zinc-700 hover:text-zinc-900">
                                     Registrar el primer cliente
                                 </a>
                             </td>
@@ -124,4 +124,4 @@
             @endif
         </div>
     </div>
-</x-lab-layout>
+</x-admin-layout>
