@@ -637,7 +637,7 @@
 
             if (updatedCount > 0) {
                 const categoryName = selectElement.options[selectElement.selectedIndex].text;
-                
+
                 const notification = document.createElement('div');
                 notification.className = 'fixed bottom-4 right-4 bg-teal-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 flex items-center';
                 notification.innerHTML = `
@@ -647,10 +647,10 @@
                     <span>${updatedCount} valores de referencia actualizados según ${categoryName}</span>
                 `;
                 document.body.appendChild(notification);
-                
+
                 setTimeout(function() {
-                    notification.remove();
-                }, 3000);
+                    document.getElementById('resultsForm').submit();
+                }, 500);
             }
         }
 
