@@ -129,26 +129,31 @@
         </form>
     </div>
 
-    <script>
-        function paymentEditForm() {
-            const existingItems = @json($paymentOrder->items->map(fn($item) => [
-                'invoice_id' => $item->purchase_invoice_id,
-                'amount' => (float) $item->amount,
-            ]));
-
-            const existingItemMap = {};
-            existingItems.forEach(item => {
-                existingItemMap[item.invoice_id] = item.amount;
-            });
-
-            const allInvoices = @json($pendingInvoices->map(fn($inv) => [
+    @php
+        $existingItemsJson = $paymentOrder->items->map(function ($item) {
+            return ['invoice_id' => $item->purchase_invoice_id, 'amount' => (float) $item->amount];
+        })->values();
+        $allInvoicesJson = $pendingInvoices->map(function ($inv) {
+            return [
                 'id' => $inv->id,
                 'full_number' => $inv->full_number,
                 'issue_date' => $inv->issue_date->format('d/m/Y'),
                 'total' => (float) $inv->total,
                 'amount_paid' => (float) $inv->amount_paid,
                 'balance' => (float) $inv->balance,
-            ]));
+            ];
+        })->values();
+    @endphp
+    <script>
+        function paymentEditForm() {
+            const existingItems = @json($existingItemsJson);
+
+            const existingItemMap = {};
+            existingItems.forEach(item => {
+                existingItemMap[item.invoice_id] = item.amount;
+            });
+
+            const allInvoices = @json($allInvoicesJson);
 
             const invoices = allInvoices.map(inv => ({
                 ...inv,

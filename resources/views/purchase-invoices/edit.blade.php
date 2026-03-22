@@ -222,19 +222,27 @@
         </form>
     </div>
 
+    @php
+        $invoiceItemsJson = $invoice->items->map(function ($i) {
+            return [
+                'description' => $i->description,
+                'supply_id' => $i->supply_id,
+                'quantity' => floatval($i->quantity),
+                'unit_price' => floatval($i->unit_price),
+                'iva_rate' => strval(floatval($i->iva_rate)),
+            ];
+        })->values();
+        $suppliesEditJson = \App\Models\Supply::active()->orderBy('name')->get()->map(function ($s) {
+            return ['id' => $s->id, 'name' => $s->code . ' - ' . $s->name];
+        })->values();
+    @endphp
     <script>
         function invoiceEditForm() {
             return {
-                items: @json($invoice->items->map(fn($i) => [
-                    'description' => $i->description,
-                    'supply_id' => $i->supply_id,
-                    'quantity' => floatval($i->quantity),
-                    'unit_price' => floatval($i->unit_price),
-                    'iva_rate' => strval(floatval($i->iva_rate)),
-                ])),
+                items: @json($invoiceItemsJson),
                 percepciones: {{ old('percepciones', $invoice->percepciones) }},
                 otrosImpuestos: {{ old('otros_impuestos', $invoice->otros_impuestos) }},
-                supplies: @json(\App\Models\Supply::active()->orderBy('name')->get()->map(fn($s) => ['id' => $s->id, 'name' => $s->code . ' - ' . $s->name])),
+                supplies: @json($suppliesEditJson),
 
                 addItem() {
                     this.items.push({ description: '', supply_id: '', quantity: 1, unit_price: 0, iva_rate: '21' });

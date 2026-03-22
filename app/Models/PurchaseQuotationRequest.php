@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PurchaseQuotationRequest extends Model
 {
@@ -11,6 +12,7 @@ class PurchaseQuotationRequest extends Model
 
     protected $fillable = [
         'number',
+        'company_id',
         'supplier_id',
         'date',
         'valid_until',
@@ -23,6 +25,11 @@ class PurchaseQuotationRequest extends Model
         'date' => 'date',
         'valid_until' => 'date',
     ];
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
 
     public function supplier()
     {
@@ -74,6 +81,7 @@ class PurchaseQuotationRequest extends Model
             ->first();
 
         $nextNumber = $last ? ((int) substr($last->number, -5)) + 1 : 1;
-        return sprintf("SC-%s-%05d", $year, $nextNumber);
+
+        return sprintf('SC-%s-%05d', $year, $nextNumber);
     }
 }

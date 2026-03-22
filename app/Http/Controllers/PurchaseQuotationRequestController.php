@@ -14,14 +14,15 @@ class PurchaseQuotationRequestController extends Controller
         $this->authorize('purchase-quotation-requests.index');
 
         $query = PurchaseQuotationRequest::with(['supplier', 'creator', 'items'])
+            ->where('company_id', active_company_id())
             ->orderByDesc('created_at');
 
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('number', 'like', "%{$search}%")
-                  ->orWhereHas('supplier', fn($sq) => $sq->where('name', 'like', "%{$search}%")
-                      ->orWhere('business_name', 'like', "%{$search}%"));
+                    ->orWhereHas('supplier', fn ($sq) => $sq->where('name', 'like', "%{$search}%")
+                        ->orWhere('business_name', 'like', "%{$search}%"));
             });
         }
 
@@ -40,6 +41,7 @@ class PurchaseQuotationRequestController extends Controller
 
         $suppliers = Supplier::active()->orderBy('name')->get();
         $supplies = Supply::active()->orderBy('name')->get();
+
         return view('purchase-quotation-requests.create', compact('suppliers', 'supplies'));
     }
 
@@ -68,6 +70,7 @@ class PurchaseQuotationRequestController extends Controller
 
         $quotation = PurchaseQuotationRequest::create([
             'number' => PurchaseQuotationRequest::generateNumber(),
+            'company_id' => active_company_id(),
             'supplier_id' => $validated['supplier_id'],
             'date' => $validated['date'],
             'valid_until' => $validated['valid_until'] ?? null,
@@ -86,24 +89,30 @@ class PurchaseQuotationRequestController extends Controller
         }
 
         return redirect()->route('purchase-quotation-requests.show', $quotation)
-            ->with('success', 'Solicitud de cotización ' . $quotation->number . ' creada correctamente.');
+            ->with('success', 'Solicitud de cotización '.$quotation->number.' creada correctamente.');
     }
 
     public function show(PurchaseQuotationRequest $purchaseQuotationRequest)
     {
+        abort_if($purchaseQuotationRequest->company_id !== active_company_id(), 403);
+
         $this->authorize('purchase-quotation-requests.index');
 
         $purchaseQuotationRequest->load(['supplier', 'creator', 'items.supply']);
+
         return view('purchase-quotation-requests.show', ['quotation' => $purchaseQuotationRequest]);
     }
 
     public function edit(PurchaseQuotationRequest $purchaseQuotationRequest)
     {
+        abort_if($purchaseQuotationRequest->company_id !== active_company_id(), 403);
+
         $this->authorize('purchase-quotation-requests.edit');
 
         $purchaseQuotationRequest->load(['items.supply']);
         $suppliers = Supplier::active()->orderBy('name')->get();
         $supplies = Supply::active()->orderBy('name')->get();
+
         return view('purchase-quotation-requests.edit', [
             'quotation' => $purchaseQuotationRequest,
             'suppliers' => $suppliers,
@@ -113,6 +122,8 @@ class PurchaseQuotationRequestController extends Controller
 
     public function update(Request $request, PurchaseQuotationRequest $purchaseQuotationRequest)
     {
+        abort_if($purchaseQuotationRequest->company_id !== active_company_id(), 403);
+
         $this->authorize('purchase-quotation-requests.edit');
 
         $validated = $request->validate([
@@ -155,6 +166,8 @@ class PurchaseQuotationRequestController extends Controller
 
     public function destroy(PurchaseQuotationRequest $purchaseQuotationRequest)
     {
+        abort_if($purchaseQuotationRequest->company_id !== active_company_id(), 403);
+
         $this->authorize('purchase-quotation-requests.delete');
 
         $number = $purchaseQuotationRequest->number;
@@ -166,6 +179,8 @@ class PurchaseQuotationRequestController extends Controller
 
     public function updateStatus(Request $request, PurchaseQuotationRequest $purchaseQuotationRequest)
     {
+        abort_if($purchaseQuotationRequest->company_id !== active_company_id(), 403);
+
         $this->authorize('purchase-quotation-requests.edit');
 
         $validated = $request->validate([
@@ -174,6 +189,6 @@ class PurchaseQuotationRequestController extends Controller
 
         $purchaseQuotationRequest->update(['status' => $validated['status']]);
 
-        return back()->with('success', 'Estado actualizado a: ' . $purchaseQuotationRequest->status_label);
+        return back()->with('success', 'Estado actualizado a: '.$purchaseQuotationRequest->status_label);
     }
 }
