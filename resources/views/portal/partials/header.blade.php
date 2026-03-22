@@ -1,6 +1,7 @@
 @php
     $user = auth()->user();
     $employee = $user->employee;
+    $employeeCompany = $employee?->company;
 @endphp
 
 <header class="hidden md:block bg-white shadow-sm border-b sticky top-0 z-30">
@@ -9,7 +10,11 @@
             <!-- Logo y Título -->
             <div class="flex items-center">
                 <a href="{{ route('portal.dashboard') }}" class="mr-4">
-                    <img src="{{ asset('images/logo_ipac.png') }}" alt="IPAC" class="h-10 w-auto">
+                    @if($employeeCompany && $employeeCompany->logo_path)
+                        <img src="{{ asset('storage/' . $employeeCompany->logo_path) }}" alt="{{ $employeeCompany->name }}" class="h-10 w-auto">
+                    @else
+                        <img src="{{ asset('images/logo_ipac.png') }}" alt="IPAC" class="h-10 w-auto">
+                    @endif
                 </a>
                 <div>
                     <h1 class="text-lg font-semibold text-gray-900">

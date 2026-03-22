@@ -96,6 +96,10 @@
                         <div class="p-6">
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
                                 <div>
+                                    <label class="text-xs font-medium text-gray-500 uppercase">Empresa Empleadora</label>
+                                    <p class="text-gray-900 font-medium">{{ $employee->company?->name ?? '—' }}</p>
+                                </div>
+                                <div>
                                     <label class="text-xs font-medium text-gray-500 uppercase">Fecha de Ingreso</label>
                                     <p class="text-gray-900 font-medium">
                                         {{ $employee->start_date ? \Carbon\Carbon::parse($employee->start_date)->format('d/m/Y') : '—' }}
