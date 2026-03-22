@@ -223,6 +223,7 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach($nomenclator as $item)
+                                @continue(! $item instanceof \App\Models\InsuranceTest)
                                 <tr class="hover:bg-gray-50" x-data="{ editing: false }">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                         {{ $item->test?->code ?? '—' }}

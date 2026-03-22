@@ -39,7 +39,9 @@ class InsuranceNomenclatorController extends Controller
             ->whereHas('test')
             ->with('test')
             ->orderBy('id')
-            ->get();
+            ->get()
+            ->filter(fn ($item) => $item instanceof \App\Models\InsuranceTest)
+            ->values();
 
         // Obtener prácticas que no están en el nomenclador
         $existingTestIds = $nomenclator->pluck('test_id')->toArray();
