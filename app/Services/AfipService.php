@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Company;
 use App\Models\CreditNote;
 use App\Models\SalesInvoice;
 use Exception;
@@ -61,19 +62,27 @@ class AfipService
         '27' => 6,
     ];
 
-    public function __construct()
+    public function __construct(?Company $company = null)
     {
-        $this->cuit = config('afip.cuit');
-        $this->certPath = base_path(config('afip.cert_path'));
-        $this->keyPath = base_path(config('afip.key_path'));
-        $this->production = (bool) config('afip.production');
+        $company = $company ?? active_company();
+
+        $this->cuit = $company?->cuit
+            ? str_replace('-', '', $company->cuit)
+            : config('afip.cuit');
+        $this->certPath = $company?->afip_cert_path
+            ? base_path($company->afip_cert_path)
+            : base_path(config('afip.cert_path'));
+        $this->keyPath = $company?->afip_key_path
+            ? base_path($company->afip_key_path)
+            : base_path(config('afip.key_path'));
+        $this->production = $company?->afip_production ?? (bool) config('afip.production');
     }
 
     // ─── WSAA ────────────────────────────────────────────────
 
     protected function getTokenAuthorization(): object
     {
-        $taFile = storage_path('app/afip/ta_wsfe_' . ($this->production ? 'prod' : 'homo') . '.json');
+        $taFile = storage_path('app/afip/ta_wsfe_' . $this->cuit . '_' . ($this->production ? 'prod' : 'homo') . '.json');
 
         if (file_exists($taFile)) {
             $data = json_decode(file_get_contents($taFile));
@@ -635,7 +644,7 @@ XML;
 
     public function invalidateTokenCache(): void
     {
-        $taFile = storage_path('app/afip/ta_wsfe_' . ($this->production ? 'prod' : 'homo') . '.json');
+        $taFile = storage_path('app/afip/ta_wsfe_' . $this->cuit . '_' . ($this->production ? 'prod' : 'homo') . '.json');
         if (file_exists($taFile)) {
             @unlink($taFile);
         }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Company extends Model
 {
@@ -38,6 +39,16 @@ class Company extends Model
     {
         return $this->belongsToMany(User::class)->withPivot('is_default')->withTimestamps();
     }
+
+    public function salesInvoices(): HasMany { return $this->hasMany(SalesInvoice::class); }
+
+    public function quotes(): HasMany { return $this->hasMany(Quote::class); }
+
+    public function collectionReceipts(): HasMany { return $this->hasMany(CollectionReceipt::class); }
+
+    public function creditNotes(): HasMany { return $this->hasMany(CreditNote::class); }
+
+    public function pointsOfSale(): HasMany { return $this->hasMany(PointOfSale::class); }
 
     public function displayName(): string
     {

@@ -10,6 +10,7 @@ class SalesInvoice extends Model
     use HasFactory;
 
     protected $fillable = [
+        'company_id',
         'invoice_number', 'voucher_type', 'point_of_sale', 'point_of_sale_id', 'customer_id',
         'quote_id', 'admission_id', 'issue_date', 'due_date',
         'subtotal', 'iva_21', 'iva_10_5', 'iva_27', 'percepciones', 'otros_impuestos',
@@ -26,6 +27,7 @@ class SalesInvoice extends Model
     ];
 
     public function customer() { return $this->belongsTo(Customer::class); }
+    public function company() { return $this->belongsTo(Company::class); }
     public function quote() { return $this->belongsTo(Quote::class); }
     public function pointOfSale() { return $this->belongsTo(PointOfSale::class); }
     public function creator() { return $this->belongsTo(User::class, 'created_by'); }

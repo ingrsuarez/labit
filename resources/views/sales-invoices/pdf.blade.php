@@ -77,9 +77,9 @@
 </head>
 <body>
     @php
-        $emisor = config('afip.emisor');
-        $cuit = config('afip.cuit');
-        $formattedCuit = substr($cuit, 0, 2) . '-' . substr($cuit, 2, 8) . '-' . substr($cuit, 10, 1);
+        $company = $invoice->company;
+        $cuit = $company ? str_replace('-', '', $company->cuit) : config('afip.cuit');
+        $formattedCuit = $company ? $company->cuit : (substr($cuit, 0, 2) . '-' . substr($cuit, 2, 8) . '-' . substr($cuit, 10, 1));
         $pos = $invoice->pointOfSale;
         $customer = $invoice->customer;
 
@@ -104,15 +104,15 @@
                 @if(file_exists(public_path('images/logo_ipac.png')))
                     <img src="{{ public_path('images/logo_ipac.png') }}" style="max-height: 45px; margin-bottom: 6px;"><br>
                 @endif
-                <div class="company-name">{{ $emisor['razon_social'] }}</div>
+                <div class="company-name">{{ $company ? $company->name : config('afip.emisor.razon_social') }}</div>
                 <div class="company-detail">
-                    Domicilio: {{ $emisor['domicilio'] }}<br>
-                    Condición frente al IVA: {{ $emisor['condicion_iva'] }}<br>
+                    Domicilio: {{ $company ? $company->address . ', ' . $company->city : config('afip.emisor.domicilio') }}<br>
+                    Condición frente al IVA: {{ $company ? $company->tax_condition : config('afip.emisor.condicion_iva') }}<br>
                     CUIT: {{ $formattedCuit }}<br>
-                    @if($emisor['ingresos_brutos'])
-                        Ingresos Brutos: {{ $emisor['ingresos_brutos'] }}<br>
+                    @if($company?->iibb ?? config('afip.emisor.ingresos_brutos'))
+                        Ingresos Brutos: {{ $company?->iibb ?? config('afip.emisor.ingresos_brutos') }}<br>
                     @endif
-                    Inicio de Actividades: {{ $emisor['inicio_actividades'] }}
+                    Inicio de Actividades: {{ $company?->activity_start?->format('d/m/Y') ?? config('afip.emisor.inicio_actividades') }}
                 </div>
             </td>
             <td class="header-center" style="border-right: 1px solid #000; padding-top: 5px;">
@@ -290,7 +290,7 @@
     @endif
 
     <div class="footer-line">
-        {{ $emisor['razon_social'] }} — CUIT {{ $formattedCuit }} — {{ $emisor['condicion_iva'] }}<br>
+        {{ $company ? $company->name : config('afip.emisor.razon_social') }} — CUIT {{ $formattedCuit }} — {{ $company ? $company->tax_condition : config('afip.emisor.condicion_iva') }}<br>
         Comprobante generado el {{ now()->format('d/m/Y H:i') }}
     </div>
 </body>

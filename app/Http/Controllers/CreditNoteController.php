@@ -16,6 +16,7 @@ class CreditNoteController extends Controller
     public function index(Request $request)
     {
         $query = CreditNote::with(['customer', 'salesInvoice', 'pointOfSale'])
+            ->where('company_id', active_company_id())
             ->orderBy('created_at', 'desc');
 
         if ($request->filled('search')) {
@@ -44,6 +45,7 @@ class CreditNoteController extends Controller
         $request->validate(['sales_invoice_id' => 'required|exists:sales_invoices,id']);
 
         $invoice = SalesInvoice::with(['items', 'customer', 'pointOfSale'])
+            ->where('company_id', active_company_id())
             ->findOrFail($request->sales_invoice_id);
 
         return view('credit-notes.create', compact('invoice'));
@@ -61,7 +63,9 @@ class CreditNoteController extends Controller
             'items.*.iva_rate' => 'required|numeric|in:0,10.5,21,27',
         ]);
 
-        $invoice = SalesInvoice::with(['pointOfSale', 'customer'])->findOrFail($request->sales_invoice_id);
+        $invoice = SalesInvoice::with(['pointOfSale', 'customer'])
+            ->where('company_id', active_company_id())
+            ->findOrFail($request->sales_invoice_id);
         $pointOfSale = $invoice->pointOfSale;
         $isElectronic = $pointOfSale && $pointOfSale->is_electronic;
 
@@ -69,6 +73,7 @@ class CreditNoteController extends Controller
 
         try {
             $creditNote = CreditNote::create([
+                'company_id' => active_company_id(),
                 'credit_note_number' => $isElectronic ? 'PENDIENTE-AFIP' : $this->getNextLocalNumber($invoice),
                 'voucher_type' => $invoice->voucher_type,
                 'point_of_sale_id' => $invoice->point_of_sale_id,
@@ -156,12 +161,14 @@ class CreditNoteController extends Controller
 
     public function show(CreditNote $creditNote)
     {
+        abort_if($creditNote->company_id !== active_company_id(), 403);
         $creditNote->load(['items', 'customer', 'pointOfSale', 'salesInvoice', 'creator']);
         return view('credit-notes.show', compact('creditNote'));
     }
 
     public function destroy(CreditNote $creditNote)
     {
+        abort_if($creditNote->company_id !== active_company_id(), 403);
         if ($creditNote->cae || $creditNote->status !== 'pendiente') {
             return back()->with('error', 'No se puede eliminar una nota de crédito autorizada o confirmada.');
         }
@@ -173,6 +180,7 @@ class CreditNoteController extends Controller
 
     public function retryAfip(CreditNote $creditNote)
     {
+        abort_if($creditNote->company_id !== active_company_id(), 403);
         if (! $creditNote->is_electronic || $creditNote->cae) {
             return back()->with('error', 'Esta nota de crédito no requiere autorización AFIP.');
         }

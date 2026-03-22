@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class CreditNote extends Model
 {
     protected $fillable = [
+        'company_id',
         'credit_note_number',
         'voucher_type',
         'point_of_sale_id',
@@ -50,6 +51,11 @@ class CreditNote extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
     }
 
     public function salesInvoice(): BelongsTo

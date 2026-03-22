@@ -18,6 +18,7 @@ class SalesInvoiceController extends Controller
         $this->authorize('sales-invoices.index');
 
         $query = SalesInvoice::with(['customer', 'creator', 'pointOfSale'])
+            ->where('company_id', active_company_id())
             ->orderByDesc('created_at');
 
         if ($request->filled('search')) {
@@ -38,7 +39,8 @@ class SalesInvoiceController extends Controller
 
         $invoices = $query->paginate(15)->withQueryString();
 
-        $total_balance = SalesInvoice::whereIn('status', ['pendiente', 'parcialmente_cobrada'])->sum('balance');
+        $total_balance = SalesInvoice::where('company_id', active_company_id())
+            ->whereIn('status', ['pendiente', 'parcialmente_cobrada'])->sum('balance');
 
         return view('sales-invoices.index', compact('invoices', 'total_balance'));
     }
@@ -48,12 +50,16 @@ class SalesInvoiceController extends Controller
         $this->authorize('sales-invoices.create');
 
         $customers = Customer::where('status', 'activo')->orderBy('name')->get();
-        $pointsOfSale = PointOfSale::where('is_active', true)->orderBy('code')->get();
+        $pointsOfSale = PointOfSale::where('is_active', true)
+            ->where('company_id', active_company_id())
+            ->orderBy('code')->get();
 
         $quote = null;
 
         if ($request->filled('quote_id')) {
-            $quote = Quote::with('items')->findOrFail($request->quote_id);
+            $quote = Quote::with('items')
+                ->where('company_id', active_company_id())
+                ->findOrFail($request->quote_id);
         }
 
         return view('sales-invoices.create', [
@@ -119,6 +125,7 @@ class SalesInvoiceController extends Controller
         ]);
 
         $invoice = SalesInvoice::create([
+            'company_id' => active_company_id(),
             'invoice_number' => $isElectronic ? 'PENDIENTE-AFIP' : $validated['invoice_number'],
             'voucher_type' => $validated['voucher_type'],
             'point_of_sale_id' => $validated['point_of_sale_id'],
@@ -208,6 +215,7 @@ class SalesInvoiceController extends Controller
     public function show(SalesInvoice $salesInvoice)
     {
         $this->authorize('sales-invoices.index');
+        abort_if($salesInvoice->company_id !== active_company_id(), 403);
 
         $salesInvoice->load([
             'customer', 'quote', 'creator', 'pointOfSale',
@@ -221,6 +229,7 @@ class SalesInvoiceController extends Controller
     public function edit(SalesInvoice $salesInvoice)
     {
         $this->authorize('sales-invoices.edit');
+        abort_if($salesInvoice->company_id !== active_company_id(), 403);
 
         if ($salesInvoice->is_electronic && $salesInvoice->cae) {
             return redirect()->route('sales-invoices.show', $salesInvoice)
@@ -234,7 +243,9 @@ class SalesInvoiceController extends Controller
 
         $salesInvoice->load('items');
         $customers = Customer::where('status', 'activo')->orderBy('name')->get();
-        $pointsOfSale = PointOfSale::where('is_active', true)->orderBy('code')->get();
+        $pointsOfSale = PointOfSale::where('is_active', true)
+            ->where('company_id', active_company_id())
+            ->orderBy('code')->get();
 
         return view('sales-invoices.edit', [
             'invoice' => $salesInvoice,
@@ -246,6 +257,7 @@ class SalesInvoiceController extends Controller
     public function update(Request $request, SalesInvoice $salesInvoice)
     {
         $this->authorize('sales-invoices.edit');
+        abort_if($salesInvoice->company_id !== active_company_id(), 403);
 
         if ($salesInvoice->status !== 'pendiente') {
             return redirect()->route('sales-invoices.show', $salesInvoice)
@@ -335,6 +347,7 @@ class SalesInvoiceController extends Controller
     public function destroy(SalesInvoice $salesInvoice)
     {
         $this->authorize('sales-invoices.delete');
+        abort_if($salesInvoice->company_id !== active_company_id(), 403);
 
         if ($salesInvoice->status !== 'pendiente' || $salesInvoice->amount_collected > 0) {
             return redirect()->route('sales-invoices.show', $salesInvoice)
@@ -395,6 +408,7 @@ class SalesInvoiceController extends Controller
     public function retryAfip(SalesInvoice $salesInvoice)
     {
         $this->authorize('sales-invoices.edit');
+        abort_if($salesInvoice->company_id !== active_company_id(), 403);
 
         if (! $salesInvoice->is_electronic || $salesInvoice->cae) {
             return redirect()->route('sales-invoices.show', $salesInvoice)
@@ -443,8 +457,9 @@ class SalesInvoiceController extends Controller
     public function pdf(SalesInvoice $salesInvoice)
     {
         $this->authorize('sales-invoices.index');
+        abort_if($salesInvoice->company_id !== active_company_id(), 403);
 
-        $salesInvoice->load(['customer', 'pointOfSale', 'items.test', 'creator']);
+        $salesInvoice->load(['customer', 'pointOfSale', 'items.test', 'creator', 'company']);
 
         $pdf = PDF::loadView('sales-invoices.pdf', ['invoice' => $salesInvoice], [], [
             'margin_top' => 10,
