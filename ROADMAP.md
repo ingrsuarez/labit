@@ -38,6 +38,7 @@
 | v1.5.4 | Tests faltantes y jerarquía padre-hijo completa | 2026-03-22 | 27 tests hijos, 37 relaciones, badge padre, fix cascada |
 | v1.6.0 | Formato tabular en PDFs de informes | 2026-03-23 | Tabla con Análisis/Resultado/Unidad/Ref, padres bold, hijos indentados |
 | v1.6.1 | Filtrar nomencladores de dropdowns y crear Particular | 2026-03-23 | Seeder Particular, filtrar type!=nomenclador en 5 controladores |
+| v1.7.0 | Cobro a particulares y control de deuda | 2026-03-23 | Migración payment fields, cobro parcial/total, deudores, 3 medios de pago |
 
 ---
 
@@ -70,10 +71,11 @@ _Cola vacía._
 ## Progreso general
 
 ```
-Completadas:  21 versiones (v1.0.0 → v2.3.0)
+Completadas:  22 versiones (v1.0.0 → v2.3.0)
 Planificadas: 0
 En proceso:   0
 Próxima:      — (planificar nuevas versiones)
+```
 ```
 
 ---

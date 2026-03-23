@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class Admission extends Model
 {
@@ -37,6 +37,11 @@ class Admission extends Model
         'cash',
         'created_by',
         'status',
+        'payment_status',
+        'payment_method',
+        'paid_amount',
+        'payment_date',
+        'payment_notes',
     ];
 
     protected $casts = [
@@ -48,14 +53,19 @@ class Admission extends Model
         'total_copago' => 'decimal:2',
         'insurance_price' => 'float',
         'patient_price' => 'float',
+        'paid_amount' => 'decimal:2',
+        'payment_date' => 'datetime',
     ];
 
     /**
      * Estados disponibles
      */
     const STATUS_PENDING = 'pending';
+
     const STATUS_IN_PROGRESS = 'in_progress';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_CANCELLED = 'cancelled';
 
     /**
@@ -77,7 +87,7 @@ class Admission extends Model
             $newNumber = 1;
         }
 
-        return $year . '-' . str_pad($newNumber, 6, '0', STR_PAD_LEFT);
+        return $year.'-'.str_pad($newNumber, 6, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -168,7 +178,7 @@ class Admission extends Model
      */
     public function getStatusLabelAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_PENDING => 'Pendiente',
             self::STATUS_IN_PROGRESS => 'En Proceso',
             self::STATUS_COMPLETED => 'Completado',
@@ -182,7 +192,7 @@ class Admission extends Model
      */
     public function getStatusColorAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_PENDING => 'yellow',
             self::STATUS_IN_PROGRESS => 'blue',
             self::STATUS_COMPLETED => 'green',
@@ -229,5 +239,27 @@ class Admission extends Model
     public function scopeCompleted($query)
     {
         return $query->where('status', self::STATUS_COMPLETED);
+    }
+
+    public function isParticular(): bool
+    {
+        return $this->insuranceRelation?->type === 'particular';
+    }
+
+    public function getBalanceAttribute(): float
+    {
+        $total = (float) ($this->total_patient ?: ($this->patient_price ?: 0));
+
+        return max(0, $total - (float) ($this->paid_amount ?? 0));
+    }
+
+    public function getTotalToPayAttribute(): float
+    {
+        return (float) ($this->total_patient ?: ($this->patient_price ?: 0));
+    }
+
+    public function scopeDebtors($query)
+    {
+        return $query->whereIn('payment_status', ['pendiente', 'parcial']);
     }
 }
