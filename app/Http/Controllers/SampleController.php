@@ -247,9 +247,25 @@ class SampleController extends Controller
             abort(403);
         }
 
+        $test = $determination->test;
+        $allChildren = $test->getAllChildren(false);
+        $childTestIds = $allChildren->pluck('id');
+        $deletedChildren = 0;
+
+        if ($childTestIds->isNotEmpty()) {
+            $deletedChildren = $sample->determinations()
+                ->whereIn('test_id', $childTestIds)
+                ->delete();
+        }
+
         $determination->delete();
 
-        return back()->with('success', 'Determinaci?n eliminada correctamente.');
+        $msg = 'Determinación eliminada correctamente.';
+        if ($deletedChildren > 0) {
+            $msg = "Determinación y {$deletedChildren} subdeterminaciones eliminadas correctamente.";
+        }
+
+        return back()->with('success', $msg);
     }
 
     /**
