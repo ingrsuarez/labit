@@ -35,6 +35,8 @@
 | v2.2.1 | Fix columnas vacías en vista de protocolo | 2026-03-22 | Reemplazar template x-if por x-show en tabla de determinaciones |
 | v2.3.0 | RRHH multi-empresa | 2026-03-22 | company_id en employees, payrolls, leaves, documents |
 
+| v1.5.4 | Tests faltantes y jerarquía padre-hijo completa | 2026-03-22 | 27 tests hijos, 37 relaciones, badge padre, fix cascada |
+
 ---
 
 ## En progreso
@@ -46,9 +48,7 @@
 
 ## Planificado
 
-| Versión | Nombre | Estimación | Dependencias | Prompt |
-|---|---|---|---|---|
-| v1.5.4 | Tests faltantes y jerarquía padre-hijo completa | 1h | v1.5.3 | `pendientes/v1.5.4-tests-faltantes-jerarquia-completa.md` |
+_Sin versiones planificadas. Cola vacía._
 
 ---
 
@@ -65,10 +65,10 @@
 ## Progreso general
 
 ```
-Completadas:  18 versiones (v1.0.0 → v2.3.0)
-Planificadas: 1 versión (v1.5.4)
+Completadas:  19 versiones (v1.0.0 → v2.3.0)
+Planificadas: 0 versiones
 En proceso:   0
-Próxima:      v1.5.4 — Tests faltantes y jerarquía padre-hijo completa
+Próxima:      — (planificar nuevas versiones)
 ```
 
 ---
