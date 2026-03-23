@@ -5,6 +5,46 @@
 
 ---
 
+## [v1.6.0] — 2026-03-23 — Formato tabular en PDFs de informes
+
+### Modificado
+- Template PDF (`pdf-mpdf.blade.php`) reformateado de layout vertical a formato tabular compacto
+- Cada determinación ocupa una fila con columnas: Análisis | Resultado | Unidad | Valores de ref.
+- Encabezado de sección con fondo gris, texto bold mayúsculas y ancho completo
+- Encabezados de columnas (Análisis, Resultado, Unidad, Valores de ref.) con separador inferior
+- Tests padre como sub-encabezados: nombre bold en color teal, sin resultado, con categoría de referencia a la derecha
+- Tests hijo indentados (padding-left 20px) debajo de su padre con resultado, unidad y valor de referencia en columnas
+- Tests standalone en fila normal sin indentación
+- Método como subtexto italic gris debajo de cada determinación (cuando existe)
+- Resultado en bold, valores de referencia alineados a la derecha
+
+### Sin cambios
+- Header y footer del PDF (logo, empresa, paginación, firma)
+- Lógica de ordenamiento padre/hijo/standalone
+- Bloque de conclusión (cumple/no cumple)
+- Sección de validación y firma
+
+---
+
+## [v1.5.4] — 2026-03-22 — Tests faltantes y jerarquía padre-hijo completa
+
+### Agregado
+- `MissingTestsSeeder`: crea 27 tests hijos faltantes agrupados por padre (Hemograma 4, Fórmula Leucocitaria 4, Hepatograma 3, Orina Completa 14, Drogas 2)
+- Códigos autogenerados con prefijo por grupo: `VCM`, `HCM`, `CHCM`, `RDW` (hemograma), `NEUTSE`, `BASO`, `LINF`, `MONO` (fórmula), `BILTOT`, `BILDIR`, `BILIND` (hepatograma), `ORI-*` (orina), `DRG-*` (drogas)
+- Re-ejecución de `TestParentChildSeeder` completa las 37 relaciones padre-hijo (antes solo 10)
+- Badge de padre en tabla de determinaciones: tests hijos muestran el nombre del padre en un badge teal
+- Info de padre en modal de edición: texto "Pertenece a: ..." debajo del título
+
+### Corregido
+- Eliminar un padre del protocolo ahora cascadea a sus hijos (antes solo eliminaba la determinación padre)
+- Mensaje de confirmación indica cuántas subdeterminaciones se eliminaron
+
+### Notas
+- Ambos seeders son idempotentes y pueden re-ejecutarse sin riesgo
+- Material de los hijos se copia del test padre
+
+---
+
 ## [v2.3.0] — 2026-03-22 — RRHH multi-empresa
 
 ### Agregado

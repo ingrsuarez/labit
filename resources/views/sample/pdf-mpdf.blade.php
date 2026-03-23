@@ -46,85 +46,75 @@
         }
         
         /* Determinations Table Style */
-        .determination-item {
-            margin-bottom: 12px;
-            page-break-inside: avoid;
+        .det-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
         }
-        
-        .determination-item.is-child {
-            margin-left: 25px;
-            padding-left: 10px;
+
+        .det-table td {
+            border: none;
+            vertical-align: top;
         }
-        
-        .determination-item.is-parent {
-            background-color: #f0f9fa;
-            padding: 8px 10px;
-            margin-bottom: 5px;
-        }
-        
-        .det-name {
+
+        .det-section-header td {
             font-weight: bold;
-            color: #141b1c;
-            font-size: 12px;
+            font-size: 11pt;
             text-transform: uppercase;
+            background-color: #f0f0f0;
+            border-bottom: 2px solid #333;
+            padding: 6px;
         }
-        
-        .det-name.is-child {
-            font-size: 11px;
+
+        .det-col-header td {
+            font-weight: bold;
+            font-size: 9pt;
+            border-bottom: 1px solid #ccc;
+            padding: 4px;
+            color: #555;
         }
-        
-        .det-name.is-parent {
-            font-size: 13px;
+
+        .det-parent td {
+            font-weight: bold;
+            font-size: 10pt;
+            padding: 6px 4px 2px 4px;
             color: #006070;
         }
-        
-        .det-reference {
-            font-size: 11px;
+
+        .det-method td {
+            font-size: 8pt;
             color: #666;
-            float: right;
+            font-style: italic;
+            padding: 0 4px 4px 12px;
         }
-        
-        .det-data-row {
-            font-size: 11px;
-            padding-left: 10px;
-            margin-top: 3px;
+
+        .det-child td {
+            font-size: 9pt;
+            padding: 3px 4px;
+            border-bottom: 1px solid #eee;
         }
-        
-        .det-label {
-            color: #666;
-            display: inline-block;
-            width: 80px;
+
+        .det-child td:first-child {
+            padding-left: 20px;
         }
-        
-        .det-value {
-            color: #333;
+
+        .det-standalone td {
+            font-size: 9pt;
+            padding: 3px 4px;
+            border-bottom: 1px solid #eee;
         }
-        
-        .det-value.result {
+
+        .det-result {
             font-weight: bold;
             color: #000;
+            text-align: center;
         }
 
-        .det-layout-table {
-            width: 100%;
-            border: none;
-            border-collapse: collapse;
-            margin-top: 2px;
+        .det-unit {
+            text-align: center;
         }
 
-        .det-layout-table td {
-            border: none;
-            padding: 1px 5px;
-            vertical-align: top;
-            font-size: 11px;
-        }
-
-        .det-col-result {
-            font-weight: bold;
-            color: #000;
-        }
-
-        .det-col-ref {
+        .det-ref {
             color: #666;
             text-align: right;
         }
@@ -334,77 +324,113 @@
         </div>
     </div>
     
-    <!-- Section Title -->
-    <div class="section-title">
-        {{ strtoupper($sample->sample_type) }} - {{ strtoupper($sample->location) }}
-    </div>
-    
     <!-- Determinations -->
-    @foreach($orderedDeterminations as $item)
-        @php 
-            $det = $item['det'];
-            $isChild = $item['isChild'];
-            $isParent = $item['isParent'];
-            
-            $parentCategoryName = null;
-            if ($isParent) {
-                // Determinar la categoría real usada por los hijos de este padre
-                $childDets = $validatedDeterminations->filter(function($d) use ($det) {
-                    $childTest = $d->test;
-                    if (!$childTest) return false;
-                    if ($childTest->parent == $det->test_id) return true;
-                    return $childTest->parentTests()->where('parent_test_id', $det->test_id)->exists();
-                });
-                $childCategory = $childDets->first(function($d) { return $d->reference_category_id; });
-                if ($childCategory && $childCategory->referenceCategory) {
-                    $parentCategoryName = $childCategory->referenceCategory->name;
-                } elseif ($det->test->default_reference_category_id && $det->test->defaultReferenceCategory) {
-                    $parentCategoryName = $det->test->defaultReferenceCategory->name;
-                }
-            }
-        @endphp
-        
-        <div class="determination-item {{ $isChild ? 'is-child' : '' }} {{ $isParent ? 'is-parent' : '' }}">
-            <div>
-                <span class="det-name {{ $isChild ? 'is-child' : '' }} {{ $isParent ? 'is-parent' : '' }}">
-                    {{ $det->test->name ?? 'N/A' }}
-                </span>
-                @if($isParent && $parentCategoryName)
-                    <span class="det-reference">Valores de referencia según {{ $parentCategoryName }}</span>
+    <table class="det-table" cellpadding="0" cellspacing="0">
+        <!-- Section header -->
+        <tr class="det-section-header">
+            <td colspan="4">
+                {{ strtoupper($sample->sample_type) }} - {{ strtoupper($sample->location) }}
+                @php
+                    $firstCategoryName = null;
+                    foreach ($orderedDeterminations as $item) {
+                        $d = $item['det'];
+                        if ($d->reference_category_id && $d->referenceCategory) {
+                            $firstCategoryName = $d->referenceCategory->name;
+                            break;
+                        }
+                    }
+                @endphp
+                @if($firstCategoryName)
+                    <span style="font-size: 8pt; font-weight: normal; font-style: italic; margin-left: 10px;">
+                        Valores de referencia según {{ $firstCategoryName }}
+                    </span>
                 @endif
-            </div>
-            
-            @if(!$isParent)
-                <table class="det-layout-table">
-                    <tr>
-                        <td width="45%" style="padding-left: 10px;">
-                            <span style="color: #666;">Resultado:</span>
-                            <span class="det-col-result">{{ $det->result ?? '-' }}@if($det->unit) {{ $det->unit }}@endif</span>
-                        </td>
-                        <td width="55%" class="det-col-ref">
-                            @if($det->reference_value)
-                                {{ $det->reference_value }}
-                            @endif
-                        </td>
+            </td>
+        </tr>
+        <!-- Column headers -->
+        <tr class="det-col-header">
+            <td width="40%">Análisis</td>
+            <td width="18%" style="text-align: center;">Resultado</td>
+            <td width="12%" style="text-align: center;">Unidad</td>
+            <td width="30%" style="text-align: right;">Valores de ref.</td>
+        </tr>
+
+        @foreach($orderedDeterminations as $item)
+            @php
+                $det = $item['det'];
+                $isChild = $item['isChild'];
+                $isParent = $item['isParent'];
+            @endphp
+
+            @if($isParent)
+                {{-- Parent row: bold, no result --}}
+                <tr class="det-parent">
+                    <td colspan="4">
+                        {{ $det->test->name ?? 'N/A' }}
+                        @php
+                            $childDets = $validatedDeterminations->filter(function($d) use ($det) {
+                                $childTest = $d->test;
+                                if (!$childTest) return false;
+                                if ($childTest->parent == $det->test_id) return true;
+                                return $childTest->parentTests()->where('parent_test_id', $det->test_id)->exists();
+                            });
+                            $childCategory = $childDets->first(function($d) { return $d->reference_category_id; });
+                            $pCatName = null;
+                            if ($childCategory && $childCategory->referenceCategory) {
+                                $pCatName = $childCategory->referenceCategory->name;
+                            } elseif ($det->test->default_reference_category_id && $det->test->defaultReferenceCategory) {
+                                $pCatName = $det->test->defaultReferenceCategory->name;
+                            }
+                        @endphp
+                        @if($pCatName)
+                            <span style="font-size: 8pt; font-weight: normal; color: #666; font-style: italic; float: right;">
+                                Valores según {{ $pCatName }}
+                            </span>
+                        @endif
+                    </td>
+                </tr>
+                @if($det->method)
+                    <tr class="det-method">
+                        <td colspan="4">{{ $det->method }}</td>
                     </tr>
-                    @if($det->method)
-                    <tr>
-                        <td colspan="2" style="padding-left: 10px; color: #666;">
-                            Método: <span style="color: #333;">{{ $det->method }}</span>
-                        </td>
+                @endif
+            @elseif($isChild)
+                {{-- Child row: indented --}}
+                <tr class="det-child">
+                    <td style="padding-left: 20px;">{{ ucfirst($det->test->name ?? 'N/A') }}</td>
+                    <td class="det-result">{{ $det->result ?? '-' }}</td>
+                    <td class="det-unit">{{ $det->unit ?? '' }}</td>
+                    <td class="det-ref">{{ $det->reference_value ?? '' }}</td>
+                </tr>
+                @if($det->method)
+                    <tr class="det-method">
+                        <td colspan="4" style="padding-left: 20px;">{{ $det->method }}</td>
                     </tr>
-                    @endif
-                </table>
+                @endif
+            @else
+                {{-- Standalone row --}}
+                <tr class="det-standalone">
+                    <td>{{ ucfirst($det->test->name ?? 'N/A') }}</td>
+                    <td class="det-result">{{ $det->result ?? '-' }}</td>
+                    <td class="det-unit">{{ $det->unit ?? '' }}</td>
+                    <td class="det-ref">{{ $det->reference_value ?? '' }}</td>
+                </tr>
+                @if($det->method)
+                    <tr class="det-method">
+                        <td colspan="4" style="padding-left: 12px;">{{ $det->method }}</td>
+                    </tr>
+                @endif
             @endif
-            
+
             @if($det->observations)
-            <div class="det-data-row">
-                <span class="det-label"></span>
-                <span class="det-value" style="font-style: italic; color: #666;">{{ $det->observations }}</span>
-            </div>
+                <tr>
+                    <td colspan="4" style="font-size: 8pt; font-style: italic; color: #666; padding: 0 4px 4px 12px;">
+                        {{ $det->observations }}
+                    </td>
+                </tr>
             @endif
-        </div>
-    @endforeach
+        @endforeach
+    </table>
     
     <!-- Análisis de Cumplimiento -->
     @php
