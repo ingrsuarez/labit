@@ -1,10 +1,10 @@
 <x-lab-layout>
-    <div class="py-6 px-4 md:px-6">
+    <div class="py-6 px-4 md:px-6" x-data="sampleFilter()">
         <!-- Header -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Protocolos de Muestras</h1>
-                <p class="text-gray-600 mt-1">Gestión de muestras de agua y alimentos</p>
+                <p class="text-gray-600 mt-1">Gestión de muestras de agua, alimentos y hielo</p>
             </div>
             @can('samples.create')
             <a href="{{ route('sample.create') }}" 
@@ -26,36 +26,41 @@
 
         <!-- Filtros -->
         <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
-            <form method="GET" class="flex flex-wrap gap-4">
-                <div class="flex-1 min-w-[200px]">
-                    <input type="text" name="search" value="{{ request('search') }}" 
-                           placeholder="Buscar por protocolo o cliente..."
-                           class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+            <div class="flex flex-wrap items-center gap-4">
+                <div class="flex-1 min-w-[200px] relative">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input type="text" x-model="search" placeholder="Buscar por protocolo, cliente o lugar..."
+                           class="pl-10 w-full rounded-lg border-gray-300 shadow-sm text-sm focus:ring-teal-500 focus:border-teal-500">
                 </div>
                 <div>
-                    <select name="sample_type" class="rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                    <select x-model="filterType" class="rounded-lg border-gray-300 shadow-sm text-sm focus:ring-teal-500 focus:border-teal-500">
                         <option value="">Todos los tipos</option>
-                        <option value="agua" {{ request('sample_type') == 'agua' ? 'selected' : '' }}>Agua</option>
-                        <option value="alimento" {{ request('sample_type') == 'alimento' ? 'selected' : '' }}>Alimento</option>
+                        <option value="agua">Agua</option>
+                        <option value="alimento">Alimento</option>
+                        <option value="hielo">Hielo</option>
                     </select>
                 </div>
                 <div>
-                    <select name="status" class="rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                    <select x-model="filterStatus" class="rounded-lg border-gray-300 shadow-sm text-sm focus:ring-teal-500 focus:border-teal-500">
                         <option value="">Todos los estados</option>
-                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pendiente</option>
-                        <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>En Proceso</option>
-                        <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completado</option>
+                        <option value="validated">Validado</option>
+                        <option value="completed">Completado</option>
+                        <option value="incomplete">Incompleto</option>
+                        <option value="pending">Pendiente</option>
                     </select>
                 </div>
-                <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
-                    Filtrar
-                </button>
-                @if(request()->hasAny(['search', 'sample_type', 'status']))
-                    <a href="{{ route('sample.index') }}" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                <div x-show="search || filterType || filterStatus" x-cloak>
+                    <button type="button" @click="search = ''; filterType = ''; filterStatus = ''"
+                            class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800">
                         Limpiar
-                    </a>
-                @endif
-            </form>
+                    </button>
+                </div>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">
+                Mostrando <span x-text="visibleCount"></span> de {{ $samples->count() }} protocolos
+            </p>
         </div>
 
         <!-- Tabla de Protocolos -->
@@ -63,38 +68,30 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Protocolo
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Tipo
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Lugar
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Cliente
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Fecha Ingreso
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Determinaciones
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Estado
-                        </th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Acciones
-                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Protocolo</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lugar</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Ingreso</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Determinaciones</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($samples as $sample)
                         @php
                             $validatedCount = $sample->determinations->where('is_validated', true)->count();
+                            $calcStatus = $sample->calculated_status;
                         @endphp
-                        <tr class="hover:bg-gray-50">
+                        <tr class="hover:bg-gray-50"
+                            x-show="matchesFilter(
+                                '{{ strtolower($sample->protocol_number) }}',
+                                '{{ strtolower(addslashes($sample->customer?->name ?? '')) }}',
+                                '{{ strtolower(addslashes($sample->location ?? '')) }}',
+                                '{{ strtolower($sample->sample_type ?? '') }}',
+                                '{{ strtolower($calcStatus) }}'
+                            )">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <a href="{{ route('sample.show', $sample) }}" class="text-teal-600 hover:text-teal-800 font-medium">
                                     {{ $sample->protocol_number }}
@@ -102,7 +99,12 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                    {{ $sample->sample_type == 'agua' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800' }}">
+                                    @switch($sample->sample_type)
+                                        @case('agua') bg-blue-100 text-blue-800 @break
+                                        @case('alimento') bg-orange-100 text-orange-800 @break
+                                        @case('hielo') bg-cyan-100 text-cyan-800 @break
+                                        @default bg-gray-100 text-gray-800 @break
+                                    @endswitch">
                                     {{ ucfirst($sample->sample_type) }}
                                 </span>
                             </td>
@@ -124,9 +126,6 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                @php
-                                    $calcStatus = $sample->calculated_status;
-                                @endphp
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                     @switch($calcStatus)
                                         @case('validated') bg-green-100 text-green-800 @break
@@ -139,12 +138,8 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                <a href="{{ route('sample.show', $sample) }}" class="text-teal-600 hover:text-teal-900">
-                                    Ver
-                                </a>
-                                <a href="{{ route('sample.edit', $sample) }}" class="text-indigo-600 hover:text-indigo-900">
-                                    Editar
-                                </a>
+                                <a href="{{ route('sample.show', $sample) }}" class="text-teal-600 hover:text-teal-900">Ver</a>
+                                <a href="{{ route('sample.edit', $sample) }}" class="text-indigo-600 hover:text-indigo-900">Editar</a>
                                 @if($validatedCount > 0)
                                     <a href="{{ route('sample.pdf.view', $sample) }}" target="_blank" 
                                        class="text-green-600 hover:text-green-900" title="Imprimir informe ({{ $validatedCount }} validadas)">
@@ -171,12 +166,37 @@
                     @endforelse
                 </tbody>
             </table>
-
-            @if($samples->hasPages())
-                <div class="px-6 py-4 border-t border-gray-200">
-                    {{ $samples->withQueryString()->links() }}
-                </div>
-            @endif
         </div>
     </div>
+
+    <script>
+        function sampleFilter() {
+            return {
+                search: '',
+                filterType: '',
+                filterStatus: '',
+                visibleCount: {{ $samples->count() }},
+
+                matchesFilter(protocol, customer, place, type, status) {
+                    const q = this.search.toLowerCase().trim();
+                    const matchesSearch = !q ||
+                        protocol.includes(q) ||
+                        customer.includes(q) ||
+                        place.includes(q);
+                    const matchesType = !this.filterType || type === this.filterType.toLowerCase();
+                    const matchesStatus = !this.filterStatus || status === this.filterStatus.toLowerCase();
+                    const visible = matchesSearch && matchesType && matchesStatus;
+                    this.$nextTick(() => this.updateCount());
+                    return visible;
+                },
+
+                updateCount() {
+                    const rows = this.$root.querySelectorAll('tbody tr[x-show]');
+                    let count = 0;
+                    rows.forEach(r => { if (r.style.display !== 'none') count++; });
+                    this.visibleCount = count;
+                }
+            }
+        }
+    </script>
 </x-lab-layout>

@@ -39,6 +39,7 @@
 | v1.6.0 | Formato tabular en PDFs de informes | 2026-03-23 | Tabla con Análisis/Resultado/Unidad/Ref, padres bold, hijos indentados |
 | v1.6.1 | Filtrar nomencladores de dropdowns y crear Particular | 2026-03-23 | Seeder Particular, filtrar type!=nomenclador en 5 controladores |
 | v1.7.0 | Cobro a particulares y control de deuda | 2026-03-23 | Migración payment fields, cobro parcial/total, deudores, 3 medios de pago |
+| v1.8.0 | Búsqueda activa en protocolos de muestras | 2026-03-23 | Filtrado Alpine.js client-side, sin paginación, búsqueda instantánea |
 
 ---
 
@@ -53,8 +54,7 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-
-_Cola vacía._
+| v1.7.1 | Búsqueda activa en protocolos de muestras | 30min | ninguna | `prompts/pendientes/v1.7.1-busqueda-activa-protocolos-muestras.md` |
 
 ---
 
@@ -71,11 +71,10 @@ _Cola vacía._
 ## Progreso general
 
 ```
-Completadas:  22 versiones (v1.0.0 → v2.3.0)
+Completadas:  23 versiones (v1.0.0 → v2.3.0)
 Planificadas: 0
 En proceso:   0
 Próxima:      — (planificar nuevas versiones)
-```
 ```
 
 ---
