@@ -114,6 +114,11 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {{ ucfirst($test->name) }}
+                                @if($test->parentTests->count() > 0)
+                                    @foreach($test->parentTests as $pt)
+                                        <span class="ml-1 text-xs bg-teal-100 text-teal-600 px-1.5 py-0.5 rounded">{{ ucfirst($pt->name) }}</span>
+                                    @endforeach
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ $test->unit ?? '-' }}
@@ -305,6 +310,7 @@
                 @method('PUT')
                 <div class="px-6 py-4 border-b border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-800">Editar Determinación</h3>
+                    <p id="edit-parent-info" class="text-sm text-teal-600 mt-1 hidden"></p>
                 </div>
                 
                 <div class="px-6 py-4">
@@ -469,6 +475,18 @@
             Array.from(parentSelect.options).forEach(option => {
                 option.selected = parentIds && parentIds.includes(parseInt(option.value));
             });
+
+            // Mostrar info de padres
+            const parentInfo = document.getElementById('edit-parent-info');
+            if (parentIds && parentIds.length > 0) {
+                const selectedOptions = Array.from(parentSelect.options)
+                    .filter(opt => parentIds.includes(parseInt(opt.value)));
+                const parentNames = selectedOptions.map(opt => opt.text);
+                parentInfo.textContent = 'Pertenece a: ' + parentNames.join(', ');
+                parentInfo.classList.remove('hidden');
+            } else {
+                parentInfo.classList.add('hidden');
+            }
             
             document.getElementById('modal-edit').classList.remove('hidden');
         }
