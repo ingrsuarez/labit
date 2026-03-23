@@ -12,7 +12,7 @@
         </div>
 
         {{-- Filtros --}}
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-4 rounded-xl shadow mb-6">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4 bg-white p-4 rounded-xl shadow mb-6">
             {{-- Búsqueda --}}
             <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-gray-700">Buscar</label>
@@ -44,7 +44,20 @@
                 </select>
             </div>
 
-            <div class="md:col-span-4 flex gap-3 justify-end">
+            {{-- Empresa --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Empresa</label>
+                <select name="company_id"
+                        class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">— Todas —</option>
+                    <option value="none" @selected(($filters['company_id'] ?? '') === 'none')>Sin empresa asignada</option>
+                    @foreach($companies as $company)
+                        <option value="{{ $company->id }}" @selected(($filters['company_id'] ?? '') == $company->id)>{{ $company->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="md:col-span-5 flex gap-3 justify-end">
                 <a href="{{ route('employee.show') }}"
                 class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Limpiar</a>
                 <button class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Filtrar</button>
@@ -66,8 +79,8 @@
                 <div class="text-2xl font-semibold text-amber-600">{{ $summary['inactivos'] }}</div>
             </div>
             <div class="bg-white rounded-xl shadow p-4">
-                <div class="text-sm text-gray-500">Prom. horas/sem</div>
-                <div class="text-2xl font-semibold">{{ $summary['promHoras'] }}</div>
+                <div class="text-sm text-gray-500">Sin empresa</div>
+                <div class="text-2xl font-semibold {{ $summary['sinEmpresa'] > 0 ? 'text-red-600' : 'text-gray-400' }}">{{ $summary['sinEmpresa'] }}</div>
             </div>
         </div>
 
@@ -122,7 +135,13 @@
                                 <div class="text-xs text-gray-500">#{{ $e->id }}</div>
                             </td>
                             <td class="px-4 py-3 text-gray-700">{{ $e->employeeId }}</td>
-                            <td class="px-4 py-3 text-gray-700">{{ $e->company?->name ?? '—' }}</td>
+                            <td class="px-4 py-3">
+                                @if($e->company)
+                                    <span class="text-gray-700">{{ $e->company->name }}</span>
+                                @else
+                                    <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700">Sin asignar</span>
+                                @endif
+                            </td>
                             <td class="px-4 py-3 text-gray-700">{{ $puestos ?: '—' }}</td>
                             <td class="px-4 py-3 text-gray-700">{{ $deptos ?: '—' }}</td>
                             <td class="px-4 py-3 text-gray-700">{{ $e->email ?? '—' }}</td>
