@@ -366,7 +366,7 @@
                 {{-- Parent row: bold, no result --}}
                 <tr class="det-parent">
                     <td colspan="4">
-                        {{ $det->test->name ?? 'N/A' }}
+                        {{ strtoupper($det->test->name ?? 'N/A') }}
                         @php
                             $childDets = $validatedDeterminations->filter(function($d) use ($det) {
                                 $childTest = $d->test;
