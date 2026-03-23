@@ -63,7 +63,7 @@ class SampleController extends Controller
     {
         $this->authorize('samples.create');
         $validated = $request->validate([
-            'sample_type' => 'required|in:agua,alimento',
+            'sample_type' => 'required|in:agua,alimento,hielo',
             'entry_date' => 'required|date',
             'sampling_date' => 'required|date',
             'customer_id' => 'required|exists:customers,id',
@@ -162,7 +162,7 @@ class SampleController extends Controller
     {
         $this->authorize('samples.edit');
         $validated = $request->validate([
-            'sample_type' => 'required|in:agua,alimento',
+            'sample_type' => 'required|in:agua,alimento,hielo',
             'entry_date' => 'required|date',
             'sampling_date' => 'required|date',
             'customer_id' => 'required|exists:customers,id',

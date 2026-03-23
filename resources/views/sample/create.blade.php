@@ -37,6 +37,7 @@
                                 class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                             <option value="agua">Agua</option>
                             <option value="alimento">Alimento</option>
+                            <option value="hielo">Hielo</option>
                         </select>
                     </div>
 

@@ -37,6 +37,7 @@
                                 class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                             <option value="agua" {{ old('sample_type', $sample->sample_type) == 'agua' ? 'selected' : '' }}>Agua</option>
                             <option value="alimento" {{ old('sample_type', $sample->sample_type) == 'alimento' ? 'selected' : '' }}>Alimento</option>
+                            <option value="hielo" {{ old('sample_type', $sample->sample_type) == 'hielo' ? 'selected' : '' }}>Hielo</option>
                         </select>
                     </div>
 
