@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Patient;
 use App\Models\Insurance;
+use App\Models\Patient;
+use Illuminate\Http\Request;
 
 class PatientController extends Controller
 {
     public function index()
     {
-        $insurances = Insurance::all();
-        return view('patient.index',compact('insurances'));
-    
+        $insurances = Insurance::where('type', '!=', 'nomenclador')
+            ->orderByRaw("CASE WHEN type = 'particular' THEN 0 ELSE 1 END")
+            ->orderBy('name')
+            ->get();
+
+        return view('patient.index', compact('insurances'));
+
     }
 
     public function store(Request $request)
@@ -37,22 +41,22 @@ class PatientController extends Controller
         $patient->state = $request->state;
         $patient->insurance = $request->insurance;
         $patient->insurance_cod = $request->insurance_cod;
-        
+
         try {
             $patient->save();
+
             return redirect()->back()->with('success', 'Paciente creado correctamente.');
-        }
-        catch ( \Exception $e ) {
-    
-            if($e->errorInfo[1] == 1062) {
-    
+        } catch (\Exception $e) {
+
+            if ($e->errorInfo[1] == 1062) {
+
                 return redirect()->back()->with('error', 'El DNI ingresado ya existe!');
-    
+
             } else {
                 throw $e;
             }
         }
-        
+
     }
 
     public function show()
@@ -62,9 +66,13 @@ class PatientController extends Controller
 
     public function edit(Request $request)
     {
-        $insurances = Insurance::all();
-        $patient = Patient::where('patientId',$request->current_patient)->first();
-        return view('patient.edit',compact('insurances','patient'));
+        $insurances = Insurance::where('type', '!=', 'nomenclador')
+            ->orderByRaw("CASE WHEN type = 'particular' THEN 0 ELSE 1 END")
+            ->orderBy('name')
+            ->get();
+        $patient = Patient::where('patientId', $request->current_patient)->first();
+
+        return view('patient.edit', compact('insurances', 'patient'));
     }
 
     public function save_changes(Request $request)
@@ -83,22 +91,21 @@ class PatientController extends Controller
         $patient->address = strtolower($request->address);
         $patient->country = $request->country;
         $patient->state = $request->state;
-        
+
         try {
             $patient->save();
+
             return redirect()->route('patient.show');
-        }
-        catch ( \Exception $e ) {
-    
-            if($e->errorInfo[1] == 1062) {
-    
+        } catch (\Exception $e) {
+
+            if ($e->errorInfo[1] == 1062) {
+
                 return redirect()->back()->with('error', 'El DNI ingresado ya existe!');
-    
+
             } else {
                 throw $e;
             }
         }
-        
-    }
 
+    }
 }

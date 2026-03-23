@@ -28,11 +28,11 @@ class LabAdmissionController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('protocol_number', 'like', "%{$search}%")
-                  ->orWhereHas('patient', function ($q2) use ($search) {
-                      $q2->where('name', 'like', "%{$search}%")
-                         ->orWhere('lastName', 'like', "%{$search}%")
-                         ->orWhere('patientId', 'like', "%{$search}%");
-                  });
+                    ->orWhereHas('patient', function ($q2) use ($search) {
+                        $q2->where('name', 'like', "%{$search}%")
+                            ->orWhere('lastName', 'like', "%{$search}%")
+                            ->orWhere('patientId', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -49,8 +49,8 @@ class LabAdmissionController extends Controller
         }
 
         $admissions = $query->paginate(20)->withQueryString();
-        $insurances = Insurance::orderByRaw("CASE WHEN type = 'particular' THEN 0 ELSE 1 END")
-            ->orderBy('type')
+        $insurances = Insurance::where('type', '!=', 'nomenclador')
+            ->orderByRaw("CASE WHEN type = 'particular' THEN 0 ELSE 1 END")
             ->orderBy('name')
             ->get();
 
@@ -68,8 +68,8 @@ class LabAdmissionController extends Controller
             $patient = Patient::find($request->patient_id);
         }
 
-        $insurances = Insurance::orderByRaw("CASE WHEN type = 'particular' THEN 0 ELSE 1 END")
-            ->orderBy('type')
+        $insurances = Insurance::where('type', '!=', 'nomenclador')
+            ->orderByRaw("CASE WHEN type = 'particular' THEN 0 ELSE 1 END")
             ->orderBy('name')
             ->get();
         $tests = Test::whereNull('parent')->orderBy('code')->get(['id', 'code', 'name', 'nbu', 'price']);
@@ -152,8 +152,8 @@ class LabAdmissionController extends Controller
                 $exists = AdmissionTest::where('admission_id', $admission->id)
                     ->where('test_id', $childTest->id)
                     ->exists();
-                    
-                if (!$exists) {
+
+                if (! $exists) {
                     AdmissionTest::create([
                         'admission_id' => $admission->id,
                         'test_id' => $childTest->id,
@@ -183,7 +183,7 @@ class LabAdmissionController extends Controller
         ]);
 
         return redirect()->route('lab.admissions.show', $admission)
-            ->with('success', 'Admisión creada correctamente. Protocolo: ' . $admission->protocol_number);
+            ->with('success', 'Admisión creada correctamente. Protocolo: '.$admission->protocol_number);
     }
 
     /**
@@ -193,18 +193,18 @@ class LabAdmissionController extends Controller
     {
         $this->authorize('lab-admissions.show');
         $admission->load([
-            'patient', 
-            'insuranceRelation', 
-            'admissionTests.test.parentTests', 
+            'patient',
+            'insuranceRelation',
+            'admissionTests.test.parentTests',
             'admissionTests.test.referenceValues.category',
-            'creator'
+            'creator',
         ]);
-        
+
         // Tests disponibles para agregar al protocolo
         $availableTests = Test::whereNull('parent')
             ->orderBy('code')
             ->get(['id', 'code', 'name', 'nbu', 'price']);
-        
+
         return view('lab.admissions.show', compact('admission', 'availableTests'));
     }
 
@@ -215,8 +215,8 @@ class LabAdmissionController extends Controller
     {
         $this->authorize('lab-admissions.edit');
         $admission->load(['patient', 'insuranceRelation', 'admissionTests.test']);
-        $insurances = Insurance::orderByRaw("CASE WHEN type = 'particular' THEN 0 ELSE 1 END")
-            ->orderBy('type')
+        $insurances = Insurance::where('type', '!=', 'nomenclador')
+            ->orderByRaw("CASE WHEN type = 'particular' THEN 0 ELSE 1 END")
             ->orderBy('name')
             ->get();
         $tests = Test::whereNull('parent')->orderBy('code')->get(['id', 'code', 'name', 'nbu', 'price']);
@@ -269,9 +269,9 @@ class LabAdmissionController extends Controller
         $exists = AdmissionTest::where('admission_id', $admission->id)
             ->where('test_id', $request->test_id)
             ->exists();
-            
+
         if ($exists) {
-            return redirect()->back()->with('error', 'La práctica "' . $test->code . ' - ' . $test->name . '" ya existe en este protocolo.');
+            return redirect()->back()->with('error', 'La práctica "'.$test->code.' - '.$test->name.'" ya existe en este protocolo.');
         }
 
         AdmissionTest::create([
@@ -293,8 +293,8 @@ class LabAdmissionController extends Controller
             $childExists = AdmissionTest::where('admission_id', $admission->id)
                 ->where('test_id', $childTest->id)
                 ->exists();
-                
-            if (!$childExists) {
+
+            if (! $childExists) {
                 AdmissionTest::create([
                     'admission_id' => $admission->id,
                     'test_id' => $childTest->id,
@@ -310,9 +310,9 @@ class LabAdmissionController extends Controller
 
         $admission->calculateTotals();
 
-        $message = 'Práctica "' . $test->code . ' - ' . $test->name . '" agregada correctamente.';
+        $message = 'Práctica "'.$test->code.' - '.$test->name.'" agregada correctamente.';
         if ($childrenAdded > 0) {
-            $message .= ' (' . $childrenAdded . ' determinaciones hijas incluidas)';
+            $message .= ' ('.$childrenAdded.' determinaciones hijas incluidas)';
         }
 
         return redirect()->back()->with('success', $message);
@@ -351,14 +351,14 @@ class LabAdmissionController extends Controller
         if ($test->price > 0) {
             $parentTest = $test->test;
             $children = $parentTest->getAllChildren(false);
-            
+
             foreach ($children as $childTest) {
                 AdmissionTest::where('admission_id', $admission->id)
                     ->where('test_id', $childTest->id)
                     ->delete();
             }
         }
-        
+
         $test->delete();
         $admission->calculateTotals();
 
@@ -373,14 +373,14 @@ class LabAdmissionController extends Controller
         $insuranceId = $request->get('insurance_id');
         $testId = $request->get('test_id');
 
-        if (!$insuranceId || !$testId) {
+        if (! $insuranceId || ! $testId) {
             return response()->json(['error' => 'Parámetros requeridos'], 400);
         }
 
         $insurance = Insurance::find($insuranceId);
         $test = Test::find($testId);
 
-        if (!$insurance || !$test) {
+        if (! $insurance || ! $test) {
             return response()->json(['error' => 'No encontrado'], 404);
         }
 
@@ -421,11 +421,11 @@ class LabAdmissionController extends Controller
 
         $patients = Patient::where(function ($query) use ($search) {
             $query->where('patientId', 'like', "%{$search}%")
-                  ->orWhere('name', 'like', "%{$search}%")
-                  ->orWhere('lastName', 'like', "%{$search}%");
+                ->orWhere('name', 'like', "%{$search}%")
+                ->orWhere('lastName', 'like', "%{$search}%");
         })
-        ->limit(10)
-        ->get(['id', 'name', 'lastName', 'patientId', 'birth', 'insurance', 'insurance_cod']);
+            ->limit(10)
+            ->get(['id', 'name', 'lastName', 'patientId', 'birth', 'insurance', 'insurance_cod']);
 
         return response()->json($patients->map(function ($p) {
             return [
@@ -452,7 +452,7 @@ class LabAdmissionController extends Controller
         $tests = Test::whereNull('parent')
             ->where(function ($query) use ($search) {
                 $query->where('code', 'like', "%{$search}%")
-                      ->orWhere('name', 'like', "%{$search}%");
+                    ->orWhere('name', 'like', "%{$search}%");
             })
             ->limit(20)
             ->get(['id', 'code', 'name', 'nbu', 'price']);
@@ -539,7 +539,7 @@ class LabAdmissionController extends Controller
     public function validateTest(Request $request, Admission $admission, AdmissionTest $admissionTest)
     {
         $this->authorize('lab-results.validate');
-        if (!$admissionTest->result) {
+        if (! $admissionTest->result) {
             return redirect()->back()->with('error', 'No se puede validar una práctica sin resultado.');
         }
 
@@ -575,7 +575,7 @@ class LabAdmissionController extends Controller
         $this->authorize('lab-results.validate');
         $count = 0;
         foreach ($admission->admissionTests as $admissionTest) {
-            if ($admissionTest->result && !$admissionTest->is_validated) {
+            if ($admissionTest->result && ! $admissionTest->is_validated) {
                 $admissionTest->update([
                     'is_validated' => true,
                     'validated_by' => auth()->id(),
@@ -595,17 +595,17 @@ class LabAdmissionController extends Controller
     public function syncChildTests(Admission $admission)
     {
         $count = 0;
-        
+
         foreach ($admission->admissionTests as $admissionTest) {
             $test = $admissionTest->test;
             $children = $test->getAllChildren(false);
-            
+
             foreach ($children as $childTest) {
                 $exists = AdmissionTest::where('admission_id', $admission->id)
                     ->where('test_id', $childTest->id)
                     ->exists();
-                    
-                if (!$exists) {
+
+                if (! $exists) {
                     AdmissionTest::create([
                         'admission_id' => $admission->id,
                         'test_id' => $childTest->id,
@@ -623,4 +623,3 @@ class LabAdmissionController extends Controller
         return redirect()->back()->with('success', "Se sincronizaron {$count} determinaciones.");
     }
 }
-

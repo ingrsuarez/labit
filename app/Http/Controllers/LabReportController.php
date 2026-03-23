@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Admission;
-use App\Models\AdmissionTest;
-use App\Models\Insurance;
 use App\Exports\MonthlyInsuranceReportExport;
+use App\Models\Admission;
+use App\Models\Insurance;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -18,8 +17,11 @@ class LabReportController extends Controller
     public function monthly(Request $request)
     {
         $this->authorize('lab-reports.index');
-        $insurances = Insurance::orderBy('name')->get();
-        
+        $insurances = Insurance::where('type', '!=', 'nomenclador')
+            ->orderByRaw("CASE WHEN type = 'particular' THEN 0 ELSE 1 END")
+            ->orderBy('name')
+            ->get();
+
         // Valores por defecto: mes actual
         $month = $request->get('month', date('m'));
         $year = $request->get('year', date('Y'));
@@ -31,7 +33,7 @@ class LabReportController extends Controller
 
         if ($insuranceId) {
             $selectedInsurance = Insurance::find($insuranceId);
-            
+
             // Obtener admisiones del mes para la obra social
             $admissions = Admission::with(['patient', 'admissionTests.test'])
                 ->where('insurance', $insuranceId)
@@ -43,11 +45,11 @@ class LabReportController extends Controller
 
             // Construir el reporte
             $report = collect();
-            
+
             foreach ($admissions as $admission) {
                 foreach ($admission->admissionTests as $admissionTest) {
                     // Solo incluir prácticas que paga la OS (no rechazadas ni pagadas por paciente)
-                    if (!$admissionTest->paid_by_patient && $admissionTest->authorization_status !== 'rejected') {
+                    if (! $admissionTest->paid_by_patient && $admissionTest->authorization_status !== 'rejected') {
                         $report->push([
                             'date' => $admission->date,
                             'formatted_date' => Carbon::parse($admission->date)->format('d/m/Y'),
@@ -115,4 +117,3 @@ class LabReportController extends Controller
         );
     }
 }
-
