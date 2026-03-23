@@ -10,11 +10,11 @@
 | Campo | Valor |
 |---|---|
 | **Versión actual** | v2.3.0 |
-| **Última completada** | v1.6.1 — Filtrar nomencladores de dropdowns y crear Particular |
+| **Última completada** | v1.7.0 — Cobro a particulares y control de deuda |
 | **En proceso** | — |
 | **Próxima** | — (cola vacía, planificar nuevas versiones) |
 | **Pendientes en cola** | 0 |
-| **Completadas** | 21 |
+| **Completadas** | 22 |
 
 ---
 
@@ -31,10 +31,11 @@ _Cola vacía._
 
 _Sin prompts en ejecución._
 
-### Completados (21)
+### Completados (22)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.7.0 | Cobro a particulares y control de deuda | 2026-03-23 | v1.7.0 |
 | v1.6.1 | Filtrar nomencladores de dropdowns y crear Particular | 2026-03-23 | v1.6.1 |
 | v1.6.0 | Formato tabular en PDFs de informes | 2026-03-23 | v1.6.0 |
 | v1.5.4 | Tests faltantes y jerarquía padre-hijo completa | 2026-03-22 | v1.5.4 |
@@ -73,6 +74,7 @@ v1.0.0 (completada)
 │   ├── v1.5.4 — Tests faltantes y jerarquía completa (completada)
 │   │   └── v1.6.0 — Formato tabular en PDFs de informes (completada)
 │   │       └── v1.6.1 — Filtrar nomencladores dropdowns (completada)
+│   │           └── v1.7.0 — Cobro particulares y deuda (completada)
 │   └── v2.0.0 — Infraestructura multi-empresa (completada)
 │       ├── v2.1.0 — Ventas y cobros multi-empresa (completada)
 │       │   └── v2.1.2 — Fix Aplicar a todos ref values (completada)
@@ -122,9 +124,10 @@ Ejecutar el siguiente prompt de la cola:
 Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
 ```
 
-Próximo en cola: **v1.6.1 — Filtrar nomencladores de dropdowns y crear Particular**
+Próximo en cola: **v1.7.0 — Cobro a particulares y control de deuda**
 
 Cola priorizada:
+1. v1.7.0 — Cobro a particulares y control de deuda (alta, 5h)
 1. v1.6.1 — Filtrar nomencladores y crear Particular (alta, 30min)
 
 ---

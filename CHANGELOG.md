@@ -5,6 +5,20 @@
 
 ---
 
+## [v1.7.0] — 2026-03-23 — Cobro a particulares y control de deuda
+
+### Agregado
+- Migración: campos `payment_status`, `payment_method`, `paid_amount`, `payment_date`, `payment_notes` en tabla `admissions`
+- Modelo `Admission`: helpers `isParticular()`, `balance`, `total_to_pay`, scope `debtors()`
+- Sección de cobro condicional en formulario de admisión para pacientes "Particular"
+- Endpoint `registerPayment` para registrar pagos posteriores desde el show de admisión
+- Vista de deudores (`/lab/debtors`) con filtros, resumen de deuda total y acciones de cobro
+- Link "Deudores" en sidebar del laboratorio
+- Medios de pago: efectivo, transferencia, Mercado Pago
+- Estados de pago: `pagado`, `parcial`, `pendiente`, `not_applicable`
+
+---
+
 ## [v1.6.1] — 2026-03-23 — Filtrar nomencladores de dropdowns y crear Particular
 
 ### Agregado
