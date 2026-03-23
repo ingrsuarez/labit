@@ -185,13 +185,12 @@ class EmployeeController extends Controller
 
     public function show(Request $request)
     {
-        // Filtros
         $q = trim($request->input('q', ''));
         $status = $request->input('status', '');
         $jobId = $request->input('job_id', '');
+        $companyFilter = $request->input('company_id', '');
 
         $employees = Employee::query()
-            ->where('company_id', active_company_id())
             ->with(['jobs:id,name,department', 'company:id,name'])
             ->when($q !== '', function ($qBuilder) use ($q) {
                 $qBuilder->where(function ($w) use ($q) {
@@ -205,28 +204,33 @@ class EmployeeController extends Controller
             ->when($jobId !== '', function ($qb) use ($jobId) {
                 $qb->whereHas('jobs', fn ($j) => $j->where('jobs.id', $jobId));
             })
+            ->when($companyFilter !== '', function ($qb) use ($companyFilter) {
+                if ($companyFilter === 'none') {
+                    $qb->whereNull('company_id');
+                } else {
+                    $qb->where('company_id', $companyFilter);
+                }
+            })
             ->orderByDesc('created_at')
             ->paginate(15)
             ->withQueryString();
 
-        $companyScope = Employee::where('company_id', active_company_id());
-        $total = (clone $companyScope)->count();
-        $activos = (clone $companyScope)->where('status', 'active')->count();
-        $inactivos = (clone $companyScope)->where('status', 'inactive')->count();
-        $promHoras = round((float) (clone $companyScope)->avg('weekly_hours'), 1);
+        $total = Employee::count();
+        $activos = Employee::where('status', 'active')->count();
+        $inactivos = Employee::where('status', 'inactive')->count();
+        $sinEmpresa = Employee::whereNull('company_id')->count();
+        $promHoras = round((float) Employee::avg('weekly_hours'), 1);
 
         $topJobs = DB::table('job_employee')
             ->join('jobs', 'jobs.id', '=', 'job_employee.job_id')
-            ->join('employees', 'employees.id', '=', 'job_employee.employee_id')
-            ->where('employees.company_id', active_company_id())
             ->select('jobs.id', 'jobs.name', DB::raw('COUNT(job_employee.employee_id) as total'))
             ->groupBy('jobs.id', 'jobs.name')
             ->orderByDesc('total')
             ->limit(5)
             ->get();
 
-        // Para el select de puestos en filtros
         $jobs = Job::orderBy('name')->get(['id', 'name']);
+        $companies = Company::where('is_active', true)->orderBy('name')->get(['id', 'name']);
 
         return view('employee.index', [
             'employees' => $employees,
@@ -234,6 +238,7 @@ class EmployeeController extends Controller
                 'total' => $total,
                 'activos' => $activos,
                 'inactivos' => $inactivos,
+                'sinEmpresa' => $sinEmpresa,
                 'promHoras' => $promHoras,
                 'topJobs' => $topJobs,
             ],
@@ -241,8 +246,10 @@ class EmployeeController extends Controller
                 'q' => $q,
                 'status' => $status,
                 'job_id' => $jobId,
+                'company_id' => $companyFilter,
             ],
             'jobs' => $jobs,
+            'companies' => $companies,
         ]);
 
     }
