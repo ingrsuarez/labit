@@ -54,7 +54,7 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v1.7.1 | Búsqueda activa en protocolos de muestras | 30min | ninguna | `prompts/pendientes/v1.7.1-busqueda-activa-protocolos-muestras.md` |
+| v1.9.0 | Firma digital de validadores y nombre automático de PDF | 2-3h | ninguna | `prompts/pendientes/v1.9.0-firma-digital-validadores-nombre-pdf.md` |
 
 ---
 
@@ -72,9 +72,9 @@
 
 ```
 Completadas:  23 versiones (v1.0.0 → v2.3.0)
-Planificadas: 0
+Planificadas: 1
 En proceso:   0
-Próxima:      — (planificar nuevas versiones)
+Próxima:      v1.9.0 — Firma digital de validadores y nombre automático de PDF
 ```
 
 ---
