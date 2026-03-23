@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-03-22
+> Última actualización: 2026-03-23
 
 ---
 
@@ -48,7 +48,9 @@
 
 ## Planificado
 
-_Sin versiones planificadas. Cola vacía._
+| Versión | Nombre | Estimación | Dependencias | Prompt |
+|---|---|---|---|---|
+| v1.6.0 | Formato tabular en PDFs de informes | 2h | v1.5.4 | `pendientes/v1.6.0-formato-tabular-pdf-informes.md` |
 
 ---
 
@@ -66,9 +68,9 @@ _Sin versiones planificadas. Cola vacía._
 
 ```
 Completadas:  19 versiones (v1.0.0 → v2.3.0)
-Planificadas: 0 versiones
+Planificadas: 1 versión (v1.6.0)
 En proceso:   0
-Próxima:      — (planificar nuevas versiones)
+Próxima:      v1.6.0 — Formato tabular en PDFs de informes
 ```
 
 ---
