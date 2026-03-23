@@ -577,6 +577,79 @@
                 </div>
             </div>
         </div>
+
+        <!-- Estado de Pago (solo Particular) -->
+        @if($admission->isParticular())
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-800">Estado de Pago</h2>
+                @if($admission->payment_status === 'pagado')
+                    <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Pagado</span>
+                @elseif($admission->payment_status === 'parcial')
+                    <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">Parcial</span>
+                @else
+                    <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">Pendiente</span>
+                @endif
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                    <span class="text-gray-500">Total a cobrar</span>
+                    <p class="font-bold text-lg">${{ number_format($admission->total_to_pay, 2, ',', '.') }}</p>
+                </div>
+                <div>
+                    <span class="text-gray-500">Pagado</span>
+                    <p class="font-bold text-lg">${{ number_format($admission->paid_amount, 2, ',', '.') }}</p>
+                </div>
+                <div>
+                    <span class="text-gray-500">Saldo</span>
+                    <p class="font-bold text-lg {{ $admission->balance > 0 ? 'text-red-600' : 'text-green-600' }}">
+                        ${{ number_format($admission->balance, 2, ',', '.') }}
+                    </p>
+                </div>
+                <div>
+                    <span class="text-gray-500">Medio de pago</span>
+                    <p class="font-medium">{{ ucfirst($admission->payment_method ?? '—') }}</p>
+                </div>
+            </div>
+
+            @can('lab-admissions.edit')
+            @if($admission->balance > 0)
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <form action="{{ route('lab.admissions.registerPayment', $admission) }}" method="POST"
+                          class="flex flex-wrap items-end gap-4">
+                        @csrf
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Medio de pago</label>
+                            <select name="payment_method" required class="border-gray-300 rounded-lg text-sm focus:ring-teal-500 focus:border-teal-500">
+                                <option value="efectivo">Efectivo</option>
+                                <option value="transferencia">Transferencia</option>
+                                <option value="mercadopago">Mercado Pago</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Monto</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                                <input type="number" step="0.01" name="amount"
+                                       value="{{ number_format($admission->balance, 2, '.', '') }}" max="{{ $admission->balance }}" min="0.01"
+                                       required class="pl-8 w-32 border-gray-300 rounded-lg text-sm focus:ring-teal-500 focus:border-teal-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+                            <input type="text" name="payment_notes" placeholder="Opcional..."
+                                   class="border-gray-300 rounded-lg text-sm focus:ring-teal-500 focus:border-teal-500">
+                        </div>
+                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm transition-colors">
+                            Registrar Pago
+                        </button>
+                    </form>
+                </div>
+            @endif
+            @endcan
+        </div>
+        @endif
     </div>
 
     <!-- Modal Configurar Determinación -->

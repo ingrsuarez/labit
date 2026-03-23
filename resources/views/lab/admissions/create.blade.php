@@ -280,6 +280,43 @@
                     No hay prácticas agregadas. Use el buscador para agregar prácticas.
                 </div>
 
+                <!-- Sección de cobro (solo Particular) -->
+                <div x-show="isParticular && selectedTests.length > 0" x-cloak
+                     class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h3 class="font-semibold text-gray-800 mb-3">Cobro al Paciente</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Medio de pago</label>
+                            <select name="payment_method" x-model="paymentMethod"
+                                    class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500 text-sm">
+                                <option value="">No paga ahora (Debe)</option>
+                                <option value="efectivo">Efectivo</option>
+                                <option value="transferencia">Transferencia</option>
+                                <option value="mercadopago">Mercado Pago</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Monto pagado</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                                <input type="number" step="0.01" name="paid_amount" x-model="paidAmount"
+                                       x-bind:max="totalGeneral" min="0"
+                                       class="pl-8 w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500 text-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+                            <input type="text" name="payment_notes" placeholder="Opcional..."
+                                   class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500 text-sm">
+                        </div>
+                    </div>
+                    <div x-show="paymentMethod && paidAmount > 0" class="mt-3 text-sm">
+                        <span class="text-gray-600">Saldo pendiente: </span>
+                        <span class="font-bold" :class="totalGeneral - paidAmount > 0 ? 'text-red-600' : 'text-green-600'"
+                              x-text="'$' + formatNumber(Math.max(0, totalGeneral - paidAmount))"></span>
+                    </div>
+                </div>
+
                 <!-- Hidden inputs para enviar los tests -->
                 <template x-for="(test, index) in selectedTests" :key="'hidden-' + test.id">
                     <div>
@@ -320,6 +357,8 @@
                 // Admisión
                 insuranceId: '{{ old('insurance_id', $patient?->insurance ?? '') }}',
                 affiliateNumber: '{{ old('affiliate_number', $patient?->insurance_cod ?? '') }}',
+                insuranceTypes: @json($insurances->pluck('type', 'id')),
+                isParticular: false,
 
                 // Prácticas
                 testSearch: '',
@@ -332,6 +371,16 @@
                 totalInsurance: 0,
                 totalPatient: 0,
                 totalGeneral: 0,
+
+                // Pago
+                paymentMethod: '',
+                paidAmount: 0,
+
+                init() {
+                    if (this.insuranceId) {
+                        this.isParticular = this.insuranceTypes[this.insuranceId] === 'particular';
+                    }
+                },
 
                 async searchPatients() {
                     if (this.patientSearch.length < 2) {
@@ -368,8 +417,8 @@
                 },
 
                 onInsuranceChange() {
-                    // Limpiar prácticas seleccionadas cuando cambia la OS
                     this.selectedTests = [];
+                    this.isParticular = this.insuranceTypes[this.insuranceId] === 'particular';
                     this.calculateTotals();
                 },
 
