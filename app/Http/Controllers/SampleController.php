@@ -17,29 +17,9 @@ class SampleController extends Controller
     public function index(Request $request)
     {
         $this->authorize('samples.index');
-        $query = Sample::with(['customer', 'determinations'])
-            ->orderBy('created_at', 'desc');
-
-        // Filtros
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('sample_type')) {
-            $query->where('sample_type', $request->sample_type);
-        }
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('protocol_number', 'like', "%{$search}%")
-                    ->orWhereHas('customer', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
-                    });
-            });
-        }
-
-        $samples = $query->paginate(15);
+        $samples = Sample::with(['customer', 'determinations'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return view('sample.index', compact('samples'));
     }
