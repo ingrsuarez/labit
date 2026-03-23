@@ -10,6 +10,7 @@ use App\Models\Patient;
 use App\Models\Test;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LabAdmissionController extends Controller
 {
@@ -182,6 +183,32 @@ class LabAdmissionController extends Controller
             'total_copago' => $totalCopago,
         ]);
 
+        // Determinar estado de pago
+        $insurance = Insurance::find($request->insurance_id);
+        if ($insurance && $insurance->type === 'particular') {
+            $total = $totalPatient ?: ($totalInsurance + $totalCopago);
+            $paidAmount = (float) ($request->paid_amount ?? 0);
+
+            if ($paidAmount <= 0) {
+                $paymentStatus = 'pendiente';
+            } elseif ($paidAmount >= $total) {
+                $paymentStatus = 'pagado';
+                $paidAmount = $total;
+            } else {
+                $paymentStatus = 'parcial';
+            }
+
+            $admission->update([
+                'payment_status' => $paymentStatus,
+                'payment_method' => $request->payment_method ?: null,
+                'paid_amount' => $paidAmount,
+                'payment_date' => $paidAmount > 0 ? now() : null,
+                'payment_notes' => $request->payment_notes,
+            ]);
+        } else {
+            $admission->update(['payment_status' => 'not_applicable']);
+        }
+
         return redirect()->route('lab.admissions.show', $admission)
             ->with('success', 'Admisión creada correctamente. Protocolo: '.$admission->protocol_number);
     }
@@ -189,6 +216,74 @@ class LabAdmissionController extends Controller
     /**
      * Ver detalle de admisión
      */
+    public function debtors(Request $request)
+    {
+        $this->authorize('lab-admissions.index');
+
+        $query = Admission::debtors()
+            ->with(['patient', 'insuranceRelation'])
+            ->orderBy('date', 'desc');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('patient', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('lastName', 'like', "%{$search}%")
+                    ->orWhere('patientId', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('date_from')) {
+            $query->where('date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->where('date', '<=', $request->date_to);
+        }
+
+        $admissions = $query->paginate(20)->withQueryString();
+
+        $totalDebt = Admission::debtors()->sum(DB::raw('
+            CASE
+                WHEN total_patient > 0 THEN total_patient - paid_amount
+                WHEN patient_price > 0 THEN patient_price - paid_amount
+                ELSE 0
+            END
+        '));
+
+        $debtorCount = Admission::debtors()->count();
+
+        return view('lab.admissions.debtors', compact('admissions', 'totalDebt', 'debtorCount'));
+    }
+
+    public function registerPayment(Request $request, Admission $admission)
+    {
+        $this->authorize('lab-admissions.edit');
+
+        $request->validate([
+            'payment_method' => 'required|in:efectivo,transferencia,mercadopago',
+            'amount' => 'required|numeric|min:0.01|max:'.$admission->balance,
+            'payment_notes' => 'nullable|string|max:255',
+        ]);
+
+        $newPaid = (float) $admission->paid_amount + (float) $request->amount;
+        $total = $admission->total_to_pay;
+
+        $notes = $admission->payment_notes;
+        if ($request->payment_notes) {
+            $notes = trim(($notes ? $notes.' | ' : '').$request->payment_notes);
+        }
+
+        $admission->update([
+            'paid_amount' => $newPaid,
+            'payment_method' => $request->payment_method,
+            'payment_date' => now(),
+            'payment_status' => $newPaid >= $total ? 'pagado' : 'parcial',
+            'payment_notes' => $notes,
+        ]);
+
+        return back()->with('success', 'Pago registrado correctamente.');
+    }
+
     public function show(Admission $admission)
     {
         $this->authorize('lab-admissions.show');

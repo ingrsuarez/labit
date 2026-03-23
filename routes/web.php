@@ -25,22 +25,22 @@ Route::middleware([
 ])->group(function () {
     Route::get('/access-pending', function () {
         $user = auth()->user();
-        
+
         // Roles que solo dan acceso al portal
         $portalOnlyRoles = ['empleado', 'employee'];
-        $userRoles = $user->roles->pluck('name')->map(fn($r) => strtolower($r))->toArray();
-        
+        $userRoles = $user->roles->pluck('name')->map(fn ($r) => strtolower($r))->toArray();
+
         // Si tiene roles administrativos (no solo empleado), ir al dashboard
-        $hasAdminRoles = !empty(array_diff($userRoles, $portalOnlyRoles));
+        $hasAdminRoles = ! empty(array_diff($userRoles, $portalOnlyRoles));
         if ($hasAdminRoles || $user->permissions->count() > 0) {
             return redirect()->route('dashboard');
         }
-        
+
         // Si tiene empleado asociado, ir al portal
         if ($user->employee) {
             return redirect()->route('portal.dashboard');
         }
-        
+
         // Mostrar página de acceso pendiente
         return view('auth.access-pending');
     })->name('access.pending');
@@ -53,7 +53,7 @@ Route::middleware([
     'verified',
     'check.access',
 ])->group(function () {
-    
+
     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     // SWITCH COMPANY (cambiar empresa activa)
@@ -74,21 +74,21 @@ Route::middleware([
     Route::get('admin/configuracion', [App\Http\Controllers\AdminSectionController::class, 'configuracion'])->name('admin.section.configuracion');
 
     // PATIENTS ROUTES
-    Route::get('/patient/new',[App\Http\Controllers\PatientController::class, 'index'])->name('patient.index');
-    Route::get('/patient/show',[App\Http\Controllers\PatientController::class, 'show'])->name('patient.show');
-    Route::get('/patient/edit',[App\Http\Controllers\PatientController::class, 'edit'])->name('patient.edit');
-    Route::post('/patient/edit',[App\Http\Controllers\PatientController::class, 'save_changes'])->name('patient.save');
+    Route::get('/patient/new', [App\Http\Controllers\PatientController::class, 'index'])->name('patient.index');
+    Route::get('/patient/show', [App\Http\Controllers\PatientController::class, 'show'])->name('patient.show');
+    Route::get('/patient/edit', [App\Http\Controllers\PatientController::class, 'edit'])->name('patient.edit');
+    Route::post('/patient/edit', [App\Http\Controllers\PatientController::class, 'save_changes'])->name('patient.save');
 
-    Route::post('/patient/store',[App\Http\Controllers\PatientController::class, 'store'])->name('patient.store');
+    Route::post('/patient/store', [App\Http\Controllers\PatientController::class, 'store'])->name('patient.store');
 
     // TEST ROUTES (Determinaciones)
-    Route::get('/tests',[App\Http\Controllers\TestController::class, 'index'])->name('tests.index');
-    Route::get('/tests/create',[App\Http\Controllers\TestController::class, 'create'])->name('tests.create');
-    Route::post('/tests',[App\Http\Controllers\TestController::class, 'store'])->name('test.store');
-    Route::get('/tests/{test}/edit',[App\Http\Controllers\TestController::class, 'edit'])->name('tests.edit')->where('test', '[0-9]+');
-    Route::put('/tests/{test}',[App\Http\Controllers\TestController::class, 'update'])->name('tests.update')->where('test', '[0-9]+');
-    Route::patch('/tests/{test}/quick',[App\Http\Controllers\TestController::class, 'quickUpdate'])->name('tests.quickUpdate')->where('test', '[0-9]+');
-    Route::delete('/tests/{test}',[App\Http\Controllers\TestController::class, 'destroy'])->name('tests.destroy')->where('test', '[0-9]+');
+    Route::get('/tests', [App\Http\Controllers\TestController::class, 'index'])->name('tests.index');
+    Route::get('/tests/create', [App\Http\Controllers\TestController::class, 'create'])->name('tests.create');
+    Route::post('/tests', [App\Http\Controllers\TestController::class, 'store'])->name('test.store');
+    Route::get('/tests/{test}/edit', [App\Http\Controllers\TestController::class, 'edit'])->name('tests.edit')->where('test', '[0-9]+');
+    Route::put('/tests/{test}', [App\Http\Controllers\TestController::class, 'update'])->name('tests.update')->where('test', '[0-9]+');
+    Route::patch('/tests/{test}/quick', [App\Http\Controllers\TestController::class, 'quickUpdate'])->name('tests.quickUpdate')->where('test', '[0-9]+');
+    Route::delete('/tests/{test}', [App\Http\Controllers\TestController::class, 'destroy'])->name('tests.destroy')->where('test', '[0-9]+');
 
     // Test Reference Values (Valores de Referencia)
     Route::get('/tests/{test}/reference-values', [App\Http\Controllers\TestReferenceValueController::class, 'index'])->name('tests.reference-values.index');
@@ -151,6 +151,10 @@ Route::middleware([
         Route::post('lab/admissions/{admission}/test/{admissionTest}/unvalidate', [App\Http\Controllers\LabAdmissionController::class, 'unvalidateTest'])->name('lab.admissions.unvalidateTest');
         Route::post('lab/admissions/{admission}/validate-all', [App\Http\Controllers\LabAdmissionController::class, 'validateAll'])->name('lab.admissions.validateAll');
         Route::post('lab/admissions/{admission}/sync-children', [App\Http\Controllers\LabAdmissionController::class, 'syncChildTests'])->name('lab.admissions.syncChildren');
+        Route::post('lab/admissions/{admission}/payment', [App\Http\Controllers\LabAdmissionController::class, 'registerPayment'])->name('lab.admissions.registerPayment');
+
+        // LAB DEBTORS (Deudores)
+        Route::get('lab/debtors', [App\Http\Controllers\LabAdmissionController::class, 'debtors'])->name('lab.debtors');
 
         // LAB REPORTS (Reportes del Laboratorio)
         Route::get('lab/reports/monthly', [App\Http\Controllers\LabReportController::class, 'monthly'])->name('lab.reports.monthly');
@@ -159,14 +163,13 @@ Route::middleware([
     }); // fin lab.section
 
     // ADMISSION
-    Route::get('/admission/new',[App\Http\Controllers\AdmissionController::class, 'index'])->name('admission.index');
+    Route::get('/admission/new', [App\Http\Controllers\AdmissionController::class, 'index'])->name('admission.index');
 
-    Route::post('admission/store',[App\Http\Controllers\AdmissionController::class, 'store'])->name('admission.store');
-
+    Route::post('admission/store', [App\Http\Controllers\AdmissionController::class, 'store'])->name('admission.store');
 
     // INSURANCE (Obras Sociales / Coberturas)
     Route::get('/insurance', [App\Http\Controllers\InsuranceController::class, 'index'])->name('insurance.index');
-    Route::get('/insurance/new', fn() => redirect()->route('insurance.index')); // Redirección de ruta antigua
+    Route::get('/insurance/new', fn () => redirect()->route('insurance.index')); // Redirección de ruta antigua
     Route::get('/insurance/create', [App\Http\Controllers\InsuranceController::class, 'create'])->name('insurance.create');
     Route::post('/insurance', [App\Http\Controllers\InsuranceController::class, 'store'])->name('insurance.store');
     Route::get('/insurance/{insurance}/edit', [App\Http\Controllers\InsuranceController::class, 'edit'])->name('insurance.edit');
@@ -174,9 +177,9 @@ Route::middleware([
     Route::delete('/insurance/{insurance}', [App\Http\Controllers\InsuranceController::class, 'destroy'])->name('insurance.destroy');
 
     // GROUP
-    Route::get('/group/new/{current_patient?}',[App\Http\Controllers\GroupController::class, 'index'])->name('group.index');
+    Route::get('/group/new/{current_patient?}', [App\Http\Controllers\GroupController::class, 'index'])->name('group.index');
 
-    Route::post('group/store',[App\Http\Controllers\GroupController::class, 'store'])->name('group.store');
+    Route::post('group/store', [App\Http\Controllers\GroupController::class, 'store'])->name('group.store');
 
     // SAMPLES — Sección protegida por permiso samples.section
     Route::middleware(['permission:samples.section'])->group(function () {
@@ -318,80 +321,80 @@ Route::middleware([
     Route::patch('quotes/{quote}/status', [App\Http\Controllers\QuoteController::class, 'updateStatus'])->name('quotes.updateStatus');
     Route::post('quotes/{quote}/duplicate', [App\Http\Controllers\QuoteController::class, 'duplicate'])->name('quotes.duplicate');
 
-    //MANAGMENT
-    Route::get('manage/index',[App\Http\Controllers\ManageController::class, 'index'])->name('manage.index');
+    // MANAGMENT
+    Route::get('manage/index', [App\Http\Controllers\ManageController::class, 'index'])->name('manage.index');
 
-    Route::get('manage/organization',[App\Http\Controllers\ManageController::class, 'chart'])
+    Route::get('manage/organization', [App\Http\Controllers\ManageController::class, 'chart'])
         ->middleware('can:view.chart')
         ->name('manage.chart');
 
-    //DOCUMENTS
-    Route::get('documents/index',[App\Http\Controllers\DocumentController::class, 'index'])
+    // DOCUMENTS
+    Route::get('documents/index', [App\Http\Controllers\DocumentController::class, 'index'])
         ->middleware('can:documentos.index')
         ->name('documents.index');
-    
-    Route::get('documents/create',[App\Http\Controllers\DocumentController::class, 'create'])
+
+    Route::get('documents/create', [App\Http\Controllers\DocumentController::class, 'create'])
         ->middleware('can:documentos.index')
         ->name('documents.create');
-    
-    Route::post('documents/store',[App\Http\Controllers\DocumentController::class, 'store'])
+
+    Route::post('documents/store', [App\Http\Controllers\DocumentController::class, 'store'])
         ->middleware('can:documentos.index')
         ->name('documents.store');
 
-    Route::get('documents/edit/{document}',[App\Http\Controllers\DocumentController::class, 'edit'])
+    Route::get('documents/edit/{document}', [App\Http\Controllers\DocumentController::class, 'edit'])
         ->middleware('can:documentos.index')
         ->name('documents.edit');
 
-    Route::post('documents/update/{document}',[App\Http\Controllers\DocumentController::class, 'update'])
+    Route::post('documents/update/{document}', [App\Http\Controllers\DocumentController::class, 'update'])
         ->middleware('can:documentos.index')
         ->name('documents.update');
-    
-    Route::delete('documents/destroy/{document}',[App\Http\Controllers\DocumentController::class, 'destroy'])
+
+    Route::delete('documents/destroy/{document}', [App\Http\Controllers\DocumentController::class, 'destroy'])
         ->middleware('can:documentos.index')
         ->name('documents.destroy');
 
-    Route::delete('documents/file/destroy/{file}',[App\Http\Controllers\DocumentController::class, 'file_destroy'])
+    Route::delete('documents/file/destroy/{file}', [App\Http\Controllers\DocumentController::class, 'file_destroy'])
         ->middleware('can:documentos.index')
         ->name('documents.files.destroy');
 
-    //EMPLOYEES
-    Route::get('employee/new',[App\Http\Controllers\EmployeeController::class, 'new'])->name('employee.new');
+    // EMPLOYEES
+    Route::get('employee/new', [App\Http\Controllers\EmployeeController::class, 'new'])->name('employee.new');
 
-    Route::post('employee/store',[App\Http\Controllers\EmployeeController::class, 'store'])->name('employee.store');
+    Route::post('employee/store', [App\Http\Controllers\EmployeeController::class, 'store'])->name('employee.store');
 
-    Route::get('employee/edit/{employee}',[App\Http\Controllers\EmployeeController::class, 'edit'])->name('employee.edit');
+    Route::get('employee/edit/{employee}', [App\Http\Controllers\EmployeeController::class, 'edit'])->name('employee.edit');
 
-    Route::post('employee/save',[App\Http\Controllers\EmployeeController::class, 'save'])->name('employee.update');
+    Route::post('employee/save', [App\Http\Controllers\EmployeeController::class, 'save'])->name('employee.update');
 
     Route::get('employee/show', [App\Http\Controllers\EmployeeController::class, 'show'])->name('employee.show');
-    
+
     Route::get('employee/profile/{employee}', [App\Http\Controllers\EmployeeController::class, 'profile'])->name('employee.profile');
 
-    //JOBS
-    Route::get('job/new',[App\Http\Controllers\JobController::class, 'new'])->name('job.new');
+    // JOBS
+    Route::get('job/new', [App\Http\Controllers\JobController::class, 'new'])->name('job.new');
 
-    Route::get('job/list',[App\Http\Controllers\JobController::class, 'list'])->name('job.list');
+    Route::get('job/list', [App\Http\Controllers\JobController::class, 'list'])->name('job.list');
 
-    Route::post('job/store',[App\Http\Controllers\JobController::class, 'store'])->name('job.store');
+    Route::post('job/store', [App\Http\Controllers\JobController::class, 'store'])->name('job.store');
 
-    Route::get('job/edit/{job}',[App\Http\Controllers\JobController::class, 'edit'])->name('job.edit');
-    Route::post('job/save',[App\Http\Controllers\JobController::class, 'save'])->name('job.save');
+    Route::get('job/edit/{job}', [App\Http\Controllers\JobController::class, 'edit'])->name('job.edit');
+    Route::post('job/save', [App\Http\Controllers\JobController::class, 'save'])->name('job.save');
 
-    Route::get('job/delete',[App\Http\Controllers\JobController::class, 'delete'])->name('job.delete');
-    Route::get('job/detach/{job}/{employee}',[App\Http\Controllers\JobController::class, 'detach'])->name('job.detach');
+    Route::get('job/delete', [App\Http\Controllers\JobController::class, 'delete'])->name('job.delete');
+    Route::get('job/detach/{job}/{employee}', [App\Http\Controllers\JobController::class, 'detach'])->name('job.detach');
 
-    Route::get('category/index',[App\Http\Controllers\JobController::class, 'indexCategory'])->name('category.index');
+    Route::get('category/index', [App\Http\Controllers\JobController::class, 'indexCategory'])->name('category.index');
 
-    Route::get('category/new',[App\Http\Controllers\JobController::class, 'newCategory'])->name('category.new');
+    Route::get('category/new', [App\Http\Controllers\JobController::class, 'newCategory'])->name('category.new');
 
-    Route::post('category/store',[App\Http\Controllers\JobController::class, 'storeCategory'])->name('category.store');
+    Route::post('category/store', [App\Http\Controllers\JobController::class, 'storeCategory'])->name('category.store');
 
-    Route::get('category/edit',[App\Http\Controllers\JobController::class, 'editCategory'])->name('category.edit');
-    Route::post('category/save',[App\Http\Controllers\JobController::class, 'saveCategory'])->name('category.save');
+    Route::get('category/edit', [App\Http\Controllers\JobController::class, 'editCategory'])->name('category.edit');
+    Route::post('category/save', [App\Http\Controllers\JobController::class, 'saveCategory'])->name('category.save');
 
-    Route::get('category/delete',[App\Http\Controllers\JobController::class, 'deleteCategory'])->name('category.delete');
+    Route::get('category/delete', [App\Http\Controllers\JobController::class, 'deleteCategory'])->name('category.delete');
 
-    //SALARY ITEMS (Conceptos de Sueldo)
+    // SALARY ITEMS (Conceptos de Sueldo)
     Route::get('salary/index', [App\Http\Controllers\SalaryItemController::class, 'index'])->name('salary.index');
     Route::get('salary/create', [App\Http\Controllers\SalaryItemController::class, 'create'])->name('salary.create');
     Route::post('salary/store', [App\Http\Controllers\SalaryItemController::class, 'store'])->name('salary.store');
@@ -399,7 +402,7 @@ Route::middleware([
     Route::post('salary/update/{salaryItem}', [App\Http\Controllers\SalaryItemController::class, 'update'])->name('salary.update');
     Route::get('salary/toggle/{salaryItem}', [App\Http\Controllers\SalaryItemController::class, 'toggle'])->name('salary.toggle');
     Route::delete('salary/destroy/{salaryItem}', [App\Http\Controllers\SalaryItemController::class, 'destroy'])->name('salary.destroy');
-    
+
     // Asignaciones de conceptos a empleados
     Route::get('salary/assignments/{salaryItem}', [App\Http\Controllers\SalaryItemController::class, 'assignments'])->name('salary.assignments');
     Route::post('salary/assignments/{salaryItem}', [App\Http\Controllers\SalaryItemController::class, 'saveAssignments'])->name('salary.assignments.save');
@@ -426,7 +429,7 @@ Route::middleware([
     Route::post('payroll/pagar-bulk', [App\Http\Controllers\PayrollController::class, 'pagarBulk'])->name('payroll.pagarBulk');
     Route::get('payroll/{payroll}/pdf', [App\Http\Controllers\PayrollController::class, 'downloadPdf'])->name('payroll.pdf');
 
-    //VACATIONS (Gestión de Vacaciones)
+    // VACATIONS (Gestión de Vacaciones)
     Route::get('vacation/index', [App\Http\Controllers\VacationController::class, 'index'])->name('vacation.index');
     Route::post('vacation/store', [App\Http\Controllers\VacationController::class, 'store'])->name('vacation.store');
     Route::get('vacation/approval', [App\Http\Controllers\VacationController::class, 'approvalPanel'])->name('vacation.approval');
@@ -437,25 +440,25 @@ Route::middleware([
     Route::get('vacation/calculate-days', [App\Http\Controllers\VacationController::class, 'calculateWorkingDays'])->name('vacation.calculate-days');
     Route::get('vacation/holidays', [App\Http\Controllers\VacationController::class, 'holidays'])->name('vacation.holidays');
 
-    //LEAVES
-    Route::get('leave/resume',[App\Http\Controllers\LeaveController::class, 'resume'])->name('leave.resume');
-    Route::get('leave/new',[App\Http\Controllers\LeaveController::class, 'new'])->name('leave.new');
-    Route::get('leave/index',[App\Http\Controllers\LeaveController::class, 'index'])->name('leave.index');
+    // LEAVES
+    Route::get('leave/resume', [App\Http\Controllers\LeaveController::class, 'resume'])->name('leave.resume');
+    Route::get('leave/new', [App\Http\Controllers\LeaveController::class, 'new'])->name('leave.new');
+    Route::get('leave/index', [App\Http\Controllers\LeaveController::class, 'index'])->name('leave.index');
 
-    Route::post('leave/store',[App\Http\Controllers\LeaveController::class, 'store'])->name('leave.store');
+    Route::post('leave/store', [App\Http\Controllers\LeaveController::class, 'store'])->name('leave.store');
 
-    Route::post('leave/update/{leave}',[App\Http\Controllers\LeaveController::class, 'update'])->name('leave.update');
+    Route::post('leave/update/{leave}', [App\Http\Controllers\LeaveController::class, 'update'])->name('leave.update');
 
-    Route::get('leave/edit/{leave}',[App\Http\Controllers\LeaveController::class, 'edit'])->name('leave.edit');
+    Route::get('leave/edit/{leave}', [App\Http\Controllers\LeaveController::class, 'edit'])->name('leave.edit');
 
-    Route::get('leave/delete/{leave?}',[App\Http\Controllers\LeaveController::class, 'delete'])->name('leave.delete');
+    Route::get('leave/delete/{leave?}', [App\Http\Controllers\LeaveController::class, 'delete'])->name('leave.delete');
 
     Route::get('leave/resume-compact', [App\Http\Controllers\LeaveController::class, 'resumeCompact'])
-     ->name('leave.resume.compact');
+        ->name('leave.resume.compact');
 
     Route::get('leave/export/excel', [App\Http\Controllers\LeaveController::class, 'exportExcel'])
         ->name('leave.export.excel');
-    
+
     Route::get('leave/export/pdf', [App\Http\Controllers\LeaveController::class, 'exportPdf'])
         ->name('leave.export.pdf');
 
@@ -485,91 +488,90 @@ Route::middleware([
 
     // USERS
 
-    Route::get('users/index',[App\Http\Controllers\UserController::class, 'index'])
+    Route::get('users/index', [App\Http\Controllers\UserController::class, 'index'])
         // ->middleware('can:role.new')
         ->name('user.index');
 
-    Route::get('users/edit',[App\Http\Controllers\UserController::class, 'edit'])
+    Route::get('users/edit', [App\Http\Controllers\UserController::class, 'edit'])
         // ->middleware('can:role.new')
         ->name('user.edit');
 
-    Route::post('users/save',[App\Http\Controllers\UserController::class, 'save'])
+    Route::post('users/save', [App\Http\Controllers\UserController::class, 'save'])
         // ->middleware('can:role.new')
         ->name('user.save');
-        
 
     // TODO: Agregar middleware de permisos cuando estén configurados
-    Route::get('users/attach/role',[App\Http\Controllers\UserController::class, 'attachRole'])
+    Route::get('users/attach/role', [App\Http\Controllers\UserController::class, 'attachRole'])
         // ->middleware('can:role.new')
         ->name('role.attach');
-    Route::get('users/detach/role',[App\Http\Controllers\UserController::class, 'detachRole'])
+    Route::get('users/detach/role', [App\Http\Controllers\UserController::class, 'detachRole'])
         // ->middleware('can:role.new')
         ->name('role.detach');
-    Route::post('users/sync-roles',[App\Http\Controllers\UserController::class, 'syncRoles'])
+    Route::post('users/sync-roles', [App\Http\Controllers\UserController::class, 'syncRoles'])
         // ->middleware('can:role.new')
         ->name('user.syncRoles');
 
-    //ROLES
+    // ROLES
     // TODO: Reactivar middleware cuando estén configurados los permisos iniciales
 
-    Route::get('role/new',[App\Http\Controllers\RoleController::class, 'new'])
+    Route::get('role/new', [App\Http\Controllers\RoleController::class, 'new'])
         // ->middleware('can:role.new')
         ->name('role.new');
 
-    Route::post('role/store',[App\Http\Controllers\RoleController::class, 'store'])
+    Route::post('role/store', [App\Http\Controllers\RoleController::class, 'store'])
         // ->middleware('can:role.store')
         ->name('role.store');
 
-    Route::post('role/update',[App\Http\Controllers\RoleController::class, 'update'])
+    Route::post('role/update', [App\Http\Controllers\RoleController::class, 'update'])
         // ->middleware('can:role.store')
         ->name('role.update');
 
-    Route::get('role/edit/{role}',[App\Http\Controllers\RoleController::class, 'edit'])->name('role.edit');
-    
-    Route::delete('role/destroy/{role}',[App\Http\Controllers\RoleController::class, 'destroy'])
+    Route::get('role/edit/{role}', [App\Http\Controllers\RoleController::class, 'edit'])->name('role.edit');
+
+    Route::delete('role/destroy/{role}', [App\Http\Controllers\RoleController::class, 'destroy'])
         // ->middleware('can:role.delete')
         ->name('role.destroy');
 
-    Route::get('role/permission/attach/{role}/{permission}',[App\Http\Controllers\RoleController::class, 'attachPermission'])
+    Route::get('role/permission/attach/{role}/{permission}', [App\Http\Controllers\RoleController::class, 'attachPermission'])
         // ->middleware('can:role.attachPermission')
         ->name('role.attachPermission');
-    
-    Route::get('role/permission/detach/{role}/{permission}',[App\Http\Controllers\RoleController::class, 'detachPermission'])
+
+    Route::get('role/permission/detach/{role}/{permission}', [App\Http\Controllers\RoleController::class, 'detachPermission'])
         // ->middleware('can:role.detachPermission')
         ->name('role.detachPermission');
 
-    //PERMISSION
+    // PERMISSION
     // TODO: Reactivar middleware cuando estén configurados los permisos iniciales
 
-    Route::get('permission/new',[App\Http\Controllers\PermissionController::class, 'new'])
+    Route::get('permission/new', [App\Http\Controllers\PermissionController::class, 'new'])
         // ->middleware('can:permission.new')
         ->name('permission.new');
 
-    Route::post('permission/store',[App\Http\Controllers\PermissionController::class, 'store'])
+    Route::post('permission/store', [App\Http\Controllers\PermissionController::class, 'store'])
         // ->middleware('can:permission.store')
         ->name('permission.store');
 
-    Route::get('permission/edit/{permission}',[App\Http\Controllers\PermissionController::class, 'edit'])
+    Route::get('permission/edit/{permission}', [App\Http\Controllers\PermissionController::class, 'edit'])
         // ->middleware('can:permission.edit')
         ->name('permission.edit');
 
-    Route::put('permission/update/{permission}',[App\Http\Controllers\PermissionController::class, 'update'])
+    Route::put('permission/update/{permission}', [App\Http\Controllers\PermissionController::class, 'update'])
         // ->middleware('can:permission.update')
         ->name('permission.update');
 
-    Route::delete('permission/destroy/{permission}',[App\Http\Controllers\PermissionController::class, 'destroy'])
+    Route::delete('permission/destroy/{permission}', [App\Http\Controllers\PermissionController::class, 'destroy'])
         // ->middleware('can:permission.destroy')
         ->name('permission.destroy');
 
-    Route::post('permission/attach-role/{permission}/{role}',[App\Http\Controllers\PermissionController::class, 'attachRole'])
+    Route::post('permission/attach-role/{permission}/{role}', [App\Http\Controllers\PermissionController::class, 'attachRole'])
         // ->middleware('can:permission.attachRole')
         ->name('permission.attachRole');
 
-    Route::delete('permission/detach-role/{permission}/{role}',[App\Http\Controllers\PermissionController::class, 'detachRole'])
+    Route::delete('permission/detach-role/{permission}/{role}', [App\Http\Controllers\PermissionController::class, 'detachRole'])
         // ->middleware('can:permission.detachRole')
         ->name('permission.detachRole');
 
-    Route::post('permission/generate-module',[App\Http\Controllers\PermissionController::class, 'generateForModule'])
+    Route::post('permission/generate-module', [App\Http\Controllers\PermissionController::class, 'generateForModule'])
         // ->middleware('can:permission.generate')
         ->name('permission.generateModule');
 });
@@ -586,17 +588,17 @@ Route::middleware([
     Route::get('/team', [App\Http\Controllers\EmployeePortalController::class, 'team'])->name('team');
     Route::get('/directory', [App\Http\Controllers\EmployeePortalController::class, 'directory'])->name('directory');
     Route::get('/organization', [App\Http\Controllers\EmployeePortalController::class, 'organization'])->name('organization');
-    
+
     // Recibos de sueldo
     Route::get('/payslips', [App\Http\Controllers\EmployeePortalController::class, 'payslips'])->name('payslips');
     Route::get('/payslips/{payroll}/download', [App\Http\Controllers\EmployeePortalController::class, 'downloadPayslip'])->name('payslips.download');
-    
+
     // Solicitudes
     Route::get('/requests', [App\Http\Controllers\EmployeePortalController::class, 'requests'])->name('requests');
     Route::post('/requests/vacation', [App\Http\Controllers\EmployeePortalController::class, 'storeVacationRequest'])->name('requests.vacation');
     Route::post('/requests/leave', [App\Http\Controllers\EmployeePortalController::class, 'storeLeaveRequest'])->name('requests.leave');
     Route::delete('/requests/{leave}/cancel', [App\Http\Controllers\EmployeePortalController::class, 'cancelRequest'])->name('requests.cancel');
-    
+
     // Circulares
     Route::get('/circulars', [App\Http\Controllers\Portal\CircularController::class, 'index'])->name('circulars.index');
     Route::get('/circulars/{circular}', [App\Http\Controllers\Portal\CircularController::class, 'show'])->name('circulars.show');
