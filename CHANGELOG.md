@@ -5,6 +5,20 @@
 
 ---
 
+## [v1.6.1] — 2026-03-23 — Filtrar nomencladores de dropdowns y crear Particular
+
+### Agregado
+- Seeder `ParticularInsuranceSeeder`: crea registro "Particular" (type=particular) idempotente
+
+### Corregido
+- PatientController: filtrar `type != nomenclador` en `index()` y `edit()`
+- LabAdmissionController: filtrar `type != nomenclador` en `index()`, `create()`, `edit()`
+- AdmissionController: filtrar `type != nomenclador` en `index()`
+- LabReportController: filtrar `type != nomenclador` en `monthly()`
+- "Particular" aparece primero en todos los dropdowns de obra social
+
+---
+
 ## [v1.6.0] — 2026-03-23 — Formato tabular en PDFs de informes
 
 ### Modificado

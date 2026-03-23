@@ -10,11 +10,11 @@
 | Campo | Valor |
 |---|---|
 | **Versión actual** | v2.3.0 |
-| **Última completada** | v1.6.0 — Formato tabular en PDFs de informes |
+| **Última completada** | v1.6.1 — Filtrar nomencladores de dropdowns y crear Particular |
 | **En proceso** | — |
-| **Próxima** | — (cola vacía) |
+| **Próxima** | — (cola vacía, planificar nuevas versiones) |
 | **Pendientes en cola** | 0 |
-| **Completadas** | 20 |
+| **Completadas** | 21 |
 
 ---
 
@@ -22,16 +22,20 @@
 
 ### Pendientes (0)
 
-_Sin prompts pendientes. Cola vacía._
+| Versión | Nombre | Estimación | Dependencias | Archivo |
+|---|---|---|---|---|
+
+_Cola vacía._
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (20)
+### Completados (21)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.6.1 | Filtrar nomencladores de dropdowns y crear Particular | 2026-03-23 | v1.6.1 |
 | v1.6.0 | Formato tabular en PDFs de informes | 2026-03-23 | v1.6.0 |
 | v1.5.4 | Tests faltantes y jerarquía padre-hijo completa | 2026-03-22 | v1.5.4 |
 | v2.3.0 | RRHH multi-empresa | 2026-03-22 | v2.3.0 |
@@ -68,6 +72,7 @@ v1.0.0 (completada)
 ├── v1.5.3 — Seeder jerarquía padre-hijo prácticas (completada)
 │   ├── v1.5.4 — Tests faltantes y jerarquía completa (completada)
 │   │   └── v1.6.0 — Formato tabular en PDFs de informes (completada)
+│   │       └── v1.6.1 — Filtrar nomencladores dropdowns (completada)
 │   └── v2.0.0 — Infraestructura multi-empresa (completada)
 │       ├── v2.1.0 — Ventas y cobros multi-empresa (completada)
 │       │   └── v2.1.2 — Fix Aplicar a todos ref values (completada)
@@ -111,13 +116,16 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-No hay prompts pendientes en la cola. Planificar nuevas versiones con el agente PM.
+Ejecutar el siguiente prompt de la cola:
 
 ```
-Lee .agents/AgentePM/README.md y planificá las próximas versiones.
+Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
 ```
 
-Cola priorizada: vacía
+Próximo en cola: **v1.6.1 — Filtrar nomencladores de dropdowns y crear Particular**
+
+Cola priorizada:
+1. v1.6.1 — Filtrar nomencladores y crear Particular (alta, 30min)
 
 ---
 
