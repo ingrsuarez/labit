@@ -10,30 +10,29 @@
 | Campo | Valor |
 |---|---|
 | **Versión actual** | v2.3.0 |
-| **Última completada** | v1.5.4 — Tests faltantes y jerarquía padre-hijo completa |
+| **Última completada** | v1.6.0 — Formato tabular en PDFs de informes |
 | **En proceso** | — |
-| **Próxima** | v1.6.0 — Formato tabular en PDFs de informes |
-| **Pendientes en cola** | 1 |
-| **Completadas** | 19 |
+| **Próxima** | — (cola vacía) |
+| **Pendientes en cola** | 0 |
+| **Completadas** | 20 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (1)
+### Pendientes (0)
 
-| Versión | Nombre | Estimación | Dependencias | Archivo |
-|---|---|---|---|---|
-| v1.6.0 | Formato tabular en PDFs de informes | 2h | v1.5.4 | `pendientes/v1.6.0-formato-tabular-pdf-informes.md` |
+_Sin prompts pendientes. Cola vacía._
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (19)
+### Completados (20)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.6.0 | Formato tabular en PDFs de informes | 2026-03-23 | v1.6.0 |
 | v1.5.4 | Tests faltantes y jerarquía padre-hijo completa | 2026-03-22 | v1.5.4 |
 | v2.3.0 | RRHH multi-empresa | 2026-03-22 | v2.3.0 |
 | v2.2.1 | Fix columnas vacías en vista de protocolo | 2026-03-22 | v2.2.1 |
@@ -68,7 +67,7 @@ v1.0.0 (completada)
 │       └── v1.4.0 — Notas de crédito electrónicas (completada)
 ├── v1.5.3 — Seeder jerarquía padre-hijo prácticas (completada)
 │   ├── v1.5.4 — Tests faltantes y jerarquía completa (completada)
-│   │   └── v1.6.0 — Formato tabular en PDFs de informes (pendiente)
+│   │   └── v1.6.0 — Formato tabular en PDFs de informes (completada)
 │   └── v2.0.0 — Infraestructura multi-empresa (completada)
 │       ├── v2.1.0 — Ventas y cobros multi-empresa (completada)
 │       │   └── v2.1.2 — Fix Aplicar a todos ref values (completada)
@@ -112,16 +111,13 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-Ejecutar el siguiente prompt de la cola:
+No hay prompts pendientes en la cola. Planificar nuevas versiones con el agente PM.
 
 ```
-Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
+Lee .agents/AgentePM/README.md y planificá las próximas versiones.
 ```
 
-Próximo en cola: **v1.6.0 — Formato tabular en PDFs de informes**
-
-Cola priorizada:
-1. v1.6.0 — Formato tabular en PDFs de informes (media, 2h)
+Cola priorizada: vacía
 
 ---
 

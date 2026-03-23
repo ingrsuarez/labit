@@ -36,6 +36,7 @@
 | v2.3.0 | RRHH multi-empresa | 2026-03-22 | company_id en employees, payrolls, leaves, documents |
 
 | v1.5.4 | Tests faltantes y jerarquía padre-hijo completa | 2026-03-22 | 27 tests hijos, 37 relaciones, badge padre, fix cascada |
+| v1.6.0 | Formato tabular en PDFs de informes | 2026-03-23 | Tabla con Análisis/Resultado/Unidad/Ref, padres bold, hijos indentados |
 
 ---
 
@@ -48,9 +49,7 @@
 
 ## Planificado
 
-| Versión | Nombre | Estimación | Dependencias | Prompt |
-|---|---|---|---|---|
-| v1.6.0 | Formato tabular en PDFs de informes | 2h | v1.5.4 | `pendientes/v1.6.0-formato-tabular-pdf-informes.md` |
+_Sin versiones planificadas. Cola vacía._
 
 ---
 
@@ -67,10 +66,10 @@
 ## Progreso general
 
 ```
-Completadas:  19 versiones (v1.0.0 → v2.3.0)
-Planificadas: 1 versión (v1.6.0)
+Completadas:  20 versiones (v1.0.0 → v2.3.0)
+Planificadas: 0 versiones
 En proceso:   0
-Próxima:      v1.6.0 — Formato tabular en PDFs de informes
+Próxima:      — (planificar nuevas versiones)
 ```
 
 ---
