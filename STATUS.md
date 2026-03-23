@@ -10,11 +10,11 @@
 | Campo | Valor |
 |---|---|
 | **Versión actual** | v2.3.0 |
-| **Última completada** | v1.7.0 — Cobro a particulares y control de deuda |
+| **Última completada** | v1.8.0 — Búsqueda activa en protocolos de muestras |
 | **En proceso** | — |
 | **Próxima** | — (cola vacía, planificar nuevas versiones) |
 | **Pendientes en cola** | 0 |
-| **Completadas** | 22 |
+| **Completadas** | 23 |
 
 ---
 
@@ -31,10 +31,11 @@ _Cola vacía._
 
 _Sin prompts en ejecución._
 
-### Completados (22)
+### Completados (23)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.8.0 | Búsqueda activa en protocolos de muestras | 2026-03-23 | v1.8.0 |
 | v1.7.0 | Cobro a particulares y control de deuda | 2026-03-23 | v1.7.0 |
 | v1.6.1 | Filtrar nomencladores de dropdowns y crear Particular | 2026-03-23 | v1.6.1 |
 | v1.6.0 | Formato tabular en PDFs de informes | 2026-03-23 | v1.6.0 |
@@ -75,6 +76,7 @@ v1.0.0 (completada)
 │   │   └── v1.6.0 — Formato tabular en PDFs de informes (completada)
 │   │       └── v1.6.1 — Filtrar nomencladores dropdowns (completada)
 │   │           └── v1.7.0 — Cobro particulares y deuda (completada)
+    │   │               └── v1.7.1 — Búsqueda activa protocolos (pendiente)
 │   └── v2.0.0 — Infraestructura multi-empresa (completada)
 │       ├── v2.1.0 — Ventas y cobros multi-empresa (completada)
 │       │   └── v2.1.2 — Fix Aplicar a todos ref values (completada)
@@ -124,11 +126,10 @@ Ejecutar el siguiente prompt de la cola:
 Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
 ```
 
-Próximo en cola: **v1.7.0 — Cobro a particulares y control de deuda**
+Próximo en cola: **v1.7.1 — Búsqueda activa en protocolos de muestras**
 
 Cola priorizada:
-1. v1.7.0 — Cobro a particulares y control de deuda (alta, 5h)
-1. v1.6.1 — Filtrar nomencladores y crear Particular (alta, 30min)
+1. v1.7.1 — Búsqueda activa en protocolos de muestras (media, 30min)
 
 ---
 

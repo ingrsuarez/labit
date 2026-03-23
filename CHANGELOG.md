@@ -5,6 +5,18 @@
 
 ---
 
+## [v1.8.0] — 2026-03-23 — Búsqueda activa en protocolos de muestras
+
+### Modificado
+- Listado de protocolos: filtrado client-side con Alpine.js en tiempo real
+- Búsqueda instantánea por protocolo, cliente y lugar (sin botón Filtrar)
+- Selects de tipo y estado aplican filtro inmediato al cambiar
+- Contador de resultados visibles dinámico
+- Eliminada paginación server-side, carga completa de registros
+- Badge de tipo "Hielo" en cian
+
+---
+
 ## [v1.7.0] — 2026-03-23 — Cobro a particulares y control de deuda
 
 ### Agregado
