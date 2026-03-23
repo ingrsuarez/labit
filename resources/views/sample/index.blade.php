@@ -65,17 +65,17 @@
 
         <!-- Tabla de Protocolos -->
         <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
+            <table class="w-full table-fixed divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Protocolo</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lugar</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Ingreso</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Determinaciones</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                        <th class="w-[10%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Protocolo</th>
+                        <th class="w-[6%] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                        <th class="w-[16%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lugar</th>
+                        <th class="w-[26%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                        <th class="w-[9%] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Ingreso</th>
+                        <th class="w-[11%] px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Determ.</th>
+                        <th class="w-[8%] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                        <th class="w-[14%] px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -92,12 +92,12 @@
                                 '{{ strtolower($sample->sample_type ?? '') }}',
                                 '{{ strtolower($calcStatus) }}'
                             )">
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-3 py-4 whitespace-nowrap">
                                 <a href="{{ route('sample.show', $sample) }}" class="text-teal-600 hover:text-teal-800 font-medium">
                                     {{ $sample->protocol_number }}
                                 </a>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-2 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                     @switch($sample->sample_type)
                                         @case('agua') bg-blue-100 text-blue-800 @break
@@ -108,24 +108,24 @@
                                     {{ ucfirst($sample->sample_type) }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ $sample->location ?? '-' }}
+                            <td class="px-3 py-4 text-sm text-gray-900">
+                                <span class="line-clamp-2" title="{{ $sample->location ?? '-' }}">{{ $sample->location ?? '-' }}</span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ $sample->customer->name ?? 'N/A' }}
+                            <td class="px-3 py-4 text-sm text-gray-900">
+                                <span class="line-clamp-2" title="{{ $sample->customer->name ?? 'N/A' }}">{{ $sample->customer->name ?? 'N/A' }}</span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td class="px-2 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ $sample->entry_date->format('d/m/Y') }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td class="px-2 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                                 <span>{{ $sample->determinations->count() }}</span>
                                 @if($validatedCount > 0)
-                                    <span class="ml-1 text-green-600" title="{{ $validatedCount }} validadas">
+                                    <span class="text-green-600" title="{{ $validatedCount }} validadas">
                                         ({{ $validatedCount }} ✓)
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-2 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                     @switch($calcStatus)
                                         @case('validated') bg-green-100 text-green-800 @break
@@ -137,7 +137,7 @@
                                     {{ $sample->status_label }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                            <td class="px-2 py-4 whitespace-nowrap text-right text-sm font-medium space-x-1">
                                 <a href="{{ route('sample.show', $sample) }}" class="text-teal-600 hover:text-teal-900">Ver</a>
                                 <a href="{{ route('sample.edit', $sample) }}" class="text-indigo-600 hover:text-indigo-900">Editar</a>
                                 @if($validatedCount > 0)
