@@ -187,15 +187,32 @@
                     <!-- Obra Social -->
                     <div>
                         <label for="insurance" class="block text-sm font-medium text-gray-700 mb-1">Obra Social / Prepaga</label>
-                        <select id="insurance" name="insurance" autocomplete="off"
-                                class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                            <option value="">Seleccionar cobertura...</option>
-                            @foreach ($insurances as $insurance)
-                                <option value="{{ $insurance->id }}" {{ old('insurance') == $insurance->id ? 'selected' : '' }}>
-                                    {{ strtoupper($insurance->name) }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <div x-data="newPatientInsuranceCombobox()" @click.away="open = false" class="relative">
+                            <div class="relative">
+                                <input type="text" x-model="search" @focus="open = true" @input="open = true"
+                                       @keydown.enter.prevent="if (filtered.length > 0) select(filtered[0])"
+                                       @keydown.escape="open = false"
+                                       placeholder="Buscar obra social..."
+                                       class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                                <input type="hidden" name="insurance" :value="selectedId">
+                                <button type="button" x-show="selectedId" @click="clear()"
+                                        class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">✕</button>
+                            </div>
+                            <div x-show="open && filtered.length > 0" x-cloak
+                                 class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                <template x-for="item in filtered" :key="item.id">
+                                    <div @click="select(item)"
+                                         class="px-3 py-2 cursor-pointer hover:bg-blue-50 text-sm"
+                                         :class="{ 'bg-blue-100 font-medium': selectedId == item.id }">
+                                        <span x-text="item.name"></span>
+                                    </div>
+                                </template>
+                            </div>
+                            <div x-show="open && search && filtered.length === 0" x-cloak
+                                 class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm text-gray-500">
+                                No se encontraron resultados
+                            </div>
+                        </div>
                         <p class="text-xs text-gray-500 mt-1">Seleccione la cobertura médica del paciente</p>
                     </div>
                 </div>
@@ -217,4 +234,38 @@
             </div>
         </form>
     </div>
+
+    <script>
+        function newPatientInsuranceCombobox() {
+            return {
+                open: false,
+                search: '',
+                selectedId: '{{ old('insurance', '') }}',
+                _selectedName: '',
+                items: @json($insurances->map(fn($ins) => ['id' => $ins->id, 'name' => strtoupper($ins->name)])),
+                get filtered() {
+                    if (!this.search || this.search === this._selectedName) return this.items;
+                    const q = this.search.toLowerCase();
+                    return this.items.filter(i => i.name.toLowerCase().includes(q));
+                },
+                select(item) {
+                    this.selectedId = item.id;
+                    this.search = item.name;
+                    this._selectedName = item.name;
+                    this.open = false;
+                },
+                clear() {
+                    this.selectedId = '';
+                    this.search = '';
+                    this._selectedName = '';
+                },
+                init() {
+                    if (this.selectedId) {
+                        const found = this.items.find(i => i.id == this.selectedId);
+                        if (found) { this.search = found.name; this._selectedName = found.name; }
+                    }
+                }
+            };
+        }
+    </script>
 </x-lab-layout>
