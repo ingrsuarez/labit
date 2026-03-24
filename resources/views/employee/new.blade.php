@@ -164,7 +164,7 @@
             <select name="company_id" id="company_id"
                     class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
                 <option value="">— Empresa activa por defecto —</option>
-                @foreach($companies as $company)
+                @foreach($companies ?? [] as $company)
                     <option value="{{ $company->id }}">{{ $company->name }}</option>
                 @endforeach
             </select>
