@@ -722,7 +722,7 @@ class SampleController extends Controller
             'margin_right' => 15,
         ]);
 
-        return $pdf->download('Protocolo_'.$sample->protocol_number.'.pdf');
+        return $pdf->download($this->generatePdfFilename($sample));
     }
 
     /**
@@ -758,7 +758,7 @@ class SampleController extends Controller
             'margin_right' => 15,
         ]);
 
-        return $pdf->stream('Protocolo_'.$sample->protocol_number.'.pdf');
+        return $pdf->stream($this->generatePdfFilename($sample));
     }
 
     /**
@@ -933,5 +933,26 @@ class SampleController extends Controller
             'materials' => $materials ?: 'N/A',
             'barcodeSvg' => $barcodeSvg,
         ]);
+    }
+
+    private function generatePdfFilename(Sample $sample): string
+    {
+        $parts = [
+            $sample->sample_type ?? 'Protocolo',
+            $sample->customer?->name ?? 'SinCliente',
+            $sample->sampling_date
+                ? \Carbon\Carbon::parse($sample->sampling_date)->format('Y-m-d')
+                : now()->format('Y-m-d'),
+        ];
+
+        $sanitized = collect($parts)->map(function ($part) {
+            $clean = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $part);
+            $clean = preg_replace('/[^A-Za-z0-9_-]/', '_', $clean);
+            $clean = preg_replace('/_+/', '_', $clean);
+
+            return trim($clean, '_');
+        })->implode('-');
+
+        return $sanitized.'.'.$sample->protocol_number.'.pdf';
     }
 }

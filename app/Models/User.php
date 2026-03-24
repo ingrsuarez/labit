@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -11,18 +12,15 @@ use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-
-
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-
 class User extends Authenticatable
 {
     use HasApiTokens;
     use HasFactory;
     use HasProfilePhoto;
+    use HasRoles;
     use Notifiable;
     use TwoFactorAuthenticatable;
-    use HasRoles;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -32,6 +30,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'signature_path',
     ];
 
     /**
@@ -80,5 +79,23 @@ class User extends Authenticatable
     public function defaultCompany(): ?Company
     {
         return $this->companies()->wherePivot('is_default', true)->first();
+    }
+
+    public function getSignatureUrlAttribute(): ?string
+    {
+        if (! $this->signature_path) {
+            return null;
+        }
+
+        return \Storage::disk('public')->url($this->signature_path);
+    }
+
+    public function getSignatureAbsolutePathAttribute(): ?string
+    {
+        if (! $this->signature_path) {
+            return null;
+        }
+
+        return \Storage::disk('public')->path($this->signature_path);
     }
 }
