@@ -616,6 +616,10 @@
                 </td>
                 <td width="50%" style="vertical-align: bottom; text-align: right;">
                     <div class="signature-area">
+                        @if($sample->validator && $sample->validator->signature_path && file_exists($sample->validator->signatureAbsolutePath))
+                            <img src="{{ $sample->validator->signatureAbsolutePath }}"
+                                 style="max-height: 60px; max-width: 200px; margin-bottom: 5px;">
+                        @endif
                         <div class="signature-line">
                             <div class="validator-name">{{ strtoupper($sample->validator->name ?? 'DRA. CLARA SILVINA') }}</div>
                             <div class="validator-title">Director Técnico</div>
