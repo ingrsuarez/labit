@@ -236,10 +236,11 @@ Si en el paso 2 se detectan bugs → corregir, volver a ejecutar los tests (paso
 
 ---
 
-## PASO 6 — Commit, tag, mover a completados y merge
+## PASO 6 — Commit, tag, mover a completados y merge a develop
 
 > ⚠️ **Solo ejecutar si PASO 5 (lint + tests) y PASO 5.5 (tests funcionales + QA navegador) están en verde.**
 > ⚠️ **EJECUTAR TODOS ESTOS COMANDOS. No mostrarlos. No pedir confirmación.**
+> ⚠️ **MERGE SOLO A DEVELOP. Nunca mergear a master desde este paso.**
 
 El prompt interno ya tiene su bloque de commit+tag — ejecutarlo primero si no lo hiciste en PASO 4.
 Luego ejecutar obligatoriamente:
@@ -248,7 +249,6 @@ Luego ejecutar obligatoriamente:
 ARCHIVO="[ARCHIVO_ELEGIDO]"
 VERSION="[VERSION]"
 BRANCH="[BRANCH]"
-MAIN_BRANCH="main"   # cambiar a "develop" si el proyecto usa gitflow
 
 # 0. Guard — verificar rama correcta
 CURRENT=$(git branch --show-current)
@@ -267,22 +267,111 @@ git commit --no-verify -m "chore(agent): ${VERSION} completado → completados/"
 # 2. Push de la rama con tags
 git push origin $BRANCH --tags
 
-# 3. Merge a develop
-git checkout $MAIN_BRANCH
-git pull origin $MAIN_BRANCH
-git merge --no-ff $BRANCH -m "merge: ${VERSION} completado"
+# 3. Merge SOLO a develop (NUNCA a master)
+git checkout develop
+git pull origin develop
+git merge --no-ff $BRANCH -m "merge: ${BRANCH} -> develop"
+git push origin develop --tags
 
-# 4. [OPCIONAL] Regenerar STATUS.md si el proyecto tiene un script para eso
-# python3 scripts/generate_status.py
-# git add STATUS.md
-# git commit --no-verify --amend --no-edit
-
-# 5. Push main/develop con tags
-git push origin $MAIN_BRANCH --tags
-
-# 6. Borrar rama de feature en origin — OBLIGATORIO
+# 4. Borrar rama de feature en origin — OBLIGATORIO
 git push origin --delete $BRANCH
-echo "✅ ${VERSION} completo"
+git branch -d $BRANCH
+echo "✅ ${VERSION} mergeado a develop"
+```
+
+> ⛔ **PROHIBIDO** en este paso:
+> - `git checkout master`
+> - `git merge ... master`
+> - `git push origin master`
+>
+> Master se actualiza **solo** en el PASO 6.5 (release) o por hotfix.
+
+---
+
+## PASO 6.5 — Release a master (solo cuando se pide explícitamente)
+
+> ⚠️ **Este paso NO se ejecuta automáticamente.**
+> Solo se ejecuta cuando el usuario dice explícitamente: "push a master", "release", "deploy", etc.
+> El agente NUNCA debe mergear a master por iniciativa propia.
+
+### Flujo de release (features acumulados en develop):
+
+```bash
+# 1. Asegurar que develop está limpio y actualizado
+git checkout develop
+git pull origin develop
+
+# 2. UN SOLO merge a master con mensaje descriptivo
+git checkout master
+git pull origin master
+git merge --no-ff develop -m "release: develop -> master ([lista de versiones incluidas])"
+
+# 3. Push master
+git push origin master --tags
+
+# 4. Volver a develop
+git checkout develop
+```
+
+**Reglas:**
+- **Un solo commit de merge** por release, no importa cuántas versiones incluya.
+- El mensaje debe listar las versiones: `"release: develop -> master (v1.6.1, v1.7.0, v1.8.0)"`
+- Si solo hay una versión: `"release: develop -> master (v1.8.0)"`
+
+### Flujo de hotfix (fix urgente directo a master):
+
+Los hotfixes son correcciones urgentes que van a producción sin pasar por el ciclo normal.
+
+```bash
+# 1. Crear rama desde develop (que ya tiene el último estado)
+git checkout develop
+git pull origin develop
+git checkout -b hotfix/descripcion-corta
+
+# 2. Hacer el fix, commit
+git add [archivos]
+git commit -m "fix(modulo): descripción del fix"
+
+# 3. Merge a develop primero
+git checkout develop
+git merge --no-ff hotfix/descripcion-corta -m "merge: hotfix/descripcion-corta -> develop"
+git push origin develop
+
+# 4. Merge a master (UN SOLO merge)
+git checkout master
+git pull origin master
+git merge --no-ff develop -m "release: hotfix descripcion-corta -> master"
+git push origin master
+
+# 5. Cleanup
+git branch -d hotfix/descripcion-corta
+git checkout develop
+```
+
+**Reglas de hotfix:**
+- El hotfix va primero a develop, luego develop se mergea a master.
+- Esto garantiza UN SOLO camino de merge (develop -> master), no dos caminos paralelos.
+- Nunca mergear el hotfix directo a master sin pasar por develop.
+
+---
+
+## Reglas de Git Flow — Resumen
+
+```
+PROHIBIDO:
+  ✗ Mergear a master desde PASO 6 (features/prompts)
+  ✗ Mergear a master después de cada commit individual
+  ✗ Mergear un hotfix directo a master sin pasar por develop
+  ✗ Hacer múltiples merges a master para la misma versión
+  ✗ Commits de merge sin mensaje descriptivo ("Merge branch 'develop'")
+
+OBLIGATORIO:
+  ✓ Features → merge solo a develop (PASO 6)
+  ✓ Master se actualiza SOLO cuando el usuario lo pide (PASO 6.5)
+  ✓ Un ÚNICO merge commit por release a master
+  ✓ Hotfixes: hotfix → develop → master (un solo camino)
+  ✓ Mensajes descriptivos en todo merge: "release: ...", "merge: ..."
+  ✓ Siempre --no-ff para preservar historial de merges
 ```
 
 ---
@@ -313,9 +402,10 @@ Tras el merge (PASO 6), actualizar el documento de estado del proyecto:
 ✅ COMPLETADO: [VERSION] — [descripción breve]
 📁 Archivado en: agent-bootstrap/prompts/completados/[ARCHIVO]
 🏷️  Tag creado: [TAG]
-🌿 Rama mergeada: [BRANCH] → [MAIN_BRANCH]
+🌿 Rama mergeada: [BRANCH] → develop
 🔓 Prompts desbloqueados: [lista de prompts que ahora tienen sus deps OK]
 📋 Próximo disponible: [siguiente archivo con las 3 verificaciones en verde]
+⚠️  Master: no actualizado (ejecutar PASO 6.5 cuando el usuario lo pida)
 ```
 
 ---

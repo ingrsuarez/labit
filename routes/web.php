@@ -56,6 +56,10 @@ Route::middleware([
 
     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
+    // FIRMA DIGITAL DEL USUARIO
+    Route::post('/user/signature', [App\Http\Controllers\UserSignatureController::class, 'update'])->name('user.signature.update');
+    Route::delete('/user/signature', [App\Http\Controllers\UserSignatureController::class, 'destroy'])->name('user.signature.destroy');
+
     // SWITCH COMPANY (cambiar empresa activa)
     Route::post('/switch-company', [App\Http\Controllers\CompanyController::class, 'switchCompany'])->name('company.switch');
 
