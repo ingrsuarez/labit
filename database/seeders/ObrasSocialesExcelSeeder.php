@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Insurance;
+use Illuminate\Database\Seeder;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ObrasSocialesExcelSeeder extends Seeder
@@ -13,14 +13,14 @@ class ObrasSocialesExcelSeeder extends Seeder
      * Debe coincidir con los nombres usados en NomencladoresExcelSeeder y el existente.
      */
     private array $nomencladorMap = [
-        'ISSN2020'  => 'ISSN',
-        '2016Uni'   => 'Nomenclador 2016 Uni',
-        '20162023'  => 'Nomenclador 20162023',
-        'PAMI'      => 'PAMI',
-        'Omint'     => 'OMINT',
-        'Medicus'   => 'Medicus',
+        'ISSN2020' => 'ISSN',
+        '2016Uni' => 'Nomenclador 2016 Uni',
+        '20162023' => 'Nomenclador 20162023',
+        'PAMI' => 'PAMI',
+        'Omint' => 'OMINT',
+        'Medicus' => 'Medicus',
         '2012Reduc' => 'Nomenclador 2012 Reducido',
-        '2016'      => 'Nomenclador 2016',
+        '2016' => 'Nomenclador 2016',
         'SWISS2012' => 'Swiss Medical',
     ];
 
@@ -28,8 +28,9 @@ class ObrasSocialesExcelSeeder extends Seeder
     {
         $filePath = base_path('docs/obras sociales.xlsx');
 
-        if (!file_exists($filePath)) {
-            $this->command->error("No se encontró el archivo: docs/obras sociales.xlsx");
+        if (! file_exists($filePath)) {
+            $this->command->error('No se encontró el archivo: docs/obras sociales.xlsx');
+
             return;
         }
 
@@ -46,18 +47,18 @@ class ObrasSocialesExcelSeeder extends Seeder
         $skipped = 0;
 
         for ($row = 2; $row <= $highestRow; $row++) {
-            $sigla     = trim((string) $sheet->getCell("A{$row}")->getValue());
-            $nombre    = trim((string) $sheet->getCell("B{$row}")->getValue());
-            $cuit      = trim((string) $sheet->getCell("C{$row}")->getValue());
-            $nomKey    = trim((string) $sheet->getCell("D{$row}")->getValue());
-            $pmo       = (float) $sheet->getCell("E{$row}")->getValue();
+            $sigla = trim((string) $sheet->getCell("A{$row}")->getValue());
+            $nombre = trim((string) $sheet->getCell("B{$row}")->getValue());
+            $cuit = trim((string) $sheet->getCell("C{$row}")->getValue());
+            $nomKey = trim((string) $sheet->getCell("D{$row}")->getValue());
+            $pmo = (float) $sheet->getCell("E{$row}")->getValue();
 
             if (empty($sigla) && empty($nombre)) {
                 continue;
             }
 
             $nomenclatorId = $nomencladorIds[$nomKey] ?? null;
-            if (!$nomenclatorId && !empty($nomKey)) {
+            if (! $nomenclatorId && ! empty($nomKey)) {
                 $this->command->warn("  Fila {$row}: nomenclador '{$nomKey}' no encontrado en BD, se asigna null");
             }
 
@@ -65,29 +66,29 @@ class ObrasSocialesExcelSeeder extends Seeder
 
             if ($insurance) {
                 $insurance->update([
-                    'tax_id'        => $cuit ?: $insurance->tax_id,
-                    'nbu_value'     => $pmo,
+                    'tax_id' => $cuit ?: $insurance->tax_id,
+                    'nbu_value' => $pmo,
                     'nomenclator_id' => $nomenclatorId ?? $insurance->nomenclator_id,
-                    'type'          => $insurance->type === 'particular' ? 'particular' : 'obra_social',
+                    'type' => $insurance->type === 'particular' ? 'particular' : 'obra_social',
                 ]);
                 $updated++;
             } else {
                 Insurance::create([
-                    'name'           => $nombre,
-                    'tax_id'         => $cuit ?: null,
-                    'tax'            => null,
-                    'phone'          => null,
-                    'email'          => null,
-                    'address'        => null,
-                    'state'          => null,
-                    'country'        => 'argentina',
-                    'price'          => 0,
-                    'nbu'            => 0,
-                    'nbu_value'      => $pmo,
+                    'name' => $nombre,
+                    'tax_id' => $cuit ?: null,
+                    'tax' => null,
+                    'phone' => null,
+                    'email' => null,
+                    'address' => null,
+                    'state' => null,
+                    'country' => 'argentina',
+                    'price' => 0,
+                    'nbu' => 0,
+                    'nbu_value' => $pmo,
                     'nomenclator_id' => $nomenclatorId,
-                    'group'          => null,
-                    'type'           => strtolower($sigla) === 'particular' ? 'particular' : 'obra_social',
-                    'instructions'   => $sigla !== $nombre ? "Sigla: {$sigla}" : null,
+                    'group' => null,
+                    'type' => strtolower($sigla) === 'particular' ? 'particular' : 'obra_social',
+                    'instructions' => $sigla !== $nombre ? "Sigla: {$sigla}" : null,
                 ]);
                 $created++;
             }
@@ -115,6 +116,7 @@ class ObrasSocialesExcelSeeder extends Seeder
                 $this->command->warn("Nomenclador base '{$insuranceName}' (clave: {$excelKey}) no encontrado en BD");
             }
         }
+
         return $ids;
     }
 }
