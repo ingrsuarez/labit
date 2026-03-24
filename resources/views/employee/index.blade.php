@@ -51,7 +51,7 @@
                         class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
                     <option value="">— Todas —</option>
                     <option value="none" @selected(($filters['company_id'] ?? '') === 'none')>Sin empresa asignada</option>
-                    @foreach($companies as $company)
+                    @foreach($companies ?? [] as $company)
                         <option value="{{ $company->id }}" @selected(($filters['company_id'] ?? '') == $company->id)>{{ $company->name }}</option>
                     @endforeach
                 </select>
