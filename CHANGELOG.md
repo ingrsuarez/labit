@@ -5,6 +5,23 @@
 
 ---
 
+## [v1.10.0] — 2026-03-24 — Importación de nomencladores desde Excel
+
+### Agregado
+- `NomencladoresExcelSeeder`: lee 8 archivos `.xlsx` de `docs/` y crea nomencladores base
+- 8 nomencladores nuevos: PAMI (1321), Medicus (904), OMINT (1270), Swiss Medical (1012), ISSN (1151), Nomenclador 2016 (1264), Nomenclador 2016 Uni (1264), Nomenclador 2012 Reducido (640)
+- 297 tests nuevos creados automáticamente para códigos inexistentes
+- 8.826 relaciones InsuranceTest con valores NBU
+- Captura de columna AUTORIZACION (SI/NO) en nomencladores que la incluyen (PAMI, Medicus, OMINT, Swiss Medical)
+- Seeder idempotente: segunda ejecución actualiza sin duplicar
+
+### Notas
+- Los archivos `.xlsx` deben estar en `docs/` para que el seeder funcione
+- Estructura de todos los archivos consistente: A=código, B=nombre, C=NBU/NIVEL
+- No requiere migraciones, solo ejecutar el seeder
+
+---
+
 ## [v1.9.0] — 2026-03-24 — Firma digital de validadores y nombre automático de PDF
 
 ### Agregado

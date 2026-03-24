@@ -10,30 +10,29 @@
 | Campo | Valor |
 |---|---|
 | **Versión actual** | v2.3.0 |
-| **Última completada** | v1.9.0 — Firma digital de validadores y nombre automático de PDF |
+| **Última completada** | v1.10.0 — Importación de nomencladores desde Excel |
 | **En proceso** | — |
-| **Próxima** | v1.10.0 — Importación de nomencladores desde Excel |
-| **Pendientes en cola** | 1 |
-| **Completadas** | 24 |
+| **Próxima** | — (cola vacía) |
+| **Pendientes en cola** | 0 |
+| **Completadas** | 25 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (1)
+### Pendientes (0)
 
-| Versión | Nombre | Estimación | Dependencias | Archivo |
-|---|---|---|---|---|
-| v1.10.0 | Importación de nomencladores desde Excel | 1-2h | ninguna | `prompts/pendientes/v1.10.0-importacion-nomencladores-excel.md` |
+_Sin prompts pendientes._
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (24)
+### Completados (25)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.10.0 | Importación de nomencladores desde Excel | 2026-03-24 | v1.10.0 |
 | v1.9.0 | Firma digital de validadores y nombre automático de PDF | 2026-03-24 | v1.9.0 |
 | v1.8.0 | Búsqueda activa en protocolos de muestras | 2026-03-23 | v1.8.0 |
 | v1.7.0 | Cobro a particulares y control de deuda | 2026-03-23 | v1.7.0 |
@@ -126,10 +125,10 @@ Ejecutar el siguiente prompt de la cola:
 Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
 ```
 
-Próximo en cola: **v1.10.0 — Importación de nomencladores desde Excel**
+Próximo en cola: **— (cola vacía, planificar nuevas versiones)**
 
 Cola priorizada:
-1. v1.10.0 — Importación de nomencladores desde Excel (1-2h)
+_Sin prompts pendientes._
 
 ---
 

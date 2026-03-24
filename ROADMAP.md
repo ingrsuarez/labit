@@ -41,6 +41,7 @@
 | v1.7.0 | Cobro a particulares y control de deuda | 2026-03-23 | Migración payment fields, cobro parcial/total, deudores, 3 medios de pago |
 | v1.8.0 | Búsqueda activa en protocolos de muestras | 2026-03-23 | Filtrado Alpine.js client-side, sin paginación, búsqueda instantánea |
 | v1.9.0 | Firma digital de validadores y nombre automático de PDF | 2026-03-24 | Upload firma en perfil, firma en PDF, nombre descriptivo de archivo |
+| v1.10.0 | Importación de nomencladores desde Excel | 2026-03-24 | 8 nomencladores base desde .xlsx, 297 tests nuevos, 8826 prácticas |
 
 ---
 
@@ -55,7 +56,7 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v1.10.0 | Importación de nomencladores desde Excel | 1-2h | ninguna | `prompts/pendientes/v1.10.0-importacion-nomencladores-excel.md` |
+| _Sin versiones planificadas_ | | | | |
 
 ---
 
@@ -72,10 +73,10 @@
 ## Progreso general
 
 ```
-Completadas:  24 versiones (v1.0.0 → v2.3.0)
-Planificadas: 1
+Completadas:  25 versiones (v1.0.0 → v2.3.0)
+Planificadas: 0
 En proceso:   0
-Próxima:      v1.10.0 — Importación de nomencladores desde Excel
+Próxima:      — (planificar nuevas versiones)
 ```
 
 ---
