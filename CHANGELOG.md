@@ -5,6 +5,22 @@
 
 ---
 
+## [v1.9.0] — 2026-03-24 — Firma digital de validadores y nombre automático de PDF
+
+### Agregado
+- Migración: campo `signature_path` en tabla `users` para almacenar ruta de imagen de firma
+- Accessors `signature_url` y `signatureAbsolutePath` en modelo `User`
+- `UserSignatureController` con métodos `update()` y `destroy()` para gestión de firma
+- Rutas `POST /user/signature` y `DELETE /user/signature`
+- Sección "Firma Digital" en página de perfil (`/user/profile`) con upload, preview en tiempo real (Alpine.js), reemplazo y eliminación
+- Imagen de firma del validador en PDF de protocolo de muestras (ruta absoluta para mPDF, con guard `file_exists`)
+- Método `generatePdfFilename()` en `SampleController`: nombre de archivo descriptivo `tipo-cliente-fecha.protocolo.pdf`
+
+### Modificado
+- `downloadPdf()` y `viewPdf()` en `SampleController`: usan nombre de archivo descriptivo en vez de `Protocolo_NNN.pdf`
+
+---
+
 ## [v1.8.0] — 2026-03-23 — Búsqueda activa en protocolos de muestras
 
 ### Modificado

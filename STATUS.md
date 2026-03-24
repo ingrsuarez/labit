@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-23
+> Última actualización: 2026-03-24
 
 ---
 
@@ -10,11 +10,11 @@
 | Campo | Valor |
 |---|---|
 | **Versión actual** | v2.3.0 |
-| **Última completada** | v1.8.0 — Búsqueda activa en protocolos de muestras |
+| **Última completada** | v1.9.0 — Firma digital de validadores y nombre automático de PDF |
 | **En proceso** | — |
-| **Próxima** | v1.9.0 — Firma digital de validadores y nombre automático de PDF |
+| **Próxima** | v1.10.0 — Importación de nomencladores desde Excel |
 | **Pendientes en cola** | 1 |
-| **Completadas** | 23 |
+| **Completadas** | 24 |
 
 ---
 
@@ -24,16 +24,17 @@
 
 | Versión | Nombre | Estimación | Dependencias | Archivo |
 |---|---|---|---|---|
-| v1.9.0 | Firma digital de validadores y nombre automático de PDF | 2-3h | ninguna | `prompts/pendientes/v1.9.0-firma-digital-validadores-nombre-pdf.md` |
+| v1.10.0 | Importación de nomencladores desde Excel | 1-2h | ninguna | `prompts/pendientes/v1.10.0-importacion-nomencladores-excel.md` |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (23)
+### Completados (24)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.9.0 | Firma digital de validadores y nombre automático de PDF | 2026-03-24 | v1.9.0 |
 | v1.8.0 | Búsqueda activa en protocolos de muestras | 2026-03-23 | v1.8.0 |
 | v1.7.0 | Cobro a particulares y control de deuda | 2026-03-23 | v1.7.0 |
 | v1.6.1 | Filtrar nomencladores de dropdowns y crear Particular | 2026-03-23 | v1.6.1 |
@@ -125,10 +126,10 @@ Ejecutar el siguiente prompt de la cola:
 Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
 ```
 
-Próximo en cola: **v1.9.0 — Firma digital de validadores y nombre automático de PDF**
+Próximo en cola: **v1.10.0 — Importación de nomencladores desde Excel**
 
 Cola priorizada:
-1. v1.9.0 — Firma digital de validadores y nombre automático de PDF (alta, 2-3h)
+1. v1.10.0 — Importación de nomencladores desde Excel (1-2h)
 
 ---
 
