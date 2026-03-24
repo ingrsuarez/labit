@@ -56,7 +56,7 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| _Sin versiones planificadas_ | | | | |
+| v1.11.0 | Importación de obras sociales desde Excel | 30min | v1.10.0 | `prompts/pendientes/v1.11.0-importacion-obras-sociales-excel.md` |
 
 ---
 
@@ -74,9 +74,9 @@
 
 ```
 Completadas:  25 versiones (v1.0.0 → v2.3.0)
-Planificadas: 0
+Planificadas: 1
 En proceso:   0
-Próxima:      — (planificar nuevas versiones)
+Próxima:      v1.11.0 — Importación de obras sociales desde Excel
 ```
 
 ---

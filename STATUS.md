@@ -12,17 +12,19 @@
 | **Versión actual** | v2.3.0 |
 | **Última completada** | v1.10.0 — Importación de nomencladores desde Excel |
 | **En proceso** | — |
-| **Próxima** | — (cola vacía) |
-| **Pendientes en cola** | 0 |
+| **Próxima** | v1.11.0 — Importación de obras sociales desde Excel |
+| **Pendientes en cola** | 1 |
 | **Completadas** | 25 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (0)
+### Pendientes (1)
 
-_Sin prompts pendientes._
+| Versión | Nombre | Estimación | Dependencias | Archivo |
+|---|---|---|---|---|
+| v1.11.0 | Importación de obras sociales desde Excel | 30min | v1.10.0 | `prompts/pendientes/v1.11.0-importacion-obras-sociales-excel.md` |
 
 ### En proceso (0)
 
