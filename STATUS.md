@@ -10,30 +10,33 @@
 | Campo | Valor |
 |---|---|
 | **Versión actual** | v2.3.0 |
-| **Última completada** | v1.10.0 — Importación de nomencladores desde Excel |
+| **Última completada** | v1.11.0 — Importación de obras sociales desde Excel |
 | **En proceso** | — |
-| **Próxima** | v1.11.0 — Importación de obras sociales desde Excel |
-| **Pendientes en cola** | 1 |
-| **Completadas** | 25 |
+| **Próxima** | v1.11.1 — Configuración de correos del laboratorio |
+| **Pendientes en cola** | 3 |
+| **Completadas** | 26 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (1)
+### Pendientes (3)
 
 | Versión | Nombre | Estimación | Dependencias | Archivo |
 |---|---|---|---|---|
-| v1.11.0 | Importación de obras sociales desde Excel | 30min | v1.10.0 | `prompts/pendientes/v1.11.0-importacion-obras-sociales-excel.md` |
+| v1.11.1 | Configuración de correos del laboratorio | 2h | ninguna | `prompts/pendientes/v1.11.1-configuracion-correos-laboratorio.md` |
+| v1.11.2 | Buscador en dropdown de obra social | 30min | ninguna | `prompts/pendientes/v1.11.2-buscador-dropdown-obra-social.md` |
+| v1.12.0 | PDF protocolos lab clínico + envío email | 3-4h | v1.11.1 | `prompts/pendientes/v1.12.0-pdf-protocolos-lab-clinico.md` |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (25)
+### Completados (26)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.11.0 | Importación de obras sociales desde Excel | 2026-03-24 | v1.11.0 |
 | v1.10.0 | Importación de nomencladores desde Excel | 2026-03-24 | v1.10.0 |
 | v1.9.0 | Firma digital de validadores y nombre automático de PDF | 2026-03-24 | v1.9.0 |
 | v1.8.0 | Búsqueda activa en protocolos de muestras | 2026-03-23 | v1.8.0 |
@@ -127,10 +130,12 @@ Ejecutar el siguiente prompt de la cola:
 Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
 ```
 
-Próximo en cola: **— (cola vacía, planificar nuevas versiones)**
+Próximo en cola: **v1.11.1 — Configuración de correos del laboratorio**
 
 Cola priorizada:
-_Sin prompts pendientes._
+1. v1.11.1 — Configuración de correos del laboratorio (2h, sin deps)
+2. v1.11.2 — Buscador en dropdown de obra social (30min, sin deps)
+3. v1.12.0 — PDF protocolos lab clínico + envío email (3-4h, dep: v1.11.1)
 
 ---
 
