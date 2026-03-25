@@ -18,6 +18,32 @@
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
+                    @php
+                        $validatedCount = $admission->admissionTests->where('is_validated', true)->count();
+                    @endphp
+                    @if($validatedCount > 0)
+                    <a href="{{ route('lab.admissions.pdf.view', $admission) }}" target="_blank"
+                       class="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm inline-flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                        </svg>
+                        Ver PDF
+                    </a>
+                    <a href="{{ route('lab.admissions.pdf.download', $admission) }}"
+                       class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm inline-flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Descargar
+                    </a>
+                    <button onclick="document.getElementById('emailModal').classList.remove('hidden')"
+                            class="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm inline-flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                        Email
+                    </button>
+                    @endif
                     @can('lab-admissions.edit')
                     <form action="{{ route('lab.admissions.syncChildren', $admission) }}" method="POST" class="inline">
                         @csrf
@@ -912,5 +938,39 @@
             }
         });
     </script>
+
+    <!-- Modal de Email -->
+    <div id="emailModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Enviar Informe por Email</h3>
+                <form action="{{ route('lab.admissions.sendEmail', $admission) }}" method="POST">
+                    @csrf
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email destinatario *</label>
+                        <input type="email" name="email" required
+                               value="{{ $admission->patient?->email ?? '' }}"
+                               placeholder="paciente@email.com"
+                               class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Mensaje adicional (opcional)</label>
+                        <textarea name="message" rows="3" placeholder="Mensaje personalizado..."
+                                  class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"></textarea>
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <button type="button" onclick="document.getElementById('emailModal').classList.add('hidden')"
+                                class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                            Cancelar
+                        </button>
+                        <button type="submit"
+                                class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                            Enviar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </x-lab-layout>
 
