@@ -200,56 +200,80 @@
     @php
         $validatedTests = $admission->admissionTests->where('is_validated', true);
 
-        $isParentOf = function($parentTestId, $childTestId) {
-            $childTest = \App\Models\Test::find($childTestId);
-            if (!$childTest) return false;
-            if ($childTest->parent == $parentTestId) return true;
-            return $childTest->parentTests()->where('parent_test_id', $parentTestId)->exists();
-        };
-        
-        $parentTestIds = [];
-        $childTestIds = [];
-        
+        $itemsByTestId = [];
+        foreach ($validatedTests as $at) {
+            $itemsByTestId[$at->test_id] = $at;
+        }
+
+        $testIds = $validatedTests->pluck('test_id')->toArray();
+        $parentMap = [];
+        $childOf = [];
+        $isSubParentMap = [];
+
         foreach ($validatedTests as $at) {
             $test = $at->test;
             if (!$test) continue;
-            $allChildren = $test->getAllChildren(false);
-            
-            foreach ($allChildren as $child) {
-                if ($validatedTests->where('test_id', $child->id)->count() > 0) {
-                    $parentTestIds[$at->test_id] = true;
-                    $childTestIds[$child->id] = true;
+
+            $children = $test->childTests()
+                ->whereIn('tests.id', $testIds)
+                ->orderBy('test_parents.order')
+                ->pluck('tests.id')
+                ->toArray();
+
+            if (!empty($children)) {
+                $parentMap[$test->id] = $children;
+                foreach ($children as $childId) {
+                    $childOf[$childId] = $test->id;
                 }
             }
         }
-        
+
+        foreach ($parentMap as $testId => $children) {
+            if (isset($childOf[$testId])) {
+                $isSubParentMap[$testId] = true;
+            }
+        }
+
+        $roots = [];
+        foreach ($validatedTests as $at) {
+            if (!isset($childOf[$at->test_id])) {
+                $roots[] = $at->test_id;
+            }
+        }
+
+        usort($roots, function ($a, $b) use ($itemsByTestId) {
+            $sortA = $itemsByTestId[$a]->test->sort_order ?? 0;
+            $sortB = $itemsByTestId[$b]->test->sort_order ?? 0;
+            return $sortA <=> $sortB;
+        });
+
         $orderedTests = collect();
-        $processed = [];
-        
-        foreach ($validatedTests as $at) {
-            if (in_array($at->id, $processed)) continue;
-            
-            if (isset($parentTestIds[$at->test_id])) {
-                $orderedTests->push(['at' => $at, 'isChild' => false, 'isParent' => true]);
-                $processed[] = $at->id;
-                
-                foreach ($validatedTests as $childAt) {
-                    if (in_array($childAt->id, $processed)) continue;
-                    
-                    if ($isParentOf($at->test_id, $childAt->test_id)) {
-                        $orderedTests->push(['at' => $childAt, 'isChild' => true, 'isParent' => false]);
-                        $processed[] = $childAt->id;
-                    }
+
+        $addWithChildren = function ($testId, $level) use (
+            &$addWithChildren, $parentMap, $isSubParentMap, $itemsByTestId, &$orderedTests
+        ) {
+            if (!isset($itemsByTestId[$testId])) return;
+
+            $isParent = isset($parentMap[$testId]);
+            $isSub = isset($isSubParentMap[$testId]);
+
+            $orderedTests->push([
+                'at' => $itemsByTestId[$testId],
+                'level' => $level,
+                'isParent' => $isParent,
+                'isSubParent' => $isSub,
+                'isChild' => $level > 0,
+            ]);
+
+            if ($isParent) {
+                foreach ($parentMap[$testId] as $childId) {
+                    $addWithChildren($childId, $level + 1);
                 }
             }
-        }
-        
-        foreach ($validatedTests as $at) {
-            if (!in_array($at->id, $processed)) {
-                $isChild = isset($childTestIds[$at->test_id]);
-                $orderedTests->push(['at' => $at, 'isChild' => $isChild, 'isParent' => false]);
-                $processed[] = $at->id;
-            }
+        };
+
+        foreach ($roots as $rootId) {
+            $addWithChildren($rootId, 0);
         }
     @endphp
 
@@ -296,14 +320,17 @@
             <td width="30%" style="text-align: right;">Valores de ref.</td>
         </tr>
 
-        @foreach($orderedTests as $item)
+        @foreach($orderedTests as $entry)
             @php
-                $at = $item['at'];
-                $isChild = $item['isChild'];
-                $isParent = $item['isParent'];
+                $at = $entry['at'];
+                $level = $entry['level'];
+                $isParent = $entry['isParent'];
+                $isChild = $entry['isChild'];
+                $isSub = $entry['isSubParent'];
+                $indent = $level * 20;
             @endphp
 
-            @if($isParent)
+            @if($isParent && !$isSub)
                 <tr class="det-parent">
                     <td colspan="4">{{ strtoupper($at->test->name ?? 'N/A') }}</td>
                 </tr>
@@ -312,9 +339,20 @@
                         <td colspan="4">{{ $at->test->method }}</td>
                     </tr>
                 @endif
+            @elseif($isSub)
+                <tr class="det-parent">
+                    <td colspan="4" style="padding-left: {{ $indent }}px;">
+                        {{ strtoupper($at->test->name ?? 'N/A') }}
+                    </td>
+                </tr>
+                @if($at->test?->method)
+                    <tr class="det-method">
+                        <td colspan="4" style="padding-left: {{ $indent }}px;">{{ $at->test->method }}</td>
+                    </tr>
+                @endif
             @elseif($isChild)
                 <tr class="det-child">
-                    <td style="padding-left: 20px;">{{ ucfirst($at->test->name ?? 'N/A') }}</td>
+                    <td style="padding-left: {{ $indent }}px;">{{ ucfirst($at->test->name ?? 'N/A') }}</td>
                     <td class="det-result">{{ $at->result ?? '-' }}</td>
                     <td class="det-unit">{{ $at->unit ?? $at->test->unit ?? '' }}</td>
                     <td class="det-ref">{{ $at->reference_value ?: ($at->test->other_reference ?? '') }}</td>

@@ -32,6 +32,7 @@ class Test extends Model
         'box',
         'nbu',
         'categories',
+        'sort_order',
     ];
 
     protected $casts = [
@@ -118,18 +119,38 @@ class Test extends Model
      *
      * @param  bool  $withRelations  Si true, carga los referenceValues de cada hijo
      */
-    public function getAllChildren(bool $withRelations = true)
+    public function getAllChildren(bool $withRelations = true): \Illuminate\Support\Collection
     {
-        // Combinar hijos de la relación legacy y la nueva tabla pivote
-        if ($withRelations) {
-            $legacyChildren = $this->children()->with('referenceValues.category')->get();
-            $pivotChildren = $this->childTests()->with('referenceValues.category')->get();
-        } else {
-            $legacyChildren = $this->children()->get();
-            $pivotChildren = $this->childTests()->get();
+        $eagerLoad = $withRelations
+            ? ['children', 'childTests', 'referenceValues.category']
+            : [];
+
+        $directChildren = $this->childTests()
+            ->when($withRelations, fn ($q) => $q->with($eagerLoad))
+            ->orderBy('test_parents.order')
+            ->get();
+
+        $allDescendants = collect();
+        foreach ($directChildren as $child) {
+            $allDescendants->push($child);
+            $grandchildren = $child->getAllChildren($withRelations);
+            $allDescendants = $allDescendants->merge($grandchildren);
         }
 
-        return $legacyChildren->merge($pivotChildren)->unique('id');
+        $legacyChildren = $withRelations
+            ? $this->children()->with($eagerLoad)->get()
+            : $this->children()->get();
+
+        $allDescendants = $allDescendants->merge(
+            $legacyChildren->filter(fn ($c) => ! $allDescendants->contains('id', $c->id))
+        );
+
+        return $allDescendants->unique('id');
+    }
+
+    public function isSubParent(): bool
+    {
+        return $this->parentTests()->exists() && $this->childTests()->exists();
     }
 
     /**

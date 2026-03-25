@@ -251,58 +251,82 @@
     <sethtmlpagefooter name="myFooter" value="on" />
 
     @php
-        // Filtrar solo determinaciones validadas y ordenar: padres primero, luego hijos
         $validatedDeterminations = $sample->determinations->where('is_validated', true);
-        
-        $isParentOf = function($parentTestId, $childTestId) {
-            $childTest = \App\Models\Test::find($childTestId);
-            if (!$childTest) return false;
-            if ($childTest->parent == $parentTestId) return true;
-            return $childTest->parentTests()->where('parent_test_id', $parentTestId)->exists();
-        };
-        
-        $parentTestIds = [];
-        $childTestIds = [];
-        
+
+        $itemsByTestId = [];
+        foreach ($validatedDeterminations as $det) {
+            $itemsByTestId[$det->test_id] = $det;
+        }
+
+        $testIds = $validatedDeterminations->pluck('test_id')->toArray();
+        $parentMap = [];
+        $childOf = [];
+        $isSubParentMap = [];
+
         foreach ($validatedDeterminations as $det) {
             $test = $det->test;
-            $allChildren = $test->getAllChildren(false);
-            
-            foreach ($allChildren as $child) {
-                if ($validatedDeterminations->where('test_id', $child->id)->count() > 0) {
-                    $parentTestIds[$det->test_id] = true;
-                    $childTestIds[$child->id] = true;
+            if (!$test) continue;
+
+            $children = $test->childTests()
+                ->whereIn('tests.id', $testIds)
+                ->orderBy('test_parents.order')
+                ->pluck('tests.id')
+                ->toArray();
+
+            if (!empty($children)) {
+                $parentMap[$test->id] = $children;
+                foreach ($children as $childId) {
+                    $childOf[$childId] = $test->id;
                 }
             }
         }
-        
+
+        foreach ($parentMap as $testId => $children) {
+            if (isset($childOf[$testId])) {
+                $isSubParentMap[$testId] = true;
+            }
+        }
+
+        $roots = [];
+        foreach ($validatedDeterminations as $det) {
+            if (!isset($childOf[$det->test_id])) {
+                $roots[] = $det->test_id;
+            }
+        }
+
+        usort($roots, function ($a, $b) use ($itemsByTestId) {
+            $sortA = $itemsByTestId[$a]->test->sort_order ?? 0;
+            $sortB = $itemsByTestId[$b]->test->sort_order ?? 0;
+            return $sortA <=> $sortB;
+        });
+
         $orderedDeterminations = collect();
-        $processed = [];
-        
-        foreach ($validatedDeterminations as $det) {
-            if (in_array($det->id, $processed)) continue;
-            
-            if (isset($parentTestIds[$det->test_id])) {
-                $orderedDeterminations->push(['det' => $det, 'isChild' => false, 'isParent' => true]);
-                $processed[] = $det->id;
-                
-                foreach ($validatedDeterminations as $childDet) {
-                    if (in_array($childDet->id, $processed)) continue;
-                    
-                    if ($isParentOf($det->test_id, $childDet->test_id)) {
-                        $orderedDeterminations->push(['det' => $childDet, 'isChild' => true, 'isParent' => false]);
-                        $processed[] = $childDet->id;
-                    }
+
+        $addWithChildren = function ($testId, $level) use (
+            &$addWithChildren, $parentMap, $isSubParentMap, $itemsByTestId, &$orderedDeterminations
+        ) {
+            if (!isset($itemsByTestId[$testId])) return;
+
+            $isParent = isset($parentMap[$testId]);
+            $isSub = isset($isSubParentMap[$testId]);
+
+            $orderedDeterminations->push([
+                'det' => $itemsByTestId[$testId],
+                'level' => $level,
+                'isParent' => $isParent,
+                'isSubParent' => $isSub,
+                'isChild' => $level > 0,
+            ]);
+
+            if ($isParent) {
+                foreach ($parentMap[$testId] as $childId) {
+                    $addWithChildren($childId, $level + 1);
                 }
             }
-        }
-        
-        foreach ($validatedDeterminations as $det) {
-            if (!in_array($det->id, $processed)) {
-                $isChild = isset($childTestIds[$det->test_id]);
-                $orderedDeterminations->push(['det' => $det, 'isChild' => $isChild, 'isParent' => false]);
-                $processed[] = $det->id;
-            }
+        };
+
+        foreach ($roots as $rootId) {
+            $addWithChildren($rootId, 0);
         }
     @endphp
 
@@ -332,8 +356,8 @@
                 {{ strtoupper($sample->sample_type) }} - {{ strtoupper($sample->location) }}
                 @php
                     $firstCategoryName = null;
-                    foreach ($orderedDeterminations as $item) {
-                        $d = $item['det'];
+                    foreach ($orderedDeterminations as $entry) {
+                        $d = $entry['det'];
                         if ($d->reference_category_id && $d->referenceCategory) {
                             $firstCategoryName = $d->referenceCategory->name;
                             break;
@@ -355,29 +379,33 @@
             <td width="30%" style="text-align: right;">Valores de ref.</td>
         </tr>
 
-        @foreach($orderedDeterminations as $item)
+        @foreach($orderedDeterminations as $entry)
             @php
-                $det = $item['det'];
-                $isChild = $item['isChild'];
-                $isParent = $item['isParent'];
+                $det = $entry['det'];
+                $level = $entry['level'];
+                $isParent = $entry['isParent'];
+                $isChild = $entry['isChild'];
+                $isSub = $entry['isSubParent'];
+                $indent = $level * 20;
             @endphp
 
-            @if($isParent)
-                {{-- Parent row: bold, no result --}}
+            @if($isParent && !$isSub)
                 <tr class="det-parent">
                     <td colspan="4">
                         {{ strtoupper($det->test->name ?? 'N/A') }}
                         @php
-                            $childDets = $validatedDeterminations->filter(function($d) use ($det) {
-                                $childTest = $d->test;
-                                if (!$childTest) return false;
-                                if ($childTest->parent == $det->test_id) return true;
-                                return $childTest->parentTests()->where('parent_test_id', $det->test_id)->exists();
-                            });
-                            $childCategory = $childDets->first(function($d) { return $d->reference_category_id; });
+                            $childIds = $parentMap[$det->test_id] ?? [];
+                            $childCategory = null;
+                            foreach ($childIds as $cid) {
+                                $cd = $itemsByTestId[$cid] ?? null;
+                                if ($cd && $cd->reference_category_id && $cd->referenceCategory) {
+                                    $childCategory = $cd->referenceCategory;
+                                    break;
+                                }
+                            }
                             $pCatName = null;
-                            if ($childCategory && $childCategory->referenceCategory) {
-                                $pCatName = $childCategory->referenceCategory->name;
+                            if ($childCategory) {
+                                $pCatName = $childCategory->name;
                             } elseif ($det->test->default_reference_category_id && $det->test->defaultReferenceCategory) {
                                 $pCatName = $det->test->defaultReferenceCategory->name;
                             }
@@ -394,21 +422,30 @@
                         <td colspan="4">{{ $det->method }}</td>
                     </tr>
                 @endif
+            @elseif($isSub)
+                <tr class="det-parent">
+                    <td colspan="4" style="padding-left: {{ $indent }}px;">
+                        {{ strtoupper($det->test->name ?? 'N/A') }}
+                    </td>
+                </tr>
+                @if($det->method)
+                    <tr class="det-method">
+                        <td colspan="4" style="padding-left: {{ $indent }}px;">{{ $det->method }}</td>
+                    </tr>
+                @endif
             @elseif($isChild)
-                {{-- Child row: indented --}}
                 <tr class="det-child">
-                    <td style="padding-left: 20px;">{{ ucfirst($det->test->name ?? 'N/A') }}</td>
+                    <td style="padding-left: {{ $indent }}px;">{{ ucfirst($det->test->name ?? 'N/A') }}</td>
                     <td class="det-result">{{ $det->result ?? '-' }}</td>
                     <td class="det-unit">{{ $det->unit ?? '' }}</td>
                     <td class="det-ref">{{ $det->reference_value ?: ($det->test->other_reference ?? '') }}</td>
                 </tr>
                 @if($det->method)
                     <tr class="det-method">
-                        <td colspan="4" style="padding-left: 20px;">{{ $det->method }}</td>
+                        <td colspan="4" style="padding-left: {{ $indent }}px;">{{ $det->method }}</td>
                     </tr>
                 @endif
             @else
-                {{-- Standalone row --}}
                 <tr class="det-standalone">
                     <td>{{ ucfirst($det->test->name ?? 'N/A') }}</td>
                     <td class="det-result">{{ $det->result ?? '-' }}</td>
@@ -424,7 +461,7 @@
 
             @if($det->observations)
                 <tr>
-                    <td colspan="4" style="font-size: 8pt; font-style: italic; color: #666; padding: 0 4px 4px 12px;">
+                    <td colspan="4" style="font-size: 8pt; font-style: italic; color: #666; padding: 0 4px 4px {{ $indent + 12 }}px;">
                         {{ $det->observations }}
                     </td>
                 </tr>
@@ -443,9 +480,9 @@
         $positiveKeywords = ['presencia', 'presente', 'positivo', 'detectado', 'desarrollo'];
         $absenceReferenceKeywords = ['ausencia', 'ausente', 'negativo', 'no detectable', 'ausencia en', 'ausencia/100', 'ausencia/25', '0 ufc', '0ufc'];
         
-        foreach ($orderedDeterminations as $item) {
-            $det = $item['det'];
-            $isParent = $item['isParent'];
+        foreach ($orderedDeterminations as $entry) {
+            $det = $entry['det'];
+            $isParent = $entry['isParent'];
             
             if ($isParent) continue;
             
