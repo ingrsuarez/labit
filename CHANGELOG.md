@@ -5,6 +5,29 @@
 
 ---
 
+## [v2.4.0] — 2026-03-25 — Control de acceso por rol y redirección inteligente
+
+### Agregado
+- 4 permisos de sección: `personal.section`, `ausencias.section`, `liquidaciones.section`, `configuracion.section`
+- Rol `contador` recibe `ausencias.section` y `liquidaciones.section`
+- Grupos de roles en `CheckSystemAccess`: `adminCapableRoles`, `labOnlyRoles`, `portalOnlyRoles`
+- Link "Laboratorio" en sidebar del portal para usuarios con roles lab
+- Redirección inteligente en `DashboardController`: lab → lab, compras → compras, ventas → ventas
+
+### Modificado
+- Sidebar admin: Personal, Ausencias, Liquidaciones y Configuración protegidos con `@can`
+- `routes/web.php`: rutas RRHH envueltas en `permission:personal.section`, ausencias en `permission:ausencias.section`, liquidaciones en `permission:liquidaciones.section`, config en `permission:configuracion.section`
+- `CheckSystemAccess`: redirección por prioridad admin-capable > lab > portal > pending
+- Lab sidebar: link "Administración" solo visible para roles admin-capable
+- Portal sidebar: links "Panel Administrativo" y "Ir al Sistema" solo para roles admin-capable
+
+### Notas
+- Permisos granulares dentro de cada sección (CRUD) quedan para versión futura
+- Compras y Ventas ya estaban protegidos por middleware — sin cambios
+- Seeder idempotente: ejecutar de nuevo no duplica permisos
+
+---
+
 ## [v1.15.0] — 2026-03-25 — Sub-padres y orden fijo de determinaciones
 
 ### Agregado

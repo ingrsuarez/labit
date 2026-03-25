@@ -51,6 +51,7 @@
 | v1.14.0 | Precios en protocolos de aguas y alimentos | 2026-03-25 | categories JSON en tests, discount_percent en customers, precio en sample_determinations |
 | v1.14.1 | Otros valores de referencia en determinaciones | 2026-03-25 | Campo other_reference para valores no numéricos, fallback en PDFs |
 | v1.15.0 | Sub-padres y orden fijo de determinaciones | 2026-03-25 | Jerarquía 3 niveles, sort_order, PDFs con indentación progresiva |
+| v2.4.0 | Control de acceso por rol y redirección inteligente | 2026-03-25 | Permisos de sección, sidebar protegido, redirección por rol |
 
 ---
 
@@ -65,7 +66,8 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v2.4.0 | Control de acceso por rol y redirección inteligente | medio día | ninguna | `prompts/pendientes/v2.4.0-control-acceso-por-rol.md` |
+
+_Sin versiones planificadas._
 
 ---
 
@@ -82,10 +84,10 @@
 ## Progreso general
 
 ```
-Completadas:  34 versiones (v1.0.0 → v2.3.0)
-Planificadas: 1
+Completadas:  35 versiones (v1.0.0 → v2.4.0)
+Planificadas: 0
 En proceso:   0
-Próxima:      v2.4.0 — Control de acceso por rol y redirección inteligente
+Próxima:      — (cola vacía)
 ```
 
 ---
