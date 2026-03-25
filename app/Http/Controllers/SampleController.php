@@ -34,7 +34,9 @@ class SampleController extends Controller
     {
         $this->authorize('samples.create');
         $customers = Customer::orderBy('name')->get();
-        $tests = Test::orderBy('name')->get();
+        $tests = Test::whereJsonContains('categories', 'aguas_alimentos')
+            ->orderBy('name')
+            ->get();
 
         return view('sample.create', compact('customers', 'tests'));
     }
@@ -67,6 +69,11 @@ class SampleController extends Controller
         // Crear la muestra
         $sample = Sample::create($validated);
 
+        // Calcular descuento del cliente
+        $customer = Customer::find($validated['customer_id']);
+        $discountPercent = $customer->discount_percent ?? 0;
+        $discountMultiplier = 1 - ($discountPercent / 100);
+
         // Agregar las determinaciones (incluyendo hijos automáticamente)
         foreach ($request->determinations as $testId) {
             $test = Test::with(['children', 'childTests', 'referenceValues'])->find($testId);
@@ -74,9 +81,13 @@ class SampleController extends Controller
             $parentCategoryId = $test->default_reference_category_id;
 
             $parentRef = $this->buildReferenceValue($test);
+            $basePrice = $test->price ?? 0;
+            $finalPrice = round($basePrice * $discountMultiplier, 2);
+
             SampleDetermination::create([
                 'sample_id' => $sample->id,
                 'test_id' => $testId,
+                'price' => $finalPrice,
                 'unit' => $test->unit,
                 'method' => $test->method,
                 'reference_value' => $parentRef['value'],
@@ -92,6 +103,7 @@ class SampleController extends Controller
                     SampleDetermination::create([
                         'sample_id' => $sample->id,
                         'test_id' => $childTest->id,
+                        'price' => 0,
                         'unit' => $childTest->unit,
                         'method' => $childTest->method,
                         'reference_value' => $childRef['value'],
@@ -132,7 +144,9 @@ class SampleController extends Controller
     {
         $this->authorize('samples.edit');
         $customers = Customer::orderBy('name')->get();
-        $tests = Test::orderBy('name')->get();
+        $tests = Test::whereJsonContains('categories', 'aguas_alimentos')
+            ->orderBy('name')
+            ->get();
         $sample->load('determinations');
 
         return view('sample.edit', compact('sample', 'customers', 'tests'));
@@ -183,10 +197,18 @@ class SampleController extends Controller
 
         $parentCategoryId = $test->default_reference_category_id;
 
+        // Calcular descuento del cliente
+        $customer = $sample->customer;
+        $discountPercent = $customer->discount_percent ?? 0;
+        $discountMultiplier = 1 - ($discountPercent / 100);
+        $basePrice = $test->price ?? 0;
+        $finalPrice = round($basePrice * $discountMultiplier, 2);
+
         $parentRef = $this->buildReferenceValue($test);
         SampleDetermination::create([
             'sample_id' => $sample->id,
             'test_id' => $validated['test_id'],
+            'price' => $finalPrice,
             'unit' => $test->unit,
             'method' => $test->method,
             'reference_value' => $parentRef['value'],
@@ -203,6 +225,7 @@ class SampleController extends Controller
                 SampleDetermination::create([
                     'sample_id' => $sample->id,
                     'test_id' => $childTest->id,
+                    'price' => 0,
                     'unit' => $childTest->unit,
                     'method' => $childTest->method,
                     'reference_value' => $childRef['value'],

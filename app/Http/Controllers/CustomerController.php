@@ -56,9 +56,11 @@ class CustomerController extends Controller
             'state' => 'nullable|string|max:100',
             'country' => 'nullable|string|max:100',
             'postal' => 'nullable|string|max:20',
+            'discount_percent' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $validated['status'] = 'activo';
+        $validated['discount_percent'] = $validated['discount_percent'] ?? 0;
 
         Customer::create($validated);
 
@@ -91,6 +93,7 @@ class CustomerController extends Controller
             'country' => 'nullable|string|max:100',
             'postal' => 'nullable|string|max:20',
             'status' => 'required|in:activo,inactivo',
+            'discount_percent' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $customer->update($validated);
