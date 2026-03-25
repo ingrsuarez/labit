@@ -108,7 +108,7 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($tests as $test)
                         <tr class="hover:bg-teal-50 cursor-pointer transition-colors"
-                            onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}', {{ json_encode($test->categories ?? ['clinico']) }}, '{{ addslashes($test->other_reference) }}')">
+                            onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}', {{ json_encode($test->categories ?? ['clinico']) }}, '{{ addslashes($test->other_reference) }}', '{{ $test->sort_order }}')">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="text-teal-600 font-medium">{{ $test->code }}</span>
                             </td>
@@ -146,7 +146,7 @@
                                     Refs
                                 </a>
                                 <button type="button" 
-                                        onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}', {{ json_encode($test->categories ?? ['clinico']) }}, '{{ addslashes($test->other_reference) }}')"
+                                        onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}', {{ json_encode($test->categories ?? ['clinico']) }}, '{{ addslashes($test->other_reference) }}', '{{ $test->sort_order }}')"
                                         class="text-indigo-600 hover:text-indigo-900">
                                     Editar
                                 </button>
@@ -252,6 +252,13 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">NBU</label>
                             <input type="number" name="nbu" value="{{ old('nbu') }}"
                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Orden en informe</label>
+                            <input type="number" name="sort_order" value="{{ old('sort_order', 0) }}" min="0"
+                                   class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
+                                   placeholder="0">
+                            <p class="text-xs text-gray-500 mt-1">Orden global para padres/standalone. Menor = primero.</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Precio</label>
@@ -391,6 +398,13 @@
                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                         </div>
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Orden en informe</label>
+                            <input type="number" name="sort_order" id="edit-sort_order" min="0"
+                                   placeholder="0"
+                                   class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                            <p class="text-xs text-gray-500 mt-1">Orden global para padres/standalone. Menor = primero.</p>
+                        </div>
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Precio</label>
                             <input type="number" name="price" id="edit-price" step="0.01" min="0"
                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
@@ -509,7 +523,7 @@
             }
         }
 
-        function openEditModal(id, code, name, unit, method, low, high, decimals, nbu, instructions, material, parentIds, price, categories, otherReference) {
+        function openEditModal(id, code, name, unit, method, low, high, decimals, nbu, instructions, material, parentIds, price, categories, otherReference, sortOrder) {
             document.getElementById('form-edit').action = '/tests/' + id;
             document.getElementById('edit-code').value = code;
             document.getElementById('edit-name').value = name;
@@ -523,6 +537,7 @@
             document.getElementById('edit-price').value = price || '';
             document.getElementById('edit-instructions').value = instructions || '';
             document.getElementById('edit-material').value = material || '';
+            document.getElementById('edit-sort_order').value = sortOrder || 0;
 
             // Setear categorías
             categories = categories || ['clinico'];
@@ -592,7 +607,8 @@
                         parentIds,
                         test.price,
                         test.categories || ['clinico'],
-                        test.other_reference || ''
+                        test.other_reference || '',
+                        test.sort_order || 0
                     );
                 }
             }

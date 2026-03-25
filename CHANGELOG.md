@@ -5,6 +5,51 @@
 
 ---
 
+## [v2.4.0] — 2026-03-25 — Control de acceso por rol y redirección inteligente
+
+### Agregado
+- 4 permisos de sección: `personal.section`, `ausencias.section`, `liquidaciones.section`, `configuracion.section`
+- Rol `contador` recibe `ausencias.section` y `liquidaciones.section`
+- Grupos de roles en `CheckSystemAccess`: `adminCapableRoles`, `labOnlyRoles`, `portalOnlyRoles`
+- Link "Laboratorio" en sidebar del portal para usuarios con roles lab
+- Redirección inteligente en `DashboardController`: lab → lab, compras → compras, ventas → ventas
+
+### Modificado
+- Sidebar admin: Personal, Ausencias, Liquidaciones y Configuración protegidos con `@can`
+- `routes/web.php`: rutas RRHH envueltas en `permission:personal.section`, ausencias en `permission:ausencias.section`, liquidaciones en `permission:liquidaciones.section`, config en `permission:configuracion.section`
+- `CheckSystemAccess`: redirección por prioridad admin-capable > lab > portal > pending
+- Lab sidebar: link "Administración" solo visible para roles admin-capable
+- Portal sidebar: links "Panel Administrativo" y "Ir al Sistema" solo para roles admin-capable
+
+### Notas
+- Permisos granulares dentro de cada sección (CRUD) quedan para versión futura
+- Compras y Ventas ya estaban protegidos por middleware — sin cambios
+- Seeder idempotente: ejecutar de nuevo no duplica permisos
+
+---
+
+## [v1.15.0] — 2026-03-25 — Sub-padres y orden fijo de determinaciones
+
+### Agregado
+- Migración: campo `sort_order` (integer, default 0) en tabla `tests` para orden global de padres y standalone en informes
+- Método `isSubParent()` en modelo `Test`: identifica tests que son hijos de un padre y a su vez padres de otros tests
+- Campo "Orden en informe" en modales de crear y editar determinación (`test/index.blade.php`)
+- Validación `sort_order` (integer, min:0) en `TestController::store()` y `update()`
+
+### Modificado
+- `Test::getAllChildren()` refactorizado a versión recursiva: ahora soporta 3 niveles (padre → sub-padre → hijo) recorriendo nietos automáticamente
+- PDF de muestras (`sample/pdf-mpdf.blade.php`): reescrito bloque de agrupación y renderizado con soporte para 3 niveles, orden por `sort_order` global + `test_parents.order` interno, indentación progresiva (0px/20px/40px)
+- PDF de admisiones clínicas (`lab/admissions/pdf-mpdf.blade.php`): misma lógica de 3 niveles con `sort_order` y orden interno
+- Sub-padres se renderizan como encabezados intermedios indentados, sin fila de resultado
+
+### Notas
+- Compatible con datos existentes: `sort_order` default 0 no altera el orden previo
+- Los hijos se ordenan por `test_parents.order` (ya existente en la tabla pivot)
+- Al agregar un padre a un protocolo, `getAllChildren()` recursivo trae automáticamente todos los descendientes (hijos y nietos)
+- No requiere cambios en SampleController ni LabAdmissionController (la recursión es transparente)
+
+---
+
 ## [v1.14.1] — 2026-03-25 — Otros valores de referencia en determinaciones
 
 ### Agregado

@@ -9,31 +9,31 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.3.0 |
-| **Última completada** | v1.14.1 — Otros valores de referencia en determinaciones |
+| **Versión actual** | v2.4.0 |
+| **Última completada** | v2.4.0 — Control de acceso por rol y redirección inteligente |
 | **En proceso** | — |
-| **Próxima** | v1.15.0 — Sub-padres y orden fijo de determinaciones |
-| **Pendientes en cola** | 1 |
-| **Completadas** | 32 |
+| **Próxima** | — (cola vacía) |
+| **Pendientes en cola** | 0 |
+| **Completadas** | 34 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (1)
+### Pendientes (0)
 
-| Versión | Nombre | Estimación | Dependencias | Archivo |
-|---|---|---|---|---|
-| v1.15.0 | Sub-padres y orden fijo de determinaciones | 2-3h | ninguna | `prompts/pendientes/v1.15.0-sub-padres-orden-fijo.md` |
+_Sin prompts pendientes._
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (32)
+### Completados (34)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v2.4.0 | Control de acceso por rol y redirección inteligente | 2026-03-25 | v2.4.0 |
+| v1.15.0 | Sub-padres y orden fijo de determinaciones | 2026-03-25 | v1.15.0 |
 | v1.14.1 | Otros valores de referencia en determinaciones | 2026-03-25 | v1.14.1 |
 | v1.14.0 | Precios en protocolos de aguas y alimentos | 2026-03-25 | v1.14.0 |
 | v1.12.0 | PDF protocolos lab clínico + envío email | 2026-03-25 | v1.12.0 |
@@ -134,10 +134,10 @@ Ejecutar el siguiente prompt de la cola:
 Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
 ```
 
-Próximo en cola: **v1.15.0 — Sub-padres y orden fijo de determinaciones**
+Próximo en cola: **— (cola vacía)**
 
 Cola priorizada:
-1. v1.15.0 — Sub-padres y orden fijo de determinaciones
+_Sin prompts en cola._
 
 ---
 

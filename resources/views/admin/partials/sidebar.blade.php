@@ -58,6 +58,7 @@
 
             <div class="border-t border-zinc-700 my-2"></div>
 
+            @can('personal.section')
             <!-- Personal -->
             <a href="{{ route('admin.section.personal') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
@@ -69,7 +70,9 @@
                 </svg>
                 Personal
             </a>
+            @endcan
 
+            @can('ausencias.section')
             <!-- Ausencias -->
             <a href="{{ route('admin.section.ausencias') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
@@ -81,7 +84,9 @@
                 </svg>
                 Ausencias
             </a>
+            @endcan
 
+            @can('liquidaciones.section')
             <!-- Liquidaciones -->
             <a href="{{ route('admin.section.liquidaciones') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
@@ -93,6 +98,7 @@
                 </svg>
                 Liquidaciones
             </a>
+            @endcan
 
             <!-- Compras -->
             @can('compras.section')
@@ -123,6 +129,7 @@
             @endcan
 
             <!-- Configuración -->
+            @can('configuracion.section')
             <a href="{{ route('admin.section.configuracion') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
                 {{ request()->routeIs('admin.section.configuracion') || request()->routeIs('user.*') || request()->routeIs('role.*') || request()->routeIs('permission.*') || request()->routeIs('companies.*')
@@ -134,6 +141,7 @@
                 </svg>
                 Configuración
             </a>
+            @endcan
 
             @can('companies.section')
             <a href="{{ route('companies.index') }}"

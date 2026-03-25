@@ -88,7 +88,8 @@
 
         <!-- Footer del Sidebar -->
         <div class="px-3 py-4 border-t border-teal-600">
-            <!-- Ir a Administración -->
+            <!-- Ir a Administración (solo si tiene rol admin-capable) -->
+            @if($user->hasAnyRole(['admin', 'contador', 'compras', 'ventas']))
             <a href="{{ route('manage.index') }}" 
                class="flex items-center px-4 py-2 text-sm rounded-lg text-teal-100 hover:bg-teal-600/50 hover:text-white transition-colors mb-2">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,6 +98,7 @@
                 </svg>
                 Administración
             </a>
+            @endif
 
             <!-- Portal del Empleado -->
             @if($user->employee)

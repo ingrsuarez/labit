@@ -8,69 +8,55 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CheckSystemAccess
 {
-    /**
-     * Roles que solo permiten acceso al portal de empleados (no al sistema administrativo)
-     */
     protected array $portalOnlyRoles = ['empleado', 'employee'];
 
-    /**
-     * Verifica que el usuario tenga acceso al sistema administrativo.
-     * Usuarios con rol "empleado" solo pueden acceder al portal.
-     */
+    protected array $labOnlyRoles = ['recepcion-lab', 'tecnico-lab', 'bioquimico'];
+
+    protected array $adminCapableRoles = ['admin', 'contador', 'compras', 'ventas'];
+
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login');
         }
 
-        // Obtener los nombres de los roles del usuario
-        $userRoles = $user->roles->pluck('name')->toArray();
-        
-        // Verificar si el usuario SOLO tiene roles de portal (empleado)
-        $hasOnlyPortalRoles = !empty($userRoles) && 
-            empty(array_diff(array_map('strtolower', $userRoles), $this->portalOnlyRoles));
+        $userRoles = $user->roles->pluck('name')->map(fn ($r) => strtolower($r))->toArray();
 
-        // Si solo tiene rol de empleado
-        if ($hasOnlyPortalRoles) {
-            // Si tiene empleado asociado, redirigir al portal
-            if ($user->employee) {
-                return redirect()->route('portal.dashboard');
-            }
-            // Si no tiene empleado asociado, mostrar página de espera
-            return redirect()->route('access.pending');
-        }
+        $hasAdminCapable = ! empty(array_intersect($userRoles, $this->adminCapableRoles));
+        $hasLabOnly = ! empty(array_intersect($userRoles, $this->labOnlyRoles));
+        $hasOnlyPortalRoles = ! empty($userRoles)
+            && empty(array_diff($userRoles, $this->portalOnlyRoles));
 
-        // Si tiene roles administrativos (cualquier rol que no sea solo "empleado")
-        if (!empty($userRoles)) {
+        if ($hasAdminCapable) {
             return $next($request);
         }
 
-        // Si tiene permisos directos, puede acceder
+        if ($hasLabOnly) {
+            return redirect()->route('lab.section.clinico');
+        }
+
+        if ($hasOnlyPortalRoles) {
+            if ($user->employee) {
+                return redirect()->route('portal.dashboard');
+            }
+
+            return redirect()->route('access.pending');
+        }
+
+        if (! empty($userRoles)) {
+            return $next($request);
+        }
+
         if ($user->permissions->count() > 0) {
             return $next($request);
         }
 
-        // Si tiene empleado asociado pero sin roles, redirigir al portal
         if ($user->employee) {
             return redirect()->route('portal.dashboard');
         }
 
-        // Usuario sin acceso - mostrar página de espera
         return redirect()->route('access.pending');
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
