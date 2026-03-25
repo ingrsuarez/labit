@@ -479,31 +479,50 @@ class LabAdmissionController extends Controller
             return response()->json(['error' => 'No encontrado'], 404);
         }
 
-        // Buscar en nomenclador
-        $insuranceTest = InsuranceTest::where('insurance_id', $insuranceId)
+        $ownItem = InsuranceTest::where('insurance_id', $insuranceId)
             ->where('test_id', $testId)
             ->first();
 
-        if ($insuranceTest) {
+        if ($ownItem) {
             return response()->json([
-                'price' => $insuranceTest->price,
-                'nbu_units' => $insuranceTest->nbu_units,
-                'requires_authorization' => $insuranceTest->requires_authorization,
-                'copago' => $insuranceTest->copago,
+                'price' => $ownItem->price,
+                'nbu_units' => $ownItem->nbu_units,
+                'requires_authorization' => $ownItem->requires_authorization,
+                'copago' => $ownItem->copago,
                 'in_nomenclator' => true,
+                'source' => 'own',
             ]);
         }
 
-        // Calcular precio basado en NBU
+        if ($insurance->nomenclator_id) {
+            $baseItem = InsuranceTest::where('insurance_id', $insurance->nomenclator_id)
+                ->where('test_id', $testId)
+                ->first();
+
+            if ($baseItem) {
+                $price = $baseItem->nbu_units * ($insurance->nbu_value ?? 0);
+
+                return response()->json([
+                    'price' => round($price, 2),
+                    'nbu_units' => $baseItem->nbu_units,
+                    'requires_authorization' => $baseItem->requires_authorization ?? false,
+                    'copago' => $baseItem->copago ?? 0,
+                    'in_nomenclator' => true,
+                    'source' => 'base',
+                ]);
+            }
+        }
+
         $nbuUnits = $test->nbu ?? 1;
         $price = $nbuUnits * ($insurance->nbu_value ?? 0);
 
         return response()->json([
-            'price' => $price,
+            'price' => round($price, 2),
             'nbu_units' => $nbuUnits,
             'requires_authorization' => false,
             'copago' => 0,
             'in_nomenclator' => false,
+            'source' => 'fallback',
         ]);
     }
 

@@ -64,8 +64,31 @@
         </div>
         @endif
 
-        <!-- Copiar desde Nomenclador Base (solo para obras sociales) -->
-        @if($insurance->type !== 'nomenclador' && isset($baseNomenclators) && count($baseNomenclators) > 0)
+        @if(isset($hasBaseNomenclator) && $hasBaseNomenclator && $baseNomenclator)
+        <div class="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl shadow-sm border border-teal-200 p-6 mb-6">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-800">Nomenclador en tiempo real</h2>
+                    <p class="text-sm text-gray-600 mt-1">
+                        Esta obra social usa el nomenclador base
+                        <span class="font-bold text-teal-700">{{ strtoupper($baseNomenclator->name) }}</span>.
+                        Los precios se calculan automáticamente:
+                        <span class="font-mono bg-white px-2 py-0.5 rounded border text-sm">NBU práctica × ${{ number_format($insurance->nbu_value ?? 0, 2, ',', '.') }}</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <!-- Copiar desde Nomenclador Base (solo si no tiene base asignado) -->
+        @if($insurance->type !== 'nomenclador' && !(isset($hasBaseNomenclator) && $hasBaseNomenclator) && isset($baseNomenclators) && count($baseNomenclators) > 0)
         <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-sm border border-blue-200 p-6 mb-6">
             <div class="flex items-start gap-4">
                 <div class="flex-shrink-0">
@@ -105,7 +128,8 @@
         </div>
         @endif
 
-        <!-- Agregar Práctica -->
+        <!-- Agregar Práctica (solo si no usa nomenclador base) -->
+        @if(!isset($hasBaseNomenclator) || !$hasBaseNomenclator)
         <div x-data="nomenclatorManager()" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Agregar Práctica</h2>
             <form action="{{ route('nomenclator.store', $insurance) }}" method="POST">
@@ -186,14 +210,20 @@
                 </div>
             </form>
         </div>
+        @endif
 
         <!-- Listado de Prácticas -->
         <div x-data="{ filter: '' }" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
                 <h2 class="text-lg font-semibold text-gray-800">
-                    Prácticas en Nomenclador 
+                    @if(isset($hasBaseNomenclator) && $hasBaseNomenclator)
+                        Prácticas del Nomenclador {{ strtoupper($baseNomenclator->name ?? '') }}
+                    @else
+                        Prácticas en Nomenclador
+                    @endif
                     <span class="text-sm font-normal text-gray-500">({{ $practices->count() }})</span>
                 </h2>
+                @if(!isset($hasBaseNomenclator) || !$hasBaseNomenclator)
                 <div class="flex items-center gap-4">
                     <form action="{{ route('nomenclator.cleanup', $insurance) }}" method="POST" class="inline"
                           onsubmit="return confirm('¿Eliminar registros huérfanos? Esto borra prácticas que apuntan a tests inexistentes.')">
@@ -211,6 +241,7 @@
                         </form>
                     @endif
                 </div>
+                @endif
             </div>
 
             @if($practices->count() > 0)
@@ -224,6 +255,37 @@
                     </div>
                 </div>
                 <div class="overflow-x-auto">
+                @if(isset($hasBaseNomenclator) && $hasBaseNomenclator)
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Práctica</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">NBU</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Precio Calculado</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach($practices as $item)
+                                <tr class="hover:bg-gray-50"
+                                    x-show="!filter || '{{ strtolower(($item->test?->code ?? '') . ' ' . ($item->test?->name ?? '')) }}'.includes(filter.toLowerCase())">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        {{ $item->test?->code ?? '—' }}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">
+                                        {{ $item->test?->name ?? 'Test eliminado' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right">
+                                        {{ number_format($item->nbu_units ?? 0, 2, ',', '.') }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium">
+                                        ${{ number_format(($item->nbu_units ?? 0) * ($insurance->nbu_value ?? 0), 2, ',', '.') }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @else
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -316,6 +378,7 @@
                             @endforeach
                         </tbody>
                     </table>
+                @endif
                 </div>
             @else
                 <div class="px-6 py-12 text-center">
