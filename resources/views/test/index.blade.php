@@ -108,7 +108,7 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($tests as $test)
                         <tr class="hover:bg-teal-50 cursor-pointer transition-colors"
-                            onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}', {{ json_encode($test->categories ?? ['clinico']) }})">
+                            onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}', {{ json_encode($test->categories ?? ['clinico']) }}, '{{ addslashes($test->other_reference) }}')">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="text-teal-600 font-medium">{{ $test->code }}</span>
                             </td>
@@ -146,7 +146,7 @@
                                     Refs
                                 </a>
                                 <button type="button" 
-                                        onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}', {{ json_encode($test->categories ?? ['clinico']) }})"
+                                        onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}', {{ json_encode($test->categories ?? ['clinico']) }}, '{{ addslashes($test->other_reference) }}')"
                                         class="text-indigo-600 hover:text-indigo-900">
                                     Editar
                                 </button>
@@ -235,6 +235,13 @@
                             <input type="text" name="high" value="{{ old('high') }}"
                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
                                    placeholder="Valor de referencia máximo">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Otros valores de referencia</label>
+                            <input type="text" name="other_reference" value="{{ old('other_reference') }}"
+                                   placeholder="Ej: Ausencia en 100ml, Positivo/Negativo, < 10 UFC/ml..."
+                                   class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                            <p class="text-xs text-gray-500 mt-1">Para valores no numéricos. Si no está vacío, aparece en el informe.</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Decimales</label>
@@ -366,6 +373,13 @@
                             <input type="text" name="high" id="edit-high"
                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                         </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Otros valores de referencia</label>
+                            <input type="text" name="other_reference" id="edit-other_reference"
+                                   placeholder="Ej: Ausencia en 100ml, Positivo/Negativo, < 10 UFC/ml..."
+                                   class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                            <p class="text-xs text-gray-500 mt-1">Para valores no numéricos. Si no está vacío, aparece en el informe.</p>
+                        </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Decimales</label>
                             <input type="number" name="decimals" id="edit-decimals" min="0" max="6"
@@ -495,7 +509,7 @@
             }
         }
 
-        function openEditModal(id, code, name, unit, method, low, high, decimals, nbu, instructions, material, parentIds, price, categories) {
+        function openEditModal(id, code, name, unit, method, low, high, decimals, nbu, instructions, material, parentIds, price, categories, otherReference) {
             document.getElementById('form-edit').action = '/tests/' + id;
             document.getElementById('edit-code').value = code;
             document.getElementById('edit-name').value = name;
@@ -503,6 +517,7 @@
             document.getElementById('edit-method').value = method || '';
             document.getElementById('edit-low').value = low || '';
             document.getElementById('edit-high').value = high || '';
+            document.getElementById('edit-other_reference').value = otherReference || '';
             document.getElementById('edit-decimals').value = decimals || 2;
             document.getElementById('edit-nbu').value = nbu || '';
             document.getElementById('edit-price').value = price || '';
@@ -576,7 +591,8 @@
                         test.material,
                         parentIds,
                         test.price,
-                        test.categories || ['clinico']
+                        test.categories || ['clinico'],
+                        test.other_reference || ''
                     );
                 }
             }
