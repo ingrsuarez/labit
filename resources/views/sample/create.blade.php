@@ -58,12 +58,15 @@
                     <!-- Cliente -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Cliente *</label>
-                        <select name="customer_id" required
+                        <select name="customer_id" x-model="customerId" @change="onCustomerChange()" required
                                 class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                             <option value="">Seleccionar cliente...</option>
                             @foreach($customers as $customer)
                                 <option value="{{ $customer->id }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
                                     {{ $customer->name }} ({{ $customer->taxId }})
+                                    @if($customer->discount_percent > 0)
+                                        — {{ $customer->discount_percent }}% dto.
+                                    @endif
                                 </option>
                             @endforeach
                         </select>
@@ -142,7 +145,7 @@
                                     <span class="font-medium text-teal-600" x-text="test.code"></span>
                                     <span class="text-gray-600" x-text="' - ' + test.name"></span>
                                 </span>
-                                <span class="text-xs text-gray-400">Tab/Enter para agregar</span>
+                                <span class="font-medium text-gray-900" x-text="'$' + formatNumber(test.price)"></span>
                             </div>
                         </template>
                     </div>
@@ -155,6 +158,7 @@
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Determinación</th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Precio</th>
                                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acción</th>
                             </tr>
                         </thead>
@@ -163,6 +167,8 @@
                                 <tr>
                                     <td class="px-4 py-3 text-sm font-medium text-teal-600" x-text="test.code"></td>
                                     <td class="px-4 py-3 text-sm text-gray-900" x-text="test.name"></td>
+                                    <td class="px-4 py-3 text-sm text-right font-medium text-gray-900"
+                                        x-text="'$' + formatNumber(test.price)"></td>
                                     <td class="px-4 py-3 text-right">
                                         <button type="button" @click="removeTest(index)" 
                                                 class="text-red-600 hover:text-red-800 text-sm">
@@ -173,7 +179,7 @@
                                 </tr>
                             </template>
                             <tr x-show="selectedTests.length === 0">
-                                <td colspan="3" class="px-4 py-8 text-center text-gray-500">
+                                <td colspan="4" class="px-4 py-8 text-center text-gray-500">
                                     <svg class="mx-auto h-8 w-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                                     </svg>
@@ -185,10 +191,26 @@
                 </div>
 
                 <p class="text-sm text-gray-500 mt-3">
-                    <span class="font-medium" x-text="selectedTests.length"></span> determinación(es) seleccionada(s).
-                    Use <kbd class="px-1.5 py-0.5 bg-gray-100 rounded text-xs">Tab</kbd> o 
-                    <kbd class="px-1.5 py-0.5 bg-gray-100 rounded text-xs">Enter</kbd> para agregar rápidamente.
+                    <span class="font-medium" x-text="selectedTests.length"></span> determinación(es) seleccionada(s)
+                    <span x-show="selectedTests.length > 0" class="ml-2 text-teal-600 font-medium"
+                          x-text="'— Total: $' + formatNumber(total)"></span>
                 </p>
+
+                <!-- Totales -->
+                <div x-show="selectedTests.length > 0" class="mt-4 bg-gray-50 rounded-lg p-4">
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600">Subtotal</span>
+                        <span class="font-medium" x-text="'$' + formatNumber(subtotal)"></span>
+                    </div>
+                    <div x-show="discountPercent > 0" class="flex justify-between items-center text-sm mt-1">
+                        <span class="text-gray-600">Descuento (<span x-text="discountPercent"></span>%)</span>
+                        <span class="font-medium text-red-600" x-text="'-$' + formatNumber(discountAmount)"></span>
+                    </div>
+                    <div class="flex justify-between items-center text-lg font-bold mt-2 pt-2 border-t border-gray-200">
+                        <span>Total</span>
+                        <span class="text-teal-600" x-text="'$' + formatNumber(total)"></span>
+                    </div>
+                </div>
             </div>
 
             <!-- Botones -->
@@ -212,7 +234,30 @@
                 searchTest: '',
                 showSuggestions: false,
                 selectedTests: [],
-                allTests: {!! json_encode($tests->map(function($t) { return ['id' => $t->id, 'code' => $t->code, 'name' => $t->name]; })->values()) !!},
+                customerId: '{{ old('customer_id', '') }}',
+                discountPercent: 0,
+                allTests: {!! json_encode($tests->map(function($t) { return ['id' => $t->id, 'code' => $t->code, 'name' => $t->name, 'price' => $t->price ?? 0]; })->values()) !!},
+                customerDiscounts: {!! json_encode($customers->pluck('discount_percent', 'id')) !!},
+
+                get subtotal() {
+                    return this.selectedTests.reduce((sum, t) => sum + parseFloat(t.price || 0), 0);
+                },
+
+                get discountAmount() {
+                    return this.subtotal * (this.discountPercent / 100);
+                },
+
+                get total() {
+                    return this.subtotal - this.discountAmount;
+                },
+
+                formatNumber(num) {
+                    return new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
+                },
+
+                onCustomerChange() {
+                    this.discountPercent = this.customerDiscounts[this.customerId] || 0;
+                },
                 
                 get filteredTests() {
                     if (!this.searchTest || this.searchTest.length < 1) return [];
@@ -222,7 +267,7 @@
                                              test.name.toLowerCase().includes(search);
                         const notSelected = !this.selectedTests.find(s => s.id === test.id);
                         return matchesSearch && notSelected;
-                    }).slice(0, 10); // Limitar a 10 resultados
+                    }).slice(0, 10);
                 },
                 
                 addFirstFiltered() {
@@ -241,6 +286,12 @@
                 
                 removeTest(index) {
                     this.selectedTests.splice(index, 1);
+                },
+
+                init() {
+                    if (this.customerId) {
+                        this.onCustomerChange();
+                    }
                 }
             }
         }

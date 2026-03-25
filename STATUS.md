@@ -10,28 +10,32 @@
 | Campo | Valor |
 |---|---|
 | **Versión actual** | v2.3.0 |
-| **Última completada** | v1.12.0 — PDF protocolos lab clínico + envío email |
+| **Última completada** | v1.14.0 — Precios en protocolos de aguas y alimentos |
 | **En proceso** | — |
-| **Próxima** | — (cola vacía) |
-| **Pendientes en cola** | 0 |
-| **Completadas** | 30 |
+| **Próxima** | v1.14.1 — Otros valores de referencia en determinaciones |
+| **Pendientes en cola** | 2 |
+| **Completadas** | 31 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (0)
+### Pendientes (2)
 
-_Cola de prompts vacía. Contactar al PM para planificar la siguiente fase._
+| Versión | Nombre | Estimación | Dependencias | Archivo |
+|---|---|---|---|---|
+| v1.14.1 | Otros valores de referencia en determinaciones | 30min | ninguna | `prompts/pendientes/v1.14.1-otros-valores-referencia.md` |
+| v1.15.0 | Sub-padres y orden fijo de determinaciones | 2-3h | ninguna | `prompts/pendientes/v1.15.0-sub-padres-orden-fijo.md` |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (30)
+### Completados (31)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.14.0 | Precios en protocolos de aguas y alimentos | 2026-03-25 | v1.14.0 |
 | v1.12.0 | PDF protocolos lab clínico + envío email | 2026-03-25 | v1.12.0 |
 | v1.11.1 | Configuración de correos del laboratorio | 2026-03-25 | v1.11.1 |
 | v1.13.0 | Nomenclador en tiempo real (sin duplicación) | 2026-03-25 | v1.13.0 |
@@ -130,10 +134,11 @@ Ejecutar el siguiente prompt de la cola:
 Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
 ```
 
-Próximo en cola: **Cola vacía — solicitar al PM nuevos prompts**
+Próximo en cola: **v1.14.1 — Otros valores de referencia en determinaciones**
 
 Cola priorizada:
-_(sin prompts pendientes)_
+1. v1.14.1 — Otros valores de referencia en determinaciones
+2. v1.15.0 — Sub-padres y orden fijo de determinaciones
 
 ---
 

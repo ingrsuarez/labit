@@ -42,6 +42,13 @@
 | v1.8.0 | Búsqueda activa en protocolos de muestras | 2026-03-23 | Filtrado Alpine.js client-side, sin paginación, búsqueda instantánea |
 | v1.9.0 | Firma digital de validadores y nombre automático de PDF | 2026-03-24 | Upload firma en perfil, firma en PDF, nombre descriptivo de archivo |
 | v1.10.0 | Importación de nomencladores desde Excel | 2026-03-24 | 8 nomencladores base desde .xlsx, 297 tests nuevos, 8826 prácticas |
+| v1.11.0 | Importación de obras sociales desde Excel | 2026-03-24 | Seeder obras sociales desde .xlsx, asociación a nomencladores base |
+| v1.11.1 | Configuración de correos del laboratorio | 2026-03-25 | LabSetting key-value, 2 cuentas, firma HTML |
+| v1.11.2 | Buscador en dropdown de obra social | 2026-03-24 | Combobox Alpine.js en admisiones y pacientes |
+| v1.12.0 | PDF protocolos lab clínico + envío email | 2026-03-25 | PDF tabular, firma validador, envío con LabSetting |
+| v1.13.0 | Nomenclador en tiempo real (sin duplicación) | 2026-03-25 | Precio = nbu_units base × nbu_value OS, sin copiar prácticas |
+| v1.13.1 | Fix searchTests usa nomenclador base | 2026-03-25 | Hotfix: searchTests no usaba fallback a nomenclador base |
+| v1.14.0 | Precios en protocolos de aguas y alimentos | 2026-03-25 | categories JSON en tests, discount_percent en customers, precio en sample_determinations |
 
 ---
 
@@ -56,7 +63,8 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v1.11.0 | Importación de obras sociales desde Excel | 30min | v1.10.0 | `prompts/pendientes/v1.11.0-importacion-obras-sociales-excel.md` |
+| v1.14.1 | Otros valores de referencia en determinaciones | 30min | ninguna | `prompts/pendientes/v1.14.1-otros-valores-referencia.md` |
+| v1.15.0 | Sub-padres y orden fijo de determinaciones | 2-3h | ninguna | `prompts/pendientes/v1.15.0-sub-padres-orden-fijo.md` |
 
 ---
 
@@ -73,10 +81,10 @@
 ## Progreso general
 
 ```
-Completadas:  25 versiones (v1.0.0 → v2.3.0)
-Planificadas: 1
+Completadas:  32 versiones (v1.0.0 → v2.3.0)
+Planificadas: 2
 En proceso:   0
-Próxima:      v1.11.0 — Importación de obras sociales desde Excel
+Próxima:      v1.14.1 — Otros valores de referencia en determinaciones
 ```
 
 ---
