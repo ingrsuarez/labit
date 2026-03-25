@@ -843,6 +843,10 @@ class SampleController extends Controller
         }
 
         if (empty($test->low) && empty($test->high)) {
+            if (! empty($test->other_reference)) {
+                return ['value' => $test->other_reference, 'category_id' => null];
+            }
+
             return ['value' => null, 'category_id' => null];
         }
 
@@ -853,6 +857,10 @@ class SampleController extends Controller
             $value = "> {$test->low}".($test->unit ? " {$test->unit}" : '');
         } else {
             $value = "{$test->low} - {$test->high}".($test->unit ? " {$test->unit}" : '');
+        }
+
+        if (! empty($test->other_reference)) {
+            $value = $value.' | '.$test->other_reference;
         }
 
         return ['value' => $value, 'category_id' => null];

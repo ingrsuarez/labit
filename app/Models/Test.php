@@ -15,6 +15,7 @@ class Test extends Model
         'unit',
         'low',
         'high',
+        'other_reference',
         'instructions',
         'parent',
         'default_reference_category_id',
@@ -47,6 +48,7 @@ class Test extends Model
 
     /**
      * Relación con el test padre (legacy - para compatibilidad)
+     *
      * @deprecated Usar parentTests() para múltiples padres
      */
     public function parentTest()
@@ -56,6 +58,7 @@ class Test extends Model
 
     /**
      * Relación con tests hijos (legacy - para compatibilidad)
+     *
      * @deprecated Usar childTests() para múltiples padres
      */
     public function children()
@@ -112,7 +115,8 @@ class Test extends Model
 
     /**
      * Obtiene todos los hijos incluyendo ambas relaciones (legacy y nueva)
-     * @param bool $withRelations Si true, carga los referenceValues de cada hijo
+     *
+     * @param  bool  $withRelations  Si true, carga los referenceValues de cada hijo
      */
     public function getAllChildren(bool $withRelations = true)
     {
@@ -124,7 +128,7 @@ class Test extends Model
             $legacyChildren = $this->children()->get();
             $pivotChildren = $this->childTests()->get();
         }
-        
+
         return $legacyChildren->merge($pivotChildren)->unique('id');
     }
 

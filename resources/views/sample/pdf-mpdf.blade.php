@@ -400,7 +400,7 @@
                     <td style="padding-left: 20px;">{{ ucfirst($det->test->name ?? 'N/A') }}</td>
                     <td class="det-result">{{ $det->result ?? '-' }}</td>
                     <td class="det-unit">{{ $det->unit ?? '' }}</td>
-                    <td class="det-ref">{{ $det->reference_value ?? '' }}</td>
+                    <td class="det-ref">{{ $det->reference_value ?: ($det->test->other_reference ?? '') }}</td>
                 </tr>
                 @if($det->method)
                     <tr class="det-method">
@@ -413,7 +413,7 @@
                     <td>{{ ucfirst($det->test->name ?? 'N/A') }}</td>
                     <td class="det-result">{{ $det->result ?? '-' }}</td>
                     <td class="det-unit">{{ $det->unit ?? '' }}</td>
-                    <td class="det-ref">{{ $det->reference_value ?? '' }}</td>
+                    <td class="det-ref">{{ $det->reference_value ?: ($det->test->other_reference ?? '') }}</td>
                 </tr>
                 @if($det->method)
                     <tr class="det-method">
