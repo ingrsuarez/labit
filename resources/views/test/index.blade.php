@@ -108,7 +108,7 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($tests as $test)
                         <tr class="hover:bg-teal-50 cursor-pointer transition-colors"
-                            onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}')">
+                            onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}', {{ json_encode($test->categories ?? ['clinico']) }})">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="text-teal-600 font-medium">{{ $test->code }}</span>
                             </td>
@@ -146,7 +146,7 @@
                                     Refs
                                 </a>
                                 <button type="button" 
-                                        onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}')"
+                                        onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}', {{ json_encode($test->categories ?? ['clinico']) }})"
                                         class="text-indigo-600 hover:text-indigo-900">
                                     Editar
                                 </button>
@@ -262,6 +262,27 @@
                             </select>
                         </div>
                         <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Categorías</label>
+                            <div class="flex flex-wrap gap-4 mt-1">
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="categories[]" value="clinico" {{ in_array('clinico', old('categories', ['clinico'])) ? 'checked' : '' }}
+                                           class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                    <span class="ml-2 text-sm text-gray-700">Clínico</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="categories[]" value="aguas_alimentos" {{ in_array('aguas_alimentos', old('categories', [])) ? 'checked' : '' }}
+                                           class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                    <span class="ml-2 text-sm text-gray-700">Aguas y Alimentos</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="categories[]" value="veterinario" {{ in_array('veterinario', old('categories', [])) ? 'checked' : '' }}
+                                           class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                    <span class="ml-2 text-sm text-gray-700">Veterinario</span>
+                                </label>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Determina en qué módulos aparece esta determinación</p>
+                        </div>
+                        <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Análisis Padres</label>
                             <p class="text-xs text-gray-500 mb-2">Puede seleccionar múltiples padres. Dejar vacío si esta determinación es un padre.</p>
                             <input type="text" id="create-parent-search" 
@@ -371,6 +392,27 @@
                             </select>
                         </div>
                         <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Categorías</label>
+                            <div class="flex flex-wrap gap-4 mt-1">
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="categories[]" value="clinico" id="edit-cat-clinico"
+                                           class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                    <span class="ml-2 text-sm text-gray-700">Clínico</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="categories[]" value="aguas_alimentos" id="edit-cat-aguas"
+                                           class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                    <span class="ml-2 text-sm text-gray-700">Aguas y Alimentos</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="categories[]" value="veterinario" id="edit-cat-veterinario"
+                                           class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                    <span class="ml-2 text-sm text-gray-700">Veterinario</span>
+                                </label>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Determina en qué módulos aparece esta determinación</p>
+                        </div>
+                        <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Análisis Padres</label>
                             <p class="text-xs text-gray-500 mb-2">Puede seleccionar múltiples padres. Dejar vacío si esta determinación es un padre.</p>
                             <input type="text" id="edit-parent-search" 
@@ -453,7 +495,7 @@
             }
         }
 
-        function openEditModal(id, code, name, unit, method, low, high, decimals, nbu, instructions, material, parentIds, price) {
+        function openEditModal(id, code, name, unit, method, low, high, decimals, nbu, instructions, material, parentIds, price, categories) {
             document.getElementById('form-edit').action = '/tests/' + id;
             document.getElementById('edit-code').value = code;
             document.getElementById('edit-name').value = name;
@@ -466,6 +508,12 @@
             document.getElementById('edit-price').value = price || '';
             document.getElementById('edit-instructions').value = instructions || '';
             document.getElementById('edit-material').value = material || '';
+
+            // Setear categorías
+            categories = categories || ['clinico'];
+            document.getElementById('edit-cat-clinico').checked = categories.includes('clinico');
+            document.getElementById('edit-cat-aguas').checked = categories.includes('aguas_alimentos');
+            document.getElementById('edit-cat-veterinario').checked = categories.includes('veterinario');
             
             // Limpiar el buscador de padres
             clearParentSearch('edit-parent-search', 'edit-parent-ids');
@@ -527,7 +575,8 @@
                         test.instructions,
                         test.material,
                         parentIds,
-                        test.price
+                        test.price,
+                        test.categories || ['clinico']
                     );
                 }
             }

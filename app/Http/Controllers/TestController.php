@@ -71,6 +71,8 @@ class TestController extends Controller
             'high' => 'nullable|string|max:50',
             'material' => 'nullable|integer',
             'price' => 'nullable|numeric|min:0',
+            'categories' => 'nullable|array',
+            'categories.*' => 'string|in:clinico,aguas_alimentos,veterinario',
         ], [
             'code.required' => 'El código es obligatorio.',
             'code.unique' => 'Este código ya está en uso. Por favor, elija otro.',
@@ -104,6 +106,7 @@ class TestController extends Controller
             'material' => $validated['material'] ?? null,
             'price' => $validated['price'] ?? 0,
             'cost' => 0,
+            'categories' => $validated['categories'] ?? ['clinico'],
         ]);
 
         // Asignar múltiples padres si se seleccionaron
@@ -151,6 +154,8 @@ class TestController extends Controller
             'high' => 'nullable|string|max:50',
             'material' => 'nullable|integer',
             'price' => 'nullable|numeric|min:0',
+            'categories' => 'nullable|array',
+            'categories.*' => 'string|in:clinico,aguas_alimentos,veterinario',
         ], [
             'code.required' => 'El código es obligatorio.',
             'code.unique' => 'Este código ya está en uso. Por favor, elija otro.',
@@ -183,6 +188,7 @@ class TestController extends Controller
             'high' => $validated['high'],
             'material' => $validated['material'],
             'price' => $validated['price'] ?? $test->price,
+            'categories' => $validated['categories'] ?? $test->categories ?? ['clinico'],
         ]);
 
         // Sincronizar múltiples padres (esto reemplaza los existentes)
