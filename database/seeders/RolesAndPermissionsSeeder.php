@@ -2,13 +2,12 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
-use Spatie\Permission\PermissionRegistrar;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
@@ -17,7 +16,7 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     public function run(): void
     {
-                // 1) Limpiar caché de permisos
+        // 1) Limpiar caché de permisos
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         // 2) Nombres de permisos (según tus rutas)
@@ -222,19 +221,25 @@ class RolesAndPermissionsSeeder extends Seeder
             'companies.edit',
             'companies.delete',
             'companies.assign-users',
+
+            // SECCIONES ADMIN (Control de acceso por rol)
+            'personal.section',
+            'ausencias.section',
+            'liquidaciones.section',
+            'configuracion.section',
         ];
 
         // 3) Crear/asegurar permisos (idempotente)
         foreach ($permissions as $name) {
             Permission::firstOrCreate([
-                'name'       => $name,
+                'name' => $name,
                 'guard_name' => 'web',
             ]);
         }
 
         // 4) Crear/asegurar rol admin
         $adminRole = Role::firstOrCreate([
-            'name'       => 'admin',
+            'name' => 'admin',
             'guard_name' => 'web',
         ]);
 
@@ -243,12 +248,16 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // 5.1) Crear rol contador con permisos específicos
         $contadorRole = Role::firstOrCreate([
-            'name'       => 'contador',
+            'name' => 'contador',
             'guard_name' => 'web',
         ]);
 
         // Permisos del contador: liquidaciones, historial, PDFs y conceptos
         $contadorPermissions = [
+            // Secciones admin
+            'ausencias.section',
+            'liquidaciones.section',
+
             // Payroll
             'payroll.index',
             'payroll.show',
@@ -260,13 +269,13 @@ class RolesAndPermissionsSeeder extends Seeder
             'payroll.sac',
             'payroll.liquidar',
             'payroll.pagar',
-            
+
             // Salary Items
             'salary.index',
             'salary.create',
             'salary.edit',
             'salary.delete',
-            
+
             // Empleados - Solo lectura
             'employee.show',
 
@@ -330,7 +339,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // 5.2) Crear rol compras (solo módulo de compras)
         $comprasRole = Role::firstOrCreate([
-            'name'       => 'compras',
+            'name' => 'compras',
             'guard_name' => 'web',
         ]);
 
@@ -351,7 +360,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // 5.3) Crear rol ventas (solo módulo de ventas)
         $ventasRole = Role::firstOrCreate([
-            'name'       => 'ventas',
+            'name' => 'ventas',
             'guard_name' => 'web',
         ]);
 
@@ -367,7 +376,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // 5.4) Crear rol recepcion-lab
         $recepcionLabRole = Role::firstOrCreate([
-            'name'       => 'recepcion-lab',
+            'name' => 'recepcion-lab',
             'guard_name' => 'web',
         ]);
 
@@ -386,7 +395,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // 5.5) Crear rol tecnico-lab
         $tecnicoLabRole = Role::firstOrCreate([
-            'name'       => 'tecnico-lab',
+            'name' => 'tecnico-lab',
             'guard_name' => 'web',
         ]);
 
@@ -406,7 +415,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // 5.6) Crear rol bioquimico
         $bioquimicoRole = Role::firstOrCreate([
-            'name'       => 'bioquimico',
+            'name' => 'bioquimico',
             'guard_name' => 'web',
         ]);
 
@@ -425,13 +434,13 @@ class RolesAndPermissionsSeeder extends Seeder
         $bioquimicoRole->syncPermissions(Permission::whereIn('name', $bioquimicoPermissions)->get());
 
         // 6) Crear/asegurar usuario admin (lee de .env con defaults)
-        $email    = env('ADMIN_EMAIL', 'admin@admin');
+        $email = env('ADMIN_EMAIL', 'admin@admin');
         $password = env('ADMIN_PASSWORD', 'Rodrigoo'); // cambia en prod
 
         $user = User::firstOrCreate(
             ['email' => $email],
             [
-                'name'     => 'Administrador',
+                'name' => 'Administrador',
                 'password' => Hash::make($password),
             ]
         );
@@ -442,7 +451,6 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // 7) Limpiar caché nuevamente por las dudas
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
-    
-    
+
     }
 }

@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use App\Models\User;
 use App\Models\Employee;
 use App\Models\Job;
 use App\Models\Leave;
 use App\Models\Payroll;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -18,10 +17,23 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        // Si el usuario solo tiene empleado asociado (sin roles administrativos),
-        // redirigir al portal de empleados
         if ($user->employee && $user->roles->count() === 0 && $user->permissions->count() === 0) {
             return redirect()->route('portal.dashboard');
+        }
+
+        if ($user->hasAnyRole(['recepcion-lab', 'tecnico-lab', 'bioquimico'])
+            && ! $user->hasAnyRole(['admin', 'contador', 'compras', 'ventas'])) {
+            return redirect()->route('lab.section.clinico');
+        }
+
+        if ($user->hasRole('compras')
+            && ! $user->hasAnyRole(['admin', 'contador'])) {
+            return redirect()->route('purchases.section');
+        }
+
+        if ($user->hasRole('ventas')
+            && ! $user->hasAnyRole(['admin', 'contador'])) {
+            return redirect()->route('sales.section');
         }
 
         // ============================================
@@ -31,18 +43,18 @@ class DashboardController extends Controller
         $empleadosActivos = Employee::where('status', 'active')->count();
         $empleadosInactivos = Employee::where('status', 'inactive')->count();
         $totalPuestos = Job::count();
-        
+
         // Ausencias del mes actual
         $inicioMes = Carbon::now()->startOfMonth();
         $finMes = Carbon::now()->endOfMonth();
-        
-        $ausenciasDelMes = Leave::where(function($q) use ($inicioMes, $finMes) {
+
+        $ausenciasDelMes = Leave::where(function ($q) use ($inicioMes, $finMes) {
             $q->whereBetween('start', [$inicioMes, $finMes])
-              ->orWhereBetween('end', [$inicioMes, $finMes])
-              ->orWhere(function($q2) use ($inicioMes, $finMes) {
-                  $q2->where('start', '<=', $inicioMes)
-                     ->where('end', '>=', $finMes);
-              });
+                ->orWhereBetween('end', [$inicioMes, $finMes])
+                ->orWhere(function ($q2) use ($inicioMes, $finMes) {
+                    $q2->where('start', '<=', $inicioMes)
+                        ->where('end', '>=', $finMes);
+                });
         })->count();
 
         // Solicitudes pendientes
@@ -52,7 +64,7 @@ class DashboardController extends Controller
         $promedioAntiguedad = Employee::where('status', 'active')
             ->whereNotNull('start_date')
             ->get()
-            ->avg(function($emp) {
+            ->avg(function ($emp) {
                 return Carbon::parse($emp->start_date)->diffInYears(now());
             });
         $promedioAntiguedad = round($promedioAntiguedad ?? 0, 1);
@@ -62,7 +74,7 @@ class DashboardController extends Controller
             ->orderByDesc('year')
             ->orderByDesc('month')
             ->first();
-        
+
         $costoNomina = 0;
         if ($ultimoMesPagado) {
             $costoNomina = Payroll::whereIn('status', ['liquidado', 'pagado'])
@@ -82,10 +94,10 @@ class DashboardController extends Controller
             ->groupBy('jobs.department')
             ->orderByDesc('total')
             ->get()
-            ->map(function($item) {
+            ->map(function ($item) {
                 return [
                     'label' => $item->department ?: 'Sin departamento',
-                    'value' => $item->total
+                    'value' => $item->total,
                 ];
             });
 
@@ -96,15 +108,16 @@ class DashboardController extends Controller
             ->select('sex', DB::raw('COUNT(*) as total'))
             ->groupBy('sex')
             ->get()
-            ->map(function($item) {
+            ->map(function ($item) {
                 $labels = [
                     'M' => 'Masculino',
                     'F' => 'Femenino',
-                    'O' => 'Otro'
+                    'O' => 'Otro',
                 ];
+
                 return [
                     'label' => $labels[$item->sex] ?? $item->sex ?? 'No especificado',
-                    'value' => $item->total
+                    'value' => $item->total,
                 ];
             });
 
@@ -116,7 +129,7 @@ class DashboardController extends Controller
             ->select('type', DB::raw('COUNT(*) as total'))
             ->groupBy('type')
             ->get()
-            ->map(function($item) {
+            ->map(function ($item) {
                 $labels = [
                     'vacaciones' => 'Vacaciones',
                     'enfermedad' => 'Enfermedad',
@@ -126,11 +139,12 @@ class DashboardController extends Controller
                     'mudanza' => 'Mudanza',
                     'fallecimiento' => 'Fallecimiento',
                     'matrimonio' => 'Matrimonio',
-                    'otro' => 'Otro'
+                    'otro' => 'Otro',
                 ];
+
                 return [
                     'label' => $labels[$item->type] ?? $item->type,
-                    'value' => $item->total
+                    'value' => $item->total,
                 ];
             });
 
@@ -141,13 +155,13 @@ class DashboardController extends Controller
         $contratacionesPorMes = Employee::whereNotNull('start_date')
             ->where('start_date', '>=', $hace12Meses)
             ->get()
-            ->groupBy(function($emp) {
+            ->groupBy(function ($emp) {
                 return Carbon::parse($emp->start_date)->format('Y-m');
             })
-            ->map(function($grupo, $fecha) {
+            ->map(function ($grupo, $fecha) {
                 return [
                     'label' => Carbon::createFromFormat('Y-m', $fecha)->locale('es')->isoFormat('MMM YY'),
-                    'value' => $grupo->count()
+                    'value' => $grupo->count(),
                 ];
             })
             ->values();
@@ -160,7 +174,7 @@ class DashboardController extends Controller
             $existe = $contratacionesPorMes->firstWhere('label', $mes->locale('es')->isoFormat('MMM YY'));
             $mesesCompletos->push([
                 'label' => $mes->locale('es')->isoFormat('MMM YY'),
-                'value' => $existe ? $existe['value'] : 0
+                'value' => $existe ? $existe['value'] : 0,
             ]);
         }
         $contratacionesPorMes = $mesesCompletos;
@@ -172,23 +186,23 @@ class DashboardController extends Controller
         $proximosCumpleanos = Employee::where('status', 'active')
             ->whereNotNull('birth')
             ->get()
-            ->map(function($emp) use ($hoy) {
+            ->map(function ($emp) use ($hoy) {
                 $cumple = Carbon::parse($emp->birth);
                 $cumpleEsteAno = $cumple->copy()->year($hoy->year);
-                
+
                 if ($cumpleEsteAno->lt($hoy)) {
                     $cumpleEsteAno->addYear();
                 }
-                
+
                 $diasParaCumple = (int) $hoy->diffInDays($cumpleEsteAno, false);
-                
+
                 return [
                     'employee' => $emp,
                     'fecha' => $cumpleEsteAno,
-                    'dias' => $diasParaCumple
+                    'dias' => $diasParaCumple,
                 ];
             })
-            ->filter(fn($item) => $item['dias'] >= 0 && $item['dias'] <= 30)
+            ->filter(fn ($item) => $item['dias'] >= 0 && $item['dias'] <= 30)
             ->sortBy('dias')
             ->take(5);
 
