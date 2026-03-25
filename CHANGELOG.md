@@ -5,6 +5,29 @@
 
 ---
 
+## [v1.14.0] — 2026-03-25 — Precios en protocolos de aguas y alimentos
+
+### Agregado
+- Migración: campo `categories` (JSON array) en tabla `tests` — permite multi-categoría por test (`clinico`, `aguas_alimentos`, `veterinario`)
+- Migración: campo `discount_percent` (decimal 5,2) en tabla `customers`
+- Migración: campo `price` (decimal 10,2) en tabla `sample_determinations` — precio inmutable al momento de crear
+- Filtrado de tests por `whereJsonContains('categories', 'aguas_alimentos')` en `SampleController::create()` y `edit()`
+- Precio en dropdown de sugerencias del buscador de determinaciones
+- Columna "Precio" en tabla de determinaciones seleccionadas
+- Bloque de totales (subtotal, descuento, total) debajo de la tabla
+- Cálculo reactivo de totales con Alpine.js (`subtotal`, `discountAmount`, `total`)
+- Actualización dinámica del descuento al cambiar de cliente
+- Campo "Descuento (%)" en formularios de creación y edición de cliente
+- Columna "Precio" y total en vista show de protocolo (condicional: solo si hay precios)
+
+### Notas
+- Tests existentes inicializados como `["clinico"]` por defecto
+- Los hijos de un test padre se crean con precio 0 (el precio es del padre)
+- El precio se calcula al crear: `test.price × (1 - customer.discount_percent / 100)`
+- Compatible con protocolos existentes sin precios
+
+---
+
 ## [v1.10.0] — 2026-03-24 — Importación de nomencladores desde Excel
 
 ### Agregado
