@@ -131,6 +131,17 @@
                             <option value="Paraguay">Paraguay</option>
                         </select>
                     </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Descuento (%)</label>
+                        <div class="relative">
+                            <input type="number" step="0.01" min="0" max="100" name="discount_percent"
+                                   value="{{ old('discount_percent', 0) }}"
+                                   class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Descuento general aplicado al precio de cada determinación</p>
+                    </div>
                 </div>
             </div>
 

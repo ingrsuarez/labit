@@ -12,6 +12,7 @@ class SampleDetermination extends Model
     protected $fillable = [
         'sample_id',
         'test_id',
+        'price',
         'status',
         'result',
         'unit',
@@ -30,6 +31,7 @@ class SampleDetermination extends Model
         'analyzed_at' => 'datetime',
         'validated_at' => 'datetime',
         'is_validated' => 'boolean',
+        'price' => 'decimal:2',
     ];
 
     /**

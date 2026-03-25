@@ -21,6 +21,11 @@ class Customer extends Model
         'country',
         'postal',
         'status',
+        'discount_percent',
+    ];
+
+    protected $casts = [
+        'discount_percent' => 'decimal:2',
     ];
 
     /**

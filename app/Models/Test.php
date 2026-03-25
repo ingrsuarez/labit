@@ -30,6 +30,11 @@ class Test extends Model
         'formula',
         'box',
         'nbu',
+        'categories',
+    ];
+
+    protected $casts = [
+        'categories' => 'array',
     ];
 
     /**

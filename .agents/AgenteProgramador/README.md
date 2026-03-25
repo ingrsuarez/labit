@@ -7,7 +7,7 @@ Agente de ejecución del proyecto Labit. Toma prompts de la cola (`agent-bootstr
 ## Cómo invocar
 
 ```
-Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
+Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo completo.
 ```
 
 ---

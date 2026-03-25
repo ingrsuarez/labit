@@ -220,7 +220,7 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Seleccionar Determinación</label>
                                     <select name="test_id" required class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 mb-3">
                                         <option value="">Seleccionar...</option>
-                                        @foreach(\App\Models\Test::orderBy('name')->get() as $test)
+                                        @foreach(\App\Models\Test::whereJsonContains('categories', 'aguas_alimentos')->orderBy('name')->get() as $test)
                                             @if(!$sample->determinations->contains('test_id', $test->id))
                                                 <option value="{{ $test->id }}">{{ $test->code }} - {{ $test->name }}</option>
                                             @endif
@@ -293,6 +293,9 @@
                     @endphp
 
                     @if($sample->determinations->count() > 0)
+                        @php
+                            $hasPrices = $sample->determinations->whereNotNull('price')->where('price', '>', 0)->count() > 0;
+                        @endphp
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
@@ -301,6 +304,9 @@
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Determinación</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Resultado</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Unidad</th>
+                                        @if($hasPrices)
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Precio</th>
+                                        @endif
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                                         <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
                                     </tr>
@@ -331,6 +337,15 @@
                                                 {{ $isParent ? '-' : ($det->result ?? '-') }}
                                             </td>
                                             <td x-show="!editing" class="px-4 py-3 text-sm text-gray-500">{{ $isParent ? '-' : ($det->unit ?? '-') }}</td>
+                                            @if($hasPrices)
+                                            <td x-show="!editing" class="px-4 py-3 text-sm text-right font-medium text-gray-900">
+                                                @if($det->price > 0)
+                                                    ${{ number_format($det->price, 2, ',', '.') }}
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
+                                            @endif
                                             <td x-show="!editing" class="px-4 py-3">
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
                                                     @switch($det->status)
@@ -354,7 +369,7 @@
                                             </td>
 
                                             <!-- Modo Editar -->
-                                            <td x-show="editing" colspan="4" class="px-4 py-3">
+                                            <td x-show="editing" :colspan="'{{ $hasPrices ? 5 : 4 }}'" class="px-4 py-3">
                                                 <form action="{{ route('sample.updateDetermination', $det) }}" method="POST" class="flex items-center gap-2">
                                                     @csrf
                                                     @method('PUT')
@@ -386,6 +401,20 @@
                                 </tbody>
                             </table>
                         </div>
+                        @if($hasPrices)
+                            @php
+                                $totalPrice = $sample->determinations->sum('price');
+                            @endphp
+                            <div class="mt-4 bg-gray-50 rounded-lg p-4">
+                                <div class="flex justify-between items-center text-lg font-bold">
+                                    <span>Total</span>
+                                    <span class="text-teal-600">${{ number_format($totalPrice, 2, ',', '.') }}</span>
+                                </div>
+                                @if($sample->customer && $sample->customer->discount_percent > 0)
+                                    <p class="text-xs text-gray-500 mt-1">Descuento del {{ $sample->customer->discount_percent }}% ya aplicado</p>
+                                @endif
+                            </div>
+                        @endif
                     @else
                         <div class="text-center py-8 text-gray-500">
                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
