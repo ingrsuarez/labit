@@ -584,10 +584,26 @@ class LabAdmissionController extends Controller
                     ->first();
 
                 if ($insuranceTest) {
-                    $test->calculated_price = $insuranceTest->price;
+                    $test->calculated_price = $insuranceTest->price ?: ($insuranceTest->nbu_units * ($insurance->nbu_value ?? 0));
                     $test->requires_authorization = $insuranceTest->requires_authorization;
                     $test->copago = $insuranceTest->copago;
                     $test->in_nomenclator = true;
+                } elseif ($insurance->nomenclator_id) {
+                    $baseItem = InsuranceTest::where('insurance_id', $insurance->nomenclator_id)
+                        ->where('test_id', $test->id)
+                        ->first();
+
+                    if ($baseItem) {
+                        $test->calculated_price = $baseItem->nbu_units * ($insurance->nbu_value ?? 0);
+                        $test->requires_authorization = $baseItem->requires_authorization ?? false;
+                        $test->copago = $baseItem->copago ?? 0;
+                        $test->in_nomenclator = true;
+                    } else {
+                        $test->calculated_price = ($test->nbu ?? 1) * ($insurance->nbu_value ?? 0);
+                        $test->requires_authorization = false;
+                        $test->copago = 0;
+                        $test->in_nomenclator = false;
+                    }
                 } else {
                     $test->calculated_price = ($test->nbu ?? 1) * ($insurance->nbu_value ?? 0);
                     $test->requires_authorization = false;
