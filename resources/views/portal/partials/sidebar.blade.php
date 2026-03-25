@@ -14,9 +14,11 @@
         </button>
         <span class="ml-3 text-white font-semibold">Portal del Empleado</span>
     </div>
+    @if($user->hasAnyRole(['admin', 'contador', 'compras', 'ventas']))
     <a href="{{ route('dashboard') }}" class="text-indigo-200 hover:text-white text-sm">
         Ir al Sistema →
     </a>
+    @endif
 </div>
 
 <!-- Sidebar -->
@@ -200,8 +202,8 @@
 
         <!-- Footer del Sidebar -->
         <div class="px-3 py-4 border-t border-indigo-700">
-            <!-- Ir al Sistema (solo si tiene permisos admin) -->
-            @if($user->roles->where('name', '!=', 'empleado')->count() > 0 || $user->permissions->count() > 0)
+            <!-- Ir al Sistema (solo si tiene roles admin-capable) -->
+            @if($user->hasAnyRole(['admin', 'contador', 'compras', 'ventas']))
                 <a href="{{ route('dashboard') }}" 
                    class="flex items-center px-4 py-2 text-sm rounded-lg text-indigo-200 hover:bg-indigo-700/50 hover:text-white transition-colors mb-2">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -209,6 +211,17 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
                     Panel Administrativo
+                </a>
+            @endif
+
+            <!-- Ir a Laboratorio (solo si tiene rol lab) -->
+            @if($user->hasAnyRole(['recepcion-lab', 'tecnico-lab', 'bioquimico']))
+                <a href="{{ route('lab.section.clinico') }}" 
+                   class="flex items-center px-4 py-2 text-sm rounded-lg text-indigo-200 hover:bg-indigo-700/50 hover:text-white transition-colors mb-2">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                    </svg>
+                    Laboratorio
                 </a>
             @endif
 
