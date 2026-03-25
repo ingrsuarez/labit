@@ -10,30 +10,29 @@
 | Campo | Valor |
 |---|---|
 | **Versión actual** | v2.3.0 |
-| **Última completada** | v1.11.1 — Configuración de correos del laboratorio |
+| **Última completada** | v1.12.0 — PDF protocolos lab clínico + envío email |
 | **En proceso** | — |
-| **Próxima** | v1.12.0 — PDF protocolos lab clínico + envío email |
-| **Pendientes en cola** | 1 |
-| **Completadas** | 29 |
+| **Próxima** | — (cola vacía) |
+| **Pendientes en cola** | 0 |
+| **Completadas** | 30 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (1)
+### Pendientes (0)
 
-| Versión | Nombre | Estimación | Dependencias | Archivo |
-|---|---|---|---|---|
-| v1.12.0 | PDF protocolos lab clínico + envío email | 3-4h | v1.11.1 ✅ | `prompts/pendientes/v1.12.0-pdf-protocolos-lab-clinico.md` |
+_Cola de prompts vacía. Contactar al PM para planificar la siguiente fase._
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (29)
+### Completados (30)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.12.0 | PDF protocolos lab clínico + envío email | 2026-03-25 | v1.12.0 |
 | v1.11.1 | Configuración de correos del laboratorio | 2026-03-25 | v1.11.1 |
 | v1.13.0 | Nomenclador en tiempo real (sin duplicación) | 2026-03-25 | v1.13.0 |
 | v1.11.2 | Buscador en dropdown de obra social | 2026-03-24 | v1.11.2 |
@@ -131,10 +130,10 @@ Ejecutar el siguiente prompt de la cola:
 Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
 ```
 
-Próximo en cola: **v1.12.0 — PDF protocolos lab clínico + envío email**
+Próximo en cola: **Cola vacía — solicitar al PM nuevos prompts**
 
 Cola priorizada:
-1. v1.12.0 — PDF protocolos lab clínico + envío email (3-4h, dep: v1.11.1 ✅)
+_(sin prompts pendientes)_
 
 ---
 
