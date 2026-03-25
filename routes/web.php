@@ -133,6 +133,8 @@ Route::middleware([
         Route::get('lab/clinico', [App\Http\Controllers\LabSectionController::class, 'clinico'])->name('lab.section.clinico');
         Route::get('lab/muestras', [App\Http\Controllers\LabSectionController::class, 'muestras'])->name('lab.section.muestras');
         Route::get('lab/configuracion', [App\Http\Controllers\LabSectionController::class, 'configuracion'])->name('lab.section.configuracion');
+        Route::get('lab/configuracion/correos', [App\Http\Controllers\LabEmailSettingsController::class, 'edit'])->name('lab.email-settings.edit');
+        Route::put('lab/configuracion/correos', [App\Http\Controllers\LabEmailSettingsController::class, 'update'])->name('lab.email-settings.update');
 
         // LAB ADMISSIONS (Admisiones de Pacientes - Laboratorio)
         Route::get('lab/admissions', [App\Http\Controllers\LabAdmissionController::class, 'index'])->name('lab.admissions.index');
@@ -156,6 +158,9 @@ Route::middleware([
         Route::post('lab/admissions/{admission}/validate-all', [App\Http\Controllers\LabAdmissionController::class, 'validateAll'])->name('lab.admissions.validateAll');
         Route::post('lab/admissions/{admission}/sync-children', [App\Http\Controllers\LabAdmissionController::class, 'syncChildTests'])->name('lab.admissions.syncChildren');
         Route::post('lab/admissions/{admission}/payment', [App\Http\Controllers\LabAdmissionController::class, 'registerPayment'])->name('lab.admissions.registerPayment');
+        Route::get('lab/admissions/{admission}/pdf/download', [App\Http\Controllers\LabAdmissionController::class, 'downloadPdf'])->name('lab.admissions.pdf.download');
+        Route::get('lab/admissions/{admission}/pdf/view', [App\Http\Controllers\LabAdmissionController::class, 'viewPdf'])->name('lab.admissions.pdf.view');
+        Route::post('lab/admissions/{admission}/send-email', [App\Http\Controllers\LabAdmissionController::class, 'sendEmail'])->name('lab.admissions.sendEmail');
 
         // LAB DEBTORS (Deudores)
         Route::get('lab/debtors', [App\Http\Controllers\LabAdmissionController::class, 'debtors'])->name('lab.debtors');

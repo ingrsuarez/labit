@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\SampleResultMail;
 use App\Models\Customer;
+use App\Models\LabSetting;
 use App\Models\Sample;
 use App\Models\SampleDetermination;
 use App\Models\Test;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use PDF; // mPDF facade
 
 class SampleController extends Controller
@@ -776,8 +779,15 @@ class SampleController extends Controller
             'message' => 'nullable|string',
         ]);
 
-        // TODO: Implementar env?o de email con el PDF adjunto
-        // Por ahora solo retornamos un mensaje de ?xito simulado
+        $fromEmail = LabSetting::get('results_email', config('mail.from.address'));
+        $fromName = LabSetting::get('results_from_name', config('mail.from.name'));
+
+        Mail::mailer('smtp')
+            ->to($validated['email'])
+            ->send(
+                (new SampleResultMail($sample, $validated['message'] ?? null))
+                    ->from($fromEmail, $fromName)
+            );
 
         return back()->with('success', 'Protocolo enviado correctamente a '.$validated['email']);
     }

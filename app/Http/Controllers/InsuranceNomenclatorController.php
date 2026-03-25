@@ -20,13 +20,13 @@ class InsuranceNomenclatorController extends Controller
             ->withCount('nomenclator')
             ->orderBy('name')
             ->get();
-        
+
         // Obtener nomencladores base disponibles para copiar
         $baseNomenclators = Insurance::where('type', 'nomenclador')
             ->withCount('nomenclator')
             ->orderBy('name')
             ->get();
-            
+
         return view('lab.nomenclator.index', compact('insurances', 'baseNomenclators'));
     }
 
@@ -35,29 +35,49 @@ class InsuranceNomenclatorController extends Controller
      */
     public function show(Insurance $insurance)
     {
-        $practices = InsuranceTest::where('insurance_id', $insurance->id)
-            ->whereIn('test_id', Test::select('id'))
-            ->with('test')
-            ->orderBy('id')
-            ->get();
+        $isBaseNomenclator = $insurance->type === 'nomenclador';
+        $hasBaseNomenclator = ! $isBaseNomenclator && $insurance->nomenclator_id;
 
-        // Obtener prácticas que no están en el nomenclador
+        if ($hasBaseNomenclator) {
+            $practices = InsuranceTest::where('insurance_id', $insurance->nomenclator_id)
+                ->whereIn('test_id', Test::select('id'))
+                ->with('test')
+                ->orderBy('id')
+                ->get();
+
+            $baseNomenclator = Insurance::find($insurance->nomenclator_id);
+        } else {
+            $practices = InsuranceTest::where('insurance_id', $insurance->id)
+                ->whereIn('test_id', Test::select('id'))
+                ->with('test')
+                ->orderBy('id')
+                ->get();
+
+            $baseNomenclator = null;
+        }
+
         $existingTestIds = $practices->pluck('test_id')->toArray();
         $availableTests = Test::whereNotIn('id', $existingTestIds)
-            ->whereNull('parent') // Solo prácticas padre (no sub-tests)
+            ->whereNull('parent')
             ->orderBy('code')
             ->get();
 
-        // Obtener nomencladores base disponibles para copiar (solo si NO es un nomenclador base)
         $baseNomenclators = [];
-        if ($insurance->type !== 'nomenclador') {
+        if (! $isBaseNomenclator) {
             $baseNomenclators = Insurance::where('type', 'nomenclador')
                 ->withCount('nomenclator')
                 ->orderBy('name')
                 ->get();
         }
 
-        return view('lab.nomenclator.show', compact('insurance', 'practices', 'availableTests', 'baseNomenclators'));
+        return view('lab.nomenclator.show', compact(
+            'insurance',
+            'practices',
+            'availableTests',
+            'baseNomenclators',
+            'hasBaseNomenclator',
+            'baseNomenclator'
+        ));
     }
 
     /**
@@ -75,7 +95,7 @@ class InsuranceNomenclatorController extends Controller
 
         // Recalcular precios de todas las prácticas
         foreach ($insurance->nomenclator as $item) {
-            if (!$item->price || $request->recalculate_prices) {
+            if (! $item->price || $request->recalculate_prices) {
                 $item->update([
                     'price' => $item->nbu_units * $request->nbu_value,
                 ]);
@@ -152,6 +172,7 @@ class InsuranceNomenclatorController extends Controller
     public function destroy(Insurance $insurance, InsuranceTest $insuranceTest)
     {
         $insuranceTest->delete();
+
         return redirect()->back()->with('success', 'Práctica eliminada del nomenclador.');
     }
 
@@ -170,14 +191,18 @@ class InsuranceNomenclatorController extends Controller
 
         foreach ($request->test_ids as $testId) {
             $test = Test::find($testId);
-            if (!$test) continue;
+            if (! $test) {
+                continue;
+            }
 
             // Verificar que no exista
             $exists = InsuranceTest::where('insurance_id', $insurance->id)
                 ->where('test_id', $testId)
                 ->exists();
 
-            if ($exists) continue;
+            if ($exists) {
+                continue;
+            }
 
             $nbuUnits = $test->nbu ?? 1;
             InsuranceTest::create([
@@ -216,9 +241,9 @@ class InsuranceNomenclatorController extends Controller
     public function searchTests(Request $request, Insurance $insurance)
     {
         $search = $request->get('q', '');
-        
+
         $existingTestIds = $insurance->nomenclator()->pluck('test_id')->toArray();
-        
+
         $tests = Test::whereNotIn('id', $existingTestIds)
             ->where(function ($query) use ($search) {
                 $query->where('code', 'like', "%{$search}%")
@@ -240,7 +265,7 @@ class InsuranceNomenclatorController extends Controller
         ]);
 
         $source = Insurance::findOrFail($request->source_nomenclator_id);
-        
+
         if ($source->type !== 'nomenclador') {
             return redirect()->back()->with('error', 'El origen debe ser un nomenclador base.');
         }
@@ -257,6 +282,7 @@ class InsuranceNomenclatorController extends Controller
 
             if ($exists) {
                 $skipped++;
+
                 continue;
             }
 
@@ -316,4 +342,3 @@ class InsuranceNomenclatorController extends Controller
         return view('lab.nomenclator.base-list', compact('nomenclators'));
     }
 }
-

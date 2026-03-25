@@ -122,19 +122,37 @@
                     </div>
 
                     <!-- Obra Social -->
-                    <div>
+                    <div class="relative" @click.away="showInsuranceDropdown = false">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Obra Social *</label>
-                        <select name="insurance_id" x-model="insuranceId" @change="onInsuranceChange" required
-                                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500">
-                            <option value="">Seleccionar...</option>
-                            @foreach($insurances as $ins)
-                                <option value="{{ $ins->id }}" 
-                                        data-nbu="{{ $ins->nbu_value }}"
-                                        {{ old('insurance_id', $patient?->insurance) == $ins->id ? 'selected' : '' }}>
-                                    {{ strtoupper($ins->name) }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="relative">
+                            <input type="text"
+                                   x-model="insuranceSearch"
+                                   @focus="showInsuranceDropdown = true"
+                                   @input="showInsuranceDropdown = true"
+                                   @keydown.enter.prevent="if (filteredInsurances.length > 0) selectInsurance(filteredInsurances[0])"
+                                   @keydown.escape="showInsuranceDropdown = false"
+                                   placeholder="Buscar obra social..."
+                                   class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                            <input type="hidden" name="insurance_id" :value="insuranceId" required>
+                            <button type="button" x-show="insuranceId" @click="clearInsurance()"
+                                    class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                ✕
+                            </button>
+                        </div>
+                        <div x-show="showInsuranceDropdown && filteredInsurances.length > 0" x-cloak
+                             class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            <template x-for="ins in filteredInsurances" :key="ins.id">
+                                <div @click="selectInsurance(ins)"
+                                     class="px-3 py-2 cursor-pointer hover:bg-teal-50 text-sm"
+                                     :class="{ 'bg-teal-100 font-medium': insuranceId == ins.id }">
+                                    <span x-text="ins.name"></span>
+                                </div>
+                            </template>
+                        </div>
+                        <div x-show="showInsuranceDropdown && insuranceSearch && filteredInsurances.length === 0" x-cloak
+                             class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm text-gray-500">
+                            No se encontraron resultados
+                        </div>
                     </div>
 
                     <!-- Número de Afiliado -->
@@ -359,6 +377,17 @@
                 affiliateNumber: '{{ old('affiliate_number', $patient?->insurance_cod ?? '') }}',
                 insuranceTypes: @json($insurances->pluck('type', 'id')),
                 isParticular: false,
+                insuranceSearch: '',
+                showInsuranceDropdown: false,
+                insuranceItems: @json($insurances->map(fn($ins) => ['id' => $ins->id, 'name' => strtoupper($ins->name), 'type' => $ins->type])),
+
+                get filteredInsurances() {
+                    if (!this.insuranceSearch || this.insuranceSearch === this._selectedInsuranceName) return this.insuranceItems;
+                    const q = this.insuranceSearch.toLowerCase();
+                    return this.insuranceItems.filter(i => i.name.toLowerCase().includes(q));
+                },
+
+                _selectedInsuranceName: '',
 
                 // Prácticas
                 testSearch: '',
@@ -379,7 +408,27 @@
                 init() {
                     if (this.insuranceId) {
                         this.isParticular = this.insuranceTypes[this.insuranceId] === 'particular';
+                        const found = this.insuranceItems.find(i => i.id == this.insuranceId);
+                        if (found) {
+                            this.insuranceSearch = found.name;
+                            this._selectedInsuranceName = found.name;
+                        }
                     }
+                },
+
+                selectInsurance(ins) {
+                    this.insuranceId = ins.id;
+                    this.insuranceSearch = ins.name;
+                    this._selectedInsuranceName = ins.name;
+                    this.showInsuranceDropdown = false;
+                    this.onInsuranceChange();
+                },
+
+                clearInsurance() {
+                    this.insuranceId = '';
+                    this.insuranceSearch = '';
+                    this._selectedInsuranceName = '';
+                    this.onInsuranceChange();
                 },
 
                 async searchPatients() {

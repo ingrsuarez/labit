@@ -92,12 +92,41 @@ class Insurance extends Model
     }
 
     /**
+     * Obtiene las prácticas del nomenclador base asignado.
+     */
+    public function getBasePractices()
+    {
+        if (! $this->nomenclator_id) {
+            return collect();
+        }
+
+        return InsuranceTest::where('insurance_id', $this->nomenclator_id)
+            ->whereIn('test_id', \DB::table('tests')->select('id'))
+            ->with('test')
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
      * Obtiene el precio de una práctica específica para esta obra social
      */
     public function getTestPrice(int $testId): ?float
     {
-        $insuranceTest = $this->nomenclator()->where('test_id', $testId)->first();
-        return $insuranceTest?->price;
+        $own = $this->nomenclator()->where('test_id', $testId)->first();
+        if ($own) {
+            return $own->price;
+        }
+
+        if ($this->nomenclator_id) {
+            $baseItem = InsuranceTest::where('insurance_id', $this->nomenclator_id)
+                ->where('test_id', $testId)
+                ->first();
+            if ($baseItem) {
+                return $baseItem->nbu_units * ($this->nbu_value ?? 0);
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -105,16 +134,22 @@ class Insurance extends Model
      */
     public function calculateTestPrice(Test $test): float
     {
-        $insuranceTest = $this->nomenclator()->where('test_id', $test->id)->first();
-        
-        if ($insuranceTest && $insuranceTest->price) {
-            return $insuranceTest->price;
+        $own = $this->nomenclator()->where('test_id', $test->id)->first();
+        if ($own && $own->price) {
+            return (float) $own->price;
         }
 
-        // Calcular basado en NBU si no tiene precio fijo
-        $nbuUnits = $insuranceTest?->nbu_units ?? $test->nbu ?? 1;
-        $nbuValue = $this->nbu_value ?? 0;
-        
-        return $nbuUnits * $nbuValue;
+        if ($this->nomenclator_id) {
+            $baseItem = InsuranceTest::where('insurance_id', $this->nomenclator_id)
+                ->where('test_id', $test->id)
+                ->first();
+            if ($baseItem) {
+                return $baseItem->nbu_units * ($this->nbu_value ?? 0);
+            }
+        }
+
+        $nbuUnits = $test->nbu ?? 1;
+
+        return $nbuUnits * ($this->nbu_value ?? 0);
     }
 }

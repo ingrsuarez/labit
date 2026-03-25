@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-24
+> Última actualización: 2026-03-25
 
 ---
 
@@ -10,30 +10,33 @@
 | Campo | Valor |
 |---|---|
 | **Versión actual** | v2.3.0 |
-| **Última completada** | v1.10.0 — Importación de nomencladores desde Excel |
+| **Última completada** | v1.12.0 — PDF protocolos lab clínico + envío email |
 | **En proceso** | — |
-| **Próxima** | v1.11.0 — Importación de obras sociales desde Excel |
-| **Pendientes en cola** | 1 |
-| **Completadas** | 25 |
+| **Próxima** | — (cola vacía) |
+| **Pendientes en cola** | 0 |
+| **Completadas** | 30 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (1)
+### Pendientes (0)
 
-| Versión | Nombre | Estimación | Dependencias | Archivo |
-|---|---|---|---|---|
-| v1.11.0 | Importación de obras sociales desde Excel | 30min | v1.10.0 | `prompts/pendientes/v1.11.0-importacion-obras-sociales-excel.md` |
+_Cola de prompts vacía. Contactar al PM para planificar la siguiente fase._
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (25)
+### Completados (30)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.12.0 | PDF protocolos lab clínico + envío email | 2026-03-25 | v1.12.0 |
+| v1.11.1 | Configuración de correos del laboratorio | 2026-03-25 | v1.11.1 |
+| v1.13.0 | Nomenclador en tiempo real (sin duplicación) | 2026-03-25 | v1.13.0 |
+| v1.11.2 | Buscador en dropdown de obra social | 2026-03-24 | v1.11.2 |
+| v1.11.0 | Importación de obras sociales desde Excel | 2026-03-24 | v1.11.0 |
 | v1.10.0 | Importación de nomencladores desde Excel | 2026-03-24 | v1.10.0 |
 | v1.9.0 | Firma digital de validadores y nombre automático de PDF | 2026-03-24 | v1.9.0 |
 | v1.8.0 | Búsqueda activa en protocolos de muestras | 2026-03-23 | v1.8.0 |
@@ -127,10 +130,10 @@ Ejecutar el siguiente prompt de la cola:
 Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
 ```
 
-Próximo en cola: **— (cola vacía, planificar nuevas versiones)**
+Próximo en cola: **Cola vacía — solicitar al PM nuevos prompts**
 
 Cola priorizada:
-_Sin prompts pendientes._
+_(sin prompts pendientes)_
 
 ---
 

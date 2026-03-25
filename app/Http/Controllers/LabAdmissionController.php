@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\AdmissionResultMail;
 use App\Models\Admission;
 use App\Models\AdmissionTest;
 use App\Models\Insurance;
 use App\Models\InsuranceTest;
+use App\Models\LabSetting;
 use App\Models\Patient;
 use App\Models\Test;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use PDF;
 
 class LabAdmissionController extends Controller
 {
@@ -479,31 +483,50 @@ class LabAdmissionController extends Controller
             return response()->json(['error' => 'No encontrado'], 404);
         }
 
-        // Buscar en nomenclador
-        $insuranceTest = InsuranceTest::where('insurance_id', $insuranceId)
+        $ownItem = InsuranceTest::where('insurance_id', $insuranceId)
             ->where('test_id', $testId)
             ->first();
 
-        if ($insuranceTest) {
+        if ($ownItem) {
             return response()->json([
-                'price' => $insuranceTest->price,
-                'nbu_units' => $insuranceTest->nbu_units,
-                'requires_authorization' => $insuranceTest->requires_authorization,
-                'copago' => $insuranceTest->copago,
+                'price' => $ownItem->price,
+                'nbu_units' => $ownItem->nbu_units,
+                'requires_authorization' => $ownItem->requires_authorization,
+                'copago' => $ownItem->copago,
                 'in_nomenclator' => true,
+                'source' => 'own',
             ]);
         }
 
-        // Calcular precio basado en NBU
+        if ($insurance->nomenclator_id) {
+            $baseItem = InsuranceTest::where('insurance_id', $insurance->nomenclator_id)
+                ->where('test_id', $testId)
+                ->first();
+
+            if ($baseItem) {
+                $price = $baseItem->nbu_units * ($insurance->nbu_value ?? 0);
+
+                return response()->json([
+                    'price' => round($price, 2),
+                    'nbu_units' => $baseItem->nbu_units,
+                    'requires_authorization' => $baseItem->requires_authorization ?? false,
+                    'copago' => $baseItem->copago ?? 0,
+                    'in_nomenclator' => true,
+                    'source' => 'base',
+                ]);
+            }
+        }
+
         $nbuUnits = $test->nbu ?? 1;
         $price = $nbuUnits * ($insurance->nbu_value ?? 0);
 
         return response()->json([
-            'price' => $price,
+            'price' => round($price, 2),
             'nbu_units' => $nbuUnits,
             'requires_authorization' => false,
             'copago' => 0,
             'in_nomenclator' => false,
+            'source' => 'fallback',
         ]);
     }
 
@@ -716,5 +739,119 @@ class LabAdmissionController extends Controller
         }
 
         return redirect()->back()->with('success', "Se sincronizaron {$count} determinaciones.");
+    }
+
+    public function downloadPdf(Admission $admission)
+    {
+        $this->authorize('lab-admissions.show');
+
+        $validatedCount = $admission->admissionTests()->where('is_validated', true)->count();
+        if ($validatedCount === 0) {
+            return back()->with('error', 'Debe validar al menos una determinación para descargar el informe.');
+        }
+
+        $admission->load([
+            'patient',
+            'insuranceRelation',
+            'admissionTests' => fn ($q) => $q->where('is_validated', true),
+            'admissionTests.test.parentTests',
+            'admissionTests.test.childTests',
+            'admissionTests.test.referenceValues.category',
+            'creator',
+        ]);
+
+        $validatorId = $admission->admissionTests
+            ->pluck('validated_by')
+            ->countBy()->sortDesc()->keys()->first();
+        $validator = $validatorId ? \App\Models\User::find($validatorId) : null;
+
+        $pdf = PDF::loadView('lab.admissions.pdf-mpdf', compact('admission', 'validator'), [], [
+            'margin_top' => 35,
+            'margin_bottom' => 20,
+            'margin_left' => 15,
+            'margin_right' => 15,
+        ]);
+
+        return $pdf->download($this->generatePdfFilename($admission));
+    }
+
+    public function viewPdf(Admission $admission)
+    {
+        $this->authorize('lab-admissions.show');
+
+        $validatedCount = $admission->admissionTests()->where('is_validated', true)->count();
+        if ($validatedCount === 0) {
+            return back()->with('error', 'Debe validar al menos una determinación para ver el informe.');
+        }
+
+        $admission->load([
+            'patient',
+            'insuranceRelation',
+            'admissionTests' => fn ($q) => $q->where('is_validated', true),
+            'admissionTests.test.parentTests',
+            'admissionTests.test.childTests',
+            'admissionTests.test.referenceValues.category',
+            'creator',
+        ]);
+
+        $validatorId = $admission->admissionTests
+            ->pluck('validated_by')
+            ->countBy()->sortDesc()->keys()->first();
+        $validator = $validatorId ? \App\Models\User::find($validatorId) : null;
+
+        $pdf = PDF::loadView('lab.admissions.pdf-mpdf', compact('admission', 'validator'), [], [
+            'margin_top' => 35,
+            'margin_bottom' => 20,
+            'margin_left' => 15,
+            'margin_right' => 15,
+        ]);
+
+        return $pdf->stream($this->generatePdfFilename($admission));
+    }
+
+    public function sendEmail(Request $request, Admission $admission)
+    {
+        $this->authorize('lab-admissions.show');
+
+        $validatedCount = $admission->admissionTests()->where('is_validated', true)->count();
+        if ($validatedCount === 0) {
+            return back()->with('error', 'Debe validar al menos una determinación para enviar el informe.');
+        }
+
+        $validated = $request->validate([
+            'email' => 'required|email',
+            'message' => 'nullable|string',
+        ]);
+
+        $fromEmail = LabSetting::get('results_email', config('mail.from.address'));
+        $fromName = LabSetting::get('results_from_name', config('mail.from.name'));
+
+        Mail::mailer('smtp')
+            ->to($validated['email'])
+            ->send(
+                (new AdmissionResultMail($admission, $validated['message'] ?? null))
+                    ->from($fromEmail, $fromName)
+            );
+
+        return back()->with('success', 'Informe enviado correctamente a '.$validated['email']);
+    }
+
+    private function generatePdfFilename(Admission $admission): string
+    {
+        $parts = [
+            'LabClinico',
+            $admission->patient?->name ?? 'SinPaciente',
+            $admission->date ? $admission->date->format('Y-m-d') : now()->format('Y-m-d'),
+        ];
+
+        $sanitized = collect($parts)->map(function ($part) {
+            $clean = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $part);
+            $clean = preg_replace('/[^A-Za-z0-9_-]/', '_', $clean);
+            $clean = preg_replace('/_+/', '_', $clean);
+
+            return trim($clean, '_');
+        })->implode('-');
+
+        return $sanitized.'.'.$admission->protocol_number.'.pdf';
     }
 }
