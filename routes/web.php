@@ -158,6 +158,9 @@ Route::middleware([
         Route::post('lab/admissions/{admission}/validate-all', [App\Http\Controllers\LabAdmissionController::class, 'validateAll'])->name('lab.admissions.validateAll');
         Route::post('lab/admissions/{admission}/sync-children', [App\Http\Controllers\LabAdmissionController::class, 'syncChildTests'])->name('lab.admissions.syncChildren');
         Route::post('lab/admissions/{admission}/payment', [App\Http\Controllers\LabAdmissionController::class, 'registerPayment'])->name('lab.admissions.registerPayment');
+        Route::get('lab/admissions/{admission}/pdf/download', [App\Http\Controllers\LabAdmissionController::class, 'downloadPdf'])->name('lab.admissions.pdf.download');
+        Route::get('lab/admissions/{admission}/pdf/view', [App\Http\Controllers\LabAdmissionController::class, 'viewPdf'])->name('lab.admissions.pdf.view');
+        Route::post('lab/admissions/{admission}/send-email', [App\Http\Controllers\LabAdmissionController::class, 'sendEmail'])->name('lab.admissions.sendEmail');
 
         // LAB DEBTORS (Deudores)
         Route::get('lab/debtors', [App\Http\Controllers\LabAdmissionController::class, 'debtors'])->name('lab.debtors');

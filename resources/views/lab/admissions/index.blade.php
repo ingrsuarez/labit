@@ -121,10 +121,17 @@
                                         ${{ number_format($admission->total_patient + $admission->total_copago, 2, ',', '.') }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right">
-                                        <a href="{{ route('lab.admissions.show', $admission) }}" 
+                                        <a href="{{ route('lab.admissions.show', $admission) }}"
                                            class="text-teal-600 hover:text-teal-800 text-sm">
                                             Ver
                                         </a>
+                                        @if($admission->admissionTests->where('is_validated', true)->count() > 0)
+                                        <a href="{{ route('lab.admissions.pdf.view', $admission) }}" target="_blank"
+                                           class="text-green-600 hover:text-green-800 text-sm ml-2"
+                                           title="Ver PDF ({{ $admission->admissionTests->where('is_validated', true)->count() }} validadas)">
+                                            PDF
+                                        </a>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach

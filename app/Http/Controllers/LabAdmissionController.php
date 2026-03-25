@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\AdmissionResultMail;
 use App\Models\Admission;
 use App\Models\AdmissionTest;
 use App\Models\Insurance;
 use App\Models\InsuranceTest;
+use App\Models\LabSetting;
 use App\Models\Patient;
 use App\Models\Test;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use PDF;
 
 class LabAdmissionController extends Controller
 {
@@ -735,5 +739,119 @@ class LabAdmissionController extends Controller
         }
 
         return redirect()->back()->with('success', "Se sincronizaron {$count} determinaciones.");
+    }
+
+    public function downloadPdf(Admission $admission)
+    {
+        $this->authorize('lab-admissions.show');
+
+        $validatedCount = $admission->admissionTests()->where('is_validated', true)->count();
+        if ($validatedCount === 0) {
+            return back()->with('error', 'Debe validar al menos una determinación para descargar el informe.');
+        }
+
+        $admission->load([
+            'patient',
+            'insuranceRelation',
+            'admissionTests' => fn ($q) => $q->where('is_validated', true),
+            'admissionTests.test.parentTests',
+            'admissionTests.test.childTests',
+            'admissionTests.test.referenceValues.category',
+            'creator',
+        ]);
+
+        $validatorId = $admission->admissionTests
+            ->pluck('validated_by')
+            ->countBy()->sortDesc()->keys()->first();
+        $validator = $validatorId ? \App\Models\User::find($validatorId) : null;
+
+        $pdf = PDF::loadView('lab.admissions.pdf-mpdf', compact('admission', 'validator'), [], [
+            'margin_top' => 35,
+            'margin_bottom' => 20,
+            'margin_left' => 15,
+            'margin_right' => 15,
+        ]);
+
+        return $pdf->download($this->generatePdfFilename($admission));
+    }
+
+    public function viewPdf(Admission $admission)
+    {
+        $this->authorize('lab-admissions.show');
+
+        $validatedCount = $admission->admissionTests()->where('is_validated', true)->count();
+        if ($validatedCount === 0) {
+            return back()->with('error', 'Debe validar al menos una determinación para ver el informe.');
+        }
+
+        $admission->load([
+            'patient',
+            'insuranceRelation',
+            'admissionTests' => fn ($q) => $q->where('is_validated', true),
+            'admissionTests.test.parentTests',
+            'admissionTests.test.childTests',
+            'admissionTests.test.referenceValues.category',
+            'creator',
+        ]);
+
+        $validatorId = $admission->admissionTests
+            ->pluck('validated_by')
+            ->countBy()->sortDesc()->keys()->first();
+        $validator = $validatorId ? \App\Models\User::find($validatorId) : null;
+
+        $pdf = PDF::loadView('lab.admissions.pdf-mpdf', compact('admission', 'validator'), [], [
+            'margin_top' => 35,
+            'margin_bottom' => 20,
+            'margin_left' => 15,
+            'margin_right' => 15,
+        ]);
+
+        return $pdf->stream($this->generatePdfFilename($admission));
+    }
+
+    public function sendEmail(Request $request, Admission $admission)
+    {
+        $this->authorize('lab-admissions.show');
+
+        $validatedCount = $admission->admissionTests()->where('is_validated', true)->count();
+        if ($validatedCount === 0) {
+            return back()->with('error', 'Debe validar al menos una determinación para enviar el informe.');
+        }
+
+        $validated = $request->validate([
+            'email' => 'required|email',
+            'message' => 'nullable|string',
+        ]);
+
+        $fromEmail = LabSetting::get('results_email', config('mail.from.address'));
+        $fromName = LabSetting::get('results_from_name', config('mail.from.name'));
+
+        Mail::mailer('smtp')
+            ->to($validated['email'])
+            ->send(
+                (new AdmissionResultMail($admission, $validated['message'] ?? null))
+                    ->from($fromEmail, $fromName)
+            );
+
+        return back()->with('success', 'Informe enviado correctamente a '.$validated['email']);
+    }
+
+    private function generatePdfFilename(Admission $admission): string
+    {
+        $parts = [
+            'LabClinico',
+            $admission->patient?->name ?? 'SinPaciente',
+            $admission->date ? $admission->date->format('Y-m-d') : now()->format('Y-m-d'),
+        ];
+
+        $sanitized = collect($parts)->map(function ($part) {
+            $clean = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $part);
+            $clean = preg_replace('/[^A-Za-z0-9_-]/', '_', $clean);
+            $clean = preg_replace('/_+/', '_', $clean);
+
+            return trim($clean, '_');
+        })->implode('-');
+
+        return $sanitized.'.'.$admission->protocol_number.'.pdf';
     }
 }
