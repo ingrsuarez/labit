@@ -133,6 +133,8 @@ Route::middleware([
         Route::get('lab/clinico', [App\Http\Controllers\LabSectionController::class, 'clinico'])->name('lab.section.clinico');
         Route::get('lab/muestras', [App\Http\Controllers\LabSectionController::class, 'muestras'])->name('lab.section.muestras');
         Route::get('lab/configuracion', [App\Http\Controllers\LabSectionController::class, 'configuracion'])->name('lab.section.configuracion');
+        Route::get('lab/configuracion/correos', [App\Http\Controllers\LabEmailSettingsController::class, 'edit'])->name('lab.email-settings.edit');
+        Route::put('lab/configuracion/correos', [App\Http\Controllers\LabEmailSettingsController::class, 'update'])->name('lab.email-settings.update');
 
         // LAB ADMISSIONS (Admisiones de Pacientes - Laboratorio)
         Route::get('lab/admissions', [App\Http\Controllers\LabAdmissionController::class, 'index'])->name('lab.admissions.index');
