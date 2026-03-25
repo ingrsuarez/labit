@@ -49,6 +49,7 @@
 | v1.13.0 | Nomenclador en tiempo real (sin duplicación) | 2026-03-25 | Precio = nbu_units base × nbu_value OS, sin copiar prácticas |
 | v1.13.1 | Fix searchTests usa nomenclador base | 2026-03-25 | Hotfix: searchTests no usaba fallback a nomenclador base |
 | v1.14.0 | Precios en protocolos de aguas y alimentos | 2026-03-25 | categories JSON en tests, discount_percent en customers, precio en sample_determinations |
+| v1.14.1 | Otros valores de referencia en determinaciones | 2026-03-25 | Campo other_reference para valores no numéricos, fallback en PDFs |
 
 ---
 
@@ -63,7 +64,6 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v1.14.1 | Otros valores de referencia en determinaciones | 30min | ninguna | `prompts/pendientes/v1.14.1-otros-valores-referencia.md` |
 | v1.15.0 | Sub-padres y orden fijo de determinaciones | 2-3h | ninguna | `prompts/pendientes/v1.15.0-sub-padres-orden-fijo.md` |
 
 ---
@@ -81,10 +81,10 @@
 ## Progreso general
 
 ```
-Completadas:  32 versiones (v1.0.0 → v2.3.0)
-Planificadas: 2
+Completadas:  33 versiones (v1.0.0 → v2.3.0)
+Planificadas: 1
 En proceso:   0
-Próxima:      v1.14.1 — Otros valores de referencia en determinaciones
+Próxima:      v1.15.0 — Sub-padres y orden fijo de determinaciones
 ```
 
 ---
