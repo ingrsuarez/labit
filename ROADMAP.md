@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-03-24
+> Última actualización: 2026-03-25
 
 ---
 
@@ -50,6 +50,7 @@
 | v1.13.1 | Fix searchTests usa nomenclador base | 2026-03-25 | Hotfix: searchTests no usaba fallback a nomenclador base |
 | v1.14.0 | Precios en protocolos de aguas y alimentos | 2026-03-25 | categories JSON en tests, discount_percent en customers, precio en sample_determinations |
 | v1.14.1 | Otros valores de referencia en determinaciones | 2026-03-25 | Campo other_reference para valores no numéricos, fallback en PDFs |
+| v1.15.0 | Sub-padres y orden fijo de determinaciones | 2026-03-25 | Jerarquía 3 niveles, sort_order, PDFs con indentación progresiva |
 
 ---
 
@@ -64,7 +65,7 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v1.15.0 | Sub-padres y orden fijo de determinaciones | 2-3h | ninguna | `prompts/pendientes/v1.15.0-sub-padres-orden-fijo.md` |
+| v2.4.0 | Control de acceso por rol y redirección inteligente | medio día | ninguna | `prompts/pendientes/v2.4.0-control-acceso-por-rol.md` |
 
 ---
 
@@ -74,17 +75,17 @@
 - **UI/UX**: auditoría visual, migración de componentes, design system
 - **Testing**: suite de tests automatizados, cobertura mínima
 - **DevOps**: CI/CD, ambientes de staging, deploy automatizado
-- **Seguridad**: auditoría de permisos, 2FA, logs de acceso
+- **Seguridad**: 2FA, logs de acceso (auditoría de permisos parcialmente cubierta por v2.4.0)
 
 ---
 
 ## Progreso general
 
 ```
-Completadas:  33 versiones (v1.0.0 → v2.3.0)
+Completadas:  34 versiones (v1.0.0 → v2.3.0)
 Planificadas: 1
 En proceso:   0
-Próxima:      v1.15.0 — Sub-padres y orden fijo de determinaciones
+Próxima:      v2.4.0 — Control de acceso por rol y redirección inteligente
 ```
 
 ---
