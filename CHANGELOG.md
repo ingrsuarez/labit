@@ -5,6 +5,23 @@
 
 ---
 
+## [v1.14.1] — 2026-03-25 — Otros valores de referencia en determinaciones
+
+### Agregado
+- Migración: campo `other_reference` (text, nullable) en tabla `tests` para valores de referencia no numéricos
+- Campo "Otros valores de referencia" en modales de crear y editar determinación (`test/index.blade.php`)
+- Validación `other_reference` (string, max:500) en `TestController::store()` y `update()`
+- Lógica en `SampleController::buildReferenceValue()`: usa `other_reference` como fallback cuando `low`/`high` están vacíos, o lo concatena con `|` si ambos tienen contenido
+- Fallback en PDF de muestras (`sample/pdf-mpdf.blade.php`): muestra `other_reference` del test si `reference_value` de la determinación está vacío
+- Fallback en PDF de admisiones clínicas (`lab/admissions/pdf-mpdf.blade.php`): misma lógica
+
+### Notas
+- Útil para determinaciones de aguas/alimentos: "Ausencia en 100ml", "Positivo/Negativo", "< 10 UFC/ml"
+- Compatible con determinaciones existentes sin cambios (campo nullable)
+- Para determinaciones creadas antes de esta versión, el fallback en PDFs funciona sin migrar datos
+
+---
+
 ## [v1.14.0] — 2026-03-25 — Precios en protocolos de aguas y alimentos
 
 ### Agregado

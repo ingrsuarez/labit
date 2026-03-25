@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Test;
+use Illuminate\Http\Request;
 
 class TestController extends Controller
 {
@@ -16,17 +16,17 @@ class TestController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%");
             });
         }
 
         $tests = $query->paginate(20);
-        
+
         // Materiales activos para el select
         $materials = \App\Models\Material::active()->orderBy('name')->get();
-        
+
         // Tests que pueden ser padres (no tienen padres asignados - tabla pivote vacía)
         $parents = Test::whereDoesntHave('parentTests')
             ->whereNull('parent')
@@ -42,6 +42,7 @@ class TestController extends Controller
     public function create()
     {
         $parents = Test::whereNull('parent')->orderBy('name')->get();
+
         return view('test.create', compact('parents'));
     }
 
@@ -69,6 +70,7 @@ class TestController extends Controller
             'parent_ids.*' => 'integer|exists:tests,id',
             'low' => 'nullable|string|max:50',
             'high' => 'nullable|string|max:50',
+            'other_reference' => 'nullable|string|max:500',
             'material' => 'nullable|integer',
             'price' => 'nullable|numeric|min:0',
             'categories' => 'nullable|array',
@@ -103,6 +105,7 @@ class TestController extends Controller
             'parent' => null,
             'low' => $validated['low'] ?? null,
             'high' => $validated['high'] ?? null,
+            'other_reference' => $validated['other_reference'] ?? null,
             'material' => $validated['material'] ?? null,
             'price' => $validated['price'] ?? 0,
             'cost' => 0,
@@ -110,13 +113,13 @@ class TestController extends Controller
         ]);
 
         // Asignar múltiples padres si se seleccionaron
-        if (!empty($validated['parent_ids'])) {
+        if (! empty($validated['parent_ids'])) {
             $test->parentTests()->sync($validated['parent_ids']);
         }
 
         // Redirigir mostrando la nueva determinación (buscar por su código)
         return redirect()->route('tests.index', ['search' => $test->code])
-            ->with('success', 'Determinación "' . strtoupper($test->code) . '" creada correctamente.');
+            ->with('success', 'Determinación "'.strtoupper($test->code).'" creada correctamente.');
     }
 
     /**
@@ -125,6 +128,7 @@ class TestController extends Controller
     public function edit(Test $test)
     {
         $parents = Test::whereNull('parent')->where('id', '!=', $test->id)->orderBy('name')->get();
+
         return view('test.edit', compact('test', 'parents'));
     }
 
@@ -141,7 +145,7 @@ class TestController extends Controller
         $request->merge($data);
 
         $validated = $request->validate([
-            'code' => 'required|string|max:50|unique:tests,code,' . $test->id,
+            'code' => 'required|string|max:50|unique:tests,code,'.$test->id,
             'name' => 'required|string|max:255',
             'unit' => 'nullable|string|max:50',
             'method' => 'nullable|string|max:255',
@@ -152,6 +156,7 @@ class TestController extends Controller
             'parent_ids.*' => 'integer|exists:tests,id',
             'low' => 'nullable|string|max:50',
             'high' => 'nullable|string|max:50',
+            'other_reference' => 'nullable|string|max:500',
             'material' => 'nullable|integer',
             'price' => 'nullable|numeric|min:0',
             'categories' => 'nullable|array',
@@ -186,6 +191,7 @@ class TestController extends Controller
             'parent' => null,
             'low' => $validated['low'],
             'high' => $validated['high'],
+            'other_reference' => $validated['other_reference'],
             'material' => $validated['material'],
             'price' => $validated['price'] ?? $test->price,
             'categories' => $validated['categories'] ?? $test->categories ?? ['clinico'],
