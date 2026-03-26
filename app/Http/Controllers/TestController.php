@@ -28,10 +28,7 @@ class TestController extends Controller
         $materials = \App\Models\Material::active()->orderBy('name')->get();
 
         // Tests que pueden ser padres (no tienen padres asignados - tabla pivote vacía)
-        $parents = Test::whereDoesntHave('parentTests')
-            ->whereNull('parent')
-            ->orderBy('name')
-            ->get();
+        $parents = Test::orderBy('name')->get();
 
         return view('test.index', compact('tests', 'parents', 'materials'));
     }
