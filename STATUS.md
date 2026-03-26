@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-26
+> Última actualización: 2026-03-26 (post v2.7.0)
 
 ---
 
@@ -9,31 +9,30 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.5.0 |
-| **Última completada** | v2.5.0 — Auditoría infraestructura + módulo clínico |
+| **Versión actual** | v2.7.0 |
+| **Última completada** | v2.7.0 — Auditoría vista centralizada |
 | **En proceso** | — |
-| **Próxima** | v2.7.0 — Auditoría vista centralizada |
-| **Pendientes en cola** | 1 |
-| **Completadas** | 37 |
+| **Próxima** | — (cola vacía) |
+| **Pendientes en cola** | 0 |
+| **Completadas** | 38 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (1)
+### Pendientes (0)
 
-| Versión | Nombre | Dependencias |
-|---|---|---|
-| v2.7.0 | Auditoría vista centralizada | — |
+_Sin prompts pendientes._
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (37)
+### Completados (38)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v2.7.0 | Auditoría vista centralizada | 2026-03-26 | v2.7.0 |
 | v2.5.0 | Auditoría infraestructura + módulo clínico | 2026-03-26 | v2.5.0 |
 | v1.16.0 | Planillas de trabajo diario del laboratorio | 2026-03-26 | v1.16.0 |
 | v2.4.1 | Hotfix redirect loop lab + condición Mi Portal | 2026-03-26 | v2.4.1 |
@@ -136,16 +135,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-Ejecutar el siguiente prompt de la cola:
-
-```
-Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
-```
-
-Próximo en cola: **v2.7.0 — Auditoría vista centralizada**
-
-Cola priorizada:
-1. v2.7.0 — Auditoría vista centralizada
+La cola de prompts está vacía. Planificar nuevas versiones con el Agente PM.
 
 ---
 
