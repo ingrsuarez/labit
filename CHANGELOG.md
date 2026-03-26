@@ -5,6 +5,18 @@
 
 ---
 
+## [v2.4.1] — 2026-03-26 — Hotfix redirect loop lab + condición Mi Portal
+
+### Corregido
+- `CheckSystemAccess`: usuarios lab (`recepcion-lab`, `tecnico-lab`, `bioquimico`) causaban redirect loop infinito (`ERR_TOO_MANY_REDIRECTS`) porque el middleware los redirigía a `lab.section.clinico` que está dentro del mismo grupo `check.access`. Ahora pasan directo y `DashboardController` maneja la redirección.
+- Lab sidebar: link "Mi Portal" solo se muestra si el usuario tiene un Employee vinculado (`$user->employee`), no por tener el rol `empleado` solo. Evita link roto cuando no hay Employee asociado.
+
+### Notas
+- En producción, para que "Mi Portal" funcione, el User debe tener `user_id` en la tabla `employees`
+- El rol `empleado` por sí solo no crea la asociación User→Employee
+
+---
+
 ## [v2.4.0] — 2026-03-25 — Control de acceso por rol y redirección inteligente
 
 ### Agregado
