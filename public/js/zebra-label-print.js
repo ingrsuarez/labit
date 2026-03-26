@@ -5,20 +5,61 @@
  * https://www.zebra.com/us/en/support-downloads/printer-software/browser-print.html
  */
 const ZebraLabelPrint = {
-    API_URL: window.location.protocol === 'https:'
-        ? 'https://localhost:9101'
-        : 'http://localhost:9100',
+    API_URL: null,
     selectedPrinter: null,
     printers: [],
 
+    _getCandidateUrls() {
+        if (window.location.protocol === 'https:') {
+            return [
+                'https://localhost:9101',
+                'http://localhost:9100',
+            ];
+        }
+        return [
+            'http://localhost:9100',
+            'https://localhost:9101',
+        ];
+    },
+
+    async _tryPort(baseUrl) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3000);
+        try {
+            const response = await fetch(`${baseUrl}/available?type=printer`, {
+                signal: controller.signal,
+            });
+            clearTimeout(timeout);
+            if (!response.ok) throw new Error('Bad response');
+            return await response.text();
+        } catch (e) {
+            clearTimeout(timeout);
+            throw e;
+        }
+    },
+
     async getAvailablePrinters() {
-        const response = await fetch(`${this.API_URL}/available?type=printer`);
+        const urls = this._getCandidateUrls();
+        let text = null;
 
-        if (!response.ok) throw new Error('No se pudo conectar con Zebra Browser Print');
+        for (const url of urls) {
+            try {
+                text = await this._tryPort(url);
+                this.API_URL = url;
+                break;
+            } catch {
+                continue;
+            }
+        }
 
-        const text = await response.text();
+        if (!text) {
+            throw new Error(
+                'No se detectó Zebra Browser Print. ' +
+                'Asegúrese de que esté instalado y ejecutándose.'
+            );
+        }
+
         let printers;
-
         try {
             const parsed = JSON.parse(text);
             printers = Array.isArray(parsed) ? parsed : [parsed];
@@ -182,11 +223,7 @@ function zebraPrintModal() {
                 }
             } catch (e) {
                 this.zebraAvailable = false;
-                if (e instanceof TypeError && e.message.includes('Failed to fetch')) {
-                    this.error = 'Zebra Browser Print no está corriendo. Iniciá la aplicación desde la bandeja del sistema.';
-                } else {
-                    this.error = e.message;
-                }
+                this.error = e.message;
             } finally {
                 this.loading = false;
             }
