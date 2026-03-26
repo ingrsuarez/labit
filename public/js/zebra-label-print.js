@@ -8,6 +8,7 @@ const ZebraLabelPrint = {
     API_URL: null,
     selectedPrinter: null,
     printers: [],
+    _defaultDevice: null,
 
     _getCandidateUrls() {
         if (window.location.protocol === 'https:') {
@@ -22,16 +23,13 @@ const ZebraLabelPrint = {
         ];
     },
 
-    async _tryPort(baseUrl) {
+    async _fetchWithTimeout(url, options, ms) {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 3000);
+        const timeout = setTimeout(() => controller.abort(), ms || 3000);
         try {
-            const response = await fetch(`${baseUrl}/available?type=printer`, {
-                signal: controller.signal,
-            });
+            const response = await fetch(url, { ...options, signal: controller.signal });
             clearTimeout(timeout);
-            if (!response.ok) throw new Error('Bad response');
-            return await response.text();
+            return response;
         } catch (e) {
             clearTimeout(timeout);
             throw e;
@@ -44,7 +42,11 @@ const ZebraLabelPrint = {
 
         for (const url of urls) {
             try {
-                text = await this._tryPort(url);
+                const resp = await this._fetchWithTimeout(
+                    `${url}/available?type=printer`, {}, 3000
+                );
+                if (!resp.ok) continue;
+                text = await resp.text();
                 this.API_URL = url;
                 break;
             } catch {
@@ -59,12 +61,23 @@ const ZebraLabelPrint = {
             );
         }
 
+        try {
+            const defResp = await this._fetchWithTimeout(
+                `${this.API_URL}/default?type=printer`, {}, 3000
+            );
+            if (defResp.ok) {
+                const defText = await defResp.text();
+                try {
+                    this._defaultDevice = JSON.parse(defText);
+                } catch { /* not JSON, ignore */ }
+            }
+        } catch { /* /default not available */ }
+
         let printers;
         try {
             const parsed = JSON.parse(text);
             const list = Array.isArray(parsed) ? parsed : [parsed];
             printers = list.map(p => ({
-                ...p,
                 name: p.name || p.uid || 'Impresora Zebra',
                 uid: p.uid || p.name || '',
                 connection: p.connection || 'unknown',
@@ -137,30 +150,55 @@ const ZebraLabelPrint = {
         return text.replace(/[\^~]/g, '').replace(/[^\x20-\x7E\u00C0-\u024F]/g, '');
     },
 
-    async printLabel(zplContent) {
-        if (!this.selectedPrinter) {
-            throw new Error('No hay impresora seleccionada');
-        }
-
-        const device = this.selectedPrinter._raw || {
+    _getDeviceForWrite() {
+        if (this._defaultDevice) return this._defaultDevice;
+        if (this.selectedPrinter && this.selectedPrinter._raw) return this.selectedPrinter._raw;
+        return {
             name: this.selectedPrinter.name,
             uid: this.selectedPrinter.uid,
             connection: this.selectedPrinter.connection,
             deviceType: this.selectedPrinter.deviceType,
         };
+    },
 
-        const response = await fetch(`${this.API_URL}/write`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ device, data: zplContent }),
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text().catch(() => 'Error desconocido');
-            throw new Error('Error al enviar a la impresora: ' + errorText);
+    async printLabel(zplContent) {
+        if (!this.selectedPrinter) {
+            throw new Error('No hay impresora seleccionada');
         }
 
-        return true;
+        const device = this._getDeviceForWrite();
+        const strategies = [
+            {
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ device, data: zplContent }),
+            },
+            {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'device=' + encodeURIComponent(JSON.stringify(device)) +
+                      '&data=' + encodeURIComponent(zplContent),
+            },
+            {
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: zplContent,
+            },
+        ];
+
+        let lastError = '';
+        for (const strategy of strategies) {
+            try {
+                const response = await this._fetchWithTimeout(
+                    `${this.API_URL}/write`,
+                    { method: 'POST', headers: strategy.headers, body: strategy.body },
+                    5000
+                );
+                if (response.ok) return true;
+                lastError = await response.text().catch(() => '');
+            } catch (e) {
+                lastError = e.message;
+            }
+        }
+
+        throw new Error('Error al enviar a la impresora: ' + lastError);
     },
 
     async printSampleLabel(labelDataUrl, copies = 1) {
