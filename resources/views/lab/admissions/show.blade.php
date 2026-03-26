@@ -175,37 +175,92 @@
 
                     @if($admission->admissionTests->count() > 0)
                         @php
-                            // IDs de tests en el protocolo que son padres
-                            $testIdsInProtocol = $admission->admissionTests->pluck('test_id')->toArray();
-                            
-                            // Separar prácticas padre (con precio > 0) de hijos (precio = 0)
-                            $parentTests = $admission->admissionTests->where('price', '>', 0);
-                            $childTests = $admission->admissionTests->where('price', '<=', 0);
-                            
-                            // Crear un mapa de hijos por padre (solo si el padre está en el protocolo)
-                            $childrenByParent = [];
-                            $orphanTests = collect(); // Prácticas con precio 0 que no tienen padre en el protocolo
-                            
-                            foreach ($childTests as $child) {
-                                $parentIds = $child->test->parentTests->pluck('id')->toArray();
-                                // Filtrar solo los padres que están en el protocolo
-                                $parentsInProtocol = array_intersect($parentIds, $testIdsInProtocol);
-                                
+                            $allProtocolTestIds = $admission->admissionTests->pluck('test_id')->toArray();
+
+                            $itemsByTestId = [];
+                            foreach ($admission->admissionTests as $at) {
+                                $itemsByTestId[$at->test_id] = $at;
+                            }
+
+                            $parentMap = [];
+                            $childOf = [];
+                            $isSubParentMap = [];
+
+                            foreach ($admission->admissionTests as $at) {
+                                if (!$at->test) continue;
+                                $parentIds = $at->test->parentTests->pluck('id')->toArray();
+                                if ($at->test->parent) {
+                                    $parentIds[] = $at->test->parent;
+                                    $parentIds = array_unique($parentIds);
+                                }
+                                $parentsInProtocol = array_intersect($parentIds, $allProtocolTestIds);
+
                                 if (count($parentsInProtocol) > 0) {
-                                    // Tiene padre en el protocolo, asignar al primer padre encontrado
                                     $parentId = reset($parentsInProtocol);
-                                    if (!isset($childrenByParent[$parentId])) {
-                                        $childrenByParent[$parentId] = collect();
+                                    $childOf[$at->test_id] = $parentId;
+                                    if (!isset($parentMap[$parentId])) {
+                                        $parentMap[$parentId] = [];
                                     }
-                                    $childrenByParent[$parentId]->push($child);
-                                } else {
-                                    // No tiene padre en el protocolo, es huérfana - mostrar como padre
-                                    $orphanTests->push($child);
+                                    $parentMap[$parentId][] = $at->test_id;
                                 }
                             }
-                            
-                            // Combinar padres reales con huérfanas
-                            $parentTests = $parentTests->concat($orphanTests);
+
+                            foreach ($parentMap as $testId => $children) {
+                                if (isset($childOf[$testId])) {
+                                    $isSubParentMap[$testId] = true;
+                                }
+                            }
+
+                            // Ordenar hijos dentro de cada padre por sort_order
+                            foreach ($parentMap as $parentId => &$childIds) {
+                                usort($childIds, function ($a, $b) use ($itemsByTestId) {
+                                    $sortA = $itemsByTestId[$a]->test->sort_order ?? 0;
+                                    $sortB = $itemsByTestId[$b]->test->sort_order ?? 0;
+                                    return $sortA <=> $sortB;
+                                });
+                            }
+                            unset($childIds);
+
+                            $roots = [];
+                            foreach ($admission->admissionTests as $at) {
+                                if (!isset($childOf[$at->test_id]) && !in_array($at->test_id, $roots)) {
+                                    $roots[] = $at->test_id;
+                                }
+                            }
+
+                            usort($roots, function ($a, $b) use ($itemsByTestId) {
+                                $sortA = $itemsByTestId[$a]->test->sort_order ?? 0;
+                                $sortB = $itemsByTestId[$b]->test->sort_order ?? 0;
+                                return $sortA <=> $sortB;
+                            });
+
+                            $orderedItems = collect();
+                            $addWithChildren = function ($testId, $level) use (
+                                &$addWithChildren, $parentMap, $isSubParentMap, $itemsByTestId, &$orderedItems
+                            ) {
+                                if (!isset($itemsByTestId[$testId])) return;
+                                $isParent = isset($parentMap[$testId]);
+
+                                $orderedItems->push([
+                                    'at' => $itemsByTestId[$testId],
+                                    'level' => $level,
+                                    'isParent' => $isParent,
+                                    'isSubParent' => isset($isSubParentMap[$testId]),
+                                    'isChild' => $level > 0,
+                                    'childCount' => $isParent ? count($parentMap[$testId]) : 0,
+                                ]);
+
+                                if ($isParent) {
+                                    foreach ($parentMap[$testId] as $childId) {
+                                        $addWithChildren($childId, $level + 1);
+                                    }
+                                }
+                            };
+
+                            foreach ($roots as $rootId) {
+                                $addWithChildren($rootId, 0);
+                            }
+
                             $formIndex = 0;
                             $canEditResults = auth()->user()->can('lab-results.create');
                             $canValidate = auth()->user()->can('lab-results.validate');
@@ -226,14 +281,22 @@
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
-                                        @foreach($parentTests as $admissionTest)
-                                            @php 
-                                                $hasChildren = isset($childrenByParent[$admissionTest->test_id]) && $childrenByParent[$admissionTest->test_id]->count() > 0;
-                                                
-                                                // Para prácticas sin hijos, obtener unidad y valor de referencia
+                                        @foreach($orderedItems as $item)
+                                            @php
+                                                $admissionTest = $item['at'];
+                                                $level = $item['level'];
+                                                $hasChildren = $item['isParent'];
+                                                $isChild = $item['isChild'];
+                                                $isSubParent = $item['isSubParent'] ?? false;
+                                                $childCount = $item['childCount'] ?? 0;
+
+                                                $paddingLeft = $level === 0 ? 'px-4' : ($level === 1 ? 'pl-10 pr-4' : 'pl-16 pr-4');
+
+                                                $testUnit = null;
+                                                $refValue = null;
+                                                $needsConfig = false;
                                                 if (!$hasChildren) {
                                                     $testUnit = $admissionTest->test->unit;
-                                                    $refValue = null;
                                                     $defaultRef = $admissionTest->test->referenceValues->where('is_default', true)->first();
                                                     if ($defaultRef) {
                                                         if ($defaultRef->min_value !== null && $defaultRef->max_value !== null) {
@@ -247,101 +310,117 @@
                                                     $needsConfig = empty($testUnit) || empty($refValue);
                                                 }
                                             @endphp
-                                            <!-- Fila de la práctica padre -->
-                                            <tr class="{{ $hasChildren ? 'bg-teal-50 border-l-4 border-teal-500' : 'hover:bg-gray-50' }} {{ $admissionTest->is_validated ? 'bg-green-50' : '' }}">
-                                                <td class="px-4 py-3">
+                                            <tr class="{{ $hasChildren ? 'bg-teal-50' . ($level === 0 ? ' border-l-4 border-teal-500' : ' border-l-4 border-teal-300') : 'hover:bg-gray-50' }} {{ $isChild && !$hasChildren ? 'bg-gray-50/50' : '' }} {{ $admissionTest->is_validated ? 'bg-green-50' : '' }}">
+                                                <td class="{{ $paddingLeft }} py-{{ $hasChildren ? '3' : '2' }}">
                                                     <input type="hidden" name="results[{{ $formIndex }}][id]" value="{{ $admissionTest->id }}">
                                                     <div class="flex items-center">
-                                                        <span class="text-sm font-bold text-teal-700 mr-2">{{ $admissionTest->test->code }}</span>
-                                                        <span class="text-sm font-semibold text-gray-900">{{ $admissionTest->test->name }}</span>
-                                                        @if($hasChildren)
-                                                            <span class="ml-2 text-xs text-teal-600">({{ $childrenByParent[$admissionTest->test_id]->count() }} det.)</span>
-                                                        @elseif(($needsConfig ?? false) || auth()->user()->hasRole('bioquimico'))
-                                                            <button type="button"
-                                                               onclick="openConfigModal({{ $admissionTest->test->id }}, '{{ $admissionTest->test->code }}', '{{ addslashes($admissionTest->test->name) }}', '{{ $admissionTest->test->unit }}', '{{ $admissionTest->test->low }}', '{{ $admissionTest->test->high }}', '{{ addslashes($admissionTest->test->method) }}')"
-                                                               class="ml-2 px-1.5 py-0.5 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
-                                                               title="Configurar unidad y valores de referencia">
-                                                                ⚙ Config.
-                                                            </button>
+                                                        @if($isChild && !$hasChildren)
+                                                            <span class="text-xs text-gray-400 mr-1">└</span>
                                                         @endif
-                                                        <span class="ml-2 text-xs text-gray-500">${{ number_format($admissionTest->price, 0, ',', '.') }}</span>
+                                                        @if($hasChildren && !$isChild)
+                                                            <span class="text-sm font-bold text-teal-700 mr-2">{{ $admissionTest->test->code }}</span>
+                                                            <span class="text-sm font-semibold text-gray-900">{{ $admissionTest->test->name }}</span>
+                                                            <span class="ml-2 text-xs text-teal-600">({{ $childCount }} det.)</span>
+                                                            <span class="ml-2 text-xs text-gray-500">${{ number_format($admissionTest->price, 0, ',', '.') }}</span>
+                                                        @elseif($isSubParent)
+                                                            <span class="text-xs font-bold text-teal-600 mr-2">{{ $admissionTest->test->code }}</span>
+                                                            <span class="text-sm font-semibold text-gray-800">{{ $admissionTest->test->name }}</span>
+                                                            <span class="ml-2 text-xs text-teal-500">({{ $childCount }} det.)</span>
+                                                        @else
+                                                            <span class="text-xs font-medium text-gray-500 mr-2">{{ $admissionTest->test->code }}</span>
+                                                            <span class="text-sm text-gray-700">{{ $admissionTest->test->name }}</span>
+                                                            @if($needsConfig || auth()->user()->hasRole('bioquimico'))
+                                                                <button type="button"
+                                                                   onclick="openConfigModal({{ $admissionTest->test->id }}, '{{ $admissionTest->test->code }}', '{{ addslashes($admissionTest->test->name) }}', '{{ $admissionTest->test->unit }}', '{{ $admissionTest->test->low }}', '{{ $admissionTest->test->high }}', '{{ addslashes($admissionTest->test->method) }}')"
+                                                                   class="ml-2 px-1.5 py-0.5 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
+                                                                   title="Configurar unidad y valores de referencia">
+                                                                    ⚙ Config.
+                                                                </button>
+                                                            @endif
+                                                            @if(!$isChild)
+                                                                <span class="ml-2 text-xs text-gray-500">${{ number_format($admissionTest->price, 0, ',', '.') }}</span>
+                                                            @endif
+                                                        @endif
                                                     </div>
                                                 </td>
                                                 @if($hasChildren)
-                                                    <!-- Si tiene hijos, el resultado se muestra solo como indicador -->
                                                     <td class="px-4 py-2 text-center text-xs text-gray-400" colspan="3">
                                                         Cargar resultados en las determinaciones ↓
                                                     </td>
                                                 @else
-                                                    <td class="px-4 py-2">
-                                                        <input type="text" 
-                                                               name="results[{{ $formIndex }}][result]" 
+                                                    <td class="px-4 py-1">
+                                                        <input type="text"
+                                                               name="results[{{ $formIndex }}][result]"
                                                                value="{{ $admissionTest->result }}"
                                                                placeholder="Resultado"
                                                                {{ $admissionTest->is_validated || !$canEditResults ? 'disabled' : '' }}
                                                                class="w-full text-center border-gray-300 rounded text-sm {{ $admissionTest->is_validated || !$canEditResults ? 'bg-gray-100' : '' }}">
                                                     </td>
-                                                    <td class="px-4 py-2">
-                                                        <!-- Unidad: solo lectura -->
+                                                    <td class="px-4 py-1">
                                                         <input type="hidden" name="results[{{ $formIndex }}][unit]" value="{{ $testUnit ?? '' }}">
-                                                        @if($testUnit ?? null)
+                                                        @if($testUnit)
                                                             <span class="text-sm text-gray-600">{{ $testUnit }}</span>
                                                         @else
                                                             <span class="text-xs text-orange-500">Sin unidad</span>
                                                         @endif
                                                     </td>
-                                                    <td class="px-4 py-2">
-                                                        <!-- Valor de referencia: solo lectura -->
+                                                    <td class="px-4 py-1">
                                                         <input type="hidden" name="results[{{ $formIndex }}][reference_value]" value="{{ $refValue ?? '' }}">
-                                                        @if($refValue ?? null)
+                                                        @if($refValue)
                                                             <span class="text-sm text-gray-600">{{ $refValue }}</span>
                                                         @else
                                                             <span class="text-xs text-orange-500">Sin ref.</span>
                                                         @endif
                                                     </td>
                                                 @endif
-                                                <td class="px-4 py-3 text-center">
+                                                <td class="px-4 py-2 text-center">
                                                     @if($admissionTest->is_validated)
-                                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                            <svg class="w-3 h-3 {{ !$isChild ? 'mr-1' : '' }}" fill="currentColor" viewBox="0 0 20 20">
                                                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                                                             </svg>
-                                                            Validado
+                                                            @if(!$isChild) Validado @endif
                                                         </span>
                                                     @elseif($admissionTest->result)
-                                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                            Con resultado
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                            @if($isChild) ● @else Con resultado @endif
                                                         </span>
                                                     @elseif(!$hasChildren)
-                                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                                                            Pendiente
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                                            @if($isChild) ○ @else Pendiente @endif
                                                         </span>
                                                     @else
                                                         <span class="text-xs text-gray-400">-</span>
                                                     @endif
                                                 </td>
-                                                <td class="px-4 py-3 text-center">
+                                                <td class="px-4 py-2 text-center">
                                                     @php
-                                                        // Verificar si tiene hijos validados
                                                         $hasValidatedChildren = false;
-                                                        if ($hasChildren) {
-                                                            $hasValidatedChildren = $childrenByParent[$admissionTest->test_id]->where('is_validated', true)->count() > 0;
+                                                        if ($hasChildren && isset($parentMap[$admissionTest->test_id])) {
+                                                            foreach ($parentMap[$admissionTest->test_id] as $cId) {
+                                                                if (isset($itemsByTestId[$cId]) && $itemsByTestId[$cId]->is_validated) {
+                                                                    $hasValidatedChildren = true;
+                                                                    break;
+                                                                }
+                                                            }
                                                         }
                                                         $canDelete = !$admissionTest->is_validated && !$hasValidatedChildren;
                                                     @endphp
                                                     <div class="flex items-center justify-center gap-2">
                                                         @if(!$hasChildren && $canValidate)
                                                             @if($admissionTest->is_validated)
-                                                                <button type="button" onclick="submitAction('{{ route('lab.admissions.unvalidateTest', [$admission, $admissionTest]) }}')" class="text-orange-600 hover:text-orange-800 text-xs" title="Quitar validación">
+                                                                <button type="button" onclick="submitAction('{{ route('lab.admissions.unvalidateTest', [$admission, $admissionTest]) }}')" class="text-orange-500 hover:text-orange-700 text-xs" title="Quitar validación">
                                                                     Desvalidar
                                                                 </button>
                                                             @elseif($admissionTest->result)
-                                                                <button type="button" onclick="submitAction('{{ route('lab.admissions.validateTest', [$admission, $admissionTest]) }}')" class="text-green-600 hover:text-green-800 text-xs font-medium" title="Validar">
-                                                                    Validar
+                                                                <button type="button" onclick="submitAction('{{ route('lab.admissions.validateTest', [$admission, $admissionTest]) }}')" class="text-green-500 hover:text-green-700 text-xs">
+                                                                    ✓
                                                                 </button>
+                                                            @else
+                                                                <span class="text-gray-300 text-xs">-</span>
                                                             @endif
                                                         @endif
-                                                        @if($canDelete)
+                                                        @if($canDelete && !$isChild)
                                                             <button type="button" onclick="if(confirm('¿Eliminar esta práctica del protocolo?{{ $hasChildren ? " (Se eliminarán también las determinaciones hijas)" : "" }}')) submitAction('{{ route('lab.admissions.removeTest', [$admission, $admissionTest]) }}', 'DELETE')" class="text-red-400 hover:text-red-600" title="Eliminar práctica">
                                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -358,109 +437,6 @@
                                                 </td>
                                             </tr>
                                             @php $formIndex++; @endphp
-                                            
-                                            <!-- Filas de determinaciones hijas -->
-                                            @if($hasChildren)
-                                                @foreach($childrenByParent[$admissionTest->test_id] as $childTest)
-                                                    @php
-                                                        // Obtener unidad y valor de referencia del test
-                                                        $testUnit = $childTest->test->unit;
-                                                        
-                                                        // Buscar valor de referencia: primero de referenceValues, luego low/high
-                                                        $refValue = null;
-                                                        $defaultRef = $childTest->test->referenceValues->where('is_default', true)->first();
-                                                        if ($defaultRef) {
-                                                            if ($defaultRef->min_value !== null && $defaultRef->max_value !== null) {
-                                                                $refValue = $defaultRef->min_value . ' - ' . $defaultRef->max_value;
-                                                            } elseif ($defaultRef->value) {
-                                                                $refValue = $defaultRef->value;
-                                                            }
-                                                        } elseif ($childTest->test->low !== null && $childTest->test->high !== null) {
-                                                            $refValue = $childTest->test->low . ' - ' . $childTest->test->high;
-                                                        }
-                                                        
-                                                        // Verificar si falta configuración
-                                                        $needsConfig = empty($testUnit) || empty($refValue);
-                                                    @endphp
-                                                    <tr class="hover:bg-gray-50 bg-gray-50/50 {{ $childTest->is_validated ? 'bg-green-50' : '' }}">
-                                                        <td class="px-4 py-2 pl-10">
-                                                            <input type="hidden" name="results[{{ $formIndex }}][id]" value="{{ $childTest->id }}">
-                                                            <div class="flex items-center">
-                                                                <span class="text-xs text-gray-400 mr-1">└</span>
-                                                                <span class="text-xs font-medium text-gray-500 mr-2">{{ $childTest->test->code }}</span>
-                                                                <span class="text-sm text-gray-700">{{ $childTest->test->name }}</span>
-                                                                @if($needsConfig || auth()->user()->hasRole('bioquimico'))
-                                                                    <button type="button"
-                                                                       onclick="openConfigModal({{ $childTest->test->id }}, '{{ $childTest->test->code }}', '{{ addslashes($childTest->test->name) }}', '{{ $childTest->test->unit }}', '{{ $childTest->test->low }}', '{{ $childTest->test->high }}', '{{ addslashes($childTest->test->method) }}')"
-                                                                       class="ml-2 px-1.5 py-0.5 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
-                                                                       title="Configurar unidad y valores de referencia">
-                                                                        ⚙ Config.
-                                                                    </button>
-                                                                @endif
-                                                            </div>
-                                                        </td>
-                                                        <td class="px-4 py-1">
-                                                            <input type="text" 
-                                                                   name="results[{{ $formIndex }}][result]" 
-                                                                   value="{{ $childTest->result }}"
-                                                                   placeholder="Resultado"
-                                                                   {{ $childTest->is_validated || !$canEditResults ? 'disabled' : '' }}
-                                                                   class="w-full text-center border-gray-300 rounded text-sm {{ $childTest->is_validated || !$canEditResults ? 'bg-gray-100' : '' }}">
-                                                        </td>
-                                                        <td class="px-4 py-1">
-                                                            <!-- Unidad: solo lectura, se guarda oculto -->
-                                                            <input type="hidden" name="results[{{ $formIndex }}][unit]" value="{{ $testUnit }}">
-                                                            @if($testUnit)
-                                                                <span class="text-sm text-gray-600">{{ $testUnit }}</span>
-                                                            @else
-                                                                <span class="text-xs text-orange-500">Sin unidad</span>
-                                                            @endif
-                                                        </td>
-                                                        <td class="px-4 py-1">
-                                                            <!-- Valor de referencia: solo lectura -->
-                                                            <input type="hidden" name="results[{{ $formIndex }}][reference_value]" value="{{ $refValue }}">
-                                                            @if($refValue)
-                                                                <span class="text-sm text-gray-600">{{ $refValue }}</span>
-                                                            @else
-                                                                <span class="text-xs text-orange-500">Sin ref.</span>
-                                                            @endif
-                                                        </td>
-                                                        <td class="px-4 py-2 text-center">
-                                                            @if($childTest->is_validated)
-                                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                                                    </svg>
-                                                                </span>
-                                                            @elseif($childTest->result)
-                                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                                    ●
-                                                                </span>
-                                                            @else
-                                                                <span class="text-gray-300 text-xs">○</span>
-                                                            @endif
-                                                        </td>
-                                                        <td class="px-4 py-2 text-center">
-                                                            @if($canValidate)
-                                                                @if($childTest->is_validated)
-                                                                    <button type="button" onclick="submitAction('{{ route('lab.admissions.unvalidateTest', [$admission, $childTest]) }}')" class="text-orange-500 hover:text-orange-700 text-xs" title="Quitar validación">
-                                                                        Desvalidar
-                                                                    </button>
-                                                                @elseif($childTest->result)
-                                                                    <button type="button" onclick="submitAction('{{ route('lab.admissions.validateTest', [$admission, $childTest]) }}')" class="text-green-500 hover:text-green-700 text-xs">
-                                                                        ✓
-                                                                    </button>
-                                                                @else
-                                                                    <span class="text-gray-300 text-xs">-</span>
-                                                                @endif
-                                                            @else
-                                                                <span class="text-gray-300 text-xs">-</span>
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-                                                    @php $formIndex++; @endphp
-                                                @endforeach
-                                            @endif
                                         @endforeach
                                     </tbody>
                                 </table>
