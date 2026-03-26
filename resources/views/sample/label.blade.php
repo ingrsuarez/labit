@@ -5,7 +5,7 @@
     <title>Etiqueta - {{ $sample->protocol_number }}</title>
     <style>
         @page {
-            size: 60mm 40mm;
+            size: landscape;
             margin: 0;
         }
 
@@ -61,9 +61,20 @@
         }
 
         @media print {
+            html {
+                width: 60mm;
+                height: 40mm;
+            }
+
             body {
+                width: 60mm;
+                height: 40mm;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+            }
+
+            .no-print {
+                display: none;
             }
         }
 
@@ -92,12 +103,6 @@
 
             .no-print button:hover {
                 background: #6d28d9;
-            }
-        }
-
-        @media print {
-            .no-print {
-                display: none;
             }
         }
     </style>
