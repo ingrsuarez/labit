@@ -349,7 +349,7 @@ class SampleController extends Controller
         foreach ($validated['determinations'] as $data) {
             $determination = SampleDetermination::find($data['id']);
 
-            if ($determination->sample_id !== $sample->id) {
+            if ($determination->sample_id !== $sample->id || $determination->is_validated) {
                 continue;
             }
 

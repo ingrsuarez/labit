@@ -443,8 +443,8 @@
                                                         <td class="px-4 py-2 text-center">
                                                             @if($canValidate)
                                                                 @if($childTest->is_validated)
-                                                                    <button type="button" onclick="submitAction('{{ route('lab.admissions.unvalidateTest', [$admission, $childTest]) }}')" class="text-orange-500 hover:text-orange-700 text-xs">
-                                                                        ✕
+                                                                    <button type="button" onclick="submitAction('{{ route('lab.admissions.unvalidateTest', [$admission, $childTest]) }}')" class="text-orange-500 hover:text-orange-700 text-xs" title="Quitar validación">
+                                                                        Desvalidar
                                                                     </button>
                                                                 @elseif($childTest->result)
                                                                     <button type="button" onclick="submitAction('{{ route('lab.admissions.validateTest', [$admission, $childTest]) }}')" class="text-green-500 hover:text-green-700 text-xs">

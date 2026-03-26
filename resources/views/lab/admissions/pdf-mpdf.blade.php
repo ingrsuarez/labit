@@ -199,42 +199,29 @@
 
     @php
         $validatedTests = $admission->admissionTests->where('is_validated', true);
-        $allTests = $admission->admissionTests;
+        $allProtocolTestIds = $admission->admissionTests->pluck('test_id')->toArray();
 
         $itemsByTestId = [];
-        foreach ($validatedTests as $at) {
+        foreach ($admission->admissionTests as $at) {
             $itemsByTestId[$at->test_id] = $at;
         }
 
-        $allItemsByTestId = [];
-        foreach ($allTests as $at) {
-            $allItemsByTestId[$at->test_id] = $at;
-        }
-
-        $testIds = $validatedTests->pluck('test_id')->toArray();
-        $allTestIds = $allTests->pluck('test_id')->toArray();
         $parentMap = [];
         $childOf = [];
         $isSubParentMap = [];
 
-        foreach ($allTests as $at) {
-            $test = $at->test;
-            if (!$test) continue;
+        foreach ($validatedTests as $at) {
+            if (!$at->test) continue;
+            $parentIds = $at->test->parentTests->pluck('id')->toArray();
+            $parentsInProtocol = array_intersect($parentIds, $allProtocolTestIds);
 
-            $children = $test->childTests()
-                ->whereIn('tests.id', $testIds)
-                ->orderBy('test_parents.order')
-                ->pluck('tests.id')
-                ->toArray();
-
-            if (!empty($children)) {
-                $parentMap[$test->id] = $children;
-                if (!isset($itemsByTestId[$test->id])) {
-                    $itemsByTestId[$test->id] = $at;
+            if (count($parentsInProtocol) > 0) {
+                $parentId = reset($parentsInProtocol);
+                $childOf[$at->test_id] = $parentId;
+                if (!isset($parentMap[$parentId])) {
+                    $parentMap[$parentId] = [];
                 }
-                foreach ($children as $childId) {
-                    $childOf[$childId] = $test->id;
-                }
+                $parentMap[$parentId][] = $at->test_id;
             }
         }
 

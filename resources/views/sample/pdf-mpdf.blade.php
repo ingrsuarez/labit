@@ -252,42 +252,29 @@
 
     @php
         $validatedDeterminations = $sample->determinations->where('is_validated', true);
-        $allDeterminations = $sample->determinations;
+        $allProtocolTestIds = $sample->determinations->pluck('test_id')->toArray();
 
         $itemsByTestId = [];
-        foreach ($validatedDeterminations as $det) {
+        foreach ($sample->determinations as $det) {
             $itemsByTestId[$det->test_id] = $det;
         }
 
-        $allItemsByTestId = [];
-        foreach ($allDeterminations as $det) {
-            $allItemsByTestId[$det->test_id] = $det;
-        }
-
-        $testIds = $validatedDeterminations->pluck('test_id')->toArray();
-        $allTestIds = $allDeterminations->pluck('test_id')->toArray();
         $parentMap = [];
         $childOf = [];
         $isSubParentMap = [];
 
-        foreach ($allDeterminations as $det) {
-            $test = $det->test;
-            if (!$test) continue;
+        foreach ($validatedDeterminations as $det) {
+            if (!$det->test) continue;
+            $parentIds = $det->test->parentTests->pluck('id')->toArray();
+            $parentsInProtocol = array_intersect($parentIds, $allProtocolTestIds);
 
-            $children = $test->childTests()
-                ->whereIn('tests.id', $testIds)
-                ->orderBy('test_parents.order')
-                ->pluck('tests.id')
-                ->toArray();
-
-            if (!empty($children)) {
-                $parentMap[$test->id] = $children;
-                if (!isset($itemsByTestId[$test->id])) {
-                    $itemsByTestId[$test->id] = $det;
+            if (count($parentsInProtocol) > 0) {
+                $parentId = reset($parentsInProtocol);
+                $childOf[$det->test_id] = $parentId;
+                if (!isset($parentMap[$parentId])) {
+                    $parentMap[$parentId] = [];
                 }
-                foreach ($children as $childId) {
-                    $childOf[$childId] = $test->id;
-                }
+                $parentMap[$parentId][] = $det->test_id;
             }
         }
 
