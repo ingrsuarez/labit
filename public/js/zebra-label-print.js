@@ -62,12 +62,14 @@ const ZebraLabelPrint = {
         let printers;
         try {
             const parsed = JSON.parse(text);
-            printers = Array.isArray(parsed) ? parsed : [parsed];
-            printers = printers.map(p => ({
-                name: p.name || 'Impresora Zebra',
-                uid: p.uid || '',
+            const list = Array.isArray(parsed) ? parsed : [parsed];
+            printers = list.map(p => ({
+                ...p,
+                name: p.name || p.uid || 'Impresora Zebra',
+                uid: p.uid || p.name || '',
                 connection: p.connection || 'unknown',
                 deviceType: p.deviceType || 'printer',
+                _raw: p,
             }));
         } catch {
             printers = this._parsePrintersFromText(text);
@@ -140,18 +142,17 @@ const ZebraLabelPrint = {
             throw new Error('No hay impresora seleccionada');
         }
 
+        const device = this.selectedPrinter._raw || {
+            name: this.selectedPrinter.name,
+            uid: this.selectedPrinter.uid,
+            connection: this.selectedPrinter.connection,
+            deviceType: this.selectedPrinter.deviceType,
+        };
+
         const response = await fetch(`${this.API_URL}/write`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                device: {
-                    name: this.selectedPrinter.name,
-                    uid: this.selectedPrinter.uid,
-                    connection: this.selectedPrinter.connection,
-                    deviceType: this.selectedPrinter.deviceType,
-                },
-                data: zplContent,
-            }),
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ device, data: zplContent }),
         });
 
         if (!response.ok) {
