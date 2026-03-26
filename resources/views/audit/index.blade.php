@@ -102,7 +102,7 @@
                             @foreach($logs as $log)
                                 <tr class="hover:bg-gray-50 transition-colors">
                                     <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
-                                        {{ $log->created_at->format('d/m/Y H:i') }}
+                                        {{ $log->created_at->timezone('America/Argentina/Buenos_Aires')->format('d/m/Y H:i') }}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
                                         {{ $log->user_name ?? '—' }}
