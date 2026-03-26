@@ -34,7 +34,7 @@ class CheckSystemAccess
         }
 
         if ($hasLabOnly) {
-            return redirect()->route('lab.section.clinico');
+            return $next($request);
         }
 
         if ($hasOnlyPortalRoles) {
