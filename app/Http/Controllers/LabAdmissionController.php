@@ -213,6 +213,8 @@ class LabAdmissionController extends Controller
             $admission->update(['payment_status' => 'not_applicable']);
         }
 
+        $admission->logAudit('created', 'Creó la admisión Nº '.$admission->protocol_number.' para '.$admission->patient->full_name);
+
         return redirect()->route('lab.admissions.show', $admission)
             ->with('success', 'Admisión creada correctamente. Protocolo: '.$admission->protocol_number);
     }
@@ -297,6 +299,7 @@ class LabAdmissionController extends Controller
             'admissionTests.test.parentTests',
             'admissionTests.test.referenceValues.category',
             'creator',
+            'auditLogs',
         ]);
 
         // Tests disponibles para agregar al protocolo
@@ -344,6 +347,8 @@ class LabAdmissionController extends Controller
             'diagnosis' => $request->diagnosis,
             'observations' => $request->observations,
         ]);
+
+        $admission->logAudit('updated', 'Editó la admisión Nº '.$admission->protocol_number);
 
         return redirect()->route('lab.admissions.show', $admission)
             ->with('success', 'Admisión actualizada correctamente.');
@@ -664,6 +669,8 @@ class LabAdmissionController extends Controller
             }
         }
 
+        $admission->logAudit('results_loaded', 'Cargó resultados en la admisión Nº '.$admission->protocol_number);
+
         return redirect()->back()->with('success', 'Resultados guardados correctamente.');
     }
 
@@ -683,6 +690,8 @@ class LabAdmissionController extends Controller
             'validated_at' => now(),
         ]);
 
+        $admission->logAudit('validated', 'Validó práctica '.$admissionTest->test->name.' en admisión Nº '.$admission->protocol_number);
+
         return redirect()->back()->with('success', 'Práctica validada correctamente.');
     }
 
@@ -697,6 +706,8 @@ class LabAdmissionController extends Controller
             'validated_by' => null,
             'validated_at' => null,
         ]);
+
+        $admission->logAudit('unvalidated', 'Desvalidó práctica '.$admissionTest->test->name.' en admisión Nº '.$admission->protocol_number);
 
         return redirect()->back()->with('success', 'Validación removida.');
     }
@@ -718,6 +729,8 @@ class LabAdmissionController extends Controller
                 $count++;
             }
         }
+
+        $admission->logAudit('validated', "Validó {$count} prácticas en admisión Nº ".$admission->protocol_number);
 
         return redirect()->back()->with('success', "Se validaron {$count} prácticas.");
     }
@@ -788,6 +801,8 @@ class LabAdmissionController extends Controller
             'margin_right' => 15,
         ]);
 
+        $admission->logAudit('pdf_generated', 'Generó PDF del protocolo Nº '.$admission->protocol_number);
+
         return $pdf->download($this->generatePdfFilename($admission));
     }
 
@@ -822,6 +837,8 @@ class LabAdmissionController extends Controller
             'margin_right' => 15,
         ]);
 
+        $admission->logAudit('pdf_generated', 'Visualizó PDF del protocolo Nº '.$admission->protocol_number);
+
         return $pdf->stream($this->generatePdfFilename($admission));
     }
 
@@ -848,6 +865,8 @@ class LabAdmissionController extends Controller
                 (new AdmissionResultMail($admission, $validated['message'] ?? null))
                     ->from($fromEmail, $fromName)
             );
+
+        $admission->logAudit('email_sent', 'Envió resultados por email a '.$validated['email']);
 
         return back()->with('success', 'Informe enviado correctamente a '.$validated['email']);
     }

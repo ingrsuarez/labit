@@ -257,4 +257,10 @@
             };
         }
     </script>
+
+    @if(isset($patient) && $patient->auditLogs->count() > 0)
+    <div class="mt-6 px-4 md:px-6 pb-6">
+        <x-audit-history :logs="$patient->auditLogs" />
+    </div>
+    @endif
 </x-lab-layout>

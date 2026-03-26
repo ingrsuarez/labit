@@ -114,6 +114,8 @@ class SampleController extends Controller
             }
         }
 
+        $sample->logAudit('created', 'Creó el protocolo Nº '.$sample->protocol_number.' para '.$sample->customer->name);
+
         return redirect()->route('sample.show', $sample)
             ->with('success', 'Protocolo '.$sample->protocol_number.' creado correctamente.');
     }
@@ -132,6 +134,7 @@ class SampleController extends Controller
             'determinations.test.childTests',
             'creator',
             'validator',
+            'auditLogs',
         ]);
 
         return view('sample.show', compact('sample'));
@@ -172,6 +175,8 @@ class SampleController extends Controller
         ]);
 
         $sample->update($validated);
+
+        $sample->logAudit('updated', 'Editó el protocolo Nº '.$sample->protocol_number);
 
         return redirect()->route('sample.show', $sample)
             ->with('success', 'Protocolo actualizado correctamente.');
@@ -383,6 +388,8 @@ class SampleController extends Controller
             $sample->update(['status' => 'in_progress']);
         }
 
+        $sample->logAudit('results_loaded', 'Cargó resultados del protocolo Nº '.$sample->protocol_number);
+
         if ($request->ajax()) {
             return response()->json(['success' => true, 'message' => 'Resultados guardados correctamente.']);
         }
@@ -443,6 +450,8 @@ class SampleController extends Controller
                 'validated_at' => now(),
                 'validator_notes' => $validated['validator_notes'],
             ]);
+
+            $sample->logAudit('validated', 'Validó resultados del protocolo Nº '.$sample->protocol_number);
 
             return redirect()->route('sample.show', $sample)
                 ->with('success', 'Protocolo validado correctamente. Ahora est? disponible para descarga.');
@@ -712,6 +721,8 @@ class SampleController extends Controller
             'validator_notes' => null,
         ]);
 
+        $sample->logAudit('unvalidated', 'Revirtió validación del protocolo Nº '.$sample->protocol_number);
+
         return back()->with('success', 'Validaci?n revertida. El protocolo puede ser editado nuevamente.');
     }
 
@@ -747,6 +758,8 @@ class SampleController extends Controller
             'margin_left' => 15,
             'margin_right' => 15,
         ]);
+
+        $sample->logAudit('pdf_generated', 'Generó PDF del protocolo Nº '.$sample->protocol_number);
 
         return $pdf->download($this->generatePdfFilename($sample));
     }
@@ -784,6 +797,8 @@ class SampleController extends Controller
             'margin_right' => 15,
         ]);
 
+        $sample->logAudit('pdf_generated', 'Visualizó PDF del protocolo Nº '.$sample->protocol_number);
+
         return $pdf->stream($this->generatePdfFilename($sample));
     }
 
@@ -811,6 +826,8 @@ class SampleController extends Controller
                 (new SampleResultMail($sample, $validated['message'] ?? null))
                     ->from($fromEmail, $fromName)
             );
+
+        $sample->logAudit('email_sent', 'Envió resultados por email a '.$validated['email']);
 
         return back()->with('success', 'Protocolo enviado correctamente a '.$validated['email']);
     }
