@@ -55,6 +55,7 @@
 | v2.4.1 | Hotfix redirect loop lab + condición Mi Portal | 2026-03-26 | Fix redirect loop CheckSystemAccess para lab roles, Mi Portal solo con employee |
 | v1.16.0 | Planillas de trabajo diario del laboratorio | 2026-03-26 | Worksheets con CRUD, filtros, PDF landscape |
 | v2.5.0 | Auditoría infraestructura + módulo clínico | 2026-03-26 | audit_logs polimórfica, trait Auditable, auth/patient/admission/sample |
+| v2.7.0 | Auditoría vista centralizada | 2026-03-26 | AuditController, tabla filtrable, badges, link sidebar |
 
 ---
 
@@ -69,7 +70,6 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v2.7.0 | Auditoría vista centralizada | — | ninguna | `agent-bootstrap/prompts/pendientes/v2.7.0-auditoria-vista-centralizada.md` |
 
 ---
 
@@ -86,10 +86,10 @@
 ## Progreso general
 
 ```
-Completadas:  38 versiones (v1.0.0 → v2.5.0)
-Planificadas: 1
+Completadas:  39 versiones (v1.0.0 → v2.7.0)
+Planificadas: 0
 En proceso:   0
-Próxima:      v2.7.0 — Auditoría vista centralizada
+Próxima:      — (cola vacía, planificar nuevas versiones)
 ```
 
 ---

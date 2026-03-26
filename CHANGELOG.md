@@ -5,6 +5,26 @@
 
 ---
 
+## [v2.7.0] — 2026-03-26 — Vista centralizada de auditoría
+
+### Agregado
+- `AuditController` con método `index` y filtros: usuario, acción, módulo, rango de fechas, búsqueda por texto en descripción
+- Ruta `GET /audit` protegida con middleware `permission:auditoria.section`
+- Permiso `auditoria.section` creado y asignado exclusivamente al rol `admin`
+- Vista `audit/index.blade.php` con tabla paginada (50/página), barra de filtros, badges de color por acción, links a registros auditados
+- Constantes `MODULE_NAMES` y `ACTION_LABELS` en modelo `AuditLog` para mapeo de nombres legibles y colores
+- Accessors `module_name`, `action_label`, `action_color`, `auditable_url` en `AuditLog`
+- Link "Auditoría" en sidebar admin con ícono, protegido por `@can('auditoria.section')`
+- Estado vacío con mensaje contextual (sin datos vs sin resultados de filtros)
+- Paginación con contador "Mostrando X–Y de Z registros" y persistencia de query params
+
+### Notas
+- Los logs de auth (login/logout/failed) aparecen sin link a registro (no tienen `auditable_type`)
+- Cuando se agreguen nuevos módulos auditados, aparecen automáticamente en los filtros
+- El mapeo `auditable_type` → URL verifica existencia del registro antes de generar el link
+
+---
+
 ## [v2.5.0] — 2026-03-26 — Auditoría: infraestructura + módulo clínico
 
 ### Agregado
