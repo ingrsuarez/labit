@@ -655,7 +655,7 @@ class LabAdmissionController extends Controller
 
         foreach ($request->results as $data) {
             $admissionTest = AdmissionTest::find($data['id']);
-            if ($admissionTest && $admissionTest->admission_id === $admission->id) {
+            if ($admissionTest && $admissionTest->admission_id === $admission->id && ! $admissionTest->is_validated) {
                 $admissionTest->update([
                     'result' => $data['result'] ?? null,
                     'unit' => $data['unit'] ?? null,
@@ -769,7 +769,6 @@ class LabAdmissionController extends Controller
         $admission->load([
             'patient',
             'insuranceRelation',
-            'admissionTests' => fn ($q) => $q->where('is_validated', true),
             'admissionTests.test.parentTests',
             'admissionTests.test.childTests',
             'admissionTests.test.referenceValues.category',
@@ -777,6 +776,7 @@ class LabAdmissionController extends Controller
         ]);
 
         $validatorId = $admission->admissionTests
+            ->where('is_validated', true)
             ->pluck('validated_by')
             ->countBy()->sortDesc()->keys()->first();
         $validator = $validatorId ? \App\Models\User::find($validatorId) : null;
@@ -803,7 +803,6 @@ class LabAdmissionController extends Controller
         $admission->load([
             'patient',
             'insuranceRelation',
-            'admissionTests' => fn ($q) => $q->where('is_validated', true),
             'admissionTests.test.parentTests',
             'admissionTests.test.childTests',
             'admissionTests.test.referenceValues.category',
@@ -811,6 +810,7 @@ class LabAdmissionController extends Controller
         ]);
 
         $validatorId = $admission->admissionTests
+            ->where('is_validated', true)
             ->pluck('validated_by')
             ->countBy()->sortDesc()->keys()->first();
         $validator = $validatorId ? \App\Models\User::find($validatorId) : null;
