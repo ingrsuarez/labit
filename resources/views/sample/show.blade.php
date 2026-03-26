@@ -555,6 +555,12 @@
         </template>
     </div>
 
+    @if($sample->auditLogs->count() > 0)
+    <div class="mt-6">
+        <x-audit-history :logs="$sample->auditLogs" />
+    </div>
+    @endif
+
     <style>
         [x-cloak] { display: none !important; }
     </style>

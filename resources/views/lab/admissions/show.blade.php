@@ -972,5 +972,11 @@
             </div>
         </div>
     </div>
+
+    @if($admission->auditLogs->count() > 0)
+    <div class="mt-6">
+        <x-audit-history :logs="$admission->auditLogs" />
+    </div>
+    @endif
 </x-lab-layout>
 
