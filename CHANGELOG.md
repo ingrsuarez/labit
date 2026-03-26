@@ -5,6 +5,27 @@
 
 ---
 
+## [v1.16.0] — 2026-03-26 — Planillas de trabajo diario del laboratorio
+
+### Agregado
+- Migración: tablas `worksheets` (name, type, created_by) y `worksheet_test` (sort_order) para plantillas de planillas de trabajo
+- Modelo `Worksheet` con relación many-to-many a `Test` (via `worksheet_test`, con `sort_order`)
+- `WorksheetController` con CRUD completo: index, create, store, edit, update, destroy
+- Buscador AJAX de tests con filtrado por tipo: clínico (todos) y muestras (`categories` JSON `aguas_alimentos`)
+- Vista `show` con filtros: fecha desde/hasta, rango de protocolo, checkboxes con/sin resultados
+- Vista previa tabular en pantalla: N° protocolo, paciente/cliente, columnas de tests con resultados
+- Generación de PDF landscape con mPDF: tabla con bordes para escritura manual, encabezados de tests como códigos/siglas
+- Consulta adaptativa por tipo: `Admission`+`AdmissionTest` para clínico, `Sample`+`SampleDetermination` para muestras
+- Link "Planillas de Trabajo" en sidebar del laboratorio con ícono clipboard
+
+### Notas
+- Las planillas son templates reutilizables: se crean una vez y se usan cambiando el filtro de fecha
+- Cada planilla pertenece a un solo módulo (clínico O muestras)
+- El `sort_order` de los tests determina el orden de las columnas en el PDF
+- No se implementa carga de resultados desde la planilla — es solo visualización/impresión
+
+---
+
 ## [v2.4.1] — 2026-03-26 — Hotfix redirect loop lab + condición Mi Portal
 
 ### Corregido
