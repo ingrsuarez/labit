@@ -44,6 +44,7 @@ class PatientController extends Controller
 
         try {
             $patient->save();
+            $patient->logAudit('created', 'Creó el paciente '.$patient->full_name);
 
             return redirect()->back()->with('success', 'Paciente creado correctamente.');
         } catch (\Exception $e) {
@@ -71,6 +72,7 @@ class PatientController extends Controller
             ->orderBy('name')
             ->get();
         $patient = Patient::where('patientId', $request->current_patient)->first();
+        $patient->load('auditLogs');
 
         return view('patient.edit', compact('insurances', 'patient'));
     }
@@ -94,6 +96,7 @@ class PatientController extends Controller
 
         try {
             $patient->save();
+            $patient->logAudit('updated', 'Editó el paciente '.$patient->full_name);
 
             return redirect()->route('patient.show');
         } catch (\Exception $e) {

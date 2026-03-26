@@ -235,60 +235,88 @@
                     </div>
 
                     @php
-                        // Ordenar determinaciones: padres primero, luego hijos
-                        // Soporta hijos con múltiples padres (tabla pivote test_parents)
-                        $orderedDeterminations = collect();
-                        $processedAsParent = [];
-                        $processedAsChild = [];
-                        
-                        // Función para verificar si un test es padre de otro
-                        $isParentOf = function($parentDet, $childDet) {
-                            $childTest = $childDet->test;
-                            $parentTestId = $parentDet->test_id;
-                            
-                            // Verificar relación legacy
-                            if ($childTest->parent == $parentTestId) return true;
-                            
-                            // Verificar relación tabla pivote
-                            if ($childTest->parentTests && $childTest->parentTests->contains('id', $parentTestId)) return true;
-                            
-                            return false;
-                        };
-                        
-                        // Identificar padres (tests que tienen hijos en esta muestra)
-                        $parentTestIds = [];
+                        $allSampleTestIds = $sample->determinations->pluck('test_id')->toArray();
+
+                        $itemsByTestId = [];
                         foreach ($sample->determinations as $det) {
-                            $allChildren = $det->test->getAllChildren();
-                            $childIdsInSample = $allChildren->pluck('id')->intersect($sample->determinations->pluck('test_id'));
-                            if ($childIdsInSample->count() > 0) {
-                                $parentTestIds[] = $det->test_id;
+                            $itemsByTestId[$det->test_id] = $det;
+                        }
+
+                        $parentMap = [];
+                        $childOf = [];
+                        $isSubParentMap = [];
+
+                        foreach ($sample->determinations as $det) {
+                            if (!$det->test) continue;
+                            $parentIds = $det->test->parentTests->pluck('id')->toArray();
+                            if ($det->test->parent) {
+                                $parentIds[] = $det->test->parent;
+                                $parentIds = array_unique($parentIds);
+                            }
+                            $parentsInProtocol = array_intersect($parentIds, $allSampleTestIds);
+
+                            if (count($parentsInProtocol) > 0) {
+                                $parentId = reset($parentsInProtocol);
+                                $childOf[$det->test_id] = $parentId;
+                                if (!isset($parentMap[$parentId])) {
+                                    $parentMap[$parentId] = [];
+                                }
+                                $parentMap[$parentId][] = $det->test_id;
                             }
                         }
-                        
-                        // Procesar padres y sus hijos
+
+                        foreach ($parentMap as $testId => $children) {
+                            if (isset($childOf[$testId])) {
+                                $isSubParentMap[$testId] = true;
+                            }
+                        }
+
+                        foreach ($parentMap as $parentId => &$childIds) {
+                            usort($childIds, function ($a, $b) use ($itemsByTestId) {
+                                $sortA = $itemsByTestId[$a]->test->sort_order ?? 0;
+                                $sortB = $itemsByTestId[$b]->test->sort_order ?? 0;
+                                return $sortA <=> $sortB;
+                            });
+                        }
+                        unset($childIds);
+
+                        $roots = [];
                         foreach ($sample->determinations as $det) {
-                            if (in_array($det->id, $processedAsParent)) continue;
-                            
-                            if (in_array($det->test_id, $parentTestIds)) {
-                                $orderedDeterminations->push(['det' => $det, 'isChild' => false, 'isParent' => true]);
-                                $processedAsParent[] = $det->id;
-                                
-                                // Agregar hijos de este padre
-                                foreach ($sample->determinations as $child) {
-                                    if ($isParentOf($det, $child) && !in_array($child->id, $processedAsParent)) {
-                                        $orderedDeterminations->push(['det' => $child, 'isChild' => true, 'isParent' => false]);
-                                        $processedAsChild[] = $child->id;
-                                    }
+                            if (!isset($childOf[$det->test_id]) && !in_array($det->test_id, $roots)) {
+                                $roots[] = $det->test_id;
+                            }
+                        }
+
+                        usort($roots, function ($a, $b) use ($itemsByTestId) {
+                            $sortA = $itemsByTestId[$a]->test->sort_order ?? 0;
+                            $sortB = $itemsByTestId[$b]->test->sort_order ?? 0;
+                            return $sortA <=> $sortB;
+                        });
+
+                        $orderedDeterminations = collect();
+                        $addWithChildren = function ($testId, $level) use (
+                            &$addWithChildren, $parentMap, $isSubParentMap, $itemsByTestId, &$orderedDeterminations
+                        ) {
+                            if (!isset($itemsByTestId[$testId])) return;
+                            $isParent = isset($parentMap[$testId]);
+
+                            $orderedDeterminations->push([
+                                'det' => $itemsByTestId[$testId],
+                                'level' => $level,
+                                'isParent' => $isParent,
+                                'isSubParent' => isset($isSubParentMap[$testId]),
+                                'isChild' => $level > 0,
+                            ]);
+
+                            if ($isParent) {
+                                foreach ($parentMap[$testId] as $childId) {
+                                    $addWithChildren($childId, $level + 1);
                                 }
                             }
-                        }
-                        
-                        // Agregar determinaciones huérfanas (sin padre en esta muestra)
-                        foreach ($sample->determinations as $det) {
-                            if (!in_array($det->id, $processedAsParent) && !in_array($det->id, $processedAsChild)) {
-                                $hasParents = $det->test->parent || ($det->test->parentTests && $det->test->parentTests->count() > 0);
-                                $orderedDeterminations->push(['det' => $det, 'isChild' => $hasParents, 'isParent' => false]);
-                            }
+                        };
+
+                        foreach ($roots as $rootId) {
+                            $addWithChildren($rootId, 0);
                         }
                     @endphp
 
@@ -317,10 +345,13 @@
                                             $det = $item['det'];
                                             $isChild = $item['isChild'];
                                             $isParent = $item['isParent'];
+                                            $isSubParent = $item['isSubParent'] ?? false;
+                                            $level = $item['level'] ?? 0;
+                                            $paddingClass = $level === 0 ? '' : ($level === 1 ? 'pl-8' : 'pl-14');
                                         @endphp
-                                        <tr class="hover:bg-gray-50 {{ $isChild ? 'bg-gray-50' : '' }} {{ $isParent ? 'bg-teal-50' : '' }}" x-data="{ editing: false }">
-                                            <td class="px-4 py-3 text-sm text-gray-900 {{ $isChild ? 'pl-8' : '' }}">
-                                                @if($isChild)
+                                        <tr class="hover:bg-gray-50 {{ $isChild && !$isSubParent ? 'bg-gray-50' : '' }} {{ $isParent ? 'bg-teal-50' : '' }}" x-data="{ editing: false }">
+                                            <td class="px-4 py-3 text-sm text-gray-900 {{ $paddingClass }}">
+                                                @if($isChild && !$isSubParent)
                                                     <span class="text-teal-400 mr-1">↳</span>
                                                 @endif
                                                 {{ $det->test->code ?? 'N/A' }}
@@ -554,6 +585,12 @@
             </div>
         </template>
     </div>
+
+    @if($sample->auditLogs->count() > 0)
+    <div class="mt-6">
+        <x-audit-history :logs="$sample->auditLogs" />
+    </div>
+    @endif
 
     <style>
         [x-cloak] { display: none !important; }
