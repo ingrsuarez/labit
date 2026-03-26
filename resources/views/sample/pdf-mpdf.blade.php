@@ -81,6 +81,13 @@
             color: #006070;
         }
 
+        .det-subparent td {
+            font-weight: bold;
+            font-size: 9.5pt;
+            padding: 5px 4px 2px 4px;
+            color: #222;
+        }
+
         .det-method td {
             font-size: 8pt;
             color: #666;
@@ -466,7 +473,7 @@
                     </tr>
                 @endif
             @elseif($isSub)
-                <tr class="det-parent">
+                <tr class="det-subparent">
                     <td colspan="4" style="padding-left: {{ $indent }}px;">
                         {{ strtoupper($det->test->name ?? 'N/A') }}
                     </td>
