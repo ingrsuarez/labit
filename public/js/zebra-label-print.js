@@ -5,39 +5,46 @@
  * https://www.zebra.com/us/en/support-downloads/printer-software/browser-print.html
  */
 const ZebraLabelPrint = {
-    API_URL: 'http://127.0.0.1:9100',
+    API_URL: window.location.protocol === 'https:'
+        ? 'https://localhost:9101'
+        : 'http://localhost:9100',
     selectedPrinter: null,
     printers: [],
 
     async getAvailablePrinters() {
+        const response = await fetch(`${this.API_URL}/available?type=printer`);
+
+        if (!response.ok) throw new Error('No se pudo conectar con Zebra Browser Print');
+
+        const text = await response.text();
+        let printers;
+
         try {
-            const response = await fetch(`${this.API_URL}/available?type=printer`, {
-                method: 'GET',
-            });
-
-            if (!response.ok) throw new Error('No se pudo conectar con Zebra Browser Print');
-
-            const text = await response.text();
-            this.printers = this._parsePrinters(text);
-
-            const saved = localStorage.getItem('zebra_selected_printer');
-            if (saved && this.printers.find(p => p.name === saved)) {
-                this.selectedPrinter = this.printers.find(p => p.name === saved);
-            } else if (this.printers.length > 0) {
-                this.selectedPrinter = this.printers[0];
-            }
-
-            return this.printers;
-        } catch (error) {
-            console.error('Zebra Browser Print no disponible:', error);
-            throw new Error(
-                'No se detectó Zebra Browser Print. ' +
-                'Asegúrese de que esté instalado y ejecutándose.'
-            );
+            const parsed = JSON.parse(text);
+            printers = Array.isArray(parsed) ? parsed : [parsed];
+            printers = printers.map(p => ({
+                name: p.name || 'Impresora Zebra',
+                uid: p.uid || '',
+                connection: p.connection || 'unknown',
+                deviceType: p.deviceType || 'printer',
+            }));
+        } catch {
+            printers = this._parsePrintersFromText(text);
         }
+
+        this.printers = printers;
+
+        const saved = localStorage.getItem('zebra_selected_printer');
+        if (saved && this.printers.find(p => p.name === saved)) {
+            this.selectedPrinter = this.printers.find(p => p.name === saved);
+        } else if (this.printers.length > 0) {
+            this.selectedPrinter = this.printers[0];
+        }
+
+        return this.printers;
     },
 
-    _parsePrinters(responseText) {
+    _parsePrintersFromText(responseText) {
         const printers = [];
         if (!responseText || responseText.trim() === '') return printers;
 
@@ -73,13 +80,9 @@ const ZebraLabelPrint = {
             '^CI28',
             '^PW480',
             '^LL240',
-            // Code128 barcode
             '^FO30,15^BY2,2,70^BCN,70,Y,N,N^FD' + protocol + '^FS',
-            // Customer name
             '^FO30,115^A0N,24,24^FD' + customerName + '^FS',
-            // Sample type + Materials
             '^FO30,145^A0N,20,20^FD' + sampleType + ' | MAT: ' + materials + '^FS',
-            // Date
             '^FO30,175^A0N,20,20^FD' + entryDate + '^FS',
             '^PQ1',
             '^XZ',
@@ -96,27 +99,26 @@ const ZebraLabelPrint = {
             throw new Error('No hay impresora seleccionada');
         }
 
-        try {
-            const response = await fetch(`${this.API_URL}/write`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify({
-                    device: {
-                        name: this.selectedPrinter.name,
-                        uid: this.selectedPrinter.uid,
-                        connection: this.selectedPrinter.connection,
-                        deviceType: this.selectedPrinter.deviceType,
-                    },
-                    data: zplContent,
-                }),
-            });
+        const response = await fetch(`${this.API_URL}/write`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                device: {
+                    name: this.selectedPrinter.name,
+                    uid: this.selectedPrinter.uid,
+                    connection: this.selectedPrinter.connection,
+                    deviceType: this.selectedPrinter.deviceType,
+                },
+                data: zplContent,
+            }),
+        });
 
-            if (!response.ok) throw new Error('Error al enviar a la impresora');
-            return true;
-        } catch (error) {
-            console.error('Error imprimiendo:', error);
-            throw new Error('No se pudo enviar la etiqueta a la impresora: ' + error.message);
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => 'Error desconocido');
+            throw new Error('Error al enviar a la impresora: ' + errorText);
         }
+
+        return true;
     },
 
     async printSampleLabel(labelDataUrl, copies = 1) {
@@ -174,9 +176,17 @@ function zebraPrintModal() {
                 if (ZebraLabelPrint.selectedPrinter) {
                     this.selectedPrinter = ZebraLabelPrint.selectedPrinter.name;
                 }
+                if (this.printers.length === 1) {
+                    this.selectedPrinter = this.printers[0].name;
+                    this.onPrinterChange();
+                }
             } catch (e) {
                 this.zebraAvailable = false;
-                this.error = e.message;
+                if (e instanceof TypeError && e.message.includes('Failed to fetch')) {
+                    this.error = 'Zebra Browser Print no está corriendo. Iniciá la aplicación desde la bandeja del sistema.';
+                } else {
+                    this.error = e.message;
+                }
             } finally {
                 this.loading = false;
             }
@@ -208,7 +218,11 @@ function zebraPrintModal() {
                 this.success = true;
                 setTimeout(() => { this.success = false; }, 3000);
             } catch (e) {
-                this.error = e.message;
+                if (e.message.includes('Error al enviar')) {
+                    this.error = 'No se pudo enviar a la impresora. Verificá que esté encendida y conectada.';
+                } else {
+                    this.error = e.message;
+                }
             } finally {
                 this.printing = false;
             }
