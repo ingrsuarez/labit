@@ -52,6 +52,7 @@
 | v1.14.1 | Otros valores de referencia en determinaciones | 2026-03-25 | Campo other_reference para valores no numéricos, fallback en PDFs |
 | v1.15.0 | Sub-padres y orden fijo de determinaciones | 2026-03-25 | Jerarquía 3 niveles, sort_order, PDFs con indentación progresiva |
 | v2.4.0 | Control de acceso por rol y redirección inteligente | 2026-03-25 | Permisos de sección, sidebar protegido, redirección por rol |
+| v2.4.1 | Hotfix redirect loop lab + condición Mi Portal | 2026-03-26 | Fix redirect loop CheckSystemAccess para lab roles, Mi Portal solo con employee |
 
 ---
 
@@ -84,7 +85,7 @@ _Sin versiones planificadas._
 ## Progreso general
 
 ```
-Completadas:  35 versiones (v1.0.0 → v2.4.0)
+Completadas:  36 versiones (v1.0.0 → v2.4.1)
 Planificadas: 0
 En proceso:   0
 Próxima:      — (cola vacía)

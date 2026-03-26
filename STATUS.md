@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.4.0 |
-| **Última completada** | v2.4.0 — Control de acceso por rol y redirección inteligente |
+| **Versión actual** | v2.4.1 |
+| **Última completada** | v2.4.1 — Hotfix redirect loop lab + condición Mi Portal |
 | **En proceso** | — |
 | **Próxima** | — (cola vacía) |
 | **Pendientes en cola** | 0 |
-| **Completadas** | 34 |
+| **Completadas** | 35 |
 
 ---
 
@@ -28,10 +28,11 @@ _Sin prompts pendientes._
 
 _Sin prompts en ejecución._
 
-### Completados (34)
+### Completados (35)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v2.4.1 | Hotfix redirect loop lab + condición Mi Portal | 2026-03-26 | v2.4.1 |
 | v2.4.0 | Control de acceso por rol y redirección inteligente | 2026-03-25 | v2.4.0 |
 | v1.15.0 | Sub-padres y orden fijo de determinaciones | 2026-03-25 | v1.15.0 |
 | v1.14.1 | Otros valores de referencia en determinaciones | 2026-03-25 | v1.14.1 |
