@@ -199,18 +199,25 @@
 
     @php
         $validatedTests = $admission->admissionTests->where('is_validated', true);
+        $allTests = $admission->admissionTests;
 
         $itemsByTestId = [];
         foreach ($validatedTests as $at) {
             $itemsByTestId[$at->test_id] = $at;
         }
 
+        $allItemsByTestId = [];
+        foreach ($allTests as $at) {
+            $allItemsByTestId[$at->test_id] = $at;
+        }
+
         $testIds = $validatedTests->pluck('test_id')->toArray();
+        $allTestIds = $allTests->pluck('test_id')->toArray();
         $parentMap = [];
         $childOf = [];
         $isSubParentMap = [];
 
-        foreach ($validatedTests as $at) {
+        foreach ($allTests as $at) {
             $test = $at->test;
             if (!$test) continue;
 
@@ -222,6 +229,9 @@
 
             if (!empty($children)) {
                 $parentMap[$test->id] = $children;
+                if (!isset($itemsByTestId[$test->id])) {
+                    $itemsByTestId[$test->id] = $at;
+                }
                 foreach ($children as $childId) {
                     $childOf[$childId] = $test->id;
                 }
