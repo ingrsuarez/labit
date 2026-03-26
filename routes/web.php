@@ -177,6 +177,17 @@ Route::middleware([
         Route::get('lab/reports/monthly', [App\Http\Controllers\LabReportController::class, 'monthly'])->name('lab.reports.monthly');
         Route::get('lab/reports/monthly/export', [App\Http\Controllers\LabReportController::class, 'exportExcel'])->name('lab.reports.exportExcel');
 
+        // WORKSHEETS (Planillas de Trabajo)
+        Route::get('lab/worksheets', [App\Http\Controllers\WorksheetController::class, 'index'])->name('worksheets.index');
+        Route::get('lab/worksheets/create', [App\Http\Controllers\WorksheetController::class, 'create'])->name('worksheets.create');
+        Route::post('lab/worksheets', [App\Http\Controllers\WorksheetController::class, 'store'])->name('worksheets.store');
+        Route::get('lab/worksheets/search-tests', [App\Http\Controllers\WorksheetController::class, 'searchTests'])->name('worksheets.searchTests');
+        Route::get('lab/worksheets/{worksheet}', [App\Http\Controllers\WorksheetController::class, 'show'])->name('worksheets.show');
+        Route::get('lab/worksheets/{worksheet}/edit', [App\Http\Controllers\WorksheetController::class, 'edit'])->name('worksheets.edit');
+        Route::put('lab/worksheets/{worksheet}', [App\Http\Controllers\WorksheetController::class, 'update'])->name('worksheets.update');
+        Route::delete('lab/worksheets/{worksheet}', [App\Http\Controllers\WorksheetController::class, 'destroy'])->name('worksheets.destroy');
+        Route::get('lab/worksheets/{worksheet}/pdf', [App\Http\Controllers\WorksheetController::class, 'generatePdf'])->name('worksheets.pdf');
+
     }); // fin lab.section
 
     // ADMISSION
