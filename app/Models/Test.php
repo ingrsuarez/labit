@@ -141,9 +141,17 @@ class Test extends Model
             ? $this->children()->with($eagerLoad)->get()
             : $this->children()->get();
 
-        $allDescendants = $allDescendants->merge(
-            $legacyChildren->filter(fn ($c) => ! $allDescendants->contains('id', $c->id))
-        );
+        foreach ($legacyChildren as $legacyChild) {
+            if (! $allDescendants->contains('id', $legacyChild->id)) {
+                $allDescendants->push($legacyChild);
+                $grandchildren = $legacyChild->getAllChildren($withRelations);
+                foreach ($grandchildren as $gc) {
+                    if (! $allDescendants->contains('id', $gc->id)) {
+                        $allDescendants->push($gc);
+                    }
+                }
+            }
+        }
 
         return $allDescendants->unique('id');
     }

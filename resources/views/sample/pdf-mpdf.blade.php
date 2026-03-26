@@ -284,6 +284,15 @@
             }
         }
 
+        foreach ($parentMap as $parentId => &$pChildren) {
+            usort($pChildren, function ($a, $b) use ($itemsByTestId) {
+                $sortA = $itemsByTestId[$a]->test->sort_order ?? 0;
+                $sortB = $itemsByTestId[$b]->test->sort_order ?? 0;
+                return $sortA <=> $sortB;
+            });
+        }
+        unset($pChildren);
+
         $roots = [];
         foreach ($validatedDeterminations as $det) {
             if (!isset($childOf[$det->test_id])) {
