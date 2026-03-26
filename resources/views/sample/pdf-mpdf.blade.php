@@ -252,18 +252,25 @@
 
     @php
         $validatedDeterminations = $sample->determinations->where('is_validated', true);
+        $allDeterminations = $sample->determinations;
 
         $itemsByTestId = [];
         foreach ($validatedDeterminations as $det) {
             $itemsByTestId[$det->test_id] = $det;
         }
 
+        $allItemsByTestId = [];
+        foreach ($allDeterminations as $det) {
+            $allItemsByTestId[$det->test_id] = $det;
+        }
+
         $testIds = $validatedDeterminations->pluck('test_id')->toArray();
+        $allTestIds = $allDeterminations->pluck('test_id')->toArray();
         $parentMap = [];
         $childOf = [];
         $isSubParentMap = [];
 
-        foreach ($validatedDeterminations as $det) {
+        foreach ($allDeterminations as $det) {
             $test = $det->test;
             if (!$test) continue;
 
@@ -275,6 +282,9 @@
 
             if (!empty($children)) {
                 $parentMap[$test->id] = $children;
+                if (!isset($itemsByTestId[$test->id])) {
+                    $itemsByTestId[$test->id] = $det;
+                }
                 foreach ($children as $childId) {
                     $childOf[$childId] = $test->id;
                 }
