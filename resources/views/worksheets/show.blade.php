@@ -108,13 +108,13 @@
         <table class="min-w-full divide-y divide-gray-200 text-sm">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">N° Protocolo</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">
+                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase" style="width: 100px;">N° Prot.</th>
+                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase" style="width: 140px;">
                         {{ $worksheet->type === 'clinico' ? 'Paciente' : 'Cliente' }}
                     </th>
                     @foreach($preview['tests'] as $test)
-                    <th class="px-2 py-2 text-center text-xs font-medium text-teal-700 uppercase whitespace-nowrap" title="{{ $test->name }}">
-                        {{ $test->code ?: mb_substr($test->name, 0, 5) }}
+                    <th class="px-2 py-2 text-center text-xs font-medium text-teal-700" style="word-wrap: break-word; overflow-wrap: break-word; max-width: 120px;" title="{{ $test->code }}">
+                        {{ $test->name }}
                     </th>
                     @endforeach
                 </tr>
@@ -122,8 +122,8 @@
             <tbody class="divide-y divide-gray-200">
                 @foreach($preview['rows'] as $row)
                 <tr class="hover:bg-gray-50">
-                    <td class="px-3 py-2 font-medium text-gray-900 whitespace-nowrap">{{ $row['protocol'] }}</td>
-                    <td class="px-3 py-2 text-gray-700 whitespace-nowrap">{{ $row['name'] }}</td>
+                    <td class="px-2 py-2 font-medium text-gray-900 whitespace-nowrap" style="width: 100px;">{{ $row['protocol'] }}</td>
+                    <td class="px-2 py-2 text-gray-700" style="width: 140px; word-wrap: break-word; overflow-wrap: break-word;">{{ $row['name'] }}</td>
                     @foreach($preview['tests'] as $test)
                     <td class="px-2 py-2 text-center {{ $row['results'][$test->id] ? 'text-gray-900' : 'text-gray-300' }}">
                         {{ $row['results'][$test->id] ?: '—' }}

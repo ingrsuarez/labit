@@ -45,12 +45,26 @@
             background-color: #e5e7eb;
             color: #333;
         }
-        td.protocol-col, td.name-col {
-            text-align: left;
-            white-space: nowrap;
+        th.protocol-col {
+            width: 80px;
+        }
+        th.name-col {
+            width: 120px;
+        }
+        th.test-col {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            font-size: 7pt;
         }
         td.protocol-col {
+            text-align: left;
+            white-space: nowrap;
             font-weight: bold;
+        }
+        td.name-col {
+            text-align: left;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
         td.empty-result {
             color: #ccc;
@@ -94,7 +108,7 @@
                 <th class="protocol-col">N° Prot.</th>
                 <th class="name-col">{{ $worksheet->type === 'clinico' ? 'Paciente' : 'Cliente' }}</th>
                 @foreach($tests as $test)
-                <th title="{{ $test->name }}">{{ $test->code ?: mb_substr($test->name, 0, 5) }}</th>
+                <th class="test-col">{{ $test->name }}</th>
                 @endforeach
             </tr>
         </thead>
