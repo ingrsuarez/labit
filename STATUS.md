@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-25
+> Última actualización: 2026-03-26
 
 ---
 
@@ -9,29 +9,33 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.4.1 |
-| **Última completada** | v2.4.1 — Hotfix redirect loop lab + condición Mi Portal |
+| **Versión actual** | v1.16.0 |
+| **Última completada** | v1.16.0 — Planillas de trabajo diario del laboratorio |
 | **En proceso** | — |
-| **Próxima** | — (cola vacía) |
-| **Pendientes en cola** | 0 |
-| **Completadas** | 35 |
+| **Próxima** | v2.5.0 — Auditoría infra clínico |
+| **Pendientes en cola** | 2 |
+| **Completadas** | 36 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (0)
+### Pendientes (2)
 
-_Sin prompts pendientes._
+| Versión | Nombre | Dependencias |
+|---|---|---|
+| v2.5.0 | Auditoría infra clínico | — |
+| v2.7.0 | Auditoría vista centralizada | — |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (35)
+### Completados (36)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.16.0 | Planillas de trabajo diario del laboratorio | 2026-03-26 | v1.16.0 |
 | v2.4.1 | Hotfix redirect loop lab + condición Mi Portal | 2026-03-26 | v2.4.1 |
 | v2.4.0 | Control de acceso por rol y redirección inteligente | 2026-03-25 | v2.4.0 |
 | v1.15.0 | Sub-padres y orden fijo de determinaciones | 2026-03-25 | v1.15.0 |
@@ -40,6 +44,7 @@ _Sin prompts en ejecución._
 | v1.12.0 | PDF protocolos lab clínico + envío email | 2026-03-25 | v1.12.0 |
 | v1.11.1 | Configuración de correos del laboratorio | 2026-03-25 | v1.11.1 |
 | v1.13.0 | Nomenclador en tiempo real (sin duplicación) | 2026-03-25 | v1.13.0 |
+| v1.13.1 | Fix searchTests usa nomenclador base | 2026-03-25 | v1.13.1 |
 | v1.11.2 | Buscador en dropdown de obra social | 2026-03-24 | v1.11.2 |
 | v1.11.0 | Importación de obras sociales desde Excel | 2026-03-24 | v1.11.0 |
 | v1.10.0 | Importación de nomencladores desde Excel | 2026-03-24 | v1.10.0 |
@@ -85,7 +90,7 @@ v1.0.0 (completada)
 │   │   └── v1.6.0 — Formato tabular en PDFs de informes (completada)
 │   │       └── v1.6.1 — Filtrar nomencladores dropdowns (completada)
 │   │           └── v1.7.0 — Cobro particulares y deuda (completada)
-    │   │               └── v1.8.0 — Búsqueda activa protocolos (completada)
+│   │               └── v1.8.0 — Búsqueda activa protocolos (completada)
 │   └── v2.0.0 — Infraestructura multi-empresa (completada)
 │       ├── v2.1.0 — Ventas y cobros multi-empresa (completada)
 │       │   └── v2.1.2 — Fix Aplicar a todos ref values (completada)
@@ -96,6 +101,7 @@ v1.0.0 (completada)
 ├── v1.4.1 — Fix guardado de resultados de protocolo (completada)
 │   └── v1.5.1 — Roles y permisos laboratorio clínico (completada)
 │       └── v1.5.2 — Roles y permisos muestras (completada)
+├── v1.16.0 — Planillas de trabajo diario del laboratorio (completada)
 ```
 
 ---
@@ -135,10 +141,11 @@ Ejecutar el siguiente prompt de la cola:
 Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
 ```
 
-Próximo en cola: **— (cola vacía)**
+Próximo en cola: **v2.5.0 — Auditoría infra clínico**
 
 Cola priorizada:
-_Sin prompts en cola._
+1. v2.5.0 — Auditoría infra clínico
+2. v2.7.0 — Auditoría vista centralizada
 
 ---
 

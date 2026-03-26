@@ -53,6 +53,7 @@
 | v1.15.0 | Sub-padres y orden fijo de determinaciones | 2026-03-25 | Jerarquía 3 niveles, sort_order, PDFs con indentación progresiva |
 | v2.4.0 | Control de acceso por rol y redirección inteligente | 2026-03-25 | Permisos de sección, sidebar protegido, redirección por rol |
 | v2.4.1 | Hotfix redirect loop lab + condición Mi Portal | 2026-03-26 | Fix redirect loop CheckSystemAccess para lab roles, Mi Portal solo con employee |
+| v1.16.0 | Planillas de trabajo diario del laboratorio | 2026-03-26 | Worksheets con CRUD, filtros, PDF landscape |
 
 ---
 
@@ -67,8 +68,8 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-
-_Sin versiones planificadas._
+| v2.5.0 | Auditoría infra clínico | — | ninguna | `agent-bootstrap/prompts/pendientes/v2.5.0-auditoria-infra-clinico.md` |
+| v2.7.0 | Auditoría vista centralizada | — | ninguna | `agent-bootstrap/prompts/pendientes/v2.7.0-auditoria-vista-centralizada.md` |
 
 ---
 
@@ -85,10 +86,10 @@ _Sin versiones planificadas._
 ## Progreso general
 
 ```
-Completadas:  36 versiones (v1.0.0 → v2.4.1)
-Planificadas: 0
+Completadas:  37 versiones (v1.0.0 → v1.16.0)
+Planificadas: 2
 En proceso:   0
-Próxima:      — (cola vacía)
+Próxima:      v2.5.0 — Auditoría infra clínico
 ```
 
 ---
