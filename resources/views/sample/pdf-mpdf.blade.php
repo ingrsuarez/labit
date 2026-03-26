@@ -303,6 +303,11 @@
                 $roots[] = $det->test_id;
             }
         }
+        foreach ($parentMap as $parentId => $children) {
+            if (!isset($childOf[$parentId]) && !in_array($parentId, $roots)) {
+                $roots[] = $parentId;
+            }
+        }
 
         usort($roots, function ($a, $b) use ($itemsByTestId) {
             $sortA = $itemsByTestId[$a]->test->sort_order ?? 0;
