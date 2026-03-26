@@ -256,7 +256,7 @@
                                                         <span class="text-sm font-semibold text-gray-900">{{ $admissionTest->test->name }}</span>
                                                         @if($hasChildren)
                                                             <span class="ml-2 text-xs text-teal-600">({{ $childrenByParent[$admissionTest->test_id]->count() }} det.)</span>
-                                                        @elseif($needsConfig ?? false)
+                                                        @elseif(($needsConfig ?? false) || auth()->user()->hasRole('bioquimico'))
                                                             <button type="button"
                                                                onclick="openConfigModal({{ $admissionTest->test->id }}, '{{ $admissionTest->test->code }}', '{{ addslashes($admissionTest->test->name) }}', '{{ $admissionTest->test->unit }}', '{{ $admissionTest->test->low }}', '{{ $admissionTest->test->high }}', '{{ addslashes($admissionTest->test->method) }}')"
                                                                class="ml-2 px-1.5 py-0.5 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
@@ -389,7 +389,7 @@
                                                                 <span class="text-xs text-gray-400 mr-1">└</span>
                                                                 <span class="text-xs font-medium text-gray-500 mr-2">{{ $childTest->test->code }}</span>
                                                                 <span class="text-sm text-gray-700">{{ $childTest->test->name }}</span>
-                                                                @if($needsConfig)
+                                                                @if($needsConfig || auth()->user()->hasRole('bioquimico'))
                                                                     <button type="button"
                                                                        onclick="openConfigModal({{ $childTest->test->id }}, '{{ $childTest->test->code }}', '{{ addslashes($childTest->test->name) }}', '{{ $childTest->test->unit }}', '{{ $childTest->test->low }}', '{{ $childTest->test->high }}', '{{ addslashes($childTest->test->method) }}')"
                                                                        class="ml-2 px-1.5 py-0.5 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
