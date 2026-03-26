@@ -63,6 +63,11 @@ Route::middleware([
     // SWITCH COMPANY (cambiar empresa activa)
     Route::post('/switch-company', [App\Http\Controllers\CompanyController::class, 'switchCompany'])->name('company.switch');
 
+    // AUDITORÍA
+    Route::middleware('permission:auditoria.section')->group(function () {
+        Route::get('audit', [App\Http\Controllers\AuditController::class, 'index'])->name('audit.index');
+    });
+
     // COMPANIES (Empresas)
     Route::middleware('can:companies.section')->group(function () {
         Route::resource('companies', App\Http\Controllers\CompanyController::class);
