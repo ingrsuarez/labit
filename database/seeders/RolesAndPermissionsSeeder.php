@@ -227,6 +227,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'ausencias.section',
             'liquidaciones.section',
             'configuracion.section',
+
+            // AUDITORÍA
+            'auditoria.section',
         ];
 
         // 3) Crear/asegurar permisos (idempotente)
