@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.7.0 |
-| **Última completada** | v2.7.0 — Auditoría vista centralizada |
+| **Versión actual** | v2.7.0 / v1.17.0 |
+| **Última completada** | v1.17.0 — Fix impresión de etiquetas Zebra |
 | **En proceso** | — |
 | **Próxima** | — (cola vacía) |
 | **Pendientes en cola** | 0 |
-| **Completadas** | 38 |
+| **Completadas** | 39 |
 
 ---
 
@@ -28,10 +28,11 @@ _Sin prompts pendientes._
 
 _Sin prompts en ejecución._
 
-### Completados (38)
+### Completados (39)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.17.0 | Fix impresión de etiquetas Zebra | 2026-03-26 | v1.17.0 |
 | v2.7.0 | Auditoría vista centralizada | 2026-03-26 | v2.7.0 |
 | v2.5.0 | Auditoría infraestructura + módulo clínico | 2026-03-26 | v2.5.0 |
 | v1.16.0 | Planillas de trabajo diario del laboratorio | 2026-03-26 | v1.16.0 |
