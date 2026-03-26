@@ -213,6 +213,10 @@
         foreach ($validatedTests as $at) {
             if (!$at->test) continue;
             $parentIds = $at->test->parentTests->pluck('id')->toArray();
+            if ($at->test->parent) {
+                $parentIds[] = $at->test->parent;
+                $parentIds = array_unique($parentIds);
+            }
             $parentsInProtocol = array_intersect($parentIds, $allProtocolTestIds);
 
             if (count($parentsInProtocol) > 0) {
@@ -222,6 +226,34 @@
                     $parentMap[$parentId] = [];
                 }
                 $parentMap[$parentId][] = $at->test_id;
+            }
+        }
+
+        $changed = true;
+        while ($changed) {
+            $changed = false;
+            foreach (array_keys($parentMap) as $pId) {
+                if (isset($childOf[$pId])) continue;
+                if (!isset($itemsByTestId[$pId])) continue;
+                $pTest = $itemsByTestId[$pId]->test;
+                if (!$pTest) continue;
+                $ancestorIds = $pTest->parentTests->pluck('id')->toArray();
+                if ($pTest->parent) {
+                    $ancestorIds[] = $pTest->parent;
+                    $ancestorIds = array_unique($ancestorIds);
+                }
+                $ancestorsInProtocol = array_intersect($ancestorIds, $allProtocolTestIds);
+                if (count($ancestorsInProtocol) > 0) {
+                    $ancestorId = reset($ancestorsInProtocol);
+                    $childOf[$pId] = $ancestorId;
+                    if (!isset($parentMap[$ancestorId])) {
+                        $parentMap[$ancestorId] = [];
+                    }
+                    if (!in_array($pId, $parentMap[$ancestorId])) {
+                        $parentMap[$ancestorId][] = $pId;
+                    }
+                    $changed = true;
+                }
             }
         }
 
