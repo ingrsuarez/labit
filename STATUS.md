@@ -9,32 +9,32 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v1.16.0 |
-| **Última completada** | v1.16.0 — Planillas de trabajo diario del laboratorio |
+| **Versión actual** | v2.5.0 |
+| **Última completada** | v2.5.0 — Auditoría infraestructura + módulo clínico |
 | **En proceso** | — |
-| **Próxima** | v2.5.0 — Auditoría infra clínico |
-| **Pendientes en cola** | 2 |
-| **Completadas** | 36 |
+| **Próxima** | v2.7.0 — Auditoría vista centralizada |
+| **Pendientes en cola** | 1 |
+| **Completadas** | 37 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (2)
+### Pendientes (1)
 
 | Versión | Nombre | Dependencias |
 |---|---|---|
-| v2.5.0 | Auditoría infra clínico | — |
 | v2.7.0 | Auditoría vista centralizada | — |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (36)
+### Completados (37)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v2.5.0 | Auditoría infraestructura + módulo clínico | 2026-03-26 | v2.5.0 |
 | v1.16.0 | Planillas de trabajo diario del laboratorio | 2026-03-26 | v1.16.0 |
 | v2.4.1 | Hotfix redirect loop lab + condición Mi Portal | 2026-03-26 | v2.4.1 |
 | v2.4.0 | Control de acceso por rol y redirección inteligente | 2026-03-25 | v2.4.0 |
@@ -102,6 +102,7 @@ v1.0.0 (completada)
 │   └── v1.5.1 — Roles y permisos laboratorio clínico (completada)
 │       └── v1.5.2 — Roles y permisos muestras (completada)
 ├── v1.16.0 — Planillas de trabajo diario del laboratorio (completada)
+├── v2.5.0 — Auditoría infraestructura + módulo clínico (completada)
 ```
 
 ---
@@ -141,11 +142,10 @@ Ejecutar el siguiente prompt de la cola:
 Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo.
 ```
 
-Próximo en cola: **v2.5.0 — Auditoría infra clínico**
+Próximo en cola: **v2.7.0 — Auditoría vista centralizada**
 
 Cola priorizada:
-1. v2.5.0 — Auditoría infra clínico
-2. v2.7.0 — Auditoría vista centralizada
+1. v2.7.0 — Auditoría vista centralizada
 
 ---
 

@@ -54,6 +54,7 @@
 | v2.4.0 | Control de acceso por rol y redirección inteligente | 2026-03-25 | Permisos de sección, sidebar protegido, redirección por rol |
 | v2.4.1 | Hotfix redirect loop lab + condición Mi Portal | 2026-03-26 | Fix redirect loop CheckSystemAccess para lab roles, Mi Portal solo con employee |
 | v1.16.0 | Planillas de trabajo diario del laboratorio | 2026-03-26 | Worksheets con CRUD, filtros, PDF landscape |
+| v2.5.0 | Auditoría infraestructura + módulo clínico | 2026-03-26 | audit_logs polimórfica, trait Auditable, auth/patient/admission/sample |
 
 ---
 
@@ -68,7 +69,6 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v2.5.0 | Auditoría infra clínico | — | ninguna | `agent-bootstrap/prompts/pendientes/v2.5.0-auditoria-infra-clinico.md` |
 | v2.7.0 | Auditoría vista centralizada | — | ninguna | `agent-bootstrap/prompts/pendientes/v2.7.0-auditoria-vista-centralizada.md` |
 
 ---
@@ -86,10 +86,10 @@
 ## Progreso general
 
 ```
-Completadas:  37 versiones (v1.0.0 → v1.16.0)
-Planificadas: 2
+Completadas:  38 versiones (v1.0.0 → v2.5.0)
+Planificadas: 1
 En proceso:   0
-Próxima:      v2.5.0 — Auditoría infra clínico
+Próxima:      v2.7.0 — Auditoría vista centralizada
 ```
 
 ---

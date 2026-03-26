@@ -5,6 +5,26 @@
 
 ---
 
+## [v2.5.0] — 2026-03-26 — Auditoría: infraestructura + módulo clínico
+
+### Agregado
+- Migración: tabla `audit_logs` con relación polimórfica (`auditable_type`/`auditable_id`)
+- Modelo `AuditLog` con fillable, relaciones `user()` y `auditable()` (MorphTo)
+- Trait `App\Traits\Auditable` reutilizable: `auditLogs()` y `logAudit(action, description)`
+- Componente Blade `<x-audit-history>` con timeline visual, badges por acción, usuario, fecha relativa e IP
+- `AuthAuditSubscriber` para eventos Login, Logout y Failed con registro automático
+- Auditoría en `PatientController`: store (created), save_changes (updated)
+- Auditoría en `LabAdmissionController`: store, update, saveResults, validateTest, unvalidateTest, validateAll, downloadPdf, viewPdf, sendEmail
+- Auditoría en `SampleController`: store, update, saveResults, processValidation, revertValidation, downloadPdf, viewPdf, sendEmail
+- Historial de actividad en vista `patient/edit.blade.php`, `lab/admissions/show.blade.php` y `sample/show.blade.php`
+
+### Notas
+- Nivel básico: solo descripción textual de la acción, sin diff campo-a-campo
+- `user_name` se guarda como snapshot para legibilidad incluso si el usuario se elimina
+- El componente `<x-audit-history>` es reutilizable para futuras entidades
+
+---
+
 ## [v1.16.0] — 2026-03-26 — Planillas de trabajo diario del laboratorio
 
 ### Agregado
