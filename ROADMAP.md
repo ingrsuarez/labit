@@ -56,6 +56,7 @@
 | v1.16.0 | Planillas de trabajo diario del laboratorio | 2026-03-26 | Worksheets con CRUD, filtros, PDF landscape |
 | v2.5.0 | Auditoría infraestructura + módulo clínico | 2026-03-26 | audit_logs polimórfica, trait Auditable, auth/patient/admission/sample |
 | v2.7.0 | Auditoría vista centralizada | 2026-03-26 | AuditController, tabla filtrable, badges, link sidebar |
+| v1.17.0 | Fix impresión de etiquetas Zebra | 2026-03-26 | Parseo JSON, Content-Type, auto-detect HTTP/HTTPS |
 
 ---
 
@@ -86,10 +87,10 @@
 ## Progreso general
 
 ```
-Completadas:  39 versiones (v1.0.0 → v2.7.0)
+Completadas:  40 versiones (v1.0.0 → v2.7.0)
 Planificadas: 0
 En proceso:   0
-Próxima:      — (cola vacía, planificar nuevas versiones)
+Próxima:      — (cola vacía)
 ```
 
 ---

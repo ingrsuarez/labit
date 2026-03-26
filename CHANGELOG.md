@@ -5,6 +5,26 @@
 
 ---
 
+## [v1.17.0] — 2026-03-26 — Fix impresión de etiquetas Zebra
+
+### Corregido
+- Parseo de impresoras en `zebra-label-print.js`: soporta JSON (versiones modernas de Zebra Browser Print) y TSV (versiones legacy)
+- `Content-Type` del `POST /write`: cambiado de `text/plain` a `application/json`
+- URL de API: detección automática de puerto HTTP (9100) / HTTPS (9101) según `window.location.protocol`
+- Host: cambiado de `127.0.0.1` a `localhost` para compatibilidad con certificado de Browser Print
+- Mensajes de error mejorados: distingue "Browser Print no corriendo" de "error de comunicación con impresora"
+
+### Agregado
+- `authorize('samples-labels.print')` en `SampleController::labelData()` (faltaba)
+- Auto-selección de impresora cuando hay una sola disponible
+- Método `_parsePrintersFromText()` como fallback para parseo TSV
+
+### Notas
+- El ZPL y diseño de etiqueta (60×30mm, Code128) no se modificaron
+- La impresora de producción es una Zebra GK420t conectada por USB
+
+---
+
 ## [v2.7.0] — 2026-03-26 — Vista centralizada de auditoría
 
 ### Agregado

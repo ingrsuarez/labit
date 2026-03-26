@@ -952,6 +952,8 @@ class SampleController extends Controller
      */
     public function labelData(Sample $sample)
     {
+        $this->authorize('samples-labels.print');
+
         $sample->load(['customer', 'determinations.test']);
 
         $materials = $sample->determinations
