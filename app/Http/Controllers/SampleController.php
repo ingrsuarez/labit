@@ -981,22 +981,29 @@ class SampleController extends Controller
 
         $testIdsInProtocol = $sample->determinations->pluck('test_id')->toArray();
 
+        $debug = [];
         $materials = $sample->determinations
-            ->filter(function ($det) use ($testIdsInProtocol) {
+            ->filter(function ($det) use ($testIdsInProtocol, &$debug) {
                 $test = $det->test;
-                if (!$test || is_null($test->material)) return false;
+                if (!$test) return false;
 
-                if ($test->parentTests->isNotEmpty()) {
-                    if ($test->parentTests->pluck('id')->intersect($testIdsInProtocol)->isNotEmpty()) {
-                        return false;
-                    }
+                $entry = [
+                    'id' => $test->id, 'code' => $test->code,
+                    'name' => mb_substr($test->name, 0, 30),
+                    'mat' => $test->material, 'abbr' => $test->material_abbreviation,
+                    'parent_col' => $test->parent,
+                    'parent_m2m' => $test->parentTests->pluck('id')->values()->toArray(),
+                ];
+
+                if (is_null($test->material)) { $entry['action'] = 'SKIP:null'; $debug[] = $entry; return false; }
+                if ($test->parentTests->isNotEmpty() && $test->parentTests->pluck('id')->intersect($testIdsInProtocol)->isNotEmpty()) {
+                    $entry['action'] = 'SKIP:m2m_parent'; $debug[] = $entry; return false;
                 }
-
                 if ($test->parent && in_array($test->parent, $testIdsInProtocol)) {
-                    return false;
+                    $entry['action'] = 'SKIP:legacy_parent'; $debug[] = $entry; return false;
                 }
 
-                return true;
+                $entry['action'] = 'INCLUDED'; $debug[] = $entry; return true;
             })
             ->map(fn($det) => $det->test->material_abbreviation)
             ->unique()
@@ -1008,6 +1015,8 @@ class SampleController extends Controller
             'materials' => $materials ?: 'N/A',
             'sample_type' => strtoupper($sample->sample_type),
             'entry_date' => $sample->entry_date->format('d/m/Y'),
+            '_debug' => $debug,
+            '_test_ids' => $testIdsInProtocol,
         ]);
     }
 
