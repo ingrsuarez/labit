@@ -520,7 +520,7 @@
                                 <div>{{ Str::limit($sample->customer->name ?? 'N/A', 30) }}</div>
                                 <div class="text-gray-500">
                                     {{ strtoupper($sample->sample_type) }} |
-                                    MAT: {{ $sample->determinations->pluck('test.material_abbreviation')->unique()->filter()->implode('/') ?: 'N/A' }}
+                                    MAT: {{ $labelMaterials ?: 'N/A' }}
                                     &nbsp; {{ $sample->entry_date->format('d/m/Y') }}
                                 </div>
                             </div>
