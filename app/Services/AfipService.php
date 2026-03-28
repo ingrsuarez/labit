@@ -26,9 +26,9 @@ class AfipSoapClient extends SoapClient
             if (preg_match($pattern, $request, $m)) {
                 $prefix = $m[1];
                 $closePrefix = $m[3];
-                $tag = '<' . $prefix . 'CondicionIVAReceptorId>' . $this->condicionIvaReceptorId .
-                       '</' . $closePrefix . 'CondicionIVAReceptorId>';
-                $request = preg_replace($pattern, $m[0] . $tag, $request, 1);
+                $tag = '<'.$prefix.'CondicionIVAReceptorId>'.$this->condicionIvaReceptorId.
+                       '</'.$closePrefix.'CondicionIVAReceptorId>';
+                $request = preg_replace($pattern, $m[0].$tag, $request, 1);
             }
         }
 
@@ -39,15 +39,24 @@ class AfipSoapClient extends SoapClient
 class AfipService
 {
     protected string $cuit;
+
     protected string $certPath;
+
     protected string $keyPath;
+
     protected bool $production;
 
     protected const WSAA_WSDL_HOMO = 'https://wsaahomo.afip.gov.ar/ws/services/LoginCms?WSDL';
+
     protected const WSAA_WSDL_PROD = 'https://wsaa.afip.gov.ar/ws/services/LoginCms?WSDL';
 
     protected const WSFE_WSDL_HOMO = 'https://wswhomo.afip.gov.ar/wsfev1/service.asmx?WSDL';
+
     protected const WSFE_WSDL_PROD = 'https://servicios1.afip.gov.ar/wsfev1/service.asmx?WSDL';
+
+    protected const PADRON_WSDL_HOMO = 'https://awshomo.afip.gov.ar/sr-padron/webservices/personaServiceA5?WSDL';
+
+    protected const PADRON_WSDL_PROD = 'https://aws.afip.gov.ar/sr-padron/webservices/personaServiceA5?WSDL';
 
     protected static array $voucherTypes = [
         'factura' => ['A' => 1, 'B' => 6, 'C' => 11],
@@ -80,9 +89,9 @@ class AfipService
 
     // ─── WSAA ────────────────────────────────────────────────
 
-    protected function getTokenAuthorization(): object
+    protected function getTokenAuthorization(string $service = 'wsfe'): object
     {
-        $taFile = storage_path('app/afip/ta_wsfe_' . $this->cuit . '_' . ($this->production ? 'prod' : 'homo') . '.json');
+        $taFile = storage_path('app/afip/ta_'.$service.'_'.$this->cuit.'_'.($this->production ? 'prod' : 'homo').'.json');
 
         if (file_exists($taFile)) {
             $data = json_decode(file_get_contents($taFile));
@@ -94,7 +103,7 @@ class AfipService
             }
         }
 
-        $ta = $this->authenticate('wsfe');
+        $ta = $this->authenticate($service);
 
         $ta->expiration = (new \DateTime('now', new \DateTimeZone('America/Buenos_Aires')))
             ->modify('+11 hours')
@@ -140,8 +149,8 @@ class AfipService
                 } catch (\SoapFault $retryEx) {
                     if (str_contains($retryEx->getMessage(), 'ya posee un TA')) {
                         throw new Exception(
-                            'AFIP WSAA reporta un TA vigente que no tenemos en cache. ' .
-                            'Esto ocurre si el token fue emitido en otra sesión. ' .
+                            'AFIP WSAA reporta un TA vigente que no tenemos en cache. '.
+                            'Esto ocurre si el token fue emitido en otra sesión. '.
                             'Espere unos minutos e intente nuevamente.'
                         );
                     }
@@ -198,7 +207,7 @@ XML;
         $certContent = file_get_contents($this->certPath);
         $keyContent = file_get_contents($this->keyPath);
 
-        if (!$certContent || !$keyContent) {
+        if (! $certContent || ! $keyContent) {
             throw new Exception('No se pudieron leer los certificados AFIP');
         }
 
@@ -211,10 +220,10 @@ XML;
             PKCS7_BINARY | PKCS7_NOSIGS
         );
 
-        if (!$signed) {
+        if (! $signed) {
             @unlink($tempTra);
             @unlink($tempCms);
-            throw new Exception('Error al firmar el TRA: ' . openssl_error_string());
+            throw new Exception('Error al firmar el TRA: '.openssl_error_string());
         }
 
         $cmsContent = file_get_contents($tempCms);
@@ -650,9 +659,223 @@ XML;
         }
     }
 
-    public function invalidateTokenCache(): void
+    protected static array $provincias = [
+        0 => 'CABA',
+        1 => 'Buenos Aires',
+        2 => 'Catamarca',
+        3 => 'Córdoba',
+        4 => 'Corrientes',
+        5 => 'Entre Ríos',
+        6 => 'Jujuy',
+        7 => 'Mendoza',
+        8 => 'La Rioja',
+        9 => 'Salta',
+        10 => 'San Juan',
+        11 => 'San Luis',
+        12 => 'Santa Fe',
+        13 => 'Santiago del Estero',
+        14 => 'Tucumán',
+        16 => 'Chaco',
+        17 => 'Chubut',
+        18 => 'Formosa',
+        19 => 'Misiones',
+        20 => 'Neuquén',
+        21 => 'La Pampa',
+        22 => 'Río Negro',
+        23 => 'Santa Cruz',
+        24 => 'Tierra del Fuego',
+    ];
+
+    // ─── Padrón AFIP (ws_sr_padron_a5) ─────────────────────
+
+    public function consultarPadron(string $cuit): array
     {
-        $taFile = storage_path('app/afip/ta_wsfe_' . $this->cuit . '_' . ($this->production ? 'prod' : 'homo') . '.json');
+        $cuit = preg_replace('/\D/', '', $cuit);
+
+        if (strlen($cuit) !== 11) {
+            return ['success' => false, 'error' => 'El CUIT debe tener 11 dígitos.'];
+        }
+
+        try {
+            $ta = $this->getTokenAuthorization('ws_sr_padron_a5');
+
+            $wsdl = $this->production ? self::PADRON_WSDL_PROD : self::PADRON_WSDL_HOMO;
+
+            $client = new SoapClient($wsdl, [
+                'soap_version' => SOAP_1_1,
+                'trace' => true,
+                'exceptions' => true,
+                'cache_wsdl' => WSDL_CACHE_NONE,
+                'connection_timeout' => 15,
+                'stream_context' => stream_context_create([
+                    'ssl' => [
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
+                        'ciphers' => 'DEFAULT@SECLEVEL=0',
+                    ],
+                    'http' => [
+                        'timeout' => 30,
+                    ],
+                ]),
+            ]);
+
+            $result = $client->getPersona([
+                'token' => $ta->token,
+                'sign' => $ta->sign,
+                'cuitRepresentada' => $this->cuit,
+                'idPersona' => $cuit,
+            ]);
+
+            $persona = $result->personaReturn->datosGenerales ?? null;
+
+            if (! $persona) {
+                return ['success' => false, 'error' => 'CUIT no encontrado en el padrón de AFIP.'];
+            }
+
+            $razonSocial = $persona->razonSocial
+                ?? trim(($persona->apellido ?? '').' '.($persona->nombre ?? ''));
+
+            $estadoCuit = $persona->estadoClave ?? 'DESCONOCIDO';
+
+            $domicilio = $this->parseDomicilioFiscal($result->personaReturn);
+            $condicionIva = $this->parseCondicionIva($result->personaReturn);
+            $actividad = $this->parseActividadPrincipal($result->personaReturn);
+
+            Log::info('AFIP padrón consulta exitosa', [
+                'cuit' => $cuit,
+                'razon_social' => $razonSocial,
+                'estado' => $estadoCuit,
+            ]);
+
+            return [
+                'success' => true,
+                'razon_social' => $razonSocial,
+                'condicion_iva' => $condicionIva['label'],
+                'condicion_iva_id' => $condicionIva['id'],
+                'domicilio' => $domicilio,
+                'actividad_principal' => $actividad,
+                'estado_cuit' => $estadoCuit,
+            ];
+        } catch (\SoapFault $e) {
+            Log::error('AFIP padrón SOAP error', ['cuit' => $cuit, 'error' => $e->getMessage()]);
+
+            if (str_contains($e->getMessage(), 'No existe persona')) {
+                return ['success' => false, 'error' => 'CUIT no encontrado en el padrón de AFIP.'];
+            }
+
+            return ['success' => false, 'error' => 'Error al consultar AFIP: '.$e->getMessage()];
+        } catch (Exception $e) {
+            Log::error('AFIP padrón error', ['cuit' => $cuit, 'error' => $e->getMessage()]);
+
+            return ['success' => false, 'error' => 'No se pudo conectar con AFIP. Intente nuevamente.'];
+        }
+    }
+
+    protected function parseDomicilioFiscal(object $personaReturn): array
+    {
+        $domicilioFiscal = null;
+
+        $domicilios = $personaReturn->datosGenerales->domicilioFiscal ?? null;
+        if ($domicilios) {
+            $domicilioFiscal = $domicilios;
+        }
+
+        if (! $domicilioFiscal) {
+            return [
+                'direccion' => '',
+                'localidad' => '',
+                'provincia' => '',
+                'cod_postal' => '',
+            ];
+        }
+
+        $provinciaCode = (int) ($domicilioFiscal->idProvincia ?? -1);
+        $provincia = self::$provincias[$provinciaCode] ?? '';
+
+        return [
+            'direccion' => trim(($domicilioFiscal->direccion ?? '').' '.($domicilioFiscal->numero ?? '')),
+            'localidad' => $domicilioFiscal->localidad ?? $domicilioFiscal->descripcionProvincia ?? '',
+            'provincia' => $provincia,
+            'cod_postal' => $domicilioFiscal->codPostal ?? '',
+        ];
+    }
+
+    protected function parseCondicionIva(object $personaReturn): array
+    {
+        $impuestos = $personaReturn->datosRegimenGeneral->impuesto ?? [];
+        if (! is_array($impuestos)) {
+            $impuestos = [$impuestos];
+        }
+
+        $tieneIva = false;
+        $tieneMonotributo = false;
+
+        foreach ($impuestos as $impuesto) {
+            $idImpuesto = (int) ($impuesto->idImpuesto ?? 0);
+            $estado = strtoupper($impuesto->estado ?? '');
+
+            if ($idImpuesto === 30 && $estado === 'AC') {
+                $tieneIva = true;
+            }
+            if ($idImpuesto === 20 && $estado === 'AC') {
+                $tieneMonotributo = true;
+            }
+        }
+
+        $categorias = $personaReturn->datosMonotributo->categoriaMonotributo ?? null;
+        if ($categorias && ! $tieneMonotributo) {
+            $tieneMonotributo = true;
+        }
+
+        if ($tieneIva) {
+            return ['label' => 'Responsable Inscripto', 'id' => 1];
+        }
+
+        if ($tieneMonotributo) {
+            return ['label' => 'Monotributista', 'id' => 6];
+        }
+
+        $tipoPersona = $personaReturn->datosGenerales->tipoPersona ?? '';
+        if ($tipoPersona === 'JURIDICA') {
+            return ['label' => 'Responsable Inscripto', 'id' => 1];
+        }
+
+        return ['label' => 'Consumidor Final', 'id' => 5];
+    }
+
+    protected function parseActividadPrincipal(object $personaReturn): string
+    {
+        $actividades = $personaReturn->datosRegimenGeneral->actividad ?? [];
+        if (! is_array($actividades)) {
+            $actividades = [$actividades];
+        }
+
+        foreach ($actividades as $actividad) {
+            $orden = (int) ($actividad->orden ?? 999);
+            if ($orden === 1) {
+                return $actividad->descripcionActividad ?? '';
+            }
+        }
+
+        if (! empty($actividades)) {
+            return $actividades[0]->descripcionActividad ?? '';
+        }
+
+        $actividadesMono = $personaReturn->datosMonotributo->actividadMonotributista ?? [];
+        if (! is_array($actividadesMono)) {
+            $actividadesMono = [$actividadesMono];
+        }
+
+        if (! empty($actividadesMono)) {
+            return $actividadesMono[0]->descripcionActividad ?? '';
+        }
+
+        return '';
+    }
+
+    public function invalidateTokenCache(string $service = 'wsfe'): void
+    {
+        $taFile = storage_path('app/afip/ta_'.$service.'_'.$this->cuit.'_'.($this->production ? 'prod' : 'homo').'.json');
         if (file_exists($taFile)) {
             @unlink($taFile);
         }
@@ -661,7 +884,7 @@ XML;
     protected function formatAfipDate(string $date): string
     {
         if (strlen($date) === 8) {
-            return substr($date, 0, 4) . '-' . substr($date, 4, 2) . '-' . substr($date, 6, 2);
+            return substr($date, 0, 4).'-'.substr($date, 4, 2).'-'.substr($date, 6, 2);
         }
 
         return $date;
