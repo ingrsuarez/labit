@@ -461,9 +461,66 @@ class SalesInvoiceController extends Controller
 
         $salesInvoice->load(['customer', 'pointOfSale', 'items.test', 'creator', 'company']);
 
-        $pdf = PDF::loadView('sales-invoices.pdf', ['invoice' => $salesInvoice], [], [
+        $qrDataUri = null;
+        $barcodeComplete = null;
+
+        if ($salesInvoice->cae) {
+            $company = $salesInvoice->company;
+            $cuit = $company ? str_replace('-', '', $company->cuit) : config('afip.cuit');
+            $pos = $salesInvoice->pointOfSale;
+            $afipCodes = ['A' => '01', 'B' => '06', 'C' => '11'];
+
+            $barcode = $cuit
+                . str_pad($afipCodes[$salesInvoice->voucher_type] ?? '00', 3, '0', STR_PAD_LEFT)
+                . str_pad($pos ? $pos->afip_pos_number : '1', 5, '0', STR_PAD_LEFT)
+                . $salesInvoice->cae
+                . ($salesInvoice->cae_expiration ? $salesInvoice->cae_expiration->format('Ymd') : '');
+            $sumOdd = 0; $sumEven = 0;
+            for ($i = 0; $i < strlen($barcode); $i++) {
+                if (($i + 1) % 2 === 0) { $sumEven += intval($barcode[$i]); }
+                else { $sumOdd += intval($barcode[$i]); }
+            }
+            $barcodeComplete = $barcode . ((10 - (($sumOdd + $sumEven * 3) % 10)) % 10);
+
+            $customer = $salesInvoice->customer;
+            $netAmount = $salesInvoice->items->sum(fn($i) => $i->quantity * $i->unit_price);
+            $totalIva = $salesInvoice->items->sum('iva_amount');
+
+            $qrJson = json_encode([
+                'ver' => 1,
+                'fecha' => $salesInvoice->issue_date->format('Y-m-d'),
+                'cuit' => (int) $cuit,
+                'ptoVta' => $pos ? $pos->afip_pos_number : 1,
+                'tipoCmp' => (int) ($afipCodes[$salesInvoice->voucher_type] ?? 0),
+                'nroCmp' => (int) $salesInvoice->afip_voucher_number,
+                'importe' => round($netAmount + $totalIva + $salesInvoice->percepciones + $salesInvoice->otros_impuestos, 2),
+                'moneda' => 'PES',
+                'ctz' => 1,
+                'tipoDocRec' => $customer->tax && strtolower($customer->tax) === 'consumidor final' ? 99 : 80,
+                'nroDocRec' => (int) str_replace('-', '', $customer->taxId ?? '0'),
+                'tipoCodAut' => 'E',
+                'codAut' => (int) $salesInvoice->cae,
+            ]);
+            $qrUrl = 'https://www.afip.gob.ar/fe/qr/?p=' . base64_encode($qrJson);
+
+            $renderer = new \BaconQrCode\Renderer\ImageRenderer(
+                new \BaconQrCode\Renderer\RendererStyle\RendererStyle(200),
+                new \BaconQrCode\Renderer\Image\SvgImageBackEnd()
+            );
+            $qrSvg = (new \BaconQrCode\Writer($renderer))->writeString($qrUrl);
+            $qrDataUri = 'data:image/svg+xml;base64,' . base64_encode($qrSvg);
+        }
+
+        $hasFooter = $salesInvoice->cae && $qrDataUri;
+
+        $pdf = PDF::loadView('sales-invoices.pdf', [
+            'invoice' => $salesInvoice,
+            'qrDataUri' => $qrDataUri,
+            'barcodeComplete' => $barcodeComplete,
+        ], [], [
             'margin_top' => 10,
-            'margin_bottom' => 10,
+            'margin_bottom' => $hasFooter ? 52 : 15,
+            'margin_footer' => $hasFooter ? 5 : 5,
             'margin_left' => 12,
             'margin_right' => 12,
             'format' => 'A4',
