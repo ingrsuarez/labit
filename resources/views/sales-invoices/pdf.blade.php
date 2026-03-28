@@ -55,14 +55,6 @@
         .totals-value { text-align: right; font-weight: bold; }
         .totals-total td { border-top: 2px solid #333; padding-top: 6px; font-size: 13px; }
 
-        .cae-box {
-            margin-top: 15px; padding: 8px 12px;
-            border: 2px solid #333; background: #f9f9f9;
-        }
-        .cae-box td { padding: 2px 0; font-size: 10px; }
-        .cae-label { color: #666; width: 140px; }
-        .cae-value { font-weight: bold; font-family: 'Courier New', monospace; }
-
         .barcode-area { text-align: center; margin-top: 10px; }
         .barcode-number { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 1px; margin-top: 4px; }
 
@@ -254,41 +246,22 @@
         </div>
     @endif
 
-    {{-- CAE --}}
+    {{-- CAE + QR (formato ARCA) --}}
     @if($invoice->cae)
-        <div class="cae-box">
-            <table width="100%">
-                <tr>
-                    <td class="cae-label">CAE N°:</td>
-                    <td class="cae-value">{{ $invoice->cae }}</td>
-                    <td class="cae-label">Fecha de Vto. de CAE:</td>
-                    <td class="cae-value">{{ $invoice->cae_expiration?->format('d/m/Y') }}</td>
-                </tr>
-            </table>
-        </div>
-
         @php
             $barcode = $cuit
                 . str_pad($afipCodes[$invoice->voucher_type] ?? '00', 3, '0', STR_PAD_LEFT)
                 . str_pad($pos ? $pos->afip_pos_number : '1', 5, '0', STR_PAD_LEFT)
                 . $invoice->cae
                 . ($invoice->cae_expiration ? $invoice->cae_expiration->format('Ymd') : '');
-            $digitoVerificador = 0;
             $sum_odd = 0; $sum_even = 0;
             for ($i = 0; $i < strlen($barcode); $i++) {
                 if (($i + 1) % 2 === 0) { $sum_even += intval($barcode[$i]); }
                 else { $sum_odd += intval($barcode[$i]); }
             }
-            $total = $sum_odd + $sum_even * 3;
-            $digitoVerificador = (10 - ($total % 10)) % 10;
+            $digitoVerificador = (10 - (($sum_odd + $sum_even * 3) % 10)) % 10;
             $barcodeComplete = $barcode . $digitoVerificador;
-        @endphp
 
-        <div class="barcode-area">
-            <div class="barcode-number">{{ $barcodeComplete }}</div>
-        </div>
-
-        @php
             $qrData = json_encode([
                 'ver' => 1,
                 'fecha' => $invoice->issue_date->format('Y-m-d'),
@@ -304,8 +277,7 @@
                 'tipoCodAut' => 'E',
                 'codAut' => (int) $invoice->cae,
             ]);
-            $qrBase64 = base64_encode($qrData);
-            $qrUrl = 'https://www.afip.gob.ar/fe/qr/?p=' . $qrBase64;
+            $qrUrl = 'https://www.afip.gob.ar/fe/qr/?p=' . base64_encode($qrData);
 
             $qrRenderer = new \BaconQrCode\Renderer\ImageRenderer(
                 new \BaconQrCode\Renderer\RendererStyle\RendererStyle(200),
@@ -316,8 +288,32 @@
             $qrDataUri = 'data:image/svg+xml;base64,' . base64_encode($qrSvg);
         @endphp
 
-        <div style="text-align: center; margin-top: 10px;">
-            <img src="{{ $qrDataUri }}" style="width: 120px; height: 120px;">
+        <div style="margin-top: 20px; border-top: 2px solid #333; padding-top: 12px;">
+            <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td style="width: 130px; vertical-align: middle; text-align: center;">
+                        <img src="{{ $qrDataUri }}" style="width: 110px; height: 110px;">
+                    </td>
+                    <td style="vertical-align: middle; padding-left: 15px;">
+                        <div style="font-size: 14px; font-weight: bold; color: #1a1a1a; margin-bottom: 6px;">
+                            ARCA
+                            <span style="font-size: 9px; font-weight: normal; color: #555; margin-left: 8px;">AGENCIA DE RECAUDACIÓN Y CONTROL ADUANERO</span>
+                        </div>
+                        <div style="font-size: 11px; margin-bottom: 3px;">
+                            <span style="color: #666;">CAE:</span>
+                            <span style="font-weight: bold; font-family: 'Courier New', monospace;">{{ $invoice->cae }}</span>
+                        </div>
+                        <div style="font-size: 11px;">
+                            <span style="color: #666;">Fecha de Vto. del CAE:</span>
+                            <span style="font-weight: bold;">{{ $invoice->cae_expiration?->format('d/m/Y') }}</span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div style="text-align: center; margin-top: 12px;">
+            <div style="font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 1px;">{{ $barcodeComplete }}</div>
         </div>
     @endif
 
