@@ -215,16 +215,19 @@
         </form>
     </div>
 
+    @php
+        $invoiceItems = $invoice->items->map(fn($i) => [
+            'description' => $i->description,
+            'test_id' => $i->test_id,
+            'quantity' => floatval($i->quantity),
+            'unit_price' => floatval($i->unit_price),
+            'iva_rate' => strval(floatval($i->iva_rate)),
+        ])->values();
+    @endphp
     <script>
         function invoiceEditForm() {
             return {
-                items: @json($invoice->items->map(fn($i) => [
-                    'description' => $i->description,
-                    'test_id' => $i->test_id,
-                    'quantity' => floatval($i->quantity),
-                    'unit_price' => floatval($i->unit_price),
-                    'iva_rate' => strval(floatval($i->iva_rate)),
-                ])),
+                items: @json($invoiceItems),
                 percepciones: {{ old('percepciones', $invoice->percepciones) }},
                 otrosImpuestos: {{ old('otros_impuestos', $invoice->otros_impuestos) }},
 
