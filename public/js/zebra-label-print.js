@@ -134,12 +134,12 @@ const ZebraLabelPrint = {
         return [
             '^XA',
             '^CI28',
-            '^PW480',
-            '^LL240',
-            '^FO60,15^BY2,2,70^BCN,70,Y,N,N^FD' + protocol + '^FS',
-            '^FO60,115^A0N,24,24^FD' + customerName + '^FS',
-            '^FO60,145^A0N,20,20^FD' + sampleType + ' | MAT: ' + materials + '^FS',
-            '^FO60,175^A0N,20,20^FD' + entryDate + '^FS',
+            '^PW800',
+            '^LL400',
+            '^FO160,20^BY3,2,120^BCN,120,Y,N,N^FD' + protocol + '^FS',
+            '^FO80,180^A0N,32,32^FD' + customerName + '^FS',
+            '^FO80,225^A0N,28,28^FD' + sampleType + ' | MAT: ' + materials + '^FS',
+            '^FO80,265^A0N,28,28^FD' + entryDate + '^FS',
             '^PQ1',
             '^XZ',
         ].join('\n');
