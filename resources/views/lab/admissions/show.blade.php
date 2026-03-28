@@ -17,7 +17,7 @@
                         Creado por: {{ $admission->creator?->name ?? 'N/A' }}
                     </p>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" x-data>
                     @php
                         $validatedCount = $admission->admissionTests->where('is_validated', true)->count();
                     @endphp
@@ -44,6 +44,16 @@
                         Email
                     </button>
                     @endif
+                    @can('lab-labels.print')
+                    <button type="button"
+                            @click="$dispatch('open-label-modal', { url: '{{ route('lab.admissions.labelData', $admission) }}' })"
+                            class="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm inline-flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10v3H7zM5 10h14a2 2 0 012 2v4a2 2 0 01-2 2h-2v2H9v-2H5a2 2 0 01-2-2v-4a2 2 0 012-2zm10 4a1 1 0 100-2 1 1 0 000 2z"/>
+                        </svg>
+                        Etiqueta
+                    </button>
+                    @endcan
                     @can('lab-admissions.edit')
                     <form action="{{ route('lab.admissions.syncChildren', $admission) }}" method="POST" class="inline">
                         @csrf
@@ -954,5 +964,138 @@
         <x-audit-history :logs="$admission->auditLogs" />
     </div>
     @endif
+
+    <!-- Modal Imprimir Etiqueta -->
+    <div x-data="zebraPrintModal()"
+         @open-label-modal.window="openModal($event.detail.url)"
+         x-cloak>
+
+        <template x-if="open">
+            <div class="fixed inset-0 z-50 flex items-center justify-center">
+                <div class="fixed inset-0 bg-black/50" @click="closeModal()"></div>
+
+                <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                            </svg>
+                            Imprimir Etiqueta
+                        </h3>
+                        <button @click="closeModal()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Loading -->
+                    <div x-show="loading" class="py-8 text-center">
+                        <svg class="animate-spin h-8 w-8 mx-auto text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                        <p class="mt-2 text-sm text-gray-500">Buscando impresoras Zebra...</p>
+                    </div>
+
+                    <!-- Zebra disponible -->
+                    <div x-show="!loading && zebraAvailable" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Impresora</label>
+                            <select x-model="selectedPrinter" @change="onPrinterChange()"
+                                    class="w-full rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500">
+                                <option value="">Seleccionar impresora...</option>
+                                <template x-for="printer in printers" :key="printer.uid">
+                                    <option :value="printer.name" x-text="printer.name"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad de copias</label>
+                            <input type="number" x-model.number="copies" min="1" max="20"
+                                   class="w-24 rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500">
+                        </div>
+
+                        <!-- Vista previa -->
+                        <div class="bg-gray-50 rounded-lg p-3 border border-dashed border-gray-300">
+                            <p class="text-xs text-gray-500 mb-1 font-medium">Vista previa de la etiqueta:</p>
+                            <div class="bg-white border border-gray-200 rounded p-2 text-center font-mono text-xs leading-relaxed">
+                                <div class="text-lg tracking-widest">|||||||||||||||||||</div>
+                                <div class="font-bold">{{ $admission->protocol_number }}</div>
+                                <div>{{ Str::limit($admission->patient->full_name ?? 'N/A', 30) }}</div>
+                                <div class="text-gray-500">
+                                    CLINICO |
+                                    MAT: {{ $admission->admissionTests->pluck('test.material_abbreviation')->unique()->filter()->implode('/') ?: 'N/A' }}
+                                    &nbsp; {{ $admission->date->format('d/m/Y') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <button @click="print()" :disabled="printing || !selectedPrinter"
+                                class="w-full inline-flex items-center justify-center px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            <template x-if="printing">
+                                <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                </svg>
+                            </template>
+                            <template x-if="!printing">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                </svg>
+                            </template>
+                            <span x-text="printing ? 'Imprimiendo...' : 'Imprimir'"></span>
+                        </button>
+                    </div>
+
+                    <!-- Zebra no disponible -->
+                    <div x-show="!loading && !zebraAvailable" class="space-y-4">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <div class="flex items-start">
+                                <svg class="w-5 h-5 text-yellow-600 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.072 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                </svg>
+                                <div>
+                                    <p class="text-sm font-medium text-yellow-800">Zebra Browser Print no detectado</p>
+                                    <p class="text-xs text-yellow-700 mt-1">
+                                        Para imprimir directamente a la Zebra, instale
+                                        <a href="https://www.zebra.com/us/en/support-downloads/printer-software/browser-print.html"
+                                           target="_blank" class="underline font-medium">Zebra Browser Print</a>
+                                        y reinicie el navegador.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border-t pt-4">
+                            <p class="text-sm text-gray-600 mb-3">Puede usar la impresión vía navegador como alternativa:</p>
+                            <a href="{{ route('lab.admissions.label', $admission) }}" target="_blank"
+                               class="w-full inline-flex items-center justify-center px-4 py-2.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                </svg>
+                                Imprimir vía Navegador
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Mensajes de estado -->
+                    <div x-show="error && !loading" class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <p class="text-sm text-red-700" x-text="error"></p>
+                    </div>
+                    <div x-show="success" class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p class="text-sm text-green-700">Etiqueta enviada a la impresora correctamente.</p>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+
+    <script src="{{ asset('js/zebra-label-print.js') }}"></script>
 </x-lab-layout>
 

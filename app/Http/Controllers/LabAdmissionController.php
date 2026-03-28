@@ -889,4 +889,52 @@ class LabAdmissionController extends Controller
 
         return $sanitized.'.'.$admission->protocol_number.'.pdf';
     }
+
+    public function labelData(Admission $admission)
+    {
+        $this->authorize('lab-labels.print');
+
+        $admission->load(['patient', 'admissionTests.test']);
+
+        $materials = $admission->admissionTests
+            ->pluck('test.material_abbreviation')
+            ->unique()
+            ->filter()
+            ->implode('/');
+
+        return response()->json([
+            'protocol_number' => $admission->protocol_number,
+            'customer_name' => $admission->patient->full_name ?? 'N/A',
+            'materials' => $materials ?: 'N/A',
+            'sample_type' => 'CLINICO',
+            'entry_date' => $admission->date->format('d/m/Y'),
+        ]);
+    }
+
+    public function printLabel(Admission $admission)
+    {
+        $this->authorize('lab-labels.print');
+
+        $admission->load(['patient', 'admissionTests.test']);
+
+        $materials = $admission->admissionTests
+            ->pluck('test.material_abbreviation')
+            ->unique()
+            ->filter()
+            ->implode('/');
+
+        $barcode = new \Picqer\Barcode\BarcodeGeneratorSVG;
+        $barcodeSvg = $barcode->getBarcode(
+            $admission->protocol_number,
+            $barcode::TYPE_CODE_128,
+            2,
+            60
+        );
+
+        return view('lab.admissions.label', [
+            'admission' => $admission,
+            'materials' => $materials ?: 'N/A',
+            'barcodeSvg' => $barcodeSvg,
+        ]);
+    }
 }

@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-26 (post v2.7.0)
+> Última actualización: 2026-03-27 (post v1.18.0)
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.7.0 / v1.17.0 |
-| **Última completada** | v1.17.0 — Fix impresión de etiquetas Zebra |
+| **Versión actual** | v2.7.0 / v1.18.0 |
+| **Última completada** | v1.18.0 — Etiquetas de protocolo para laboratorio clínico |
 | **En proceso** | — |
 | **Próxima** | — (cola vacía) |
 | **Pendientes en cola** | 0 |
-| **Completadas** | 39 |
+| **Completadas** | 40 |
 
 ---
 
@@ -28,10 +28,11 @@ _Sin prompts pendientes._
 
 _Sin prompts en ejecución._
 
-### Completados (39)
+### Completados (40)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.18.0 | Etiquetas de protocolo para laboratorio clínico | 2026-03-27 | v1.18.0 |
 | v1.17.0 | Fix impresión de etiquetas Zebra | 2026-03-26 | v1.17.0 |
 | v2.7.0 | Auditoría vista centralizada | 2026-03-26 | v2.7.0 |
 | v2.5.0 | Auditoría infraestructura + módulo clínico | 2026-03-26 | v2.5.0 |
@@ -101,7 +102,8 @@ v1.0.0 (completada)
 ├── v1.4.1 — Fix guardado de resultados de protocolo (completada)
 │   └── v1.5.1 — Roles y permisos laboratorio clínico (completada)
 │       └── v1.5.2 — Roles y permisos muestras (completada)
-├── v1.16.0 — Planillas de trabajo diario del laboratorio (completada)
+├── v1.17.0 — Fix impresión de etiquetas Zebra (completada)
+│   └── v1.18.0 — Etiquetas de protocolo para lab clínico (completada)
 ├── v2.5.0 — Auditoría infraestructura + módulo clínico (completada)
 ```
 
