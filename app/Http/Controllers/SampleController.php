@@ -137,7 +137,26 @@ class SampleController extends Controller
             'auditLogs',
         ]);
 
-        return view('sample.show', compact('sample'));
+        $testIdsInProtocol = $sample->determinations->pluck('test_id')->toArray();
+
+        $labelMaterials = $sample->determinations
+            ->filter(function ($det) use ($testIdsInProtocol) {
+                $test = $det->test;
+                if (!$test || is_null($test->material)) return false;
+
+                if ($test->parentTests->isNotEmpty()) {
+                    $parentInProtocol = $test->parentTests->pluck('id')
+                        ->intersect($testIdsInProtocol)->isNotEmpty();
+                    if ($parentInProtocol) return false;
+                }
+
+                return true;
+            })
+            ->map(fn($det) => $det->test->material_abbreviation)
+            ->unique()
+            ->implode('/');
+
+        return view('sample.show', compact('sample', 'labelMaterials'));
     }
 
     /**
@@ -954,12 +973,25 @@ class SampleController extends Controller
     {
         $this->authorize('samples-labels.print');
 
-        $sample->load(['customer', 'determinations.test']);
+        $sample->load(['customer', 'determinations.test.parentTests']);
+
+        $testIdsInProtocol = $sample->determinations->pluck('test_id')->toArray();
 
         $materials = $sample->determinations
-            ->pluck('test.material_abbreviation')
+            ->filter(function ($det) use ($testIdsInProtocol) {
+                $test = $det->test;
+                if (!$test || is_null($test->material)) return false;
+
+                if ($test->parentTests->isNotEmpty()) {
+                    $parentInProtocol = $test->parentTests->pluck('id')
+                        ->intersect($testIdsInProtocol)->isNotEmpty();
+                    if ($parentInProtocol) return false;
+                }
+
+                return true;
+            })
+            ->map(fn($det) => $det->test->material_abbreviation)
             ->unique()
-            ->filter()
             ->implode('/');
 
         return response()->json([
@@ -977,12 +1009,25 @@ class SampleController extends Controller
     public function printLabel(Sample $sample)
     {
         $this->authorize('samples-labels.print');
-        $sample->load(['customer', 'determinations.test']);
+        $sample->load(['customer', 'determinations.test.parentTests']);
+
+        $testIdsInProtocol = $sample->determinations->pluck('test_id')->toArray();
 
         $materials = $sample->determinations
-            ->pluck('test.material_abbreviation')
+            ->filter(function ($det) use ($testIdsInProtocol) {
+                $test = $det->test;
+                if (!$test || is_null($test->material)) return false;
+
+                if ($test->parentTests->isNotEmpty()) {
+                    $parentInProtocol = $test->parentTests->pluck('id')
+                        ->intersect($testIdsInProtocol)->isNotEmpty();
+                    if ($parentInProtocol) return false;
+                }
+
+                return true;
+            })
+            ->map(fn($det) => $det->test->material_abbreviation)
             ->unique()
-            ->filter()
             ->implode('/');
 
         $barcode = new \Picqer\Barcode\BarcodeGeneratorSVG;
