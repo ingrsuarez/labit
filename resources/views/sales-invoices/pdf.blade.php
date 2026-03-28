@@ -55,14 +55,6 @@
         .totals-value { text-align: right; font-weight: bold; }
         .totals-total td { border-top: 2px solid #333; padding-top: 6px; font-size: 13px; }
 
-        .barcode-area { text-align: center; margin-top: 10px; }
-        .barcode-number { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 1px; margin-top: 4px; }
-
-        .footer-line {
-            margin-top: 15px; padding-top: 8px; border-top: 1px solid #ccc;
-            font-size: 8px; color: #999; text-align: center;
-        }
-
         .notes-box { margin-top: 10px; padding: 6px 10px; background: #f5f5f5; font-size: 9px; }
         .original-label { font-size: 10px; text-align: center; font-weight: bold; color: #666; margin-top: 3px; }
     </style>
@@ -88,6 +80,50 @@
         $netAmount = $invoice->items->sum(fn($i) => $i->quantity * $i->unit_price);
         $totalIva = $invoice->items->sum('iva_amount');
     @endphp
+
+    {{-- PIE DE PÁGINA ARCA: se define ANTES del contenido para que mPDF lo aplique desde la pág 1 --}}
+    @if($invoice->cae && !empty($qrDataUri))
+        <htmlpagefooter name="arcaFooter">
+            <div style="border-top: 2px solid #333; padding-top: 8px;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td style="width: 110px; vertical-align: middle; text-align: center;">
+                            <img src="{{ $qrDataUri }}" style="width: 100px; height: 100px;">
+                        </td>
+                        <td style="vertical-align: middle; padding-left: 12px;">
+                            <div style="font-size: 13px; font-weight: bold; color: #1a1a1a; margin-bottom: 4px;">
+                                ARCA
+                                <span style="font-size: 8px; font-weight: normal; color: #555; margin-left: 6px;">AGENCIA DE RECAUDACIÓN Y CONTROL ADUANERO</span>
+                            </div>
+                            <div style="font-size: 10px; margin-bottom: 2px;">
+                                <span style="color: #666;">CAE:</span>
+                                <span style="font-weight: bold; font-family: 'Courier New', monospace;">{{ $invoice->cae }}</span>
+                            </div>
+                            <div style="font-size: 10px;">
+                                <span style="color: #666;">Fecha de Vto. del CAE:</span>
+                                <span style="font-weight: bold;">{{ $invoice->cae_expiration?->format('d/m/Y') }}</span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                <div style="text-align: center; margin-top: 6px;">
+                    <div style="font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 1px;">{{ $barcodeComplete }}</div>
+                </div>
+                <div style="text-align: center; margin-top: 4px; font-size: 7px; color: #999;">
+                    {{ $company ? $company->name : config('afip.emisor.razon_social') }} — CUIT {{ $formattedCuit }} — {{ $company ? $company->tax_condition : config('afip.emisor.condicion_iva') }}
+                </div>
+            </div>
+        </htmlpagefooter>
+        <sethtmlpagefooter name="arcaFooter" value="on" />
+    @else
+        <htmlpagefooter name="simpleFooter">
+            <div style="border-top: 1px solid #ccc; padding-top: 4px; font-size: 8px; color: #999; text-align: center;">
+                {{ $company ? $company->name : config('afip.emisor.razon_social') }} — CUIT {{ $formattedCuit }} — {{ $company ? $company->tax_condition : config('afip.emisor.condicion_iva') }}<br>
+                Comprobante generado el {{ now()->format('d/m/Y H:i') }}
+            </div>
+        </htmlpagefooter>
+        <sethtmlpagefooter name="simpleFooter" value="on" />
+    @endif
 
     {{-- ENCABEZADO --}}
     <table class="header-table">
@@ -245,81 +281,5 @@
             <strong>Observaciones:</strong> {{ $invoice->notes }}
         </div>
     @endif
-
-    {{-- CAE + QR (formato ARCA) --}}
-    @if($invoice->cae)
-        @php
-            $barcode = $cuit
-                . str_pad($afipCodes[$invoice->voucher_type] ?? '00', 3, '0', STR_PAD_LEFT)
-                . str_pad($pos ? $pos->afip_pos_number : '1', 5, '0', STR_PAD_LEFT)
-                . $invoice->cae
-                . ($invoice->cae_expiration ? $invoice->cae_expiration->format('Ymd') : '');
-            $sum_odd = 0; $sum_even = 0;
-            for ($i = 0; $i < strlen($barcode); $i++) {
-                if (($i + 1) % 2 === 0) { $sum_even += intval($barcode[$i]); }
-                else { $sum_odd += intval($barcode[$i]); }
-            }
-            $digitoVerificador = (10 - (($sum_odd + $sum_even * 3) % 10)) % 10;
-            $barcodeComplete = $barcode . $digitoVerificador;
-
-            $qrData = json_encode([
-                'ver' => 1,
-                'fecha' => $invoice->issue_date->format('Y-m-d'),
-                'cuit' => (int) $cuit,
-                'ptoVta' => $pos ? $pos->afip_pos_number : 1,
-                'tipoCmp' => (int) ($afipCodes[$invoice->voucher_type] ?? 0),
-                'nroCmp' => (int) $invoice->afip_voucher_number,
-                'importe' => round($netAmount + $totalIva + $invoice->percepciones + $invoice->otros_impuestos, 2),
-                'moneda' => 'PES',
-                'ctz' => 1,
-                'tipoDocRec' => $customer->tax && strtolower($customer->tax) === 'consumidor final' ? 99 : 80,
-                'nroDocRec' => (int) str_replace('-', '', $customer->taxId ?? '0'),
-                'tipoCodAut' => 'E',
-                'codAut' => (int) $invoice->cae,
-            ]);
-            $qrUrl = 'https://www.afip.gob.ar/fe/qr/?p=' . base64_encode($qrData);
-
-            $qrRenderer = new \BaconQrCode\Renderer\ImageRenderer(
-                new \BaconQrCode\Renderer\RendererStyle\RendererStyle(200),
-                new \BaconQrCode\Renderer\Image\SvgImageBackEnd()
-            );
-            $qrWriter = new \BaconQrCode\Writer($qrRenderer);
-            $qrSvg = $qrWriter->writeString($qrUrl);
-            $qrDataUri = 'data:image/svg+xml;base64,' . base64_encode($qrSvg);
-        @endphp
-
-        <div style="margin-top: 20px; border-top: 2px solid #333; padding-top: 12px;">
-            <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                    <td style="width: 130px; vertical-align: middle; text-align: center;">
-                        <img src="{{ $qrDataUri }}" style="width: 110px; height: 110px;">
-                    </td>
-                    <td style="vertical-align: middle; padding-left: 15px;">
-                        <div style="font-size: 14px; font-weight: bold; color: #1a1a1a; margin-bottom: 6px;">
-                            ARCA
-                            <span style="font-size: 9px; font-weight: normal; color: #555; margin-left: 8px;">AGENCIA DE RECAUDACIÓN Y CONTROL ADUANERO</span>
-                        </div>
-                        <div style="font-size: 11px; margin-bottom: 3px;">
-                            <span style="color: #666;">CAE:</span>
-                            <span style="font-weight: bold; font-family: 'Courier New', monospace;">{{ $invoice->cae }}</span>
-                        </div>
-                        <div style="font-size: 11px;">
-                            <span style="color: #666;">Fecha de Vto. del CAE:</span>
-                            <span style="font-weight: bold;">{{ $invoice->cae_expiration?->format('d/m/Y') }}</span>
-                        </div>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        <div style="text-align: center; margin-top: 12px;">
-            <div style="font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 1px;">{{ $barcodeComplete }}</div>
-        </div>
-    @endif
-
-    <div class="footer-line">
-        {{ $company ? $company->name : config('afip.emisor.razon_social') }} — CUIT {{ $formattedCuit }} — {{ $company ? $company->tax_condition : config('afip.emisor.condicion_iva') }}<br>
-        Comprobante generado el {{ now()->format('d/m/Y H:i') }}
-    </div>
 </body>
 </html>
