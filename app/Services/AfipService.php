@@ -117,7 +117,11 @@ class AfipService
             'trace' => true,
             'exceptions' => true,
             'stream_context' => stream_context_create([
-                'ssl' => ['verify_peer' => false, 'verify_peer_name' => false],
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'ciphers' => 'DEFAULT@SECLEVEL=0',
+                ],
             ]),
         ]);
 
@@ -237,7 +241,11 @@ XML;
             'exceptions' => true,
             'cache_wsdl' => WSDL_CACHE_NONE,
             'stream_context' => stream_context_create([
-                'ssl' => ['verify_peer' => false, 'verify_peer_name' => false],
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'ciphers' => 'DEFAULT@SECLEVEL=0',
+                ],
             ]),
         ]);
     }
