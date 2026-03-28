@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-03-25
+> Última actualización: 2026-03-28
 
 ---
 
@@ -57,6 +57,7 @@
 | v2.5.0 | Auditoría infraestructura + módulo clínico | 2026-03-26 | audit_logs polimórfica, trait Auditable, auth/patient/admission/sample |
 | v2.7.0 | Auditoría vista centralizada | 2026-03-26 | AuditController, tabla filtrable, badges, link sidebar |
 | v1.17.0 | Fix impresión de etiquetas Zebra | 2026-03-26 | Parseo JSON, Content-Type, auto-detect HTTP/HTTPS |
+| v1.18.0 | Etiquetas de protocolo para laboratorio clínico | 2026-03-27 | Etiquetas imprimibles desde admisiones del lab clínico |
 
 ---
 
@@ -71,6 +72,7 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
+| v1.19.0 | Consulta de padrón AFIP por CUIT | 2-3h | v1.3.0 | `pendientes/v1.19.0-consulta-padron-afip.md` |
 
 ---
 
@@ -87,10 +89,10 @@
 ## Progreso general
 
 ```
-Completadas:  40 versiones (v1.0.0 → v2.7.0)
-Planificadas: 0
+Completadas:  41 versiones (v1.0.0 → v2.7.0)
+Planificadas: 1
 En proceso:   0
-Próxima:      — (cola vacía)
+Próxima:      v1.19.0 — Consulta de padrón AFIP por CUIT
 ```
 
 ---
