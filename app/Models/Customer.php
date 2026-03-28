@@ -22,10 +22,14 @@ class Customer extends Model
         'postal',
         'status',
         'discount_percent',
+        'afip_activity',
+        'cuit_status',
+        'afip_verified_at',
     ];
 
     protected $casts = [
         'discount_percent' => 'decimal:2',
+        'afip_verified_at' => 'datetime',
     ];
 
     /**
@@ -42,5 +46,10 @@ class Customer extends Model
     public function isActive(): bool
     {
         return $this->status === 'activo';
+    }
+
+    public function isAfipVerified(): bool
+    {
+        return $this->afip_verified_at !== null;
     }
 }

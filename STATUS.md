@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-27 (post v1.18.0)
+> Última actualización: 2026-03-28 (post v1.19.0)
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.7.0 / v1.18.0 |
-| **Última completada** | v1.18.0 — Etiquetas de protocolo para laboratorio clínico |
+| **Versión actual** | v2.7.0 / v1.19.0 |
+| **Última completada** | v1.19.0 — Consulta de padrón AFIP por CUIT |
 | **En proceso** | — |
 | **Próxima** | — (cola vacía) |
 | **Pendientes en cola** | 0 |
-| **Completadas** | 40 |
+| **Completadas** | 41 |
 
 ---
 
@@ -28,10 +28,11 @@ _Sin prompts pendientes._
 
 _Sin prompts en ejecución._
 
-### Completados (40)
+### Completados (41)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.19.0 | Consulta de padrón AFIP por CUIT | 2026-03-28 | v1.19.0 |
 | v1.18.0 | Etiquetas de protocolo para laboratorio clínico | 2026-03-27 | v1.18.0 |
 | v1.17.0 | Fix impresión de etiquetas Zebra | 2026-03-26 | v1.17.0 |
 | v2.7.0 | Auditoría vista centralizada | 2026-03-26 | v2.7.0 |
@@ -85,7 +86,8 @@ v1.0.0 (completada)
 ├── v1.2.0 — Infraestructura AFIP (completada)
 │   └── v1.3.0 — Facturación electrónica WSFEv1 (completada)
 │       ├── v1.3.1 — Fix AFIP CondicionIVAReceptorId + ImpTotal (completada)
-│       └── v1.4.0 — Notas de crédito electrónicas (completada)
+│       ├── v1.4.0 — Notas de crédito electrónicas (completada)
+│       └── v1.19.0 — Consulta de padrón AFIP por CUIT (completada)
 ├── v1.5.3 — Seeder jerarquía padre-hijo prácticas (completada)
 │   ├── v1.5.4 — Tests faltantes y jerarquía completa (completada)
 │   │   └── v1.6.0 — Formato tabular en PDFs de informes (completada)

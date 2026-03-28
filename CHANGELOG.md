@@ -5,6 +5,36 @@
 
 ---
 
+## [v1.19.0] — 2026-03-28 — Consulta de padrón AFIP por CUIT
+
+### Agregado
+- Método `consultarPadron(string $cuit)` en `AfipService` usando web service `ws_sr_padron_a5` (Padrón Alcance 5)
+- Constantes WSDL para `ws_sr_padron_a5` (homologación y producción) en `AfipService`
+- Mapeo de provincias AFIP (código numérico → nombre) y condición IVA desde impuestos inscriptos
+- Parseo de domicilio fiscal, actividad económica principal y estado CUIT desde respuesta AFIP
+- Migración: campos `afip_activity` (string), `cuit_status` (string), `afip_verified_at` (timestamp) en tabla `customers`
+- Helper `isAfipVerified()` en modelo `Customer`
+- Endpoint `GET /customers/consultar-cuit/{cuit}` para consulta AJAX con respuesta JSON
+- Botón "Consultar AFIP" en formularios create/edit de cliente (Alpine.js, `bg-indigo-600`)
+- Autocompletado de razón social, condición IVA, dirección, ciudad, provincia y código postal desde AFIP
+- Badge de estado CUIT (verde activo / rojo inactivo) debajo del campo CUIT
+- Actividad económica como texto descriptivo debajo del badge
+- Condición IVA se bloquea tras verificación AFIP con badge "Verificado por AFIP" y opción "Desbloquear edición"
+- Hidden inputs para `afip_activity`, `cuit_status`, `afip_verified_at` en ambos formularios
+
+### Modificado
+- `getTokenAuthorization()` refactorizado para aceptar parámetro `$service` (default `wsfe`), cache key incluye nombre del servicio
+- `invalidateTokenCache()` acepta parámetro `$service` opcional
+- Validación en `store()` y `update()` de `CustomerController` incluye nuevos campos AFIP
+
+### Notas
+- El servicio `ws_sr_padron_a5` debe estar habilitado en el portal de AFIP (Administración de Relaciones de Clave Fiscal) para que funcione
+- En homologación, el certificado puede no tener acceso al padrón — el error se maneja gracefully
+- La consulta solo se dispara con clic explícito del usuario (sin auto-consulta en blur/keyup) por rate limiting de AFIP
+- Compatible con datos existentes: campos nuevos son nullable, formularios funcionan sin consulta AFIP
+
+---
+
 ## [v1.17.0] — 2026-03-26 — Fix impresión de etiquetas Zebra
 
 ### Corregido

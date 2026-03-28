@@ -333,6 +333,7 @@ Route::middleware([
         Route::post('credit-notes/{creditNote}/retry-afip', [App\Http\Controllers\CreditNoteController::class, 'retryAfip'])->name('credit-notes.retry-afip');
 
         // CUSTOMERS (Clientes)
+        Route::get('customer/consultar-cuit/{cuit}', [App\Http\Controllers\CustomerController::class, 'consultarCuit'])->name('customer.consultarCuit');
         Route::get('customer', [App\Http\Controllers\CustomerController::class, 'index'])->name('customer.index');
         Route::get('customer/create', [App\Http\Controllers\CustomerController::class, 'create'])->name('customer.create');
         Route::post('customer', [App\Http\Controllers\CustomerController::class, 'store'])->name('customer.store');

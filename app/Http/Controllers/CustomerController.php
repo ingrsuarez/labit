@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Services\AfipService;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
@@ -16,10 +17,10 @@ class CustomerController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('taxId', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('taxId', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -57,10 +58,16 @@ class CustomerController extends Controller
             'country' => 'nullable|string|max:100',
             'postal' => 'nullable|string|max:20',
             'discount_percent' => 'nullable|numeric|min:0|max:100',
+            'afip_activity' => 'nullable|string|max:500',
+            'cuit_status' => 'nullable|string|max:50',
+            'afip_verified_at' => 'nullable|date',
         ]);
 
         $validated['status'] = 'activo';
         $validated['discount_percent'] = $validated['discount_percent'] ?? 0;
+        if (! empty($validated['afip_verified_at'])) {
+            $validated['afip_verified_at'] = \Carbon\Carbon::parse($validated['afip_verified_at']);
+        }
 
         Customer::create($validated);
 
@@ -83,7 +90,7 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'taxId' => 'required|string|max:20|unique:customers,taxId,' . $customer->id,
+            'taxId' => 'required|string|max:20|unique:customers,taxId,'.$customer->id,
             'tax' => 'nullable|string|max:50',
             'email' => 'nullable|email',
             'phone' => 'nullable|string|max:50',
@@ -94,11 +101,39 @@ class CustomerController extends Controller
             'postal' => 'nullable|string|max:20',
             'status' => 'required|in:activo,inactivo',
             'discount_percent' => 'nullable|numeric|min:0|max:100',
+            'afip_activity' => 'nullable|string|max:500',
+            'cuit_status' => 'nullable|string|max:50',
+            'afip_verified_at' => 'nullable|date',
         ]);
+
+        if (! empty($validated['afip_verified_at'])) {
+            $validated['afip_verified_at'] = \Carbon\Carbon::parse($validated['afip_verified_at']);
+        }
 
         $customer->update($validated);
 
         return redirect()->route('customer.index')
             ->with('success', 'Cliente actualizado correctamente.');
+    }
+
+    public function consultarCuit(string $cuit)
+    {
+        $cuit = preg_replace('/\D/', '', $cuit);
+
+        if (strlen($cuit) !== 11) {
+            return response()->json(['success' => false, 'error' => 'El CUIT debe tener 11 dígitos.'], 422);
+        }
+
+        try {
+            $afipService = new AfipService;
+            $result = $afipService->consultarPadron($cuit);
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'No se pudo conectar con AFIP. Podés cargar los datos manualmente.',
+            ], 503);
+        }
     }
 }

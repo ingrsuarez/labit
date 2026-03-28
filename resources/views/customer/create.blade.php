@@ -1,5 +1,97 @@
 <x-admin-layout>
-    <div class="py-6 px-4 md:px-6">
+    <div class="py-6 px-4 md:px-6" x-data="{
+        cuit: '{{ old('taxId', '') }}',
+        loading: false,
+        afipVerified: false,
+        afipError: null,
+        cuitStatus: null,
+        afipActivity: null,
+        ivaLocked: false,
+        ivaManuallyUnlocked: false,
+
+        get cleanCuit() {
+            return this.cuit.replace(/\D/g, '');
+        },
+
+        get canConsult() {
+            return this.cleanCuit.length === 11 && !this.loading;
+        },
+
+        async consultarAfip() {
+            if (!this.canConsult) return;
+
+            this.loading = true;
+            this.afipError = null;
+            this.cuitStatus = null;
+            this.afipActivity = null;
+
+            try {
+                const response = await fetch(`/customer/consultar-cuit/${this.cleanCuit}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    this.afipVerified = true;
+                    this.cuitStatus = data.estado_cuit;
+                    this.afipActivity = data.actividad_principal;
+
+                    // Autocompletar campos
+                    const nameInput = document.querySelector('input[name=name]');
+                    if (nameInput && data.razon_social) nameInput.value = data.razon_social;
+
+                    const addressInput = document.querySelector('input[name=address]');
+                    if (addressInput && data.domicilio.direccion) addressInput.value = data.domicilio.direccion;
+
+                    const cityInput = document.querySelector('input[name=city]');
+                    if (cityInput && data.domicilio.localidad) cityInput.value = data.domicilio.localidad;
+
+                    const postalInput = document.querySelector('input[name=postal]');
+                    if (postalInput && data.domicilio.cod_postal) postalInput.value = data.domicilio.cod_postal;
+
+                    // Provincia
+                    const stateSelect = document.querySelector('select[name=state]');
+                    if (stateSelect && data.domicilio.provincia) {
+                        const options = stateSelect.options;
+                        for (let i = 0; i < options.length; i++) {
+                            if (options[i].value === data.domicilio.provincia) {
+                                stateSelect.selectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Condición IVA
+                    const taxSelect = document.querySelector('select[name=tax]');
+                    if (taxSelect && data.condicion_iva) {
+                        const options = taxSelect.options;
+                        for (let i = 0; i < options.length; i++) {
+                            if (options[i].value === data.condicion_iva) {
+                                taxSelect.selectedIndex = i;
+                                break;
+                            }
+                        }
+                        this.ivaLocked = true;
+                        this.ivaManuallyUnlocked = false;
+                    }
+
+                    // Hidden inputs
+                    document.querySelector('input[name=afip_activity]').value = data.actividad_principal || '';
+                    document.querySelector('input[name=cuit_status]').value = data.estado_cuit || '';
+                    document.querySelector('input[name=afip_verified_at]').value = new Date().toISOString().slice(0, 19).replace('T', ' ');
+                } else {
+                    this.afipError = data.error || 'No se pudo consultar AFIP.';
+                }
+            } catch (e) {
+                this.afipError = 'No se pudo conectar con AFIP. Podés cargar los datos manualmente.';
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        unlockIva() {
+            this.ivaLocked = false;
+            this.ivaManuallyUnlocked = true;
+        }
+    }">
         <!-- Header -->
         <div class="mb-6">
             <a href="{{ route('customer.index') }}" class="text-zinc-600 hover:text-zinc-800 text-sm flex items-center mb-2">
@@ -23,12 +115,25 @@
             </div>
         @endif
 
+        <!-- Error AFIP -->
+        <div x-show="afipError" x-cloak class="mb-4 p-4 bg-red-50 border-l-4 border-red-400 text-red-700 rounded-r-lg">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                <span x-text="afipError"></span>
+            </div>
+        </div>
+
         <form action="{{ route('customer.store') }}" method="POST">
             @csrf
-            
+            <input type="hidden" name="afip_activity" value="{{ old('afip_activity', '') }}">
+            <input type="hidden" name="cuit_status" value="{{ old('cuit_status', '') }}">
+            <input type="hidden" name="afip_verified_at" value="{{ old('afip_verified_at', '') }}">
+
             <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b">Información del Cliente</h2>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Razón Social *</label>
@@ -37,22 +142,75 @@
                                placeholder="Nombre o razón social">
                     </div>
 
+                    <!-- CUIT con botón Consultar AFIP -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">CUIT *</label>
-                        <input type="text" name="taxId" value="{{ old('taxId') }}" required
-                               class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500"
-                               placeholder="XX-XXXXXXXX-X">
+                        <div class="flex gap-2">
+                            <input type="text" name="taxId" x-model="cuit" required
+                                   class="flex-1 rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500"
+                                   placeholder="XX-XXXXXXXX-X">
+                            <button type="button" @click="consultarAfip()"
+                                    :disabled="!canConsult"
+                                    class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap transition-colors">
+                                <template x-if="loading">
+                                    <svg class="animate-spin h-4 w-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                    </svg>
+                                </template>
+                                <template x-if="!loading">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                </template>
+                                <span x-text="loading ? 'Consultando...' : 'Consultar AFIP'"></span>
+                            </button>
+                        </div>
+
+                        <!-- Badge estado CUIT -->
+                        <div x-show="cuitStatus" x-cloak class="mt-2">
+                            <span x-show="cuitStatus === 'ACTIVO'"
+                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                CUIT Activo
+                            </span>
+                            <span x-show="cuitStatus && cuitStatus !== 'ACTIVO'"
+                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                CUIT <span x-text="cuitStatus"></span>
+                            </span>
+                        </div>
+                        <p x-show="afipActivity" x-cloak class="text-xs text-gray-500 mt-1" x-text="afipActivity"></p>
                     </div>
 
+                    <!-- Condición IVA con lock -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Condición IVA</label>
-                        <select name="tax" class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Condición IVA
+                            <span x-show="ivaLocked && !ivaManuallyUnlocked" x-cloak
+                                  class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                Verificado por AFIP
+                            </span>
+                            <span x-show="ivaManuallyUnlocked" x-cloak
+                                  class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
+                                Editado manualmente
+                            </span>
+                        </label>
+                        <select name="tax" :disabled="ivaLocked"
+                                class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500"
+                                :class="{ 'bg-gray-100': ivaLocked }">
                             <option value="">Seleccionar...</option>
                             <option value="Responsable Inscripto" {{ old('tax') == 'Responsable Inscripto' ? 'selected' : '' }}>Responsable Inscripto</option>
                             <option value="Monotributista" {{ old('tax') == 'Monotributista' ? 'selected' : '' }}>Monotributista</option>
                             <option value="Exento" {{ old('tax') == 'Exento' ? 'selected' : '' }}>Exento</option>
                             <option value="Consumidor Final" {{ old('tax') == 'Consumidor Final' ? 'selected' : '' }}>Consumidor Final</option>
                         </select>
+                        <!-- Hidden para enviar el valor cuando disabled -->
+                        <template x-if="ivaLocked">
+                            <input type="hidden" name="tax" :value="document.querySelector('select[name=tax]')?.value">
+                        </template>
+                        <p x-show="ivaLocked" x-cloak class="text-xs text-gray-500 mt-1">
+                            Dato verificado por AFIP.
+                            <a href="#" @click.prevent="unlockIva()" class="text-indigo-600 underline">Desbloquear edición</a>
+                        </p>
                     </div>
 
                     <div>
@@ -147,11 +305,11 @@
 
             <!-- Botones -->
             <div class="flex justify-end gap-4">
-                <a href="{{ route('customer.index') }}" 
+                <a href="{{ route('customer.index') }}"
                    class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
                     Cancelar
                 </a>
-                <button type="submit" 
+                <button type="submit"
                         class="px-6 py-2 bg-zinc-700 text-white rounded-lg hover:bg-zinc-800">
                     Crear Cliente
                 </button>
