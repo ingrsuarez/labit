@@ -174,6 +174,8 @@ Route::middleware([
         Route::get('lab/admissions/{admission}/pdf/download', [App\Http\Controllers\LabAdmissionController::class, 'downloadPdf'])->name('lab.admissions.pdf.download');
         Route::get('lab/admissions/{admission}/pdf/view', [App\Http\Controllers\LabAdmissionController::class, 'viewPdf'])->name('lab.admissions.pdf.view');
         Route::post('lab/admissions/{admission}/send-email', [App\Http\Controllers\LabAdmissionController::class, 'sendEmail'])->name('lab.admissions.sendEmail');
+        Route::get('lab/admissions/{admission}/label-data', [App\Http\Controllers\LabAdmissionController::class, 'labelData'])->name('lab.admissions.labelData');
+        Route::get('lab/admissions/{admission}/label', [App\Http\Controllers\LabAdmissionController::class, 'printLabel'])->name('lab.admissions.label');
 
         // LAB DEBTORS (Deudores)
         Route::get('lab/debtors', [App\Http\Controllers\LabAdmissionController::class, 'debtors'])->name('lab.debtors');
