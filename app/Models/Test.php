@@ -194,22 +194,19 @@ class Test extends Model
     }
 
     /**
+     * Relación con el material del laboratorio
+     */
+    public function materialRelation()
+    {
+        return $this->belongsTo(Material::class, 'material');
+    }
+
+    /**
      * Obtiene el nombre del material
      */
     public function getMaterialNameAttribute(): string
     {
-        $materials = [
-            1 => 'EDTA',
-            2 => 'Suero',
-            3 => 'Orina',
-            4 => 'Citrato',
-            5 => 'Heparina',
-            6 => 'Frasco Estéril',
-            7 => 'Botella de Vidrio',
-            8 => 'Hemograma',
-        ];
-
-        return $materials[$this->material] ?? 'N/A';
+        return $this->materialRelation?->name ?? 'N/A';
     }
 
     /**
@@ -217,17 +214,9 @@ class Test extends Model
      */
     public function getMaterialAbbreviationAttribute(): string
     {
-        $abbreviations = [
-            1 => 'EDTA',
-            2 => 'SUE',
-            3 => 'ORI',
-            4 => 'CIT',
-            5 => 'HEP',
-            6 => 'FE',
-            7 => 'BV',
-            8 => 'HEM',
-        ];
+        $mat = $this->materialRelation;
+        if (!$mat) return '?';
 
-        return $abbreviations[$this->material] ?? '?';
+        return $mat->code ?: mb_strtoupper(mb_substr($mat->name, 0, 3));
     }
 }
