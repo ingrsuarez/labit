@@ -54,9 +54,9 @@ class AfipService
 
     protected const WSFE_WSDL_PROD = 'https://servicios1.afip.gov.ar/wsfev1/service.asmx?WSDL';
 
-    protected const PADRON_WSDL_HOMO = 'https://awshomo.afip.gov.ar/sr-padron/webservices/personaServiceA5?WSDL';
+    protected const PADRON_WSDL_HOMO = 'https://awshomo.afip.gov.ar/sr-padron/webservices/personaServiceA10?WSDL';
 
-    protected const PADRON_WSDL_PROD = 'https://aws.afip.gov.ar/sr-padron/webservices/personaServiceA5?WSDL';
+    protected const PADRON_WSDL_PROD = 'https://aws.afip.gov.ar/sr-padron/webservices/personaServiceA10?WSDL';
 
     protected static array $voucherTypes = [
         'factura' => ['A' => 1, 'B' => 6, 'C' => 11],
@@ -686,7 +686,7 @@ XML;
         24 => 'Tierra del Fuego',
     ];
 
-    // ─── Padrón AFIP (ws_sr_padron_a5) ─────────────────────
+    // ─── Padrón AFIP (ws_sr_padron_a10) ────────────────────
 
     public function consultarPadron(string $cuit): array
     {
@@ -697,7 +697,7 @@ XML;
         }
 
         try {
-            $ta = $this->getTokenAuthorization('ws_sr_padron_a5');
+            $ta = $this->getTokenAuthorization('ws_sr_padron_a10');
 
             $wsdl = $this->production ? self::PADRON_WSDL_PROD : self::PADRON_WSDL_HOMO;
 
