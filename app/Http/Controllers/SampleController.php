@@ -145,9 +145,13 @@ class SampleController extends Controller
                 if (!$test || is_null($test->material)) return false;
 
                 if ($test->parentTests->isNotEmpty()) {
-                    $parentInProtocol = $test->parentTests->pluck('id')
-                        ->intersect($testIdsInProtocol)->isNotEmpty();
-                    if ($parentInProtocol) return false;
+                    if ($test->parentTests->pluck('id')->intersect($testIdsInProtocol)->isNotEmpty()) {
+                        return false;
+                    }
+                }
+
+                if ($test->parent && in_array($test->parent, $testIdsInProtocol)) {
+                    return false;
                 }
 
                 return true;
@@ -973,7 +977,7 @@ class SampleController extends Controller
     {
         $this->authorize('samples-labels.print');
 
-        $sample->load(['customer', 'determinations.test.parentTests']);
+        $sample->load(['customer', 'determinations.test.parentTests', 'determinations.test.parentTest']);
 
         $testIdsInProtocol = $sample->determinations->pluck('test_id')->toArray();
 
@@ -983,9 +987,13 @@ class SampleController extends Controller
                 if (!$test || is_null($test->material)) return false;
 
                 if ($test->parentTests->isNotEmpty()) {
-                    $parentInProtocol = $test->parentTests->pluck('id')
-                        ->intersect($testIdsInProtocol)->isNotEmpty();
-                    if ($parentInProtocol) return false;
+                    if ($test->parentTests->pluck('id')->intersect($testIdsInProtocol)->isNotEmpty()) {
+                        return false;
+                    }
+                }
+
+                if ($test->parent && in_array($test->parent, $testIdsInProtocol)) {
+                    return false;
                 }
 
                 return true;
@@ -1009,7 +1017,7 @@ class SampleController extends Controller
     public function printLabel(Sample $sample)
     {
         $this->authorize('samples-labels.print');
-        $sample->load(['customer', 'determinations.test.parentTests']);
+        $sample->load(['customer', 'determinations.test.parentTests', 'determinations.test.parentTest']);
 
         $testIdsInProtocol = $sample->determinations->pluck('test_id')->toArray();
 
@@ -1019,9 +1027,13 @@ class SampleController extends Controller
                 if (!$test || is_null($test->material)) return false;
 
                 if ($test->parentTests->isNotEmpty()) {
-                    $parentInProtocol = $test->parentTests->pluck('id')
-                        ->intersect($testIdsInProtocol)->isNotEmpty();
-                    if ($parentInProtocol) return false;
+                    if ($test->parentTests->pluck('id')->intersect($testIdsInProtocol)->isNotEmpty()) {
+                        return false;
+                    }
+                }
+
+                if ($test->parent && in_array($test->parent, $testIdsInProtocol)) {
+                    return false;
                 }
 
                 return true;
