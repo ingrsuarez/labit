@@ -287,6 +287,38 @@
         <div class="barcode-area">
             <div class="barcode-number">{{ $barcodeComplete }}</div>
         </div>
+
+        @php
+            $qrData = json_encode([
+                'ver' => 1,
+                'fecha' => $invoice->issue_date->format('Y-m-d'),
+                'cuit' => (int) $cuit,
+                'ptoVta' => $pos ? $pos->afip_pos_number : 1,
+                'tipoCmp' => (int) ($afipCodes[$invoice->voucher_type] ?? 0),
+                'nroCmp' => (int) $invoice->afip_voucher_number,
+                'importe' => round($netAmount + $totalIva + $invoice->percepciones + $invoice->otros_impuestos, 2),
+                'moneda' => 'PES',
+                'ctz' => 1,
+                'tipoDocRec' => $customer->tax && strtolower($customer->tax) === 'consumidor final' ? 99 : 80,
+                'nroDocRec' => (int) str_replace('-', '', $customer->taxId ?? '0'),
+                'tipoCodAut' => 'E',
+                'codAut' => (int) $invoice->cae,
+            ]);
+            $qrBase64 = base64_encode($qrData);
+            $qrUrl = 'https://www.afip.gob.ar/fe/qr/?p=' . $qrBase64;
+
+            $qrRenderer = new \BaconQrCode\Renderer\ImageRenderer(
+                new \BaconQrCode\Renderer\RendererStyle\RendererStyle(200),
+                new \BaconQrCode\Renderer\Image\SvgImageBackEnd()
+            );
+            $qrWriter = new \BaconQrCode\Writer($qrRenderer);
+            $qrSvg = $qrWriter->writeString($qrUrl);
+            $qrDataUri = 'data:image/svg+xml;base64,' . base64_encode($qrSvg);
+        @endphp
+
+        <div style="text-align: center; margin-top: 10px;">
+            <img src="{{ $qrDataUri }}" style="width: 120px; height: 120px;">
+        </div>
     @endif
 
     <div class="footer-line">
