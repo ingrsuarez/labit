@@ -302,18 +302,22 @@
                             <input type="text" id="create-parent-search" 
                                    placeholder="Buscar por código o nombre..."
                                    class="w-full mb-2 rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 text-sm"
-                                   onkeyup="filterParentOptions('create-parent-search', 'create-parent-ids')">
-                            <div class="relative">
-                                <select name="parent_ids[]" id="create-parent-ids" multiple size="6"
-                                        class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
-                                    @php $oldParents = old('parent_ids', []); @endphp
-                                    @foreach($parents as $parent)
-                                        <option value="{{ $parent->id }}" data-search="{{ strtolower($parent->code . ' ' . $parent->name) }}" {{ in_array($parent->id, $oldParents) ? 'selected' : '' }}>{{ $parent->code }} - {{ ucfirst($parent->name) }}</option>
-                                    @endforeach
-                                </select>
-                                <div id="create-parent-ids-count" class="absolute bottom-1 right-2 text-xs text-gray-400"></div>
+                                   onkeyup="filterParentOptions('create-parent-search', 'create-parent-ids-container')">
+                            <div id="create-parent-ids-container" class="relative border border-gray-300 rounded-lg max-h-48 overflow-y-auto p-2 bg-white">
+                                @php $oldParents = old('parent_ids', []); @endphp
+                                @foreach($parents as $parent)
+                                    <label class="create-parent-option flex items-center gap-2 px-2 py-1.5 rounded hover:bg-teal-50 cursor-pointer text-sm" data-search="{{ strtolower($parent->code . ' ' . $parent->name) }}">
+                                        <input type="checkbox" name="parent_ids[]" value="{{ $parent->id }}" 
+                                               class="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                                               {{ in_array($parent->id, $oldParents) ? 'checked' : '' }}>
+                                        <span>{{ $parent->code }} - {{ ucfirst($parent->name) }}</span>
+                                    </label>
+                                @endforeach
                             </div>
-                            <p class="text-xs text-gray-400 mt-1">Ctrl+Click para seleccionar múltiples</p>
+                            <div class="flex justify-between items-center mt-1">
+                                <p class="text-xs text-gray-400">Click para seleccionar/deseleccionar</p>
+                                <div id="create-parent-ids-count" class="text-xs text-gray-400"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="mt-4">
@@ -446,17 +450,20 @@
                             <input type="text" id="edit-parent-search" 
                                    placeholder="🔍 Buscar por código o nombre..."
                                    class="w-full mb-2 rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 text-sm"
-                                   onkeyup="filterParentOptions('edit-parent-search', 'edit-parent-ids')">
-                            <div class="relative">
-                                <select name="parent_ids[]" id="edit-parent-ids" multiple size="6"
-                                        class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
-                                    @foreach($parents as $parent)
-                                        <option value="{{ $parent->id }}" data-search="{{ strtolower($parent->code . ' ' . $parent->name) }}">{{ $parent->code }} - {{ ucfirst($parent->name) }}</option>
-                                    @endforeach
-                                </select>
-                                <div id="edit-parent-ids-count" class="absolute bottom-1 right-2 text-xs text-gray-400"></div>
+                                   onkeyup="filterParentOptions('edit-parent-search', 'edit-parent-ids-container')">
+                            <div id="edit-parent-ids-container" class="relative border border-gray-300 rounded-lg max-h-48 overflow-y-auto p-2 bg-white">
+                                @foreach($parents as $parent)
+                                    <label class="edit-parent-option flex items-center gap-2 px-2 py-1.5 rounded hover:bg-teal-50 cursor-pointer text-sm" data-search="{{ strtolower($parent->code . ' ' . $parent->name) }}">
+                                        <input type="checkbox" name="parent_ids[]" value="{{ $parent->id }}" 
+                                               class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                        <span>{{ $parent->code }} - {{ ucfirst($parent->name) }}</span>
+                                    </label>
+                                @endforeach
                             </div>
-                            <p class="text-xs text-gray-400 mt-1">Ctrl+Click para seleccionar múltiples</p>
+                            <div class="flex justify-between items-center mt-1">
+                                <p class="text-xs text-gray-400">Click para seleccionar/deseleccionar</p>
+                                <div id="edit-parent-ids-count" class="text-xs text-gray-400"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="mt-4">
@@ -481,32 +488,28 @@
 
     <script>
         // Función para filtrar opciones del selector de padres
-        function filterParentOptions(searchInputId, selectId) {
+        function filterParentOptions(searchInputId, containerId) {
             const searchInput = document.getElementById(searchInputId);
-            const select = document.getElementById(selectId);
-            const countDiv = document.getElementById(selectId + '-count');
+            const container = document.getElementById(containerId);
+            const countDiv = document.getElementById(containerId.replace('-container', '') + '-count');
             const searchTerm = searchInput.value.toLowerCase().trim();
             
             let visibleCount = 0;
             let totalCount = 0;
             
-            Array.from(select.options).forEach(option => {
+            container.querySelectorAll('label[data-search]').forEach(label => {
                 totalCount++;
-                const searchData = option.getAttribute('data-search') || option.text.toLowerCase();
-                
+                const searchData = label.getAttribute('data-search');
                 if (searchTerm === '' || searchData.includes(searchTerm)) {
-                    option.style.display = '';
-                    option.disabled = false;
+                    label.style.display = '';
                     visibleCount++;
                 } else {
-                    option.style.display = 'none';
-                    option.disabled = true;
+                    label.style.display = 'none';
                 }
             });
             
-            // Mostrar contador de resultados
             if (countDiv) {
-                if (searchTerm !== '') {
+                if (searchTerm !== '' && visibleCount < totalCount) {
                     countDiv.textContent = visibleCount + ' de ' + totalCount;
                 } else {
                     countDiv.textContent = '';
@@ -515,11 +518,11 @@
         }
 
         // Función para limpiar el buscador cuando se abre el modal
-        function clearParentSearch(searchInputId, selectId) {
+        function clearParentSearch(searchInputId, containerId) {
             const searchInput = document.getElementById(searchInputId);
             if (searchInput) {
                 searchInput.value = '';
-                filterParentOptions(searchInputId, selectId);
+                filterParentOptions(searchInputId, containerId);
             }
         }
 
@@ -546,20 +549,18 @@
             document.getElementById('edit-cat-veterinario').checked = categories.includes('veterinario');
             
             // Limpiar el buscador de padres
-            clearParentSearch('edit-parent-search', 'edit-parent-ids');
+            clearParentSearch('edit-parent-search', 'edit-parent-ids-container');
             
-            // Seleccionar múltiples padres
-            const parentSelect = document.getElementById('edit-parent-ids');
-            Array.from(parentSelect.options).forEach(option => {
-                option.selected = parentIds && parentIds.includes(parseInt(option.value));
+            const parentContainer = document.getElementById('edit-parent-ids-container');
+            parentContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = parentIds && parentIds.includes(parseInt(checkbox.value));
             });
 
-            // Mostrar info de padres
             const parentInfo = document.getElementById('edit-parent-info');
             if (parentIds && parentIds.length > 0) {
-                const selectedOptions = Array.from(parentSelect.options)
-                    .filter(opt => parentIds.includes(parseInt(opt.value)));
-                const parentNames = selectedOptions.map(opt => opt.text);
+                const selectedLabels = Array.from(parentContainer.querySelectorAll('input[type="checkbox"]'))
+                    .filter(cb => parentIds.includes(parseInt(cb.value)));
+                const parentNames = selectedLabels.map(cb => cb.closest('label').querySelector('span').textContent);
                 parentInfo.textContent = 'Pertenece a: ' + parentNames.join(', ');
                 parentInfo.classList.remove('hidden');
             } else {
@@ -579,7 +580,7 @@
 
         // Limpiar el buscador cuando se abre el modal de crear
         document.querySelector('button[onclick*="modal-create"]')?.addEventListener('click', function() {
-            clearParentSearch('create-parent-search', 'create-parent-ids');
+            clearParentSearch('create-parent-search', 'create-parent-ids-container');
         });
 
         // Auto-abrir modal de edición si viene el parámetro edit en la URL
