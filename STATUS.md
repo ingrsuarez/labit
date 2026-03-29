@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-29 (post v1.24.0)
+> Última actualización: 2026-03-29 (post v1.25.0)
 
 ---
 
@@ -9,32 +9,32 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.7.0 / v1.24.0 |
-| **Última completada** | v1.24.0 — Protocolo veterinario (VetAdmission) |
+| **Versión actual** | v2.7.0 / v1.25.0 |
+| **Última completada** | v1.25.0 — PDF resultados veterinarios + envío email |
 | **En proceso** | — |
-| **Próxima** | v1.25.0 — PDF resultados veterinarios + envío email |
-| **Pendientes en cola** | 2 |
-| **Completadas** | 48 |
+| **Próxima** | v1.26.0 — Búsqueda de protocolos por dueño/animal |
+| **Pendientes en cola** | 1 |
+| **Completadas** | 49 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (2)
+### Pendientes (1)
 
 | Versión | Nombre | Dependencias |
 |---|---|---|
-| v1.25.0 | PDF resultados veterinarios + envío email | v1.24.0 |
 | v1.26.0 | Búsqueda de protocolos por dueño/animal | v1.24.0 |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (48)
+### Completados (49)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.25.0 | PDF resultados veterinarios + envío email | 2026-03-29 | v1.25.0 |
 | v1.24.0 | Protocolo veterinario (VetAdmission) | 2026-03-29 | v1.24.0 |
 | v1.23.0 | Nuevo formato de numeración de protocolos | 2026-03-29 | v1.23.0 |
 | v1.22.0 | Valores de referencia por especie | 2026-03-29 | v1.22.0 |
@@ -98,6 +98,13 @@ v1.0.0 (completada)
 │       ├── v1.3.1 — Fix AFIP CondicionIVAReceptorId + ImpTotal (completada)
 │       ├── v1.4.0 — Notas de crédito electrónicas (completada)
 │       └── v1.19.0 — Consulta de padrón AFIP por CUIT (completada)
+├── v1.20.0 — Infraestructura veterinaria base (completada)
+│   └── v1.21.0 — Tipificación Customers + CRUD Veterinarios (completada)
+│       └── v1.22.0 — Valores de referencia por especie (completada)
+│           └── v1.23.0 — Nuevo formato numeración protocolos (completada)
+│               └── v1.24.0 — Protocolo veterinario VetAdmission (completada)
+│                   ├── v1.25.0 — PDF resultados vet + email (completada)
+│                   └── v1.26.0 — Búsqueda por dueño/animal (pendiente)
 ├── v1.5.3 — Seeder jerarquía padre-hijo prácticas (completada)
 │   ├── v1.5.4 — Tests faltantes y jerarquía completa (completada)
 │   │   └── v1.6.0 — Formato tabular en PDFs de informes (completada)
@@ -151,8 +158,7 @@ v1.0.0 (completada)
 ## Próximo paso recomendado
 
 Siguiente prompt disponible:
-1. **v1.25.0** — PDF resultados veterinarios + envío email (dep: v1.24.0 ✅)
-2. **v1.26.0** — Búsqueda de protocolos por dueño/animal (dep: v1.24.0 ✅)
+1. **v1.26.0** — Búsqueda de protocolos por dueño/animal (dep: v1.24.0 ✅)
 
 ---
 
