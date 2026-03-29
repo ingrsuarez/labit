@@ -150,4 +150,24 @@ class SupplierController extends Controller
 
         return response()->json($suppliers);
     }
+
+    public function findByCuit(string $cuit)
+    {
+        $normalized = str_replace('-', '', $cuit);
+
+        $supplier = Supplier::where('tax_id', $cuit)
+            ->orWhere('tax_id', $normalized)
+            ->orWhere('tax_id', substr($normalized, 0, 2).'-'.substr($normalized, 2, 8).'-'.substr($normalized, 10))
+            ->first();
+
+        if (! $supplier) {
+            return response()->json(['message' => 'Proveedor no encontrado'], 404);
+        }
+
+        return response()->json([
+            'id' => $supplier->id,
+            'name' => $supplier->name,
+            'tax_id' => $supplier->tax_id,
+        ]);
+    }
 }
