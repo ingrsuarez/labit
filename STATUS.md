@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-29 (post v1.26.0)
+> Última actualización: 2026-03-29 (post v1.27.0)
 
 ---
 
@@ -9,29 +9,33 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.7.0 / v1.26.0 |
-| **Última completada** | v1.26.0 — Búsqueda de protocolos por dueño/animal |
+| **Versión actual** | v2.7.0 / v1.27.0 |
+| **Última completada** | v1.27.0 — Entrada de stock desde factura de compra sin remito |
 | **En proceso** | — |
-| **Próxima** | — (cola vacía) |
-| **Pendientes en cola** | 0 |
-| **Completadas** | 50 |
+| **Próxima** | v1.28.0 — Lector QR facturas de compra |
+| **Pendientes en cola** | 2 |
+| **Completadas** | 51 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (0)
+### Pendientes (2)
 
-_Sin prompts pendientes. Cola vacía._
+| Versión | Nombre | Dependencias |
+|---|---|---|
+| v1.28.0 | Lector QR facturas de compra | ninguna |
+| v1.29.0 | Libro IVA digital | ninguna |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (50)
+### Completados (51)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.27.0 | Entrada de stock desde factura sin remito + modal insumo | 2026-03-29 | v1.27.0 |
 | v1.26.0 | Búsqueda de protocolos por dueño/animal | 2026-03-29 | v1.26.0 |
 | v1.25.0 | PDF resultados veterinarios + envío email | 2026-03-29 | v1.25.0 |
 | v1.24.0 | Protocolo veterinario (VetAdmission) | 2026-03-29 | v1.24.0 |
@@ -104,6 +108,7 @@ v1.0.0 (completada)
 │               └── v1.24.0 — Protocolo veterinario VetAdmission (completada)
 │                   ├── v1.25.0 — PDF resultados vet + email (completada)
 │                   └── v1.26.0 — Búsqueda por dueño/animal (completada)
+├── v1.27.0 — Entrada stock desde factura compra (completada)
 ├── v1.5.3 — Seeder jerarquía padre-hijo prácticas (completada)
 │   ├── v1.5.4 — Tests faltantes y jerarquía completa (completada)
 │   │   └── v1.6.0 — Formato tabular en PDFs de informes (completada)
@@ -157,7 +162,7 @@ v1.0.0 (completada)
 ## Próximo paso recomendado
 
 Siguiente prompt disponible:
-_Cola vacía. Todas las versiones planificadas han sido completadas._
+**v1.28.0** — Lector QR facturas de compra
 
 ---
 
