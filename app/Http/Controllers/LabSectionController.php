@@ -129,4 +129,41 @@ class LabSectionController extends Controller
 
         return view('lab.section', compact('section'));
     }
+
+    public function veterinario()
+    {
+        $section = [
+            'title' => 'Laboratorio Veterinario',
+            'description' => 'Gestión de protocolos veterinarios, especies y veterinarias',
+            'color' => 'amber',
+            'items' => [
+                [
+                    'name' => 'Protocolos',
+                    'description' => 'Listado de protocolos veterinarios',
+                    'route' => route('vet.admissions.index'),
+                    'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01',
+                ],
+                [
+                    'name' => 'Nuevo Protocolo',
+                    'description' => 'Crear protocolo veterinario',
+                    'route' => route('vet.admissions.create'),
+                    'icon' => 'M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z',
+                ],
+                [
+                    'name' => 'Especies',
+                    'description' => 'Gestión de especies animales',
+                    'route' => route('species.index'),
+                    'icon' => 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',
+                ],
+                [
+                    'name' => 'Veterinarias',
+                    'description' => 'Clientes tipo veterinario',
+                    'route' => route('customer.index', ['type' => 'veterinario']),
+                    'icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
+                ],
+            ],
+        ];
+
+        return view('lab.section', compact('section'));
+    }
 }

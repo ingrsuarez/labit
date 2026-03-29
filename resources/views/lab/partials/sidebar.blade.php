@@ -86,9 +86,9 @@
             <!-- Separador veterinario -->
             <div class="border-t border-teal-600 my-2"></div>
 
-            <a href="{{ route('species.index') }}"
+            <a href="{{ route('lab.section.veterinario') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('species.*') || request()->routeIs('vet.*')
+                {{ request()->routeIs('lab.section.veterinario') || request()->routeIs('species.*') || request()->routeIs('vet.*')
                     ? 'bg-teal-600 text-white'
                     : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
