@@ -125,6 +125,28 @@ const ZebraLabelPrint = {
     },
 
     generateZPL(data) {
+        if (data.labels) {
+            let zpl = '';
+            for (const label of data.labels) {
+                const customerName = this._sanitizeZPL(label.customer_name).substring(0, 30);
+                const protocol = this._sanitizeZPL(label.protocol_number);
+                const material = this._sanitizeZPL(label.material || '?');
+                const entryDate = this._sanitizeZPL(label.entry_date);
+
+                zpl += '^XA\n';
+                zpl += '^CI28\n';
+                zpl += '^PW400\n';
+                zpl += '^LL200\n';
+                zpl += '^FO40,10^BY2,2,65^BCN,65,Y,N,N^FD' + protocol + '^FS\n';
+                zpl += '^FO30,100^A0N,20,20^FD' + customerName + '^FS\n';
+                zpl += '^FO30,125^A0N,18,18^FDCLINICO | ' + material + '^FS\n';
+                zpl += '^FO30,148^A0N,18,18^FD' + entryDate + '^FS\n';
+                zpl += '^PQ1\n';
+                zpl += '^XZ\n';
+            }
+            return zpl;
+        }
+
         const customerName = this._sanitizeZPL(data.customer_name).substring(0, 30);
         const protocol = this._sanitizeZPL(data.protocol_number);
         const materials = this._sanitizeZPL(data.materials);
@@ -215,7 +237,7 @@ const ZebraLabelPrint = {
         let zpl = this.generateZPL(data);
 
         if (copies > 1) {
-            zpl = zpl.replace('^PQ1', '^PQ' + copies);
+            zpl = zpl.replaceAll('^PQ1', '^PQ' + copies);
         }
 
         return await this.printLabel(zpl);
