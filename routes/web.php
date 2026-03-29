@@ -147,6 +147,7 @@ Route::middleware([
         // LAB SECTIONS (Páginas index de cada sección del sidebar)
         Route::get('lab/clinico', [App\Http\Controllers\LabSectionController::class, 'clinico'])->name('lab.section.clinico');
         Route::get('lab/muestras', [App\Http\Controllers\LabSectionController::class, 'muestras'])->name('lab.section.muestras');
+        Route::get('lab/veterinario', [App\Http\Controllers\LabSectionController::class, 'veterinario'])->name('lab.section.veterinario');
         Route::get('lab/configuracion', [App\Http\Controllers\LabSectionController::class, 'configuracion'])->name('lab.section.configuracion');
         Route::get('lab/configuracion/correos', [App\Http\Controllers\LabEmailSettingsController::class, 'edit'])->name('lab.email-settings.edit');
         Route::put('lab/configuracion/correos', [App\Http\Controllers\LabEmailSettingsController::class, 'update'])->name('lab.email-settings.update');
@@ -204,6 +205,23 @@ Route::middleware([
         Route::delete('species/{species}', [App\Http\Controllers\SpeciesController::class, 'destroy'])->name('species.destroy');
 
     }); // fin lab.section
+
+    // =============================================
+    // VETERINARIO
+    // =============================================
+    Route::prefix('vet')->group(function () {
+        Route::get('admissions', [App\Http\Controllers\VetAdmissionController::class, 'index'])->name('vet.admissions.index');
+        Route::get('admissions/create', [App\Http\Controllers\VetAdmissionController::class, 'create'])->name('vet.admissions.create');
+        Route::post('admissions', [App\Http\Controllers\VetAdmissionController::class, 'store'])->name('vet.admissions.store');
+        Route::get('admissions/{vetAdmission}', [App\Http\Controllers\VetAdmissionController::class, 'show'])->name('vet.admissions.show');
+
+        Route::post('admissions/{vetAdmission}/results', [App\Http\Controllers\VetAdmissionController::class, 'loadResults'])->name('vet.admissions.loadResults');
+        Route::post('admissions/{vetAdmission}/validate/{vetAdmissionTest}', [App\Http\Controllers\VetAdmissionController::class, 'validateTest'])->name('vet.admissions.validateTest');
+        Route::post('admissions/{vetAdmission}/unvalidate/{vetAdmissionTest}', [App\Http\Controllers\VetAdmissionController::class, 'unvalidateTest'])->name('vet.admissions.unvalidateTest');
+        Route::post('admissions/{vetAdmission}/validate-all', [App\Http\Controllers\VetAdmissionController::class, 'validateAll'])->name('vet.admissions.validateAll');
+
+        Route::get('customer/{customer}/veterinarians', [App\Http\Controllers\VetAdmissionController::class, 'getVeterinarians'])->name('vet.customer.veterinarians');
+    });
 
     // ADMISSION
     Route::get('/admission/new', [App\Http\Controllers\AdmissionController::class, 'index'])->name('admission.index');
