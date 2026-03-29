@@ -87,6 +87,16 @@ class SupplyController extends Controller
 
         $supply = Supply::create($validated);
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'id' => $supply->id,
+                'code' => $supply->code,
+                'name' => $supply->name,
+                'unit' => $supply->unit,
+                'tracks_lot' => $supply->tracks_lot,
+            ], 201);
+        }
+
         return redirect()->route('supplies.index')
             ->with('success', 'Insumo "' . $supply->name . '" creado correctamente.');
     }
