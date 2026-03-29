@@ -63,6 +63,10 @@
                     <dd class="font-medium text-gray-900">{{ $vetAdmission->owner_name }}</dd>
                     <dt class="text-gray-500">Tel. Dueño</dt>
                     <dd class="text-gray-900">{{ $vetAdmission->owner_phone ?? '-' }}</dd>
+                    @if($vetAdmission->owner_email)
+                        <dt class="text-gray-500">Email</dt>
+                        <dd><a href="mailto:{{ $vetAdmission->owner_email }}" class="text-amber-600 hover:text-amber-800">{{ $vetAdmission->owner_email }}</a></dd>
+                    @endif
                 </dl>
                 @php
                     $historyCount = \App\Models\VetAdmission::where('owner_name', $vetAdmission->owner_name)
@@ -212,11 +216,18 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Email destinatario *</label>
                             <input type="email" name="email" required
-                                   value="{{ $vetAdmission->customer->email ?? '' }}"
+                                   value="{{ $vetAdmission->owner_email ?? $vetAdmission->customer->email ?? '' }}"
                                    class="w-full border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
                                    placeholder="email@ejemplo.com">
-                            @if($vetAdmission->customer->email || $vetAdmission->veterinarian?->email)
+                            @if($vetAdmission->owner_email || $vetAdmission->customer->email || $vetAdmission->veterinarian?->email)
                                 <div class="mt-1 flex flex-wrap gap-1">
+                                    @if($vetAdmission->owner_email)
+                                        <button type="button"
+                                                onclick="this.closest('form').querySelector('input[name=email]').value='{{ $vetAdmission->owner_email }}'"
+                                                class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded hover:bg-gray-200">
+                                            Dueño: {{ $vetAdmission->owner_email }}
+                                        </button>
+                                    @endif
                                     @if($vetAdmission->customer->email)
                                         <button type="button"
                                                 onclick="this.closest('form').querySelector('input[name=email]').value='{{ $vetAdmission->customer->email }}'"

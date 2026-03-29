@@ -94,6 +94,12 @@
                             <input type="text" name="owner_phone" value="{{ old('owner_phone') }}"
                                    class="w-full border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500">
                         </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email del Dueño</label>
+                            <input type="email" name="owner_email" value="{{ old('owner_email') }}"
+                                   class="w-full border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                                   placeholder="email@ejemplo.com">
+                        </div>
                     </div>
                 </div>
 
@@ -110,46 +116,73 @@
                             <input type="date" name="date" value="{{ old('date', date('Y-m-d')) }}" required
                                    class="w-full border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500">
                         </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Buscar determinación</label>
-                            <input type="text" x-model="testSearch" placeholder="Filtrar por código o nombre..."
+                        <div class="md:col-span-2 relative">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Agregar determinación</label>
+                            <input type="text" x-model="testSearch" x-ref="testSearchInput"
+                                   @input="searchTests()"
+                                   @focus="showTestDropdown = true"
+                                   @keydown.enter.prevent="selectFirstTest()"
+                                   @keydown.escape="showTestDropdown = false; testSearch = ''"
+                                   placeholder="Buscar por código o nombre... (Enter para agregar)"
                                    class="w-full border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500">
+
+                            {{-- Dropdown de sugerencias --}}
+                            <div x-show="showTestDropdown && filteredTests.length > 0"
+                                 @click.away="showTestDropdown = false"
+                                 class="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                <template x-for="test in filteredTests" :key="test.id">
+                                    <div @click="addTest(test)"
+                                         class="px-4 py-3 hover:bg-amber-50 cursor-pointer border-b border-gray-100 last:border-0">
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <span class="font-mono font-medium text-gray-900" x-text="test.code"></span>
+                                                <span class="text-gray-600" x-text="' — ' + test.name"></span>
+                                            </div>
+                                            <span class="font-medium text-amber-600" x-text="'$' + parseFloat(test.price || 0).toLocaleString('es-AR', {minimumFractionDigits: 2})"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="border rounded-lg overflow-hidden max-h-96 overflow-y-auto">
+                    {{-- Tabla de determinaciones seleccionadas --}}
+                    <div x-show="testsData.length > 0" class="border rounded-lg overflow-hidden">
                         <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-amber-50 sticky top-0">
+                            <thead class="bg-amber-50">
                                 <tr>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-amber-800 uppercase w-10"></th>
                                     <th class="px-4 py-2 text-left text-xs font-medium text-amber-800 uppercase">Código</th>
                                     <th class="px-4 py-2 text-left text-xs font-medium text-amber-800 uppercase">Nombre</th>
                                     <th class="px-4 py-2 text-right text-xs font-medium text-amber-800 uppercase">Precio</th>
+                                    <th class="px-4 py-2 text-center text-xs font-medium text-amber-800 uppercase w-16">Quitar</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                @foreach($tests as $idx => $test)
-                                    <tr x-show="!testSearch || '{{ strtolower($test->code . ' ' . $test->name) }}'.includes(testSearch.toLowerCase())"
-                                        class="hover:bg-amber-50/50">
-                                        <td class="px-4 py-2">
-                                            <input type="checkbox"
-                                                   x-model="selectedTests"
-                                                   value="{{ $test->id }}"
-                                                   @change="toggleTest({{ $test->id }}, {{ $test->price ?? 0 }})"
-                                                   class="rounded border-gray-300 text-amber-600 focus:ring-amber-500">
-                                        </td>
-                                        <td class="px-4 py-2 text-sm font-mono text-gray-600">{{ $test->code }}</td>
-                                        <td class="px-4 py-2 text-sm text-gray-900">{{ $test->name }}</td>
-                                        <td class="px-4 py-2 text-sm text-right text-gray-700">
-                                            ${{ number_format($test->price ?? 0, 2, ',', '.') }}
+                                <template x-for="(t, i) in testsData" :key="t.test_id">
+                                    <tr>
+                                        <td class="px-4 py-2 text-sm font-mono text-gray-600" x-text="t.code"></td>
+                                        <td class="px-4 py-2 text-sm text-gray-900" x-text="t.name"></td>
+                                        <td class="px-4 py-2 text-sm text-right text-gray-700" x-text="'$' + parseFloat(t.price || 0).toLocaleString('es-AR', {minimumFractionDigits: 2})"></td>
+                                        <td class="px-4 py-2 text-center">
+                                            <button type="button" @click="removeTest(i)"
+                                                    class="text-red-500 hover:text-red-700" title="Quitar">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                            </button>
                                         </td>
                                     </tr>
-                                @endforeach
+                                </template>
                             </tbody>
                         </table>
                     </div>
 
-                    <template x-for="(t, i) in testsData" :key="i">
+                    <div x-show="testsData.length === 0" class="text-center py-8 text-gray-400">
+                        Buscá una determinación por código o nombre y presioná Enter para agregarla.
+                    </div>
+
+                    {{-- Hidden inputs --}}
+                    <template x-for="(t, i) in testsData" :key="'hidden-'+t.test_id">
                         <div>
                             <input type="hidden" :name="'tests['+i+'][test_id]'" :value="t.test_id">
                             <input type="hidden" :name="'tests['+i+'][price]'" :value="t.price">
@@ -191,7 +224,8 @@
                 veterinarianId: '{{ old("veterinarian_id", "") }}',
                 veterinarians: [],
                 testSearch: '',
-                selectedTests: [],
+                filteredTests: [],
+                showTestDropdown: false,
                 testsData: [],
                 totalPrice: 0,
 
@@ -209,14 +243,55 @@
                     } catch (e) { console.error(e); }
                 },
 
-                toggleTest(testId, price) {
-                    const idx = this.testsData.findIndex(t => t.test_id == testId);
-                    if (idx >= 0) {
-                        this.testsData.splice(idx, 1);
-                    } else {
-                        this.testsData.push({ test_id: testId, price: price });
+                async searchTests() {
+                    if (this.testSearch.length < 2) {
+                        this.filteredTests = [];
+                        return;
                     }
-                    this.totalPrice = this.testsData.reduce((sum, t) => sum + parseFloat(t.price || 0), 0);
+                    try {
+                        const response = await fetch(`./search-tests?q=${encodeURIComponent(this.testSearch)}`);
+                        const tests = await response.json();
+                        this.filteredTests = tests.filter(t => !this.testsData.find(td => td.test_id === t.id));
+                        this.showTestDropdown = true;
+                    } catch (error) {
+                        console.error('Error buscando tests:', error);
+                    }
+                },
+
+                selectFirstTest() {
+                    if (this.filteredTests.length > 0) {
+                        this.addTest(this.filteredTests[0]);
+                    }
+                },
+
+                addTest(test) {
+                    if (this.testsData.find(t => t.test_id === test.id)) {
+                        this.testSearch = '';
+                        this.filteredTests = [];
+                        this.showTestDropdown = false;
+                        return;
+                    }
+
+                    this.testsData.push({
+                        test_id: test.id,
+                        code: test.code,
+                        name: test.name,
+                        price: parseFloat(test.price || 0),
+                    });
+
+                    this.testSearch = '';
+                    this.filteredTests = [];
+                    this.showTestDropdown = false;
+                    this.totalPrice = this.testsData.reduce((sum, t) => sum + t.price, 0);
+
+                    this.$nextTick(() => {
+                        this.$refs.testSearchInput.focus();
+                    });
+                },
+
+                removeTest(index) {
+                    this.testsData.splice(index, 1);
+                    this.totalPrice = this.testsData.reduce((sum, t) => sum + t.price, 0);
                 },
             }
         }

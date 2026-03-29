@@ -13,7 +13,7 @@ class VetAdmission extends Model
 
     protected $fillable = [
         'protocol_number', 'date', 'customer_id', 'veterinarian_id',
-        'species_id', 'animal_name', 'owner_name', 'owner_phone',
+        'species_id', 'animal_name', 'owner_name', 'owner_phone', 'owner_email',
         'breed', 'age', 'status', 'observations', 'total_price', 'created_by',
     ];
 
