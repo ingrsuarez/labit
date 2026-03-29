@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-29 (post v1.30.1)
+> Última actualización: 2026-03-29 (post v1.18.1)
 
 ---
 
@@ -10,30 +10,29 @@
 | Campo | Valor |
 |---|---|
 | **Versión actual** | v2.7.0 / v1.30.1 |
-| **Última completada** | v1.30.1 — Reorganización del sidebar del laboratorio |
+| **Última completada** | v1.18.1 — Fix etiquetas lab por material |
 | **En proceso** | — |
-| **Próxima** | v1.18.1 — Fix etiquetas lab por material |
-| **Pendientes en cola** | 1 |
-| **Completadas** | 56 |
+| **Próxima** | — (sin prompts pendientes) |
+| **Pendientes en cola** | 0 |
+| **Completadas** | 57 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (1)
+### Pendientes (0)
 
-| Versión | Nombre | Dependencias |
-|---|---|---|
-| v1.18.1 | Fix etiquetas lab por material | ninguna |
+_No hay prompts pendientes._
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (56)
+### Completados (57)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.18.1 | Fix etiquetas lab clínico: una por material | 2026-03-29 | v1.18.1 |
 | v1.30.1 | Reorganización del sidebar del laboratorio | 2026-03-29 | v1.30.1 |
 | v1.30.0 | Sedes laboratorio y procedencia de protocolos | 2026-03-29 | v1.30.0 |
 | v1.29.0 | Libro IVA digital (AFIP RG 4597) | 2026-03-29 | v1.29.0 |
@@ -170,7 +169,7 @@ v1.0.0 (completada)
 ## Próximo paso recomendado
 
 Siguiente prompt disponible:
-**v1.18.1** — Fix etiquetas lab por material
+**(sin prompts pendientes)**
 
 ---
 
