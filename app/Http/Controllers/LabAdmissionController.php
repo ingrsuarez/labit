@@ -305,7 +305,6 @@ class LabAdmissionController extends Controller
             'patient',
             'insuranceRelation',
             'admissionTests.test.parentTests',
-            'admissionTests.test.parents',
             'admissionTests.test.materialRelation',
             'admissionTests.test.referenceValues.category',
             'creator',
@@ -905,7 +904,7 @@ class LabAdmissionController extends Controller
     {
         $this->authorize('lab-labels.print');
 
-        $admission->load(['patient', 'admissionTests.test.materialRelation', 'admissionTests.test.parents']);
+        $admission->load(['patient', 'admissionTests.test.materialRelation', 'admissionTests.test.parentTests']);
 
         $labels = $this->groupByMaterial($admission);
 
@@ -919,7 +918,7 @@ class LabAdmissionController extends Controller
     {
         $this->authorize('lab-labels.print');
 
-        $admission->load(['patient', 'admissionTests.test.materialRelation', 'admissionTests.test.parents']);
+        $admission->load(['patient', 'admissionTests.test.materialRelation', 'admissionTests.test.parentTests']);
 
         $labels = $this->groupByMaterial($admission);
 
@@ -952,7 +951,7 @@ class LabAdmissionController extends Controller
                 continue;
             }
 
-            $isChild = $test->parents->whereIn('id', $parentTestIds)->isNotEmpty();
+            $isChild = $test->parentTests->whereIn('id', $parentTestIds)->isNotEmpty();
             if ($isChild) {
                 continue;
             }

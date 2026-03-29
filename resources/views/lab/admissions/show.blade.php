@@ -1037,7 +1037,7 @@
                                 foreach ($admission->admissionTests as $at) {
                                     $test = $at->test;
                                     if (!$test || !$test->materialRelation) continue;
-                                    if ($test->parents->whereIn('id', $parentTestIds)->isNotEmpty()) continue;
+                                    if ($test->parentTests->whereIn('id', $parentTestIds)->isNotEmpty()) continue;
                                     $mid = $test->materialRelation->id;
                                     if (!isset($materialLabels[$mid])) {
                                         $materialLabels[$mid] = $test->material_abbreviation;
