@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-29 (post v1.19.1)
+> Última actualización: 2026-03-29 (post v1.19.2)
 
 ---
 
@@ -9,29 +9,38 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.7.0 / v1.19.1 |
-| **Última completada** | v1.19.1 — Fix deselección de padre en determinaciones |
+| **Versión actual** | v2.7.0 / v1.19.2 |
+| **Última completada** | v1.19.2 — Fix validación y PDF para resultados con valor cero |
 | **En proceso** | — |
-| **Próxima** | — (cola vacía) |
-| **Pendientes en cola** | 0 |
-| **Completadas** | 42 |
+| **Próxima** | v1.20.0 — Infraestructura veterinaria base |
+| **Pendientes en cola** | 7 |
+| **Completadas** | 43 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (0)
+### Pendientes (7)
 
-_Sin prompts pendientes._
+| Versión | Nombre | Dependencias |
+|---|---|---|
+| v1.20.0 | Infraestructura veterinaria base | ninguna |
+| v1.21.0 | Tipificación de Customers + CRUD de Veterinarios | v1.20.0 |
+| v1.22.0 | Valores de referencia por especie | v1.20.0 |
+| v1.23.0 | Nuevo formato de numeración de protocolos | v1.20.0 |
+| v1.24.0 | Protocolo veterinario (VetAdmission) | v1.20.0, v1.21.0, v1.22.0, v1.23.0 |
+| v1.25.0 | PDF resultados veterinarios + envío email | v1.24.0 |
+| v1.26.0 | Búsqueda de protocolos por dueño/animal | v1.24.0 |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (42)
+### Completados (43)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.19.2 | Fix validación y PDF para resultados con valor cero | 2026-03-29 | v1.19.2 |
 | v1.19.1 | Fix deselección de padre en determinaciones | 2026-03-29 | v1.19.1 |
 | v1.19.0 | Consulta de padrón AFIP por CUIT | 2026-03-28 | v1.19.0 |
 | v1.18.0 | Etiquetas de protocolo para laboratorio clínico | 2026-03-27 | v1.18.0 |
@@ -141,7 +150,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-La cola de prompts está vacía. Planificar nuevas versiones con el Agente PM.
+Siguiente prompt disponible: **v1.20.0 — Infraestructura veterinaria base** (sin dependencias).
 
 ---
 
