@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\VetAdmissionResultMail;
 use App\Models\Customer;
+use App\Models\LabSetting;
 use App\Models\Species;
 use App\Models\Test;
 use App\Models\VetAdmission;
 use App\Models\VetAdmissionTest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use PDF;
 
 class VetAdmissionController extends Controller
 {
@@ -226,6 +230,107 @@ class VetAdmissionController extends Controller
         return response()->json(
             $customer->veterinarians()->where('is_active', true)->get(['id', 'name', 'matricula'])
         );
+    }
+
+    public function downloadPdf(VetAdmission $vetAdmission)
+    {
+        $validatedCount = $vetAdmission->vetTests()->where('is_validated', true)->count();
+        if ($validatedCount === 0) {
+            return back()->with('error', 'Debe validar al menos una determinación para descargar el informe.');
+        }
+
+        $vetAdmission->load([
+            'customer', 'veterinarian', 'species',
+            'vetTests.test.parentTests', 'vetTests.test.childTests',
+        ]);
+
+        $validatorId = $vetAdmission->vetTests
+            ->where('is_validated', true)
+            ->pluck('validated_by')
+            ->countBy()->sortDesc()->keys()->first();
+        $validator = $validatorId ? \App\Models\User::find($validatorId) : null;
+
+        $pdf = PDF::loadView('vet.admissions.pdf-mpdf', compact('vetAdmission', 'validator'), [], [
+            'margin_top' => 35,
+            'margin_bottom' => 20,
+            'margin_left' => 15,
+            'margin_right' => 15,
+        ]);
+
+        return $pdf->download($this->generatePdfFilename($vetAdmission));
+    }
+
+    public function viewPdf(VetAdmission $vetAdmission)
+    {
+        $validatedCount = $vetAdmission->vetTests()->where('is_validated', true)->count();
+        if ($validatedCount === 0) {
+            return back()->with('error', 'Debe validar al menos una determinación para ver el informe.');
+        }
+
+        $vetAdmission->load([
+            'customer', 'veterinarian', 'species',
+            'vetTests.test.parentTests', 'vetTests.test.childTests',
+        ]);
+
+        $validatorId = $vetAdmission->vetTests
+            ->where('is_validated', true)
+            ->pluck('validated_by')
+            ->countBy()->sortDesc()->keys()->first();
+        $validator = $validatorId ? \App\Models\User::find($validatorId) : null;
+
+        $pdf = PDF::loadView('vet.admissions.pdf-mpdf', compact('vetAdmission', 'validator'), [], [
+            'margin_top' => 35,
+            'margin_bottom' => 20,
+            'margin_left' => 15,
+            'margin_right' => 15,
+        ]);
+
+        return $pdf->stream($this->generatePdfFilename($vetAdmission));
+    }
+
+    public function sendEmail(Request $request, VetAdmission $vetAdmission)
+    {
+        $validatedCount = $vetAdmission->vetTests()->where('is_validated', true)->count();
+        if ($validatedCount === 0) {
+            return back()->with('error', 'Debe validar al menos una determinación para enviar el informe.');
+        }
+
+        $validated = $request->validate([
+            'email' => 'required|email',
+            'message' => 'nullable|string',
+        ]);
+
+        $fromEmail = LabSetting::get('results_email', config('mail.from.address'));
+        $fromName = LabSetting::get('results_from_name', config('mail.from.name'));
+
+        Mail::mailer('smtp')
+            ->to($validated['email'])
+            ->send(
+                (new VetAdmissionResultMail($vetAdmission, $validated['message'] ?? null))
+                    ->from($fromEmail, $fromName)
+            );
+
+        return back()->with('success', 'Informe enviado correctamente a '.$validated['email']);
+    }
+
+    private function generatePdfFilename(VetAdmission $vetAdmission): string
+    {
+        $parts = [
+            'LabVeterinario',
+            $vetAdmission->animal_name,
+            $vetAdmission->species->name ?? 'SinEspecie',
+            $vetAdmission->date ? $vetAdmission->date->format('Y-m-d') : now()->format('Y-m-d'),
+        ];
+
+        $sanitized = collect($parts)->map(function ($part) {
+            $clean = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $part);
+            $clean = preg_replace('/[^A-Za-z0-9_-]/', '_', $clean);
+            $clean = preg_replace('/_+/', '_', $clean);
+
+            return trim($clean, '_');
+        })->implode('-');
+
+        return $sanitized.'.'.$vetAdmission->protocol_number.'.pdf';
     }
 
     /**

@@ -1,5 +1,5 @@
 <x-lab-layout title="Protocolo {{ $vetAdmission->protocol_number }}">
-    <div class="py-6 px-4 md:px-6 lg:px-8 mt-14 md:mt-0">
+    <div class="py-6 px-4 md:px-6 lg:px-8 mt-14 md:mt-0" x-data="{ showEmailModal: false }">
         <div class="mb-6">
             <a href="{{ route('vet.admissions.index') }}" class="text-amber-600 hover:text-amber-800 text-sm flex items-center mb-2">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -7,17 +7,31 @@
                 </svg>
                 Volver a Protocolos
             </a>
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between flex-wrap gap-3">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">Protocolo {{ $vetAdmission->protocol_number }}</h1>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ $vetAdmission->status_color }}-100 text-{{ $vetAdmission->status_color }}-800 mt-1">
                         {{ $vetAdmission->status_label }}
                     </span>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex gap-2 flex-wrap">
+                    @if($vetAdmission->vetTests->where('is_validated', true)->count() > 0)
+                        <a href="{{ route('vet.admissions.viewPdf', $vetAdmission) }}" target="_blank"
+                           class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+                            Ver PDF
+                        </a>
+                        <a href="{{ route('vet.admissions.downloadPdf', $vetAdmission) }}"
+                           class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
+                            Descargar PDF
+                        </a>
+                        <button @click="showEmailModal = true" type="button"
+                                class="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-sm font-medium">
+                            Enviar por Email
+                        </button>
+                    @endif
                     <form action="{{ route('vet.admissions.validateAll', $vetAdmission) }}" method="POST">
                         @csrf
-                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
+                        <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-medium">
                             Validar Todos
                         </button>
                     </form>
@@ -169,6 +183,60 @@
                     </button>
                 </div>
             </form>
+        </div>
+
+        {{-- Modal de envío de email --}}
+        <div x-show="showEmailModal" x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+             @keydown.escape.window="showEmailModal = false">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6" @click.outside="showEmailModal = false">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Enviar Resultados por Email</h3>
+                <form action="{{ route('vet.admissions.sendEmail', $vetAdmission) }}" method="POST">
+                    @csrf
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email destinatario *</label>
+                            <input type="email" name="email" required
+                                   value="{{ $vetAdmission->customer->email ?? '' }}"
+                                   class="w-full border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                                   placeholder="email@ejemplo.com">
+                            @if($vetAdmission->customer->email || $vetAdmission->veterinarian?->email)
+                                <div class="mt-1 flex flex-wrap gap-1">
+                                    @if($vetAdmission->customer->email)
+                                        <button type="button"
+                                                onclick="this.closest('form').querySelector('input[name=email]').value='{{ $vetAdmission->customer->email }}'"
+                                                class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded hover:bg-gray-200">
+                                            {{ $vetAdmission->customer->name }}: {{ $vetAdmission->customer->email }}
+                                        </button>
+                                    @endif
+                                    @if($vetAdmission->veterinarian?->email)
+                                        <button type="button"
+                                                onclick="this.closest('form').querySelector('input[name=email]').value='{{ $vetAdmission->veterinarian->email }}'"
+                                                class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded hover:bg-gray-200">
+                                            {{ $vetAdmission->veterinarian->name }}: {{ $vetAdmission->veterinarian->email }}
+                                        </button>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mensaje personalizado</label>
+                            <textarea name="message" rows="3"
+                                      class="w-full border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                                      placeholder="Mensaje opcional para incluir en el email..."></textarea>
+                        </div>
+                    </div>
+                    <div class="mt-5 flex justify-end gap-3">
+                        <button type="button" @click="showEmailModal = false"
+                                class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700">
+                            Enviar
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </x-lab-layout>
