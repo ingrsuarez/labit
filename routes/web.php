@@ -216,6 +216,9 @@ Route::middleware([
         Route::get('admissions/{vetAdmission}', [App\Http\Controllers\VetAdmissionController::class, 'show'])->name('vet.admissions.show');
 
         Route::post('admissions/{vetAdmission}/results', [App\Http\Controllers\VetAdmissionController::class, 'loadResults'])->name('vet.admissions.loadResults');
+        Route::get('admissions/{vetAdmission}/pdf', [App\Http\Controllers\VetAdmissionController::class, 'downloadPdf'])->name('vet.admissions.downloadPdf');
+        Route::get('admissions/{vetAdmission}/pdf/view', [App\Http\Controllers\VetAdmissionController::class, 'viewPdf'])->name('vet.admissions.viewPdf');
+        Route::post('admissions/{vetAdmission}/send-email', [App\Http\Controllers\VetAdmissionController::class, 'sendEmail'])->name('vet.admissions.sendEmail');
         Route::post('admissions/{vetAdmission}/validate/{vetAdmissionTest}', [App\Http\Controllers\VetAdmissionController::class, 'validateTest'])->name('vet.admissions.validateTest');
         Route::post('admissions/{vetAdmission}/unvalidate/{vetAdmissionTest}', [App\Http\Controllers\VetAdmissionController::class, 'unvalidateTest'])->name('vet.admissions.unvalidateTest');
         Route::post('admissions/{vetAdmission}/validate-all', [App\Http\Controllers\VetAdmissionController::class, 'validateAll'])->name('vet.admissions.validateAll');
