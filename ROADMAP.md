@@ -74,6 +74,14 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
+| v1.19.2 | Fix validación y PDF para resultados con valor cero | 1h | ninguna | `pendientes/v1.19.2-fix-validacion-resultados-cero.md` |
+| v1.20.0 | Infraestructura veterinaria base | 2h | ninguna | `v1.20.0_infra-veterinaria-base.md` |
+| v1.21.0 | Tipificación de Customers + CRUD de Veterinarios | 2h | v1.20.0 | `v1.21.0_tipificacion-customers-veterinarios.md` |
+| v1.22.0 | Valores de referencia por especie | 1.5h | v1.20.0 | `v1.22.0_ref-values-por-especie.md` |
+| v1.23.0 | Nuevo formato de numeración de protocolos | 1h | v1.20.0 | `v1.23.0_formato-numeracion-protocolos.md` |
+| v1.24.0 | Protocolo veterinario (VetAdmission) | medio día | v1.20.0, v1.21.0, v1.22.0, v1.23.0 | `v1.24.0_protocolo-veterinario.md` |
+| v1.25.0 | PDF resultados veterinarios + envío email | 2h | v1.24.0 | `v1.25.0_pdf-email-veterinario.md` |
+| v1.26.0 | Búsqueda de protocolos por dueño/animal | 1h | v1.24.0 | `v1.26.0_busqueda-vet-duenio-animal.md` |
 
 ---
 
@@ -91,9 +99,9 @@
 
 ```
 Completadas:  43 versiones (v1.0.0 → v2.7.0)
-Planificadas: 0
+Planificadas: 8 (v1.19.2, v1.20.0 → v1.26.0)
 En proceso:   0
-Próxima:      — (cola vacía, planificar nuevas versiones)
+Próxima:      v1.19.2 — Fix validación y PDF para resultados con valor cero
 ```
 
 ---
