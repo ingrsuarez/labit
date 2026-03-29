@@ -128,6 +128,37 @@
             </div>
         @endif
 
+        @if($invoice->cae)
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+                <h4 class="text-sm font-semibold text-indigo-800 mb-2 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                    </svg>
+                    Datos fiscales (QR)
+                </h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    <div>
+                        <span class="text-gray-500">CAE:</span>
+                        <span class="font-medium">{{ $invoice->cae }}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">CUIT Emisor:</span>
+                        <span class="font-medium">{{ $invoice->cuit_emisor }}</span>
+                    </div>
+                    @if($invoice->qr_data)
+                        <div>
+                            <span class="text-gray-500">Fecha QR:</span>
+                            <span class="font-medium">{{ $invoice->qr_data['fecha'] ?? '-' }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Importe QR:</span>
+                            <span class="font-medium">${{ number_format($invoice->qr_data['importe'] ?? 0, 2, ',', '.') }}</span>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        @endif
+
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
             <div class="px-4 py-3 border-b border-gray-200">
                 <h2 class="text-lg font-semibold text-gray-800">Ítems de la Factura</h2>

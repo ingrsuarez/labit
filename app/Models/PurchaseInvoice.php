@@ -15,6 +15,7 @@ class PurchaseInvoice extends Model
         'delivery_note_id', 'purchase_order_id', 'issue_date', 'due_date',
         'subtotal', 'iva_21', 'iva_10_5', 'iva_27', 'percepciones', 'otros_impuestos',
         'total', 'amount_paid', 'balance', 'status', 'notes', 'created_by',
+        'cae', 'cuit_emisor', 'qr_data',
     ];
 
     protected $casts = [
@@ -22,6 +23,7 @@ class PurchaseInvoice extends Model
         'subtotal' => 'decimal:2', 'iva_21' => 'decimal:2', 'iva_10_5' => 'decimal:2',
         'iva_27' => 'decimal:2', 'percepciones' => 'decimal:2', 'otros_impuestos' => 'decimal:2',
         'total' => 'decimal:2', 'amount_paid' => 'decimal:2', 'balance' => 'decimal:2',
+        'qr_data' => 'array',
     ];
 
     public function company(): BelongsTo
