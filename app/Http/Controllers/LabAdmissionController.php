@@ -680,7 +680,7 @@ class LabAdmissionController extends Controller
     public function validateTest(Request $request, Admission $admission, AdmissionTest $admissionTest)
     {
         $this->authorize('lab-results.validate');
-        if (! $admissionTest->result) {
+        if (! $admissionTest->hasResult()) {
             return redirect()->back()->with('error', 'No se puede validar una práctica sin resultado.');
         }
 
@@ -720,7 +720,7 @@ class LabAdmissionController extends Controller
         $this->authorize('lab-results.validate');
         $count = 0;
         foreach ($admission->admissionTests as $admissionTest) {
-            if ($admissionTest->result && ! $admissionTest->is_validated) {
+            if ($admissionTest->hasResult() && ! $admissionTest->is_validated) {
                 $admissionTest->update([
                     'is_validated' => true,
                     'validated_by' => auth()->id(),

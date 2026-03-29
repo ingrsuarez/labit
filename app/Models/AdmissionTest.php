@@ -159,6 +159,11 @@ class AdmissionTest extends Model
         return $query->where('paid_by_patient', true);
     }
 
+    public function hasResult(): bool
+    {
+        return $this->result !== null && $this->result !== '';
+    }
+
     /**
      * Scope para prácticas pagadas por obra social
      */
