@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Traits\Auditable;
+use App\Traits\GeneratesProtocolNumber;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Admission extends Model
 {
-    use Auditable, HasFactory;
+    use Auditable, HasFactory, GeneratesProtocolNumber;
 
     protected $fillable = [
         'date',
@@ -74,21 +75,7 @@ class Admission extends Model
      */
     public static function generateProtocolNumber(): string
     {
-        $year = date('Y');
-        $lastAdmission = self::whereYear('date', $year)
-            ->whereNotNull('protocol_number')
-            ->orderBy('id', 'desc')
-            ->first();
-
-        if ($lastAdmission && $lastAdmission->protocol_number) {
-            $parts = explode('-', $lastAdmission->protocol_number);
-            $lastNumber = (int) end($parts);
-            $newNumber = $lastNumber + 1;
-        } else {
-            $newNumber = 1;
-        }
-
-        return $year.'-'.str_pad($newNumber, 6, '0', STR_PAD_LEFT);
+        return static::generatePrefixedProtocolNumber('C');
     }
 
     /**
