@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-28 (post v1.19.0)
+> Última actualización: 2026-03-29 (post v1.19.1)
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.7.0 / v1.19.0 |
-| **Última completada** | v1.19.0 — Consulta de padrón AFIP por CUIT |
+| **Versión actual** | v2.7.0 / v1.19.1 |
+| **Última completada** | v1.19.1 — Fix deselección de padre en determinaciones |
 | **En proceso** | — |
 | **Próxima** | — (cola vacía) |
 | **Pendientes en cola** | 0 |
-| **Completadas** | 41 |
+| **Completadas** | 42 |
 
 ---
 
@@ -28,10 +28,11 @@ _Sin prompts pendientes._
 
 _Sin prompts en ejecución._
 
-### Completados (41)
+### Completados (42)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.19.1 | Fix deselección de padre en determinaciones | 2026-03-29 | v1.19.1 |
 | v1.19.0 | Consulta de padrón AFIP por CUIT | 2026-03-28 | v1.19.0 |
 | v1.18.0 | Etiquetas de protocolo para laboratorio clínico | 2026-03-27 | v1.18.0 |
 | v1.17.0 | Fix impresión de etiquetas Zebra | 2026-03-26 | v1.17.0 |

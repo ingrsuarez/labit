@@ -5,6 +5,20 @@
 
 ---
 
+## [v1.19.1] — 2026-03-29 — Fix deselección de padre en determinaciones
+
+### Corregido
+- Selector de padres en modales crear y editar: reemplazado `<select multiple>` por lista de checkboxes para permitir click simple de selección/deselección (antes requería Ctrl+Click)
+- Función `filterParentOptions()` actualizada para operar sobre labels con `data-search` en vez de options de select
+- Función `openEditModal()` actualizada para marcar/desmarcar checkboxes en vez de options
+
+### Notas
+- Sin cambios de backend: los checkboxes con `name="parent_ids[]"` envían el mismo formato que el select multiple
+- UX mejorada: los usuarios ya no necesitan conocer el atajo Ctrl+Click para deseleccionar padres
+- Buscador de padres funciona igual que antes, filtrando las opciones visibles
+
+---
+
 ## [v1.19.0] — 2026-03-28 — Consulta de padrón AFIP por CUIT
 
 ### Agregado
