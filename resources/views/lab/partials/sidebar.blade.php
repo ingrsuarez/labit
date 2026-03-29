@@ -46,19 +46,6 @@
             </a>
             @endcan
 
-            @can('lab-admissions.index')
-            <a href="{{ route('lab.debtors') }}"
-               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('lab.debtors')
-                    ? 'bg-teal-600 text-white'
-                    : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                Deudores
-            </a>
-            @endcan
-
             @can('samples.index')
             <a href="{{ route('lab.section.muestras') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
@@ -72,20 +59,6 @@
             </a>
             @endcan
 
-            <a href="{{ route('worksheets.index') }}"
-               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('worksheets.*')
-                    ? 'bg-teal-600 text-white'
-                    : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-                </svg>
-                Planillas de Trabajo
-            </a>
-
-            <!-- Separador veterinario -->
-            <div class="border-t border-teal-600 my-2"></div>
-
             <a href="{{ route('lab.section.veterinario') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
                 {{ request()->routeIs('lab.section.veterinario') || request()->routeIs('species.*') || request()->routeIs('vet.*')
@@ -97,17 +70,31 @@
                 Lab. Veterinario
             </a>
 
-            <a href="{{ route('lab.section.configuracion') }}"
+            <div class="my-3 border-t border-gray-200"></div>
+
+            <a href="{{ route('worksheets.index') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('lab.section.configuracion') || request()->routeIs('tests.*') || request()->routeIs('reference-categories.*') || request()->routeIs('materials.*') || request()->routeIs('services.*') || request()->routeIs('nomenclator.*') || request()->routeIs('lab-branches.*')
+                {{ request()->routeIs('worksheets.*')
                     ? 'bg-teal-600 text-white'
                     : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                 </svg>
-                Configuración
+                Planillas de Trabajo
             </a>
+
+            @can('lab-admissions.index')
+            <a href="{{ route('lab.debtors') }}"
+               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                {{ request()->routeIs('lab.debtors')
+                    ? 'bg-teal-600 text-white'
+                    : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Saldos
+            </a>
+            @endcan
 
             <a href="{{ route('lab-branches.index') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
@@ -119,6 +106,18 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
                 Sedes
+            </a>
+
+            <a href="{{ route('lab.section.configuracion') }}"
+               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                {{ request()->routeIs('lab.section.configuracion') || request()->routeIs('tests.*') || request()->routeIs('reference-categories.*') || request()->routeIs('materials.*') || request()->routeIs('services.*') || request()->routeIs('nomenclator.*')
+                    ? 'bg-teal-600 text-white'
+                    : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Configuración
             </a>
 
         </nav>
