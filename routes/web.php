@@ -345,6 +345,12 @@ Route::middleware([
         Route::post('customer', [App\Http\Controllers\CustomerController::class, 'store'])->name('customer.store');
         Route::get('customer/{customer}/edit', [App\Http\Controllers\CustomerController::class, 'edit'])->name('customer.edit');
         Route::put('customer/{customer}', [App\Http\Controllers\CustomerController::class, 'update'])->name('customer.update');
+
+        // Veterinarios anidados en customer
+        Route::get('customer/{customer}/veterinarians', [App\Http\Controllers\VeterinarianController::class, 'index'])->name('customer.veterinarians.index');
+        Route::post('customer/{customer}/veterinarians', [App\Http\Controllers\VeterinarianController::class, 'store'])->name('customer.veterinarians.store');
+        Route::put('customer/{customer}/veterinarians/{veterinarian}', [App\Http\Controllers\VeterinarianController::class, 'update'])->name('customer.veterinarians.update');
+        Route::delete('customer/{customer}/veterinarians/{veterinarian}', [App\Http\Controllers\VeterinarianController::class, 'destroy'])->name('customer.veterinarians.destroy');
     });
 
     // SERVICES (Servicios adicionales)
@@ -352,6 +358,9 @@ Route::middleware([
     Route::post('services', [App\Http\Controllers\ServiceController::class, 'store'])->name('services.store');
     Route::put('services/{service}', [App\Http\Controllers\ServiceController::class, 'update'])->name('services.update');
     Route::delete('services/{service}', [App\Http\Controllers\ServiceController::class, 'destroy'])->name('services.destroy');
+
+    // API: Veterinarios de un customer (accesible desde cualquier módulo autenticado)
+    Route::get('api/customer/{customer}/veterinarians', [App\Http\Controllers\VeterinarianController::class, 'index'])->name('api.customer.veterinarians');
 
     // QUOTES (Presupuestos)
     Route::get('quotes/search-tests', [App\Http\Controllers\QuoteController::class, 'searchTests'])->name('quotes.searchTests');

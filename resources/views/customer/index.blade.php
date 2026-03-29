@@ -37,10 +37,21 @@
                         <option value="inactivo" {{ request('status') == 'inactivo' ? 'selected' : '' }}>Inactivo</option>
                     </select>
                 </div>
+                <div>
+                    <select name="type" class="rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
+                        <option value="">Todos los tipos</option>
+                        <option value="obra_social" {{ request('type') == 'obra_social' ? 'selected' : '' }}>Obra Social</option>
+                        <option value="aguas" {{ request('type') == 'aguas' ? 'selected' : '' }}>Aguas y Alimentos</option>
+                        <option value="veterinario" {{ request('type') == 'veterinario' ? 'selected' : '' }}>Veterinario</option>
+                        <option value="clinico" {{ request('type') == 'clinico' ? 'selected' : '' }}>Clínico</option>
+                        <option value="particular" {{ request('type') == 'particular' ? 'selected' : '' }}>Particular</option>
+                        <option value="laborales" {{ request('type') == 'laborales' ? 'selected' : '' }}>Laborales</option>
+                    </select>
+                </div>
                 <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
                     Buscar
                 </button>
-                @if(request()->hasAny(['search', 'status']))
+                @if(request()->hasAny(['search', 'status', 'type']))
                     <a href="{{ route('customer.index') }}" class="px-4 py-2 text-gray-600 hover:text-gray-800">
                         Limpiar
                     </a>
@@ -66,6 +77,9 @@
                             Ubicación
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Tipo
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Estado
                         </th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -89,6 +103,33 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ $customer->city ?? '-' }}{{ $customer->state ? ', ' . $customer->state : '' }}
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <div class="flex flex-wrap gap-1">
+                                    @foreach($customer->type ?? [] as $t)
+                                        @php
+                                            $colors = [
+                                                'obra_social' => 'bg-blue-100 text-blue-800',
+                                                'aguas' => 'bg-cyan-100 text-cyan-800',
+                                                'veterinario' => 'bg-amber-100 text-amber-800',
+                                                'clinico' => 'bg-purple-100 text-purple-800',
+                                                'particular' => 'bg-gray-100 text-gray-800',
+                                                'laborales' => 'bg-green-100 text-green-800',
+                                            ];
+                                            $labels = [
+                                                'obra_social' => 'OS',
+                                                'aguas' => 'Aguas',
+                                                'veterinario' => 'Vet',
+                                                'clinico' => 'Clínico',
+                                                'particular' => 'Part.',
+                                                'laborales' => 'Lab.',
+                                            ];
+                                        @endphp
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $colors[$t] ?? 'bg-gray-100 text-gray-800' }}">
+                                            {{ $labels[$t] ?? $t }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                     {{ $customer->status == 'activo' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
@@ -103,7 +144,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                            <td colspan="7" class="px-6 py-12 text-center text-gray-500">
                                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                 </svg>

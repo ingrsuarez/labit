@@ -300,6 +300,27 @@
                         </div>
                         <p class="text-xs text-gray-500 mt-1">Descuento general aplicado al precio de cada determinación</p>
                     </div>
+
+                    <div class="md:col-span-2 lg:col-span-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Cliente</label>
+                        <div class="flex flex-wrap gap-4">
+                            @foreach(['obra_social' => 'Obra Social', 'aguas' => 'Aguas y Alimentos', 'veterinario' => 'Veterinario', 'clinico' => 'Clínico', 'particular' => 'Particular', 'laborales' => 'Laborales'] as $key => $label)
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" name="type[]" value="{{ $key }}"
+                                           class="rounded border-gray-300 text-zinc-600 focus:ring-zinc-500"
+                                           {{ in_array($key, old('type', ['aguas'])) ? 'checked' : '' }}>
+                                    <span class="text-sm text-gray-700">{{ $label }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">Seleccionar uno o más tipos</p>
+                    </div>
+
+                    <div class="md:col-span-2 lg:col-span-3" x-show="false" x-cloak>
+                        <p class="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+                            Podrá agregar veterinarios después de crear el cliente.
+                        </p>
+                    </div>
                 </div>
             </div>
 
