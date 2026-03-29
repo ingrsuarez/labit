@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DeliveryNote;
 use App\Models\PurchaseInvoice;
 use App\Models\PurchaseOrder;
+use App\Models\StockMovement;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 
@@ -87,12 +88,17 @@ class PurchaseInvoiceController extends Controller
             'percepciones' => 'nullable|numeric|min:0',
             'otros_impuestos' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
+            'cae' => 'nullable|string|max:20',
+            'cuit_emisor' => 'nullable|string|max:13',
+            'qr_data' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string',
             'items.*.supply_id' => 'nullable|exists:supplies,id',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.iva_rate' => 'required|in:0,10.5,21,27',
+            'items.*.lot_number' => 'nullable|string|max:50',
+            'items.*.expiration_date' => 'nullable|date',
         ], [
             'invoice_number.required' => 'El número de factura es obligatorio.',
             'voucher_type.required' => 'El tipo de comprobante es obligatorio.',
@@ -130,6 +136,9 @@ class PurchaseInvoiceController extends Controller
             'percepciones' => $validated['percepciones'] ?? 0,
             'otros_impuestos' => $validated['otros_impuestos'] ?? 0,
             'notes' => $validated['notes'] ?? null,
+            'cae' => $validated['cae'] ?? null,
+            'cuit_emisor' => $validated['cuit_emisor'] ?? null,
+            'qr_data' => isset($validated['qr_data']) ? json_decode($validated['qr_data'], true) : null,
             'status' => 'pendiente',
             'amount_paid' => 0,
             'created_by' => auth()->id(),
@@ -147,10 +156,44 @@ class PurchaseInvoiceController extends Controller
                 'iva_rate' => $itemData['iva_rate'],
                 'iva_amount' => $ivaAmount,
                 'total' => $total,
+                'lot_number' => $itemData['lot_number'] ?? null,
+                'expiration_date' => $itemData['expiration_date'] ?? null,
             ]);
         }
 
         $invoice->recalculate();
+
+        if (! $invoice->delivery_note_id) {
+            foreach ($invoice->items()->whereNotNull('supply_id')->get() as $item) {
+                $supply = $item->supply;
+                if (! $supply) {
+                    continue;
+                }
+
+                $previousStock = $supply->stock;
+                $newStock = $previousStock + $item->quantity;
+
+                StockMovement::create([
+                    'supply_id' => $supply->id,
+                    'type' => 'entrada',
+                    'quantity' => $item->quantity,
+                    'previous_stock' => $previousStock,
+                    'new_stock' => $newStock,
+                    'reason' => 'compra',
+                    'reference_type' => PurchaseInvoice::class,
+                    'reference_id' => $invoice->id,
+                    'lot_number' => $item->lot_number,
+                    'expiration_date' => $item->expiration_date,
+                    'notes' => "Factura de compra {$invoice->full_number}",
+                    'user_id' => auth()->id(),
+                ]);
+
+                $supply->update([
+                    'stock' => $newStock,
+                    'last_price' => $item->unit_price,
+                ]);
+            }
+        }
 
         return redirect()->route('purchase-invoices.show', $invoice)
             ->with('success', 'Factura '.$invoice->full_number.' creada correctamente.');
@@ -213,12 +256,17 @@ class PurchaseInvoiceController extends Controller
             'percepciones' => 'nullable|numeric|min:0',
             'otros_impuestos' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
+            'cae' => 'nullable|string|max:20',
+            'cuit_emisor' => 'nullable|string|max:13',
+            'qr_data' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string',
             'items.*.supply_id' => 'nullable|exists:supplies,id',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.iva_rate' => 'required|in:0,10.5,21,27',
+            'items.*.lot_number' => 'nullable|string|max:50',
+            'items.*.expiration_date' => 'nullable|date',
         ], [
             'invoice_number.required' => 'El número de factura es obligatorio.',
             'voucher_type.required' => 'El tipo de comprobante es obligatorio.',
@@ -255,6 +303,9 @@ class PurchaseInvoiceController extends Controller
             'percepciones' => $validated['percepciones'] ?? 0,
             'otros_impuestos' => $validated['otros_impuestos'] ?? 0,
             'notes' => $validated['notes'] ?? null,
+            'cae' => $validated['cae'] ?? null,
+            'cuit_emisor' => $validated['cuit_emisor'] ?? null,
+            'qr_data' => isset($validated['qr_data']) ? json_decode($validated['qr_data'], true) : null,
         ]);
 
         $purchaseInvoice->items()->delete();
@@ -271,6 +322,8 @@ class PurchaseInvoiceController extends Controller
                 'iva_rate' => $itemData['iva_rate'],
                 'iva_amount' => $ivaAmount,
                 'total' => $total,
+                'lot_number' => $itemData['lot_number'] ?? null,
+                'expiration_date' => $itemData['expiration_date'] ?? null,
             ]);
         }
 
@@ -292,6 +345,21 @@ class PurchaseInvoiceController extends Controller
         }
 
         $fullNumber = $purchaseInvoice->full_number;
+
+        if (! $purchaseInvoice->delivery_note_id) {
+            $movements = StockMovement::where('reference_type', PurchaseInvoice::class)
+                ->where('reference_id', $purchaseInvoice->id)
+                ->get();
+
+            foreach ($movements as $movement) {
+                $supply = $movement->supply;
+                if ($supply) {
+                    $supply->decrement('stock', $movement->quantity);
+                }
+                $movement->delete();
+            }
+        }
+
         $purchaseInvoice->delete();
 
         return redirect()->route('purchase-invoices.index')

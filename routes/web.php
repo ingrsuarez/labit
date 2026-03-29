@@ -212,6 +212,7 @@ Route::middleware([
     Route::prefix('vet')->group(function () {
         Route::get('admissions', [App\Http\Controllers\VetAdmissionController::class, 'index'])->name('vet.admissions.index');
         Route::get('admissions/create', [App\Http\Controllers\VetAdmissionController::class, 'create'])->name('vet.admissions.create');
+        Route::get('admissions/search-tests', [App\Http\Controllers\VetAdmissionController::class, 'searchTests'])->name('vet.admissions.searchTests');
         Route::post('admissions', [App\Http\Controllers\VetAdmissionController::class, 'store'])->name('vet.admissions.store');
         Route::get('admissions/{vetAdmission}', [App\Http\Controllers\VetAdmissionController::class, 'show'])->name('vet.admissions.show');
 
@@ -300,6 +301,7 @@ Route::middleware([
 
         // SUPPLIERS (Proveedores)
         Route::get('suppliers/search', [App\Http\Controllers\SupplierController::class, 'search'])->name('suppliers.search');
+        Route::get('suppliers/by-cuit/{cuit}', [App\Http\Controllers\SupplierController::class, 'findByCuit'])->name('suppliers.by-cuit');
         Route::resource('suppliers', App\Http\Controllers\SupplierController::class);
 
         // SUPPLY CATEGORIES (Categorías de Insumos)

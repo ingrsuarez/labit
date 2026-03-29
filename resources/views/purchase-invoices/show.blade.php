@@ -27,6 +27,22 @@
             <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{{ session('error') }}</div>
         @endif
 
+        @if(!$invoice->delivery_note_id && $invoice->items->whereNotNull('supply_id')->count() > 0)
+            <div class="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-2 mb-6">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                <span>Esta factura generó entrada de stock para {{ $invoice->items->whereNotNull('supply_id')->count() }} insumo(s).</span>
+            </div>
+        @elseif($invoice->delivery_note_id)
+            <div class="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 mb-6">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/>
+                </svg>
+                <span>El stock fue actualizado por el remito asociado.</span>
+            </div>
+        @endif
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
                 <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Datos del Comprobante</h3>
@@ -109,6 +125,37 @@
         @if($invoice->notes)
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
                 <p class="text-sm text-gray-600"><span class="font-medium">Notas:</span> {{ $invoice->notes }}</p>
+            </div>
+        @endif
+
+        @if($invoice->cae)
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+                <h4 class="text-sm font-semibold text-indigo-800 mb-2 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                    </svg>
+                    Datos fiscales (QR)
+                </h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    <div>
+                        <span class="text-gray-500">CAE:</span>
+                        <span class="font-medium">{{ $invoice->cae }}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">CUIT Emisor:</span>
+                        <span class="font-medium">{{ $invoice->cuit_emisor }}</span>
+                    </div>
+                    @if($invoice->qr_data)
+                        <div>
+                            <span class="text-gray-500">Fecha QR:</span>
+                            <span class="font-medium">{{ $invoice->qr_data['fecha'] ?? '-' }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Importe QR:</span>
+                            <span class="font-medium">${{ number_format($invoice->qr_data['importe'] ?? 0, 2, ',', '.') }}</span>
+                        </div>
+                    @endif
+                </div>
             </div>
         @endif
 
