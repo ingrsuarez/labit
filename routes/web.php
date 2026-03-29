@@ -376,6 +376,11 @@ Route::middleware([
         Route::post('customer/{customer}/veterinarians', [App\Http\Controllers\VeterinarianController::class, 'store'])->name('customer.veterinarians.store');
         Route::put('customer/{customer}/veterinarians/{veterinarian}', [App\Http\Controllers\VeterinarianController::class, 'update'])->name('customer.veterinarians.update');
         Route::delete('customer/{customer}/veterinarians/{veterinarian}', [App\Http\Controllers\VeterinarianController::class, 'destroy'])->name('customer.veterinarians.destroy');
+
+        // LIBRO IVA DIGITAL
+        Route::get('libro-iva', [App\Http\Controllers\LibroIvaController::class, 'index'])->name('libro-iva.index');
+        Route::post('libro-iva/preview', [App\Http\Controllers\LibroIvaController::class, 'preview'])->name('libro-iva.preview');
+        Route::post('libro-iva/download', [App\Http\Controllers\LibroIvaController::class, 'download'])->name('libro-iva.download');
     });
 
     // SERVICES (Servicios adicionales)
