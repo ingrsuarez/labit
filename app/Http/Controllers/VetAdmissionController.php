@@ -72,12 +72,27 @@ class VetAdmissionController extends Controller
     {
         $customers = Customer::whereJsonContains('type', 'veterinario')->orderBy('name')->get();
         $species = Species::where('is_active', true)->orderBy('name')->get();
-        $tests = Test::whereJsonContains('categories', 'veterinario')
-            ->whereNull('parent')
-            ->orderBy('code')
-            ->get();
 
-        return view('vet.admissions.create', compact('customers', 'species', 'tests'));
+        return view('vet.admissions.create', compact('customers', 'species'));
+    }
+
+    public function searchTests(Request $request)
+    {
+        $query = $request->get('q', '');
+        if (strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        $tests = Test::where(function ($q) use ($query) {
+                $q->where('code', 'like', "%{$query}%")
+                  ->orWhere('name', 'like', "%{$query}%");
+            })
+            ->whereJsonContains('categories', 'veterinario')
+            ->whereDoesntHave('parentTests')
+            ->limit(20)
+            ->get(['id', 'code', 'name', 'price']);
+
+        return response()->json($tests);
     }
 
     public function store(Request $request)
@@ -89,6 +104,7 @@ class VetAdmissionController extends Controller
             'animal_name' => 'required|string|max:255',
             'owner_name' => 'required|string|max:255',
             'owner_phone' => 'nullable|string|max:50',
+            'owner_email' => 'nullable|email|max:255',
             'breed' => 'nullable|string|max:100',
             'age' => 'nullable|string|max:50',
             'date' => 'required|date',
@@ -107,6 +123,7 @@ class VetAdmissionController extends Controller
             'animal_name' => $request->animal_name,
             'owner_name' => $request->owner_name,
             'owner_phone' => $request->owner_phone,
+            'owner_email' => $request->owner_email,
             'breed' => $request->breed,
             'age' => $request->age,
             'observations' => $request->observations,

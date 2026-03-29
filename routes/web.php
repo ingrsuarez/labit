@@ -212,6 +212,7 @@ Route::middleware([
     Route::prefix('vet')->group(function () {
         Route::get('admissions', [App\Http\Controllers\VetAdmissionController::class, 'index'])->name('vet.admissions.index');
         Route::get('admissions/create', [App\Http\Controllers\VetAdmissionController::class, 'create'])->name('vet.admissions.create');
+        Route::get('admissions/search-tests', [App\Http\Controllers\VetAdmissionController::class, 'searchTests'])->name('vet.admissions.searchTests');
         Route::post('admissions', [App\Http\Controllers\VetAdmissionController::class, 'store'])->name('vet.admissions.store');
         Route::get('admissions/{vetAdmission}', [App\Http\Controllers\VetAdmissionController::class, 'show'])->name('vet.admissions.show');
 
