@@ -195,6 +195,12 @@ Route::middleware([
         Route::delete('lab/worksheets/{worksheet}', [App\Http\Controllers\WorksheetController::class, 'destroy'])->name('worksheets.destroy');
         Route::get('lab/worksheets/{worksheet}/pdf', [App\Http\Controllers\WorksheetController::class, 'generatePdf'])->name('worksheets.pdf');
 
+        // Veterinario — Especies
+        Route::get('species', [App\Http\Controllers\SpeciesController::class, 'index'])->name('species.index');
+        Route::post('species', [App\Http\Controllers\SpeciesController::class, 'store'])->name('species.store');
+        Route::put('species/{species}', [App\Http\Controllers\SpeciesController::class, 'update'])->name('species.update');
+        Route::delete('species/{species}', [App\Http\Controllers\SpeciesController::class, 'destroy'])->name('species.destroy');
+
     }); // fin lab.section
 
     // ADMISSION

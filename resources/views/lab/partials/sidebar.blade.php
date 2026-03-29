@@ -83,6 +83,20 @@
                 Planillas de Trabajo
             </a>
 
+            <!-- Separador veterinario -->
+            <div class="border-t border-teal-600 my-2"></div>
+
+            <a href="{{ route('species.index') }}"
+               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                {{ request()->routeIs('species.*') || request()->routeIs('vet.*')
+                    ? 'bg-teal-600 text-white'
+                    : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21s-8-4.5-8-11.8A4 4 0 0112 4a4 4 0 018 5.2c0 7.3-8 11.8-8 11.8z"/>
+                </svg>
+                Lab. Veterinario
+            </a>
+
             <a href="{{ route('lab.section.configuracion') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
                 {{ request()->routeIs('lab.section.configuracion') || request()->routeIs('tests.*') || request()->routeIs('reference-categories.*') || request()->routeIs('materials.*') || request()->routeIs('services.*') || request()->routeIs('nomenclator.*')
