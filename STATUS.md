@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-29 (post v1.26.2)
+> Última actualización: 2026-03-29 (post v1.29.0)
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.7.0 / v1.28.0 / v1.26.2 |
-| **Última completada** | v1.26.2 — UX admisión vet buscador enter |
+| **Versión actual** | v2.7.0 / v1.29.0 |
+| **Última completada** | v1.29.0 — Libro IVA digital |
 | **En proceso** | — |
-| **Próxima** | v1.29.0 — Libro IVA digital |
+| **Próxima** | v1.30.0 — Sedes laboratorio procedencia |
 | **Pendientes en cola** | 1 |
-| **Completadas** | 53 |
+| **Completadas** | 54 |
 
 ---
 
@@ -24,16 +24,17 @@
 
 | Versión | Nombre | Dependencias |
 |---|---|---|
-| v1.29.0 | Libro IVA digital | ninguna |
+| v1.30.0 | Sedes laboratorio procedencia | ninguna |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (53)
+### Completados (54)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.29.0 | Libro IVA digital (AFIP RG 4597) | 2026-03-29 | v1.29.0 |
 | v1.26.2 | UX admisión vet buscador enter + email dueño | 2026-03-29 | v1.26.2 |
 | v1.28.0 | Lector QR facturas de compra (RG 4892) | 2026-03-29 | v1.28.0 |
 | v1.27.0 | Entrada de stock desde factura sin remito + modal insumo | 2026-03-29 | v1.27.0 |
@@ -112,6 +113,7 @@ v1.0.0 (completada)
 │                   └── v1.26.2 — UX buscador Enter + email dueño (completada)
 ├── v1.27.0 — Entrada stock desde factura compra (completada)
 │   └── v1.28.0 — Lector QR facturas de compra (completada)
+├── v1.29.0 — Libro IVA digital AFIP RG 4597 (completada)
 ├── v1.5.3 — Seeder jerarquía padre-hijo prácticas (completada)
 │   ├── v1.5.4 — Tests faltantes y jerarquía completa (completada)
 │   │   └── v1.6.0 — Formato tabular en PDFs de informes (completada)
@@ -165,7 +167,7 @@ v1.0.0 (completada)
 ## Próximo paso recomendado
 
 Siguiente prompt disponible:
-**v1.29.0** — Libro IVA digital
+**v1.30.0** — Sedes laboratorio procedencia
 
 ---
 
