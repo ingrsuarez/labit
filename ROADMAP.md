@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-03-28
+> Última actualización: 2026-03-29
 
 ---
 
@@ -30,11 +30,9 @@
 | v1.5.3 | Seeder de jerarquía padre-hijo de prácticas | 2026-03-20 | 10 relaciones para 3 padres, 26 tests pendientes de crear |
 | v2.0.0 | Infraestructura multi-empresa | 2026-03-21 | Modelo Company, pivot, middleware, CRUD, selector en header |
 | v2.1.0 | Ventas y cobros multi-empresa | 2026-03-22 | company_id en ventas, filtrado por empresa, AfipService multi-empresa |
-
-| v2.2.0 | Compras y pagos multi-empresa | 2026-03-22 | company_id en purchase_quotation_requests, purchase_orders, delivery_notes, purchase_invoices, payment_orders |
+| v2.2.0 | Compras y pagos multi-empresa | 2026-03-22 | company_id en compras, filtrado por empresa |
 | v2.2.1 | Fix columnas vacías en vista de protocolo | 2026-03-22 | Reemplazar template x-if por x-show en tabla de determinaciones |
 | v2.3.0 | RRHH multi-empresa | 2026-03-22 | company_id en employees, payrolls, leaves, documents |
-
 | v1.5.4 | Tests faltantes y jerarquía padre-hijo completa | 2026-03-22 | 27 tests hijos, 37 relaciones, badge padre, fix cascada |
 | v1.6.0 | Formato tabular en PDFs de informes | 2026-03-23 | Tabla con Análisis/Resultado/Unidad/Ref, padres bold, hijos indentados |
 | v1.6.1 | Filtrar nomencladores de dropdowns y crear Particular | 2026-03-23 | Seeder Particular, filtrar type!=nomenclador en 5 controladores |
@@ -60,6 +58,14 @@
 | v1.18.0 | Etiquetas de protocolo para laboratorio clínico | 2026-03-27 | Etiquetas imprimibles desde admisiones del lab clínico |
 | v1.19.0 | Consulta de padrón AFIP por CUIT | 2026-03-28 | ws_sr_padron_a5, autocompletado formularios, lock IVA |
 | v1.19.1 | Fix deselección de padre en determinaciones | 2026-03-29 | Checkboxes en vez de select multiple para padres |
+| v1.19.2 | Fix validación y PDF para resultados con valor cero | 2026-03-29 | Validación acepta "0", PDF muestra cero correctamente |
+| v1.20.0 | Infraestructura veterinaria base | 2026-03-29 | Modelos Animal, Species, Breed, VetAdmission base |
+| v1.21.0 | Tipificación de Customers + CRUD de Veterinarios | 2026-03-29 | customer_type, CRUD veterinarios referentes |
+| v1.22.0 | Valores de referencia por especie | 2026-03-29 | Ref values con species_id, fallback a genérico |
+| v1.23.0 | Nuevo formato de numeración de protocolos | 2026-03-29 | Formato configurable por módulo, secuencia anual |
+| v1.24.0 | Protocolo veterinario (VetAdmission) | 2026-03-29 | Admisión vet completa, animal+dueño+veterinario |
+| v1.25.0 | PDF resultados veterinarios + envío email | 2026-03-29 | PDF vet con datos animal/especie, envío email |
+| v1.26.0 | Búsqueda de protocolos por dueño/animal | 2026-03-29 | Filtros por dueño, animal, especie en listado vet |
 
 ---
 
@@ -74,34 +80,29 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v1.19.2 | Fix validación y PDF para resultados con valor cero | 1h | ninguna | `pendientes/v1.19.2-fix-validacion-resultados-cero.md` |
-| v1.20.0 | Infraestructura veterinaria base | 2h | ninguna | `v1.20.0_infra-veterinaria-base.md` |
-| v1.21.0 | Tipificación de Customers + CRUD de Veterinarios | 2h | v1.20.0 | `v1.21.0_tipificacion-customers-veterinarios.md` |
-| v1.22.0 | Valores de referencia por especie | 1.5h | v1.20.0 | `v1.22.0_ref-values-por-especie.md` |
-| v1.23.0 | Nuevo formato de numeración de protocolos | 1h | v1.20.0 | `v1.23.0_formato-numeracion-protocolos.md` |
-| v1.24.0 | Protocolo veterinario (VetAdmission) | medio día | v1.20.0, v1.21.0, v1.22.0, v1.23.0 | `v1.24.0_protocolo-veterinario.md` |
-| v1.25.0 | PDF resultados veterinarios + envío email | 2h | v1.24.0 | `v1.25.0_pdf-email-veterinario.md` |
-| v1.26.0 | Búsqueda de protocolos por dueño/animal | 1h | v1.24.0 | `v1.26.0_busqueda-vet-duenio-animal.md` |
+| v1.27.0 | Entrada de stock desde factura de compra sin remito + modal crear insumo | 1.5h | ninguna | `pendientes/v1.27.0-stock-desde-factura-compra.md` |
+| v1.28.0 | Lector QR de facturas de compra | 2h | v1.27.0 | `pendientes/v1.28.0-lector-qr-facturas-compra.md` |
+| v1.29.0 | Libro IVA digital (exportación TXT para AFIP) | 3h | v1.28.0 | `pendientes/v1.29.0-libro-iva-digital.md` |
 
 ---
 
 ## Áreas candidatas (sin planificar)
 
-- **Lector QR facturas de compra**: feature de v1.5.0, deprimerizada en favor de multi-empresa
+- **Lector QR facturas de compra**: escaneo de QR de facturas recibidas para autocompletar datos
 - **UI/UX**: auditoría visual, migración de componentes, design system
 - **Testing**: suite de tests automatizados, cobertura mínima
 - **DevOps**: CI/CD, ambientes de staging, deploy automatizado
-- **Seguridad**: 2FA, logs de acceso (auditoría de permisos parcialmente cubierta por v2.4.0)
+- **Seguridad**: 2FA, protección adicional (auditoría base cubierta por v2.5.0/v2.7.0, acceso por rol por v2.4.0)
 
 ---
 
 ## Progreso general
 
 ```
-Completadas:  43 versiones (v1.0.0 → v2.7.0)
-Planificadas: 8 (v1.19.2, v1.20.0 → v1.26.0)
+Completadas:  50 versiones (v1.0.0 → v1.26.0, v2.0.0 → v2.7.0)
+Planificadas: 3 (v1.27.0, v1.28.0, v1.29.0)
 En proceso:   0
-Próxima:      v1.19.2 — Fix validación y PDF para resultados con valor cero
+Próxima:      v1.27.0 — Entrada de stock desde factura de compra sin remito + modal crear insumo
 ```
 
 ---
