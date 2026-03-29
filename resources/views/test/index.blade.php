@@ -128,7 +128,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm" onclick="event.stopPropagation()">
                                 <a href="{{ route('tests.reference-values.index', $test) }}" 
-                                   class="inline-flex items-center text-blue-600 hover:text-blue-800">
+                                   class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800">
                                     @if($test->referenceValues && $test->referenceValues->count() > 0)
                                         <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded">
                                             {{ $test->referenceValues->count() }}
@@ -137,6 +137,11 @@
                                         <span class="text-gray-500">{{ $test->low ?? '-' }} - {{ $test->high ?? '-' }}</span>
                                     @else
                                         <span class="text-gray-400">Configurar</span>
+                                    @endif
+                                    @if($test->isVeterinary() && $test->speciesReferences->count() > 0)
+                                        <span class="bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded ml-1">
+                                            {{ $test->speciesReferences->count() }} sp.
+                                        </span>
                                     @endif
                                 </a>
                             </td>

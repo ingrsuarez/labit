@@ -219,4 +219,19 @@ class Test extends Model
 
         return $mat->code ?: mb_strtoupper(mb_substr($mat->name, 0, 3));
     }
+
+    public function speciesReferences()
+    {
+        return $this->hasMany(TestSpeciesReference::class);
+    }
+
+    public function getReferenceForSpecies(int $speciesId): ?TestSpeciesReference
+    {
+        return $this->speciesReferences()->where('species_id', $speciesId)->first();
+    }
+
+    public function isVeterinary(): bool
+    {
+        return in_array('veterinario', $this->categories ?? []);
+    }
 }

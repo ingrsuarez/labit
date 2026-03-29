@@ -113,6 +113,8 @@ Route::middleware([
     Route::put('/tests/{test}/reference-values/{referenceValue}', [App\Http\Controllers\TestReferenceValueController::class, 'update'])->name('tests.reference-values.update');
     Route::delete('/tests/{test}/reference-values/{referenceValue}', [App\Http\Controllers\TestReferenceValueController::class, 'destroy'])->name('tests.reference-values.destroy');
     Route::put('/tests/{test}/default-category', [App\Http\Controllers\TestReferenceValueController::class, 'updateDefaultCategory'])->name('tests.update-default-category');
+    Route::post('/tests/{test}/species-references', [App\Http\Controllers\TestReferenceValueController::class, 'storeSpeciesReference'])->name('tests.species-references.store');
+    Route::delete('/tests/{test}/species-references/{speciesReference}', [App\Http\Controllers\TestReferenceValueController::class, 'destroySpeciesReference'])->name('tests.species-references.destroy');
 
     // Reference Categories (Categorías de Valores de Referencia)
     Route::get('/reference-categories', [App\Http\Controllers\ReferenceCategoryController::class, 'index'])->name('reference-categories.index');

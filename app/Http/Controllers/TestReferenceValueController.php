@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Test;
 use App\Models\TestReferenceValue;
+use App\Models\TestSpeciesReference;
 use App\Models\ReferenceCategory;
 use Illuminate\Http\Request;
 
@@ -14,10 +15,15 @@ class TestReferenceValueController extends Controller
      */
     public function index(Test $test)
     {
-        $test->load(['referenceValues.category', 'defaultReferenceCategory']);
+        $test->load(['referenceValues.category', 'defaultReferenceCategory', 'speciesReferences.species']);
         $categories = ReferenceCategory::where('is_active', true)->orderBy('name')->get();
-        
-        return view('test.reference-values', compact('test', 'categories'));
+
+        $species = [];
+        if ($test->isVeterinary()) {
+            $species = \App\Models\Species::where('is_active', true)->orderBy('name')->get();
+        }
+
+        return view('test.reference-values', compact('test', 'categories', 'species'));
     }
 
     /**
@@ -151,7 +157,32 @@ class TestReferenceValueController extends Controller
 
         return back()->with('success', 'Normativa predeterminada eliminada.');
     }
+
+    public function storeSpeciesReference(Request $request, Test $test)
+    {
+        $validated = $request->validate([
+            'species_id' => 'required|exists:species,id',
+            'low' => 'nullable|string|max:50',
+            'high' => 'nullable|string|max:50',
+            'other_reference' => 'nullable|string|max:500',
+        ]);
+
+        TestSpeciesReference::updateOrCreate(
+            ['test_id' => $test->id, 'species_id' => $validated['species_id']],
+            [
+                'low' => $validated['low'],
+                'high' => $validated['high'],
+                'other_reference' => $validated['other_reference'],
+            ]
+        );
+
+        return back()->with('success', 'Valor de referencia por especie guardado.');
+    }
+
+    public function destroySpeciesReference(Test $test, TestSpeciesReference $speciesReference)
+    {
+        $speciesReference->delete();
+
+        return back()->with('success', 'Valor de referencia por especie eliminado.');
+    }
 }
-
-
-
