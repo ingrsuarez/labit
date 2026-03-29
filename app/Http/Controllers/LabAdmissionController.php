@@ -305,6 +305,8 @@ class LabAdmissionController extends Controller
             'patient',
             'insuranceRelation',
             'admissionTests.test.parentTests',
+            'admissionTests.test.parents',
+            'admissionTests.test.materialRelation',
             'admissionTests.test.referenceValues.category',
             'creator',
             'auditLogs',
@@ -903,20 +905,13 @@ class LabAdmissionController extends Controller
     {
         $this->authorize('lab-labels.print');
 
-        $admission->load(['patient', 'admissionTests.test']);
+        $admission->load(['patient', 'admissionTests.test.materialRelation', 'admissionTests.test.parents']);
 
-        $materials = $admission->admissionTests
-            ->pluck('test.material_abbreviation')
-            ->unique()
-            ->filter()
-            ->implode('/');
+        $labels = $this->groupByMaterial($admission);
 
         return response()->json([
-            'protocol_number' => $admission->protocol_number,
-            'customer_name' => $admission->patient->full_name ?? 'N/A',
-            'materials' => $materials ?: 'N/A',
-            'sample_type' => 'CLINICO',
-            'entry_date' => $admission->date->format('d/m/Y'),
+            'labels' => $labels,
+            'total_labels' => count($labels),
         ]);
     }
 
@@ -924,26 +919,80 @@ class LabAdmissionController extends Controller
     {
         $this->authorize('lab-labels.print');
 
-        $admission->load(['patient', 'admissionTests.test']);
+        $admission->load(['patient', 'admissionTests.test.materialRelation', 'admissionTests.test.parents']);
 
-        $materials = $admission->admissionTests
-            ->pluck('test.material_abbreviation')
-            ->unique()
-            ->filter()
-            ->implode('/');
+        $labels = $this->groupByMaterial($admission);
 
         $barcode = new \Picqer\Barcode\BarcodeGeneratorSVG;
-        $barcodeSvg = $barcode->getBarcode(
-            $admission->protocol_number,
-            $barcode::TYPE_CODE_128,
-            2,
-            60
-        );
+
+        foreach ($labels as &$label) {
+            $label['barcode_svg'] = $barcode->getBarcode(
+                $admission->protocol_number,
+                $barcode::TYPE_CODE_128,
+                2,
+                60
+            );
+        }
+        unset($label);
 
         return view('lab.admissions.label', [
             'admission' => $admission,
-            'materials' => $materials ?: 'N/A',
-            'barcodeSvg' => $barcodeSvg,
+            'labels' => $labels,
         ]);
+    }
+
+    private function groupByMaterial(Admission $admission): array
+    {
+        $parentTestIds = $admission->admissionTests->pluck('test_id')->toArray();
+        $materialGroups = [];
+
+        foreach ($admission->admissionTests as $at) {
+            $test = $at->test;
+            if (! $test || ! $test->materialRelation) {
+                continue;
+            }
+
+            $isChild = $test->parents->whereIn('id', $parentTestIds)->isNotEmpty();
+            if ($isChild) {
+                continue;
+            }
+
+            $materialId = $test->materialRelation->id;
+            if (! isset($materialGroups[$materialId])) {
+                $materialGroups[$materialId] = [
+                    'material_name' => $test->materialRelation->name,
+                    'material_code' => $test->material_abbreviation,
+                    'tests' => [],
+                ];
+            }
+            $materialGroups[$materialId]['tests'][] = $test->name;
+        }
+
+        $labels = [];
+        foreach ($materialGroups as $group) {
+            $labels[] = [
+                'protocol_number' => $admission->protocol_number,
+                'customer_name' => $admission->patient?->full_name ?? 'Sin paciente',
+                'material' => $group['material_code'],
+                'material_name' => $group['material_name'],
+                'sample_type' => 'CLINICO',
+                'entry_date' => $admission->date?->format('d/m/Y') ?? '',
+                'tests_count' => count($group['tests']),
+            ];
+        }
+
+        if (empty($labels)) {
+            $labels[] = [
+                'protocol_number' => $admission->protocol_number,
+                'customer_name' => $admission->patient?->full_name ?? 'Sin paciente',
+                'material' => '?',
+                'material_name' => 'Sin material',
+                'sample_type' => 'CLINICO',
+                'entry_date' => $admission->date?->format('d/m/Y') ?? '',
+                'tests_count' => $admission->admissionTests->count(),
+            ];
+        }
+
+        return $labels;
     }
 }
