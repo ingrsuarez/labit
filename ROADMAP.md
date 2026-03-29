@@ -59,6 +59,7 @@
 | v1.17.0 | Fix impresión de etiquetas Zebra | 2026-03-26 | Parseo JSON, Content-Type, auto-detect HTTP/HTTPS |
 | v1.18.0 | Etiquetas de protocolo para laboratorio clínico | 2026-03-27 | Etiquetas imprimibles desde admisiones del lab clínico |
 | v1.19.0 | Consulta de padrón AFIP por CUIT | 2026-03-28 | ws_sr_padron_a5, autocompletado formularios, lock IVA |
+| v1.19.1 | Fix deselección de padre en determinaciones | 2026-03-29 | Checkboxes en vez de select multiple para padres |
 
 ---
 
@@ -89,7 +90,7 @@
 ## Progreso general
 
 ```
-Completadas:  42 versiones (v1.0.0 → v2.7.0)
+Completadas:  43 versiones (v1.0.0 → v2.7.0)
 Planificadas: 0
 En proceso:   0
 Próxima:      — (cola vacía, planificar nuevas versiones)

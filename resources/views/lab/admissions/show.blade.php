@@ -391,7 +391,7 @@
                                                             </svg>
                                                             @if(!$isChild) Validado @endif
                                                         </span>
-                                                    @elseif($admissionTest->result)
+                                                    @elseif($admissionTest->hasResult())
                                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                                             @if($isChild) ● @else Con resultado @endif
                                                         </span>
@@ -422,7 +422,7 @@
                                                                 <button type="button" onclick="submitAction('{{ route('lab.admissions.unvalidateTest', [$admission, $admissionTest]) }}')" class="text-orange-500 hover:text-orange-700 text-xs" title="Quitar validación">
                                                                     Desvalidar
                                                                 </button>
-                                                            @elseif($admissionTest->result)
+                                                            @elseif($admissionTest->hasResult())
                                                                 <button type="button" onclick="submitAction('{{ route('lab.admissions.validateTest', [$admission, $admissionTest]) }}')" class="text-green-500 hover:text-green-700 text-xs">
                                                                     ✓
                                                                 </button>

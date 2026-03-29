@@ -113,6 +113,8 @@ Route::middleware([
     Route::put('/tests/{test}/reference-values/{referenceValue}', [App\Http\Controllers\TestReferenceValueController::class, 'update'])->name('tests.reference-values.update');
     Route::delete('/tests/{test}/reference-values/{referenceValue}', [App\Http\Controllers\TestReferenceValueController::class, 'destroy'])->name('tests.reference-values.destroy');
     Route::put('/tests/{test}/default-category', [App\Http\Controllers\TestReferenceValueController::class, 'updateDefaultCategory'])->name('tests.update-default-category');
+    Route::post('/tests/{test}/species-references', [App\Http\Controllers\TestReferenceValueController::class, 'storeSpeciesReference'])->name('tests.species-references.store');
+    Route::delete('/tests/{test}/species-references/{speciesReference}', [App\Http\Controllers\TestReferenceValueController::class, 'destroySpeciesReference'])->name('tests.species-references.destroy');
 
     // Reference Categories (Categorías de Valores de Referencia)
     Route::get('/reference-categories', [App\Http\Controllers\ReferenceCategoryController::class, 'index'])->name('reference-categories.index');
@@ -145,6 +147,7 @@ Route::middleware([
         // LAB SECTIONS (Páginas index de cada sección del sidebar)
         Route::get('lab/clinico', [App\Http\Controllers\LabSectionController::class, 'clinico'])->name('lab.section.clinico');
         Route::get('lab/muestras', [App\Http\Controllers\LabSectionController::class, 'muestras'])->name('lab.section.muestras');
+        Route::get('lab/veterinario', [App\Http\Controllers\LabSectionController::class, 'veterinario'])->name('lab.section.veterinario');
         Route::get('lab/configuracion', [App\Http\Controllers\LabSectionController::class, 'configuracion'])->name('lab.section.configuracion');
         Route::get('lab/configuracion/correos', [App\Http\Controllers\LabEmailSettingsController::class, 'edit'])->name('lab.email-settings.edit');
         Route::put('lab/configuracion/correos', [App\Http\Controllers\LabEmailSettingsController::class, 'update'])->name('lab.email-settings.update');
@@ -195,7 +198,30 @@ Route::middleware([
         Route::delete('lab/worksheets/{worksheet}', [App\Http\Controllers\WorksheetController::class, 'destroy'])->name('worksheets.destroy');
         Route::get('lab/worksheets/{worksheet}/pdf', [App\Http\Controllers\WorksheetController::class, 'generatePdf'])->name('worksheets.pdf');
 
+        // Veterinario — Especies
+        Route::get('species', [App\Http\Controllers\SpeciesController::class, 'index'])->name('species.index');
+        Route::post('species', [App\Http\Controllers\SpeciesController::class, 'store'])->name('species.store');
+        Route::put('species/{species}', [App\Http\Controllers\SpeciesController::class, 'update'])->name('species.update');
+        Route::delete('species/{species}', [App\Http\Controllers\SpeciesController::class, 'destroy'])->name('species.destroy');
+
     }); // fin lab.section
+
+    // =============================================
+    // VETERINARIO
+    // =============================================
+    Route::prefix('vet')->group(function () {
+        Route::get('admissions', [App\Http\Controllers\VetAdmissionController::class, 'index'])->name('vet.admissions.index');
+        Route::get('admissions/create', [App\Http\Controllers\VetAdmissionController::class, 'create'])->name('vet.admissions.create');
+        Route::post('admissions', [App\Http\Controllers\VetAdmissionController::class, 'store'])->name('vet.admissions.store');
+        Route::get('admissions/{vetAdmission}', [App\Http\Controllers\VetAdmissionController::class, 'show'])->name('vet.admissions.show');
+
+        Route::post('admissions/{vetAdmission}/results', [App\Http\Controllers\VetAdmissionController::class, 'loadResults'])->name('vet.admissions.loadResults');
+        Route::post('admissions/{vetAdmission}/validate/{vetAdmissionTest}', [App\Http\Controllers\VetAdmissionController::class, 'validateTest'])->name('vet.admissions.validateTest');
+        Route::post('admissions/{vetAdmission}/unvalidate/{vetAdmissionTest}', [App\Http\Controllers\VetAdmissionController::class, 'unvalidateTest'])->name('vet.admissions.unvalidateTest');
+        Route::post('admissions/{vetAdmission}/validate-all', [App\Http\Controllers\VetAdmissionController::class, 'validateAll'])->name('vet.admissions.validateAll');
+
+        Route::get('customer/{customer}/veterinarians', [App\Http\Controllers\VetAdmissionController::class, 'getVeterinarians'])->name('vet.customer.veterinarians');
+    });
 
     // ADMISSION
     Route::get('/admission/new', [App\Http\Controllers\AdmissionController::class, 'index'])->name('admission.index');
@@ -339,6 +365,12 @@ Route::middleware([
         Route::post('customer', [App\Http\Controllers\CustomerController::class, 'store'])->name('customer.store');
         Route::get('customer/{customer}/edit', [App\Http\Controllers\CustomerController::class, 'edit'])->name('customer.edit');
         Route::put('customer/{customer}', [App\Http\Controllers\CustomerController::class, 'update'])->name('customer.update');
+
+        // Veterinarios anidados en customer
+        Route::get('customer/{customer}/veterinarians', [App\Http\Controllers\VeterinarianController::class, 'index'])->name('customer.veterinarians.index');
+        Route::post('customer/{customer}/veterinarians', [App\Http\Controllers\VeterinarianController::class, 'store'])->name('customer.veterinarians.store');
+        Route::put('customer/{customer}/veterinarians/{veterinarian}', [App\Http\Controllers\VeterinarianController::class, 'update'])->name('customer.veterinarians.update');
+        Route::delete('customer/{customer}/veterinarians/{veterinarian}', [App\Http\Controllers\VeterinarianController::class, 'destroy'])->name('customer.veterinarians.destroy');
     });
 
     // SERVICES (Servicios adicionales)
@@ -346,6 +378,9 @@ Route::middleware([
     Route::post('services', [App\Http\Controllers\ServiceController::class, 'store'])->name('services.store');
     Route::put('services/{service}', [App\Http\Controllers\ServiceController::class, 'update'])->name('services.update');
     Route::delete('services/{service}', [App\Http\Controllers\ServiceController::class, 'destroy'])->name('services.destroy');
+
+    // API: Veterinarios de un customer (accesible desde cualquier módulo autenticado)
+    Route::get('api/customer/{customer}/veterinarians', [App\Http\Controllers\VeterinarianController::class, 'index'])->name('api.customer.veterinarians');
 
     // QUOTES (Presupuestos)
     Route::get('quotes/search-tests', [App\Http\Controllers\QuoteController::class, 'searchTests'])->name('quotes.searchTests');

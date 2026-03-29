@@ -21,6 +21,7 @@ class Customer extends Model
         'country',
         'postal',
         'status',
+        'type',
         'discount_percent',
         'afip_activity',
         'cuit_status',
@@ -30,6 +31,7 @@ class Customer extends Model
     protected $casts = [
         'discount_percent' => 'decimal:2',
         'afip_verified_at' => 'datetime',
+        'type' => 'array',
     ];
 
     /**
@@ -51,5 +53,20 @@ class Customer extends Model
     public function isAfipVerified(): bool
     {
         return $this->afip_verified_at !== null;
+    }
+
+    public function hasType(string $type): bool
+    {
+        return in_array($type, $this->type ?? []);
+    }
+
+    public function isVeterinary(): bool
+    {
+        return $this->hasType('veterinario');
+    }
+
+    public function veterinarians()
+    {
+        return $this->hasMany(Veterinarian::class);
     }
 }

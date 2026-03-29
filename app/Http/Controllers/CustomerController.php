@@ -28,6 +28,10 @@ class CustomerController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->filled('type')) {
+            $query->whereJsonContains('type', $request->type);
+        }
+
         $customers = $query->paginate(15);
 
         return view('customer.index', compact('customers'));
@@ -48,7 +52,7 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'taxId' => 'required|string|max:20|unique:customers,taxId',
+            'taxId' => 'required|string|max:20',
             'tax' => 'nullable|string|max:50',
             'email' => 'nullable|email',
             'phone' => 'nullable|string|max:50',
@@ -61,10 +65,13 @@ class CustomerController extends Controller
             'afip_activity' => 'nullable|string|max:500',
             'cuit_status' => 'nullable|string|max:50',
             'afip_verified_at' => 'nullable|date',
+            'type' => 'nullable|array',
+            'type.*' => 'in:obra_social,aguas,veterinario,clinico,particular,laborales',
         ]);
 
         $validated['status'] = 'activo';
         $validated['discount_percent'] = $validated['discount_percent'] ?? 0;
+        $validated['type'] = $validated['type'] ?? ['aguas'];
         if (! empty($validated['afip_verified_at'])) {
             $validated['afip_verified_at'] = \Carbon\Carbon::parse($validated['afip_verified_at']);
         }
@@ -90,7 +97,7 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'taxId' => 'required|string|max:20|unique:customers,taxId,'.$customer->id,
+            'taxId' => 'required|string|max:20',
             'tax' => 'nullable|string|max:50',
             'email' => 'nullable|email',
             'phone' => 'nullable|string|max:50',
@@ -104,7 +111,11 @@ class CustomerController extends Controller
             'afip_activity' => 'nullable|string|max:500',
             'cuit_status' => 'nullable|string|max:50',
             'afip_verified_at' => 'nullable|date',
+            'type' => 'nullable|array',
+            'type.*' => 'in:obra_social,aguas,veterinario,clinico,particular,laborales',
         ]);
+
+        $validated['type'] = $validated['type'] ?? $customer->type;
 
         if (! empty($validated['afip_verified_at'])) {
             $validated['afip_verified_at'] = \Carbon\Carbon::parse($validated['afip_verified_at']);

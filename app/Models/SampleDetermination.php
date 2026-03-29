@@ -79,6 +79,11 @@ class SampleDetermination extends Model
         };
     }
 
+    public function hasResult(): bool
+    {
+        return $this->result !== null && $this->result !== '';
+    }
+
     /**
      * Relación con el usuario validador
      */

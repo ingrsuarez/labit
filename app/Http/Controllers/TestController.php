@@ -12,7 +12,7 @@ class TestController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Test::with(['referenceValues', 'parentTests'])->orderBy('code');
+        $query = Test::with(['referenceValues', 'parentTests', 'speciesReferences'])->orderBy('code');
 
         if ($request->filled('search')) {
             $search = $request->search;

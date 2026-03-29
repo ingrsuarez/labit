@@ -8,6 +8,12 @@
         afipActivity: '{{ $customer->afip_activity ?? '' }}',
         ivaLocked: {{ $customer->isAfipVerified() ? 'true' : 'false' }},
         ivaManuallyUnlocked: false,
+        hasVetType: {{ in_array('veterinario', $customer->type ?? []) ? 'true' : 'false' }},
+        vets: [],
+        vetLoading: false,
+        vetForm: { name: '', phone: '', email: '', matricula: '' },
+        vetEditId: null,
+        vetShowForm: false,
 
         get cleanCuit() {
             return this.cuit.replace(/\D/g, '');
@@ -84,6 +90,66 @@
         unlockIva() {
             this.ivaLocked = false;
             this.ivaManuallyUnlocked = true;
+        },
+
+        updateVetType() {
+            const checkboxes = document.querySelectorAll('input[name=\'type[]\']');
+            this.hasVetType = false;
+            checkboxes.forEach(cb => {
+                if (cb.value === 'veterinario' && cb.checked) this.hasVetType = true;
+            });
+            if (this.hasVetType && this.vets.length === 0) this.loadVets();
+        },
+
+        async loadVets() {
+            this.vetLoading = true;
+            try {
+                const res = await fetch(`/labit/public/customer/{{ $customer->id }}/veterinarians`);
+                this.vets = await res.json();
+            } catch (e) { console.error(e); }
+            this.vetLoading = false;
+        },
+
+        resetVetForm() {
+            this.vetForm = { name: '', phone: '', email: '', matricula: '' };
+            this.vetEditId = null;
+            this.vetShowForm = false;
+        },
+
+        editVet(vet) {
+            this.vetForm = { name: vet.name, phone: vet.phone, email: vet.email || '', matricula: vet.matricula || '' };
+            this.vetEditId = vet.id;
+            this.vetShowForm = true;
+        },
+
+        async saveVet() {
+            const url = this.vetEditId
+                ? `/labit/public/customer/{{ $customer->id }}/veterinarians/${this.vetEditId}`
+                : `/labit/public/customer/{{ $customer->id }}/veterinarians`;
+            const method = this.vetEditId ? 'PUT' : 'POST';
+            try {
+                const res = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                    body: JSON.stringify(this.vetForm)
+                });
+                if (res.ok) { this.resetVetForm(); this.loadVets(); }
+            } catch (e) { console.error(e); }
+        },
+
+        async deleteVet(id) {
+            if (!confirm('¿Eliminar este veterinario?')) return;
+            try {
+                await fetch(`/labit/public/customer/{{ $customer->id }}/veterinarians/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+                });
+                this.loadVets();
+            } catch (e) { console.error(e); }
+        },
+
+        init() {
+            if (this.hasVetType) this.loadVets();
         }
     }">
         <!-- Header -->
@@ -274,6 +340,22 @@
                         </div>
                         <p class="text-xs text-gray-500 mt-1">Descuento general aplicado al precio de cada determinación</p>
                     </div>
+
+                    <div class="md:col-span-2 lg:col-span-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Cliente</label>
+                        <div class="flex flex-wrap gap-4">
+                            @foreach(['obra_social' => 'Obra Social', 'aguas' => 'Aguas y Alimentos', 'veterinario' => 'Veterinario', 'clinico' => 'Clínico', 'particular' => 'Particular', 'laborales' => 'Laborales'] as $key => $label)
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" name="type[]" value="{{ $key }}"
+                                           class="rounded border-gray-300 text-zinc-600 focus:ring-zinc-500"
+                                           @change="updateVetType()"
+                                           {{ in_array($key, old('type', $customer->type ?? ['aguas'])) ? 'checked' : '' }}>
+                                    <span class="text-sm text-gray-700">{{ $label }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">Seleccionar uno o más tipos</p>
+                    </div>
                 </div>
             </div>
 
@@ -289,5 +371,74 @@
                 </button>
             </div>
         </form>
+
+        <!-- Sección Veterinarios (solo si tipo incluye veterinario) -->
+        <div x-show="hasVetType" x-cloak class="bg-white rounded-lg shadow-sm p-6 mt-6">
+            <div class="flex items-center justify-between mb-4 pb-2 border-b">
+                <h2 class="text-lg font-semibold text-gray-800">Veterinarios Asociados</h2>
+                <button type="button" @click="vetShowForm = true; resetVetForm(); vetShowForm = true;"
+                        class="inline-flex items-center px-3 py-1.5 bg-amber-600 text-white text-sm rounded-lg hover:bg-amber-700 transition-colors">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    Agregar Veterinario
+                </button>
+            </div>
+
+            <!-- Formulario inline -->
+            <div x-show="vetShowForm" x-cloak class="bg-gray-50 rounded-lg p-4 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
+                        <input type="text" x-model="vetForm.name" class="w-full rounded-lg border-gray-300 focus:border-amber-500 focus:ring-amber-500 text-sm" placeholder="Nombre completo">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono *</label>
+                        <input type="text" x-model="vetForm.phone" class="w-full rounded-lg border-gray-300 focus:border-amber-500 focus:ring-amber-500 text-sm" placeholder="(XXX) XXX-XXXX">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" x-model="vetForm.email" class="w-full rounded-lg border-gray-300 focus:border-amber-500 focus:ring-amber-500 text-sm" placeholder="email@ejemplo.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Matrícula</label>
+                        <input type="text" x-model="vetForm.matricula" class="w-full rounded-lg border-gray-300 focus:border-amber-500 focus:ring-amber-500 text-sm" placeholder="MP-XXXX">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 mt-3">
+                    <button type="button" @click="resetVetForm()" class="px-3 py-1.5 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100">Cancelar</button>
+                    <button type="button" @click="saveVet()" class="px-3 py-1.5 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700" x-text="vetEditId ? 'Guardar' : 'Agregar'"></button>
+                </div>
+            </div>
+
+            <!-- Tabla veterinarios -->
+            <div x-show="vetLoading" class="text-center py-4 text-gray-500 text-sm">Cargando...</div>
+            <table x-show="vets.length > 0 && !vetLoading" class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Teléfono</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Matrícula</th>
+                        <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    <template x-for="vet in vets" :key="vet.id">
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 text-sm font-medium text-gray-900" x-text="vet.name"></td>
+                            <td class="px-4 py-3 text-sm text-gray-500" x-text="vet.phone"></td>
+                            <td class="px-4 py-3 text-sm text-gray-500" x-text="vet.email || '-'"></td>
+                            <td class="px-4 py-3 text-sm text-gray-500" x-text="vet.matricula || '-'"></td>
+                            <td class="px-4 py-3 text-right text-sm">
+                                <button type="button" @click="editVet(vet)" class="text-zinc-600 hover:text-zinc-900 mr-2">Editar</button>
+                                <button type="button" @click="deleteVet(vet.id)" class="text-red-600 hover:text-red-900">Eliminar</button>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+            <p x-show="vets.length === 0 && !vetLoading" class="text-sm text-gray-500 text-center py-4">No hay veterinarios registrados para este cliente.</p>
+        </div>
     </div>
 </x-admin-layout>

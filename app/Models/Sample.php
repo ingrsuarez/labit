@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Traits\Auditable;
+use App\Traits\GeneratesProtocolNumber;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Sample extends Model
 {
-    use Auditable, HasFactory;
+    use Auditable, HasFactory, GeneratesProtocolNumber;
 
     protected $fillable = [
         'protocol_number',
@@ -40,20 +41,7 @@ class Sample extends Model
      */
     public static function generateProtocolNumber(): string
     {
-        $year = date('Y');
-        $lastSample = self::whereYear('created_at', $year)
-            ->orderBy('id', 'desc')
-            ->first();
-
-        if ($lastSample) {
-            // Extraer el número del protocolo anterior
-            $lastNumber = (int) substr($lastSample->protocol_number, -5);
-            $newNumber = $lastNumber + 1;
-        } else {
-            $newNumber = 1;
-        }
-
-        return $year . '-' . str_pad($newNumber, 5, '0', STR_PAD_LEFT);
+        return static::generatePrefixedProtocolNumber('A');
     }
 
     /**
