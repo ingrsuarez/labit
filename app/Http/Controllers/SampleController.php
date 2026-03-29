@@ -20,11 +20,12 @@ class SampleController extends Controller
     public function index(Request $request)
     {
         $this->authorize('samples.index');
-        $samples = Sample::with(['customer', 'determinations'])
+        $samples = Sample::with(['customer', 'determinations', 'labBranch'])
             ->orderBy('created_at', 'desc')
             ->get();
+        $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
 
-        return view('sample.index', compact('samples'));
+        return view('sample.index', compact('samples', 'branches'));
     }
 
     /**
@@ -37,8 +38,9 @@ class SampleController extends Controller
         $tests = Test::whereJsonContains('categories', 'aguas_alimentos')
             ->orderBy('name')
             ->get();
+        $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
 
-        return view('sample.create', compact('customers', 'tests'));
+        return view('sample.create', compact('customers', 'tests', 'branches'));
     }
 
     /**
@@ -59,6 +61,7 @@ class SampleController extends Controller
             'observations' => 'nullable|string',
             'determinations' => 'required|array|min:1',
             'determinations.*' => 'exists:tests,id',
+            'lab_branch_id' => 'nullable|exists:lab_branches,id',
         ]);
 
         // Generar n?mero de protocolo
@@ -174,8 +177,9 @@ class SampleController extends Controller
             ->orderBy('name')
             ->get();
         $sample->load('determinations');
+        $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
 
-        return view('sample.edit', compact('sample', 'customers', 'tests'));
+        return view('sample.edit', compact('sample', 'customers', 'tests', 'branches'));
     }
 
     /**

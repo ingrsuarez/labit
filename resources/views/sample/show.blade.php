@@ -147,6 +147,17 @@
                             <dt class="text-sm text-gray-500">Lugar</dt>
                             <dd class="text-gray-900">{{ $sample->location }}</dd>
                         </div>
+                        @if($sample->labBranch)
+                        <div>
+                            <dt class="text-sm text-gray-500">Sede de origen</dt>
+                            <dd class="text-gray-900 font-medium">
+                                {{ $sample->labBranch->name }}
+                                @if($sample->labBranch->city)
+                                    <span class="text-gray-500">— {{ $sample->labBranch->city }}</span>
+                                @endif
+                            </dd>
+                        </div>
+                        @endif
                         @if($sample->address)
                         <div>
                             <dt class="text-sm text-gray-500">Dirección</dt>

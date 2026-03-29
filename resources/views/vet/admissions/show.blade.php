@@ -97,6 +97,15 @@
                     <dd class="font-bold text-amber-700">${{ number_format($vetAdmission->total_price, 2, ',', '.') }}</dd>
                     <dt class="text-gray-500">Creado por</dt>
                     <dd class="text-gray-900">{{ $vetAdmission->creator->name ?? '-' }}</dd>
+                    @if($vetAdmission->labBranch)
+                    <dt class="text-gray-500">Sede de origen</dt>
+                    <dd class="text-gray-900 font-medium">
+                        {{ $vetAdmission->labBranch->name }}
+                        @if($vetAdmission->labBranch->city)
+                            <span class="text-gray-400">— {{ $vetAdmission->labBranch->city }}</span>
+                        @endif
+                    </dd>
+                    @endif
                 </dl>
                 @if($vetAdmission->observations)
                     <div class="mt-3 p-3 bg-gray-50 rounded-lg">
