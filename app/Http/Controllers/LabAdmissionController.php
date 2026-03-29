@@ -24,7 +24,7 @@ class LabAdmissionController extends Controller
     public function index(Request $request)
     {
         $this->authorize('lab-admissions.index');
-        $query = Admission::with(['patient', 'insuranceRelation', 'admissionTests'])
+        $query = Admission::with(['patient', 'insuranceRelation', 'admissionTests', 'labBranch'])
             ->orderBy('date', 'desc')
             ->orderBy('id', 'desc');
 
@@ -53,13 +53,18 @@ class LabAdmissionController extends Controller
             $query->whereDate('date', '<=', $request->date_to);
         }
 
+        if ($request->filled('lab_branch_id')) {
+            $query->where('lab_branch_id', $request->lab_branch_id);
+        }
+
         $admissions = $query->paginate(20)->withQueryString();
         $insurances = Insurance::where('type', '!=', 'nomenclador')
             ->orderByRaw("CASE WHEN type = 'particular' THEN 0 ELSE 1 END")
             ->orderBy('name')
             ->get();
+        $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
 
-        return view('lab.admissions.index', compact('admissions', 'insurances'));
+        return view('lab.admissions.index', compact('admissions', 'insurances', 'branches'));
     }
 
     /**
@@ -78,8 +83,9 @@ class LabAdmissionController extends Controller
             ->orderBy('name')
             ->get();
         $tests = Test::whereNull('parent')->orderBy('code')->get(['id', 'code', 'name', 'nbu', 'price']);
+        $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
 
-        return view('lab.admissions.create', compact('patient', 'insurances', 'tests'));
+        return view('lab.admissions.create', compact('patient', 'insurances', 'tests', 'branches'));
     }
 
     /**
@@ -100,6 +106,7 @@ class LabAdmissionController extends Controller
             'tests.*.authorization_status' => 'required|in:pending,authorized,rejected,not_required',
             'tests.*.paid_by_patient' => 'boolean',
             'tests.*.copago' => 'nullable|numeric|min:0',
+            'lab_branch_id' => 'nullable|exists:lab_branches,id',
         ]);
 
         // Crear la admisión
@@ -120,6 +127,7 @@ class LabAdmissionController extends Controller
             'authorization_code' => '',
             'attended_by' => auth()->id(),
             'created_by' => auth()->id(),
+            'lab_branch_id' => $request->lab_branch_id,
             'insurance_price' => 0,
             'patient_price' => 0,
             'cash' => 0,
@@ -322,8 +330,9 @@ class LabAdmissionController extends Controller
             ->orderBy('name')
             ->get();
         $tests = Test::whereNull('parent')->orderBy('code')->get(['id', 'code', 'name', 'nbu', 'price']);
+        $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
 
-        return view('lab.admissions.edit', compact('admission', 'insurances', 'tests'));
+        return view('lab.admissions.edit', compact('admission', 'insurances', 'tests', 'branches'));
     }
 
     /**

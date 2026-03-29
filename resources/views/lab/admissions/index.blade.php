@@ -41,6 +41,18 @@
                         @endforeach
                     </select>
                 </div>
+                @if(isset($branches) && $branches->count() > 1)
+                <div class="w-48">
+                    <select name="lab_branch_id" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                        <option value="">Todas las sedes</option>
+                        @foreach($branches as $branch)
+                            <option value="{{ $branch->id }}" {{ request('lab_branch_id') == $branch->id ? 'selected' : '' }}>
+                                {{ $branch->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
                 <div class="w-40">
                     <input type="date" name="date_from" value="{{ request('date_from') }}" 
                            class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500"
@@ -54,7 +66,7 @@
                 <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
                     Filtrar
                 </button>
-                @if(request()->hasAny(['search', 'insurance', 'date_from', 'date_to']))
+                @if(request()->hasAny(['search', 'insurance', 'date_from', 'date_to', 'lab_branch_id']))
                     <a href="{{ route('lab.admissions.index') }}" class="px-4 py-2 text-gray-500 hover:text-gray-700">
                         Limpiar
                     </a>
@@ -87,6 +99,11 @@
                                            class="text-teal-600 hover:text-teal-800 font-medium">
                                             {{ $admission->protocol_number ?? $admission->number }}
                                         </a>
+                                        @if($admission->labBranch && !$admission->labBranch->is_central)
+                                            <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                {{ $admission->labBranch->name }}
+                                            </span>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                         {{ $admission->formatted_date }}

@@ -34,7 +34,7 @@
                     @endif
                 </div>
 
-                <div x-data="{ showFilters: {{ request()->hasAny(['species_id', 'customer_id', 'date_from', 'date_to', 'owner', 'animal']) ? 'true' : 'false' }} }" class="mt-3">
+                <div x-data="{ showFilters: {{ request()->hasAny(['species_id', 'customer_id', 'date_from', 'date_to', 'owner', 'animal', 'lab_branch_id']) ? 'true' : 'false' }} }" class="mt-3">
                     <button @click="showFilters = !showFilters" type="button"
                             class="text-sm text-amber-600 hover:text-amber-800 font-medium flex items-center gap-1">
                         <svg class="w-4 h-4 transition-transform" :class="showFilters ? 'rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,6 +62,17 @@
                                 @endforeach
                             </select>
                         </div>
+                        @if(isset($branches) && $branches->count() > 1)
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Sede</label>
+                            <select name="lab_branch_id" class="w-full rounded-lg border-gray-300 text-sm focus:ring-amber-500 focus:border-amber-500">
+                                <option value="">Todas las sedes</option>
+                                @foreach($branches as $branch)
+                                    <option value="{{ $branch->id }}" {{ request('lab_branch_id') == $branch->id ? 'selected' : '' }}>{{ $branch->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
                         <div>
                             <label class="block text-xs font-medium text-gray-500 mb-1">Dueño</label>
                             <input type="text" name="owner" value="{{ request('owner') }}"
@@ -115,6 +126,11 @@
                                         <a href="{{ route('vet.admissions.show', $adm) }}" class="text-amber-600 hover:text-amber-800 font-medium">
                                             {{ $adm->protocol_number }}
                                         </a>
+                                        @if($adm->labBranch && !$adm->labBranch->is_central)
+                                            <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                {{ $adm->labBranch->name }}
+                                            </span>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $adm->date->format('d/m/Y') }}</td>
                                     <td class="px-6 py-4">

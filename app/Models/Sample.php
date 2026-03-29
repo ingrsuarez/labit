@@ -28,6 +28,7 @@ class Sample extends Model
         'validator_notes',
         'observations',
         'created_by',
+        'lab_branch_id',
     ];
 
     protected $casts = [
@@ -66,6 +67,11 @@ class Sample extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function labBranch()
+    {
+        return $this->belongsTo(LabBranch::class);
     }
 
     /**

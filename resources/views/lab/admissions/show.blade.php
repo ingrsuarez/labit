@@ -120,6 +120,17 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">Datos de la Admisión</h2>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        @if($admission->labBranch)
+                        <div>
+                            <p class="text-sm text-gray-500">Sede de origen</p>
+                            <p class="font-medium text-gray-900">
+                                {{ $admission->labBranch->name }}
+                                @if($admission->labBranch->city)
+                                    <span class="text-gray-500">— {{ $admission->labBranch->city }}</span>
+                                @endif
+                            </p>
+                        </div>
+                        @endif
                         <div>
                             <p class="text-sm text-gray-500">Obra Social</p>
                             <p class="font-medium text-gray-900">

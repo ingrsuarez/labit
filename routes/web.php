@@ -152,6 +152,9 @@ Route::middleware([
         Route::get('lab/configuracion/correos', [App\Http\Controllers\LabEmailSettingsController::class, 'edit'])->name('lab.email-settings.edit');
         Route::put('lab/configuracion/correos', [App\Http\Controllers\LabEmailSettingsController::class, 'update'])->name('lab.email-settings.update');
 
+        // SEDES DE LABORATORIO
+        Route::resource('lab-branches', App\Http\Controllers\LabBranchController::class)->except('show');
+
         // LAB ADMISSIONS (Admisiones de Pacientes - Laboratorio)
         Route::get('lab/admissions', [App\Http\Controllers\LabAdmissionController::class, 'index'])->name('lab.admissions.index');
         Route::get('lab/admissions/create', [App\Http\Controllers\LabAdmissionController::class, 'create'])->name('lab.admissions.create');
