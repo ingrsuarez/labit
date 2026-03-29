@@ -153,17 +153,35 @@
                                         <input type="hidden" :name="'items[' + index + '][quantity]'" :value="item.quantity">
                                         <input type="hidden" :name="'items[' + index + '][unit_price]'" :value="item.unit_price">
                                         <input type="hidden" :name="'items[' + index + '][iva_rate]'" :value="item.iva_rate">
+                                        <input type="hidden" :name="'items[' + index + '][lot_number]'" :value="item.lot_number || ''">
+                                        <input type="hidden" :name="'items[' + index + '][expiration_date]'" :value="item.expiration_date || ''">
                                         <input type="text" x-model="item.description" required placeholder="Descripción del ítem"
                                                class="w-full rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
                                     <td class="px-3 py-2">
-                                        <select x-model="item.supply_id"
-                                                class="w-full rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
-                                            <option value="">Ninguno</option>
-                                            <template x-for="supply in supplies" :key="supply.id">
-                                                <option :value="supply.id" x-text="supply.name" :selected="supply.id == item.supply_id"></option>
-                                            </template>
-                                        </select>
+                                        <div class="flex items-center gap-1">
+                                            <select x-model="item.supply_id" @change="onSupplyChange(item)"
+                                                    class="w-full rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                                <option value="">Ninguno</option>
+                                                <template x-for="supply in supplies" :key="supply.id">
+                                                    <option :value="supply.id" x-text="supply.name" :selected="supply.id == item.supply_id"></option>
+                                                </template>
+                                            </select>
+                                            <button type="button" @click="showNewSupplyModal = true; newSupplyForRow = index"
+                                                    class="p-1.5 text-teal-600 hover:text-teal-800 shrink-0" title="Crear insumo nuevo">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <template x-if="getSupplyTracksLot(item.supply_id)">
+                                            <div class="flex gap-2 mt-1">
+                                                <input type="text" x-model="item.lot_number" placeholder="Lote"
+                                                       class="w-1/2 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
+                                                <input type="date" x-model="item.expiration_date"
+                                                       class="w-1/2 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
+                                            </div>
+                                        </template>
                                     </td>
                                     <td class="px-3 py-2">
                                         <input type="number" x-model.number="item.quantity" min="0.01" step="0.01" required
@@ -250,6 +268,72 @@
                 </button>
             </div>
         </form>
+
+        {{-- Modal crear insumo --}}
+        <div x-show="showNewSupplyModal" x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+             @keydown.escape.window="showNewSupplyModal = false">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6" @click.outside="showNewSupplyModal = false">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Crear Insumo Nuevo</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
+                        <input type="text" x-model="newSupply.name" required
+                               class="w-full border-gray-300 rounded-lg text-sm focus:ring-teal-500 focus:border-teal-500"
+                               placeholder="Nombre del insumo">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                        <select x-model="newSupply.supply_category_id"
+                                class="w-full border-gray-300 rounded-lg text-sm focus:ring-teal-500 focus:border-teal-500">
+                            <option value="">Sin categoría</option>
+                            @foreach(\App\Models\SupplyCategory::active()->orderBy('name')->get() as $cat)
+                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Unidad *</label>
+                        <select x-model="newSupply.unit" required
+                                class="w-full border-gray-300 rounded-lg text-sm focus:ring-teal-500 focus:border-teal-500">
+                            <option value="unidad">Unidad</option>
+                            <option value="litro">Litro</option>
+                            <option value="kg">Kilogramo</option>
+                            <option value="caja">Caja</option>
+                            <option value="pack">Pack</option>
+                            <option value="metro">Metro</option>
+                            <option value="rollo">Rollo</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Marca</label>
+                        <input type="text" x-model="newSupply.brand"
+                               class="w-full border-gray-300 rounded-lg text-sm focus:ring-teal-500 focus:border-teal-500"
+                               placeholder="Opcional">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Stock mínimo</label>
+                        <input type="number" x-model.number="newSupply.min_stock" min="0" step="1"
+                               class="w-full border-gray-300 rounded-lg text-sm focus:ring-teal-500 focus:border-teal-500">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" x-model="newSupply.tracks_lot" id="newSupplyTracksLot"
+                               class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <label for="newSupplyTracksLot" class="text-sm text-gray-700">¿Controla lote/vencimiento?</label>
+                    </div>
+                </div>
+                <div x-show="newSupplyError" class="mt-3 text-sm text-red-600" x-text="newSupplyError"></div>
+                <div class="mt-5 flex justify-end gap-3">
+                    <button type="button" @click="showNewSupplyModal = false"
+                            class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancelar</button>
+                    <button type="button" @click="createSupply()" :disabled="newSupplySaving"
+                            class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50">
+                        <span x-show="!newSupplySaving">Crear Insumo</span>
+                        <span x-show="newSupplySaving">Creando...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     @php
@@ -270,17 +354,74 @@
             const deliveryNoteItems = @json($deliveryNoteItemsJson);
 
             return {
-                items: deliveryNoteItems.length > 0 ? [...deliveryNoteItems] : [],
+                items: deliveryNoteItems.length > 0 ? [...deliveryNoteItems.map(i => ({...i, lot_number: '', expiration_date: ''}))] : [],
                 percepciones: {{ old('percepciones', 0) }},
                 otrosImpuestos: {{ old('otros_impuestos', 0) }},
-                supplies: @json(\App\Models\Supply::active()->orderBy('name')->get()->map(function ($s) { return ['id' => $s->id, 'name' => $s->code . ' - ' . $s->name]; })),
+                supplies: @json(\App\Models\Supply::active()->orderBy('name')->get()->map(function ($s) { return ['id' => $s->id, 'name' => $s->code . ' - ' . $s->name, 'tracks_lot' => $s->tracks_lot]; })),
+
+                showNewSupplyModal: false,
+                newSupplyForRow: null,
+                newSupplySaving: false,
+                newSupplyError: '',
+                newSupply: { name: '', supply_category_id: '', unit: 'unidad', brand: '', min_stock: 0, tracks_lot: false },
 
                 addItem() {
-                    this.items.push({ description: '', supply_id: '', quantity: 1, unit_price: 0, iva_rate: '21' });
+                    this.items.push({ description: '', supply_id: '', quantity: 1, unit_price: 0, iva_rate: '21', lot_number: '', expiration_date: '' });
                 },
 
                 removeItem(index) {
                     this.items.splice(index, 1);
+                },
+
+                onSupplyChange(item) {
+                    if (!this.getSupplyTracksLot(item.supply_id)) {
+                        item.lot_number = '';
+                        item.expiration_date = '';
+                    }
+                },
+
+                getSupplyTracksLot(supplyId) {
+                    if (!supplyId) return false;
+                    const s = this.supplies.find(s => s.id == supplyId);
+                    return s ? s.tracks_lot : false;
+                },
+
+                async createSupply() {
+                    if (!this.newSupply.name.trim()) {
+                        this.newSupplyError = 'El nombre es obligatorio.';
+                        return;
+                    }
+                    this.newSupplySaving = true;
+                    this.newSupplyError = '';
+                    try {
+                        const resp = await fetch('{{ route("supplies.store") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            body: JSON.stringify(this.newSupply),
+                        });
+                        if (!resp.ok) {
+                            const err = await resp.json();
+                            this.newSupplyError = err.message || 'Error al crear el insumo.';
+                            return;
+                        }
+                        const data = await resp.json();
+                        this.supplies.push({ id: data.id, name: data.code + ' - ' + data.name, tracks_lot: data.tracks_lot });
+                        if (this.newSupplyForRow !== null && this.items[this.newSupplyForRow]) {
+                            this.items[this.newSupplyForRow].supply_id = data.id;
+                            this.items[this.newSupplyForRow].description = this.items[this.newSupplyForRow].description || data.name;
+                        }
+                        this.showNewSupplyModal = false;
+                        this.newSupply = { name: '', supply_category_id: '', unit: 'unidad', brand: '', min_stock: 0, tracks_lot: false };
+                    } catch (e) {
+                        this.newSupplyError = 'Error de red al crear el insumo.';
+                    } finally {
+                        this.newSupplySaving = false;
+                    }
                 },
 
                 itemIva(item) {
