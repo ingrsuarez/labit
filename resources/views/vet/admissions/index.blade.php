@@ -21,40 +21,71 @@
         @endif
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
-            <form action="{{ route('vet.admissions.index') }}" method="GET" class="flex flex-wrap gap-4">
-                <div class="flex-1 min-w-[200px]">
-                    <input type="text" name="search" value="{{ request('search') }}"
-                           placeholder="Buscar por protocolo, dueño o animal..."
-                           class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-amber-500 focus:border-amber-500">
+            <form action="{{ route('vet.admissions.index') }}" method="GET">
+                <div class="flex flex-wrap gap-4">
+                    <div class="flex-1 min-w-[200px]">
+                        <input type="text" name="search" value="{{ request('search') }}"
+                               placeholder="Buscar por protocolo, dueño, animal, raza o veterinaria..."
+                               class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-amber-500 focus:border-amber-500">
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">Filtrar</button>
+                    @if(request()->hasAny(['search', 'species_id', 'customer_id', 'date_from', 'date_to', 'owner', 'animal']))
+                        <a href="{{ route('vet.admissions.index') }}" class="px-4 py-2 text-gray-500 hover:text-gray-700">Limpiar</a>
+                    @endif
                 </div>
-                <div class="w-40">
-                    <select name="species_id" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-amber-500 focus:border-amber-500">
-                        <option value="">Todas las especies</option>
-                        @foreach($species as $sp)
-                            <option value="{{ $sp->id }}" {{ request('species_id') == $sp->id ? 'selected' : '' }}>{{ $sp->name }}</option>
-                        @endforeach
-                    </select>
+
+                <div x-data="{ showFilters: {{ request()->hasAny(['species_id', 'customer_id', 'date_from', 'date_to', 'owner', 'animal']) ? 'true' : 'false' }} }" class="mt-3">
+                    <button @click="showFilters = !showFilters" type="button"
+                            class="text-sm text-amber-600 hover:text-amber-800 font-medium flex items-center gap-1">
+                        <svg class="w-4 h-4 transition-transform" :class="showFilters ? 'rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                        <span x-text="showFilters ? 'Ocultar filtros avanzados' : 'Filtros avanzados'"></span>
+                    </button>
+
+                    <div x-show="showFilters" x-transition class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Especie</label>
+                            <select name="species_id" class="w-full rounded-lg border-gray-300 text-sm focus:ring-amber-500 focus:border-amber-500">
+                                <option value="">Todas las especies</option>
+                                @foreach($species as $sp)
+                                    <option value="{{ $sp->id }}" {{ request('species_id') == $sp->id ? 'selected' : '' }}>{{ $sp->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Veterinaria</label>
+                            <select name="customer_id" class="w-full rounded-lg border-gray-300 text-sm focus:ring-amber-500 focus:border-amber-500">
+                                <option value="">Todas las veterinarias</option>
+                                @foreach($customers as $c)
+                                    <option value="{{ $c->id }}" {{ request('customer_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Dueño</label>
+                            <input type="text" name="owner" value="{{ request('owner') }}"
+                                   placeholder="Filtrar por dueño..."
+                                   class="w-full rounded-lg border-gray-300 text-sm focus:ring-amber-500 focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Animal</label>
+                            <input type="text" name="animal" value="{{ request('animal') }}"
+                                   placeholder="Filtrar por animal..."
+                                   class="w-full rounded-lg border-gray-300 text-sm focus:ring-amber-500 focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Fecha desde</label>
+                            <input type="date" name="date_from" value="{{ request('date_from') }}"
+                                   class="w-full rounded-lg border-gray-300 text-sm focus:ring-amber-500 focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Fecha hasta</label>
+                            <input type="date" name="date_to" value="{{ request('date_to') }}"
+                                   class="w-full rounded-lg border-gray-300 text-sm focus:ring-amber-500 focus:border-amber-500">
+                        </div>
+                    </div>
                 </div>
-                <div class="w-48">
-                    <select name="customer_id" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-amber-500 focus:border-amber-500">
-                        <option value="">Todas las veterinarias</option>
-                        @foreach($customers as $c)
-                            <option value="{{ $c->id }}" {{ request('customer_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="w-36">
-                    <input type="date" name="date_from" value="{{ request('date_from') }}"
-                           class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-amber-500 focus:border-amber-500" placeholder="Desde">
-                </div>
-                <div class="w-36">
-                    <input type="date" name="date_to" value="{{ request('date_to') }}"
-                           class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-amber-500 focus:border-amber-500" placeholder="Hasta">
-                </div>
-                <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">Filtrar</button>
-                @if(request()->hasAny(['search', 'species_id', 'customer_id', 'date_from', 'date_to']))
-                    <a href="{{ route('vet.admissions.index') }}" class="px-4 py-2 text-gray-500 hover:text-gray-700">Limpiar</a>
-                @endif
             </form>
         </div>
 
@@ -87,7 +118,10 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $adm->date->format('d/m/Y') }}</td>
                                     <td class="px-6 py-4">
-                                        <div class="text-sm font-medium text-gray-900">{{ $adm->animal_name }}</div>
+                                        <a href="{{ route('vet.admissions.index', ['animal' => $adm->animal_name, 'owner' => $adm->owner_name]) }}"
+                                           class="text-amber-700 hover:text-amber-900 font-medium text-sm" title="Ver historial de este animal">
+                                            {{ $adm->animal_name }}
+                                        </a>
                                         @if($adm->breed)<div class="text-xs text-gray-500">{{ $adm->breed }}</div>@endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -96,7 +130,10 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4">
-                                        <div class="text-sm text-gray-900">{{ $adm->owner_name }}</div>
+                                        <a href="{{ route('vet.admissions.index', ['owner' => $adm->owner_name]) }}"
+                                           class="text-sm text-gray-700 hover:text-amber-600" title="Ver todos los animales de este dueño">
+                                            {{ $adm->owner_name }}
+                                        </a>
                                         @if($adm->owner_phone)<div class="text-xs text-gray-500">{{ $adm->owner_phone }}</div>@endif
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-900">{{ $adm->customer->name ?? '-' }}</td>

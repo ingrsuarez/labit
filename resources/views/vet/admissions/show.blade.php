@@ -64,6 +64,21 @@
                     <dt class="text-gray-500">Tel. Dueño</dt>
                     <dd class="text-gray-900">{{ $vetAdmission->owner_phone ?? '-' }}</dd>
                 </dl>
+                @php
+                    $historyCount = \App\Models\VetAdmission::where('owner_name', $vetAdmission->owner_name)
+                        ->where('animal_name', $vetAdmission->animal_name)
+                        ->count();
+                @endphp
+                @if($historyCount > 1)
+                    <a href="{{ route('vet.admissions.index', ['animal' => $vetAdmission->animal_name, 'owner' => $vetAdmission->owner_name]) }}"
+                       class="inline-flex items-center text-sm text-amber-600 hover:text-amber-800 mt-3">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Ver historial ({{ $historyCount }} protocolos)
+                    </a>
+                @endif
+                </dl>
             </div>
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
                 <h3 class="text-sm font-semibold text-amber-700 mb-3 uppercase tracking-wider">Datos del Protocolo</h3>

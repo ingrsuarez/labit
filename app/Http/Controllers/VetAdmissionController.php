@@ -26,7 +26,14 @@ class VetAdmissionController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('protocol_number', 'like', "%{$search}%")
                     ->orWhere('animal_name', 'like', "%{$search}%")
-                    ->orWhere('owner_name', 'like', "%{$search}%");
+                    ->orWhere('owner_name', 'like', "%{$search}%")
+                    ->orWhere('breed', 'like', "%{$search}%")
+                    ->orWhereHas('customer', function ($q2) use ($search) {
+                        $q2->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('veterinarian', function ($q2) use ($search) {
+                        $q2->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -44,6 +51,14 @@ class VetAdmissionController extends Controller
 
         if ($request->filled('date_to')) {
             $query->whereDate('date', '<=', $request->date_to);
+        }
+
+        if ($request->filled('owner')) {
+            $query->where('owner_name', 'like', '%'.$request->owner.'%');
+        }
+
+        if ($request->filled('animal')) {
+            $query->where('animal_name', 'like', '%'.$request->animal.'%');
         }
 
         $admissions = $query->paginate(20)->withQueryString();
