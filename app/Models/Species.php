@@ -14,4 +14,9 @@ class Species extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function testReferences()
+    {
+        return $this->hasMany(TestSpeciesReference::class);
+    }
 }
