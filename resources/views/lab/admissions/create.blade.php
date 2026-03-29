@@ -25,6 +25,8 @@
         <form action="{{ route('lab.admissions.store') }}" method="POST" @submit="prepareSubmit">
             @csrf
 
+            @include('components.branch-select', ['selectedBranchId' => old('lab_branch_id')])
+
             <!-- Sección: Paciente -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">Datos del Paciente</h2>

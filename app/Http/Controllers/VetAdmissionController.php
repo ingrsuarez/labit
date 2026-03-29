@@ -17,7 +17,7 @@ class VetAdmissionController extends Controller
 {
     public function index(Request $request)
     {
-        $query = VetAdmission::with(['customer', 'veterinarian', 'species', 'vetTests'])
+        $query = VetAdmission::with(['customer', 'veterinarian', 'species', 'vetTests', 'labBranch'])
             ->orderBy('date', 'desc')
             ->orderBy('id', 'desc');
 
@@ -61,19 +61,25 @@ class VetAdmissionController extends Controller
             $query->where('animal_name', 'like', '%'.$request->animal.'%');
         }
 
+        if ($request->filled('lab_branch_id')) {
+            $query->where('lab_branch_id', $request->lab_branch_id);
+        }
+
         $admissions = $query->paginate(20)->withQueryString();
         $species = Species::where('is_active', true)->orderBy('name')->get();
         $customers = Customer::whereJsonContains('type', 'veterinario')->orderBy('name')->get();
+        $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
 
-        return view('vet.admissions.index', compact('admissions', 'species', 'customers'));
+        return view('vet.admissions.index', compact('admissions', 'species', 'customers', 'branches'));
     }
 
     public function create()
     {
         $customers = Customer::whereJsonContains('type', 'veterinario')->orderBy('name')->get();
         $species = Species::where('is_active', true)->orderBy('name')->get();
+        $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
 
-        return view('vet.admissions.create', compact('customers', 'species'));
+        return view('vet.admissions.create', compact('customers', 'species', 'branches'));
     }
 
     public function searchTests(Request $request)
@@ -112,6 +118,7 @@ class VetAdmissionController extends Controller
             'tests' => 'required|array|min:1',
             'tests.*.test_id' => 'required|exists:tests,id',
             'tests.*.price' => 'required|numeric|min:0',
+            'lab_branch_id' => 'nullable|exists:lab_branches,id',
         ]);
 
         $admission = VetAdmission::create([
@@ -128,6 +135,7 @@ class VetAdmissionController extends Controller
             'age' => $request->age,
             'observations' => $request->observations,
             'created_by' => auth()->id(),
+            'lab_branch_id' => $request->lab_branch_id,
         ]);
 
         $totalPrice = 0;

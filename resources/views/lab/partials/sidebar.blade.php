@@ -99,7 +99,7 @@
 
             <a href="{{ route('lab.section.configuracion') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('lab.section.configuracion') || request()->routeIs('tests.*') || request()->routeIs('reference-categories.*') || request()->routeIs('materials.*') || request()->routeIs('services.*') || request()->routeIs('nomenclator.*')
+                {{ request()->routeIs('lab.section.configuracion') || request()->routeIs('tests.*') || request()->routeIs('reference-categories.*') || request()->routeIs('materials.*') || request()->routeIs('services.*') || request()->routeIs('nomenclator.*') || request()->routeIs('lab-branches.*')
                     ? 'bg-teal-600 text-white'
                     : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,6 +107,18 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
                 Configuración
+            </a>
+
+            <a href="{{ route('lab-branches.index') }}"
+               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                {{ request()->routeIs('lab-branches.*')
+                    ? 'bg-teal-600 text-white'
+                    : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Sedes
             </a>
 
         </nav>

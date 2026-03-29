@@ -51,8 +51,18 @@
                         <option value="pending">Pendiente</option>
                     </select>
                 </div>
-                <div x-show="search || filterType || filterStatus" x-cloak>
-                    <button type="button" @click="search = ''; filterType = ''; filterStatus = ''"
+                @if(isset($branches) && $branches->count() > 1)
+                <div>
+                    <select x-model="filterBranch" class="rounded-lg border-gray-300 shadow-sm text-sm focus:ring-teal-500 focus:border-teal-500">
+                        <option value="">Todas las sedes</option>
+                        @foreach($branches as $branch)
+                            <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+                <div x-show="search || filterType || filterStatus || filterBranch" x-cloak>
+                    <button type="button" @click="search = ''; filterType = ''; filterStatus = ''; filterBranch = ''"
                             class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800">
                         Limpiar
                     </button>
@@ -85,17 +95,24 @@
                             $calcStatus = $sample->calculated_status;
                         @endphp
                         <tr class="hover:bg-gray-50"
+                            data-branch="{{ $sample->lab_branch_id }}"
                             x-show="matchesFilter(
                                 '{{ strtolower($sample->protocol_number) }}',
                                 '{{ strtolower(addslashes($sample->customer?->name ?? '')) }}',
                                 '{{ strtolower(addslashes($sample->location ?? '')) }}',
                                 '{{ strtolower($sample->sample_type ?? '') }}',
-                                '{{ strtolower($calcStatus) }}'
+                                '{{ strtolower($calcStatus) }}',
+                                '{{ $sample->lab_branch_id }}'
                             )">
                             <td class="px-3 py-4 whitespace-nowrap">
                                 <a href="{{ route('sample.show', $sample) }}" class="text-teal-600 hover:text-teal-800 font-medium">
                                     {{ $sample->protocol_number }}
                                 </a>
+                                @if($sample->labBranch && !$sample->labBranch->is_central)
+                                    <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                        {{ $sample->labBranch->name }}
+                                    </span>
+                                @endif
                             </td>
                             <td class="px-2 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -175,9 +192,10 @@
                 search: '',
                 filterType: '',
                 filterStatus: '',
+                filterBranch: '',
                 visibleCount: {{ $samples->count() }},
 
-                matchesFilter(protocol, customer, place, type, status) {
+                matchesFilter(protocol, customer, place, type, status, branchId) {
                     const q = this.search.toLowerCase().trim();
                     const matchesSearch = !q ||
                         protocol.includes(q) ||
@@ -185,7 +203,8 @@
                         place.includes(q);
                     const matchesType = !this.filterType || type === this.filterType.toLowerCase();
                     const matchesStatus = !this.filterStatus || status === this.filterStatus.toLowerCase();
-                    const visible = matchesSearch && matchesType && matchesStatus;
+                    const matchesBranch = !this.filterBranch || branchId === this.filterBranch;
+                    const visible = matchesSearch && matchesType && matchesStatus && matchesBranch;
                     this.$nextTick(() => this.updateCount());
                     return visible;
                 },

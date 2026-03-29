@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-29 (post v1.29.0)
+> Última actualización: 2026-03-29 (post v1.30.0)
 
 ---
 
@@ -9,31 +9,30 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.7.0 / v1.29.0 |
-| **Última completada** | v1.29.0 — Libro IVA digital |
+| **Versión actual** | v2.7.0 / v1.30.0 |
+| **Última completada** | v1.30.0 — Sedes laboratorio y procedencia |
 | **En proceso** | — |
-| **Próxima** | v1.30.0 — Sedes laboratorio procedencia |
-| **Pendientes en cola** | 1 |
-| **Completadas** | 54 |
+| **Próxima** | — (sin prompts pendientes) |
+| **Pendientes en cola** | 0 |
+| **Completadas** | 55 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (1)
+### Pendientes (0)
 
-| Versión | Nombre | Dependencias |
-|---|---|---|
-| v1.30.0 | Sedes laboratorio procedencia | ninguna |
+_No hay prompts pendientes._
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (54)
+### Completados (55)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.30.0 | Sedes laboratorio y procedencia de protocolos | 2026-03-29 | v1.30.0 |
 | v1.29.0 | Libro IVA digital (AFIP RG 4597) | 2026-03-29 | v1.29.0 |
 | v1.26.2 | UX admisión vet buscador enter + email dueño | 2026-03-29 | v1.26.2 |
 | v1.28.0 | Lector QR facturas de compra (RG 4892) | 2026-03-29 | v1.28.0 |
@@ -114,6 +113,7 @@ v1.0.0 (completada)
 ├── v1.27.0 — Entrada stock desde factura compra (completada)
 │   └── v1.28.0 — Lector QR facturas de compra (completada)
 ├── v1.29.0 — Libro IVA digital AFIP RG 4597 (completada)
+├── v1.30.0 — Sedes laboratorio y procedencia protocolos (completada)
 ├── v1.5.3 — Seeder jerarquía padre-hijo prácticas (completada)
 │   ├── v1.5.4 — Tests faltantes y jerarquía completa (completada)
 │   │   └── v1.6.0 — Formato tabular en PDFs de informes (completada)
@@ -167,7 +167,7 @@ v1.0.0 (completada)
 ## Próximo paso recomendado
 
 Siguiente prompt disponible:
-**v1.30.0** — Sedes laboratorio procedencia
+**(sin prompts pendientes)**
 
 ---
 

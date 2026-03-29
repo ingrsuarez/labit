@@ -22,6 +22,7 @@
 
         <form action="{{ route('vet.admissions.store') }}" method="POST">
             @csrf
+            @include('components.branch-select', ['selectedBranchId' => old('lab_branch_id')])
             <div class="space-y-6">
                 {{-- Veterinaria y Derivante --}}
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

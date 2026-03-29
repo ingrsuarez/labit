@@ -15,6 +15,7 @@ class VetAdmission extends Model
         'protocol_number', 'date', 'customer_id', 'veterinarian_id',
         'species_id', 'animal_name', 'owner_name', 'owner_phone', 'owner_email',
         'breed', 'age', 'status', 'observations', 'total_price', 'created_by',
+        'lab_branch_id',
     ];
 
     protected $casts = [
@@ -50,6 +51,11 @@ class VetAdmission extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function labBranch()
+    {
+        return $this->belongsTo(LabBranch::class);
     }
 
     public function getStatusLabelAttribute(): string

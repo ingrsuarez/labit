@@ -38,6 +38,7 @@ class Admission extends Model
         'total_copago',
         'cash',
         'created_by',
+        'lab_branch_id',
         'status',
         'payment_status',
         'payment_method',
@@ -118,6 +119,11 @@ class Admission extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function labBranch()
+    {
+        return $this->belongsTo(LabBranch::class);
     }
 
     /**
