@@ -405,14 +405,14 @@
                     <td style="padding-left: {{ $indent }}px;">{{ ucfirst($at->test->name ?? 'N/A') }}</td>
                     <td class="det-result">{{ $at->result ?? '-' }}</td>
                     <td class="det-unit">{{ $at->unit ?? $at->test->unit ?? '' }}</td>
-                    <td class="det-ref">{{ $at->reference_value ?: ($at->test->other_reference ?? '') }}</td>
+                    <td class="det-ref">{{ ($at->reference_value !== null && $at->reference_value !== '') ? $at->reference_value : ($at->test->other_reference ?? '') }}</td>
                 </tr>
             @else
                 <tr class="det-standalone">
                     <td>{{ ucfirst($at->test->name ?? 'N/A') }}</td>
                     <td class="det-result">{{ $at->result ?? '-' }}</td>
                     <td class="det-unit">{{ $at->unit ?? $at->test->unit ?? '' }}</td>
-                    <td class="det-ref">{{ $at->reference_value ?: ($at->test->other_reference ?? '') }}</td>
+                    <td class="det-ref">{{ ($at->reference_value !== null && $at->reference_value !== '') ? $at->reference_value : ($at->test->other_reference ?? '') }}</td>
                 </tr>
             @endif
         @endforeach
