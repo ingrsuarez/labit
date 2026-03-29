@@ -1031,14 +1031,36 @@
                         <!-- Vista previa -->
                         <div class="bg-gray-50 rounded-lg p-3 border border-dashed border-gray-300">
                             <p class="text-xs text-gray-500 mb-1 font-medium">Vista previa de la etiqueta:</p>
+                            @php
+                                $parentTestIds = $admission->admissionTests->pluck('test_id')->toArray();
+                                $materialLabels = [];
+                                foreach ($admission->admissionTests as $at) {
+                                    $test = $at->test;
+                                    if (!$test || !$test->materialRelation) continue;
+                                    if ($test->parents->whereIn('id', $parentTestIds)->isNotEmpty()) continue;
+                                    $mid = $test->materialRelation->id;
+                                    if (!isset($materialLabels[$mid])) {
+                                        $materialLabels[$mid] = $test->material_abbreviation;
+                                    }
+                                }
+                                $previewMaterials = array_values($materialLabels);
+                            @endphp
+                            <p class="text-xs text-gray-600 mb-2">
+                                Se imprimirán <strong>{{ count($previewMaterials) ?: 1 }}</strong> etiqueta{{ (count($previewMaterials) ?: 1) > 1 ? 's' : '' }}:
+                            </p>
+                            @if(count($previewMaterials) > 0)
+                                <div class="flex flex-wrap gap-1 mb-2">
+                                    @foreach($previewMaterials as $mat)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-100 text-teal-800">{{ $mat }}</span>
+                                    @endforeach
+                                </div>
+                            @endif
                             <div class="bg-white border border-gray-200 rounded p-2 text-center font-mono text-xs leading-relaxed">
                                 <div class="text-lg tracking-widest">|||||||||||||||||||</div>
                                 <div class="font-bold">{{ $admission->protocol_number }}</div>
                                 <div>{{ Str::limit($admission->patient->full_name ?? 'N/A', 30) }}</div>
                                 <div class="text-gray-500">
-                                    CLINICO |
-                                    MAT: {{ $admission->admissionTests->pluck('test.material_abbreviation')->unique()->filter()->implode('/') ?: 'N/A' }}
-                                    &nbsp; {{ $admission->date->format('d/m/Y') }}
+                                    CLINICO | <strong>{{ $previewMaterials[0] ?? '?' }}</strong> | {{ $admission->date->format('d/m/Y') }}
                                 </div>
                             </div>
                         </div>
@@ -1096,7 +1118,7 @@
                         <p class="text-sm text-red-700" x-text="error"></p>
                     </div>
                     <div x-show="success" class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <p class="text-sm text-green-700">Etiqueta enviada a la impresora correctamente.</p>
+                        <p class="text-sm text-green-700">Etiqueta(s) enviada(s) a la impresora correctamente.</p>
                     </div>
                 </div>
             </div>
@@ -1108,5 +1130,16 @@
     </style>
 
     <script src="{{ asset('js/zebra-label-print.js') }}"></script>
+    @if(request('print_label'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                window.dispatchEvent(new CustomEvent('open-label-modal', {
+                    detail: { url: '{{ route('lab.admissions.labelData', $admission) }}' }
+                }));
+            }, 500);
+        });
+    </script>
+    @endif
 </x-lab-layout>
 

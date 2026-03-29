@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Etiqueta - {{ $admission->protocol_number }}</title>
+    <title>Etiquetas - {{ $admission->protocol_number }}</title>
     <style>
         @page {
             size: landscape;
@@ -16,14 +16,22 @@
         }
 
         body {
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .label {
             width: 60mm;
             height: 40mm;
-            font-family: Arial, Helvetica, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 2mm 3mm;
+            page-break-after: always;
         }
 
         .barcode {
@@ -60,17 +68,23 @@
             color: #333;
         }
 
+        .meta strong {
+            font-size: 7pt;
+        }
+
         @media print {
-            html {
+            html, body {
                 width: 60mm;
-                height: 40mm;
             }
 
             body {
-                width: 60mm;
-                height: 40mm;
+                padding: 0;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+            }
+
+            .label {
+                margin: 0;
             }
 
             .no-print {
@@ -79,9 +93,9 @@
         }
 
         @media screen {
-            body {
+            .label {
                 border: 1px dashed #ccc;
-                margin: 20px auto;
+                margin-bottom: 10px;
             }
 
             .no-print {
@@ -109,14 +123,18 @@
 </head>
 <body>
     <div class="no-print">
-        <button onclick="window.print()">Imprimir</button>
+        <button onclick="window.print()">Imprimir ({{ count($labels) }} etiqueta{{ count($labels) > 1 ? 's' : '' }})</button>
     </div>
 
-    <div class="barcode">{!! $barcodeSvg !!}</div>
-    <div class="protocol">{{ $admission->protocol_number }}</div>
-    <div class="customer">{{ Str::limit($admission->patient->full_name ?? 'N/A', 35) }}</div>
-    <div class="meta">
-        CLINICO | MAT: {{ $materials }} | {{ $admission->date->format('d/m/Y') }}
+    @foreach($labels as $label)
+    <div class="label">
+        <div class="barcode">{!! $label['barcode_svg'] !!}</div>
+        <div class="protocol">{{ $label['protocol_number'] }}</div>
+        <div class="customer">{{ Str::limit($label['customer_name'], 35) }}</div>
+        <div class="meta">
+            CLINICO | <strong>{{ $label['material'] }}</strong> | {{ $label['entry_date'] }}
+        </div>
     </div>
+    @endforeach
 </body>
 </html>
