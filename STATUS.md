@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-29 (post v1.21.0)
+> Última actualización: 2026-03-29 (post v1.24.0)
 
 ---
 
@@ -9,24 +9,21 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.7.0 / v1.21.0 |
-| **Última completada** | v1.21.0 — Tipificación de Customers + CRUD de Veterinarios |
+| **Versión actual** | v2.7.0 / v1.24.0 |
+| **Última completada** | v1.24.0 — Protocolo veterinario (VetAdmission) |
 | **En proceso** | — |
-| **Próxima** | v1.22.0 — Valores de referencia por especie |
-| **Pendientes en cola** | 5 |
-| **Completadas** | 45 |
+| **Próxima** | v1.25.0 — PDF resultados veterinarios + envío email |
+| **Pendientes en cola** | 2 |
+| **Completadas** | 48 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (5)
+### Pendientes (2)
 
 | Versión | Nombre | Dependencias |
 |---|---|---|
-| v1.22.0 | Valores de referencia por especie | v1.20.0 |
-| v1.23.0 | Nuevo formato de numeración de protocolos | v1.20.0 |
-| v1.24.0 | Protocolo veterinario (VetAdmission) | v1.20.0, v1.21.0, v1.22.0, v1.23.0 |
 | v1.25.0 | PDF resultados veterinarios + envío email | v1.24.0 |
 | v1.26.0 | Búsqueda de protocolos por dueño/animal | v1.24.0 |
 
@@ -34,10 +31,13 @@
 
 _Sin prompts en ejecución._
 
-### Completados (45)
+### Completados (48)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.24.0 | Protocolo veterinario (VetAdmission) | 2026-03-29 | v1.24.0 |
+| v1.23.0 | Nuevo formato de numeración de protocolos | 2026-03-29 | v1.23.0 |
+| v1.22.0 | Valores de referencia por especie | 2026-03-29 | v1.22.0 |
 | v1.21.0 | Tipificación de Customers + CRUD de Veterinarios | 2026-03-29 | v1.21.0 |
 | v1.20.0 | Infraestructura veterinaria base | 2026-03-29 | v1.20.0 |
 | v1.19.2 | Fix validación y PDF para resultados con valor cero | 2026-03-29 | v1.19.2 |
@@ -150,8 +150,9 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-Siguiente prompt disponible: **v1.22.0 — Valores de referencia por especie** (depende de v1.20.0, ya completada).
-También disponible: **v1.23.0 — Nuevo formato de numeración de protocolos** (depende de v1.20.0).
+Siguiente prompt disponible:
+1. **v1.25.0** — PDF resultados veterinarios + envío email (dep: v1.24.0 ✅)
+2. **v1.26.0** — Búsqueda de protocolos por dueño/animal (dep: v1.24.0 ✅)
 
 ---
 
