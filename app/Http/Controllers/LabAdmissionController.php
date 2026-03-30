@@ -908,7 +908,7 @@ class LabAdmissionController extends Controller
     {
         $this->authorize('lab-labels.print');
 
-        $admission->load(['patient', 'admissionTests.test.materialRelation', 'admissionTests.test.parentTests']);
+        $admission->load(['patient', 'admissionTests.test.materialRelation', 'admissionTests.test.parentTests', 'labBranch']);
 
         $labels = $this->groupByMaterial($admission);
 
@@ -922,7 +922,7 @@ class LabAdmissionController extends Controller
     {
         $this->authorize('lab-labels.print');
 
-        $admission->load(['patient', 'admissionTests.test.materialRelation', 'admissionTests.test.parentTests']);
+        $admission->load(['patient', 'admissionTests.test.materialRelation', 'admissionTests.test.parentTests', 'labBranch']);
 
         $labels = $this->groupByMaterial($admission);
 
@@ -971,6 +971,7 @@ class LabAdmissionController extends Controller
             $materialGroups[$materialId]['tests'][] = $test->name;
         }
 
+        $branchName = $admission->labBranch?->name;
         $labels = [];
         foreach ($materialGroups as $group) {
             $labels[] = [
@@ -981,6 +982,7 @@ class LabAdmissionController extends Controller
                 'sample_type' => 'CLINICO',
                 'entry_date' => $admission->date?->format('d/m/Y') ?? '',
                 'tests_count' => count($group['tests']),
+                'branch_name' => $branchName,
             ];
         }
 
@@ -993,6 +995,7 @@ class LabAdmissionController extends Controller
                 'sample_type' => 'CLINICO',
                 'entry_date' => $admission->date?->format('d/m/Y') ?? '',
                 'tests_count' => $admission->admissionTests->count(),
+                'branch_name' => $branchName,
             ];
         }
 

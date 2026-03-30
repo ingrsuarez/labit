@@ -132,6 +132,7 @@ const ZebraLabelPrint = {
                 const protocol = this._sanitizeZPL(label.protocol_number);
                 const material = this._sanitizeZPL(label.material || '?');
                 const entryDate = this._sanitizeZPL(label.entry_date);
+                const branchName = this._sanitizeZPL(label.branch_name || 'CLINICO');
 
                 zpl += '^XA\n';
                 zpl += '^CI28\n';
@@ -139,7 +140,7 @@ const ZebraLabelPrint = {
                 zpl += '^LL200\n';
                 zpl += '^FO40,10^BY2,2,65^BCN,65,Y,N,N^FD' + protocol + '^FS\n';
                 zpl += '^FO30,100^A0N,20,20^FD' + customerName + '^FS\n';
-                zpl += '^FO30,125^A0N,18,18^FDCLINICO | ' + material + '^FS\n';
+                zpl += '^FO30,125^A0N,18,18^FD' + branchName + ' | ' + material + '^FS\n';
                 zpl += '^FO30,148^A0N,18,18^FD' + entryDate + '^FS\n';
                 zpl += '^PQ1\n';
                 zpl += '^XZ\n';

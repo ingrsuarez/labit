@@ -132,7 +132,7 @@
         <div class="protocol">{{ $label['protocol_number'] }}</div>
         <div class="customer">{{ Str::limit($label['customer_name'], 35) }}</div>
         <div class="meta">
-            CLINICO | <strong>{{ $label['material'] }}</strong> | {{ $label['entry_date'] }}
+            {{ $label['branch_name'] ?? 'CLINICO' }} | <strong>{{ $label['material'] }}</strong> | {{ $label['entry_date'] }}
         </div>
     </div>
     @endforeach
