@@ -35,6 +35,8 @@ class SalesInvoice extends Model
     public function collectionReceiptItems() { return $this->hasMany(CollectionReceiptItem::class); }
     public function creditNotes() { return $this->hasMany(CreditNote::class); }
 
+    public function invoiceProtocols() { return $this->hasMany(InvoiceProtocol::class); }
+
     public function recalculate(): void
     {
         $this->subtotal = $this->items()->sum('total');

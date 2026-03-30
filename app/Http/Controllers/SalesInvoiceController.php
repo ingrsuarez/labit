@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Admission;
+use App\Models\InvoiceProtocol;
 use App\Models\SalesInvoice;
 use App\Models\SalesInvoiceItem;
 use App\Models\Customer;
 use App\Models\Quote;
 use App\Models\PointOfSale;
+use App\Models\VetAdmission;
 use App\Services\AfipService;
 use Illuminate\Http\Request;
 use PDF;
@@ -70,6 +73,79 @@ class SalesInvoiceController extends Controller
         ]);
     }
 
+    public function createFromProtocol(Request $request)
+    {
+        $this->authorize('sales-invoices.create');
+
+        $type = $request->get('protocol_type');
+        $id = $request->get('protocol_id');
+
+        $items = [];
+        $customerId = null;
+        $voucherType = 'B';
+        $protocolNumber = null;
+
+        if ($type === 'admission') {
+            $protocol = Admission::with(['patient', 'admissionTests.test', 'insuranceRelation'])->findOrFail($id);
+            $customerId = $protocol->patient_id;
+            $protocolNumber = $protocol->protocol_number;
+
+            foreach ($protocol->admissionTests as $at) {
+                $items[] = [
+                    'description' => $at->test?->name ?? 'Determinación',
+                    'test_id' => $at->test_id,
+                    'quantity' => 1,
+                    'unit_price' => $at->paid_by_patient ? ($at->copago ?: $at->price) : $at->price,
+                    'iva_rate' => 21,
+                ];
+            }
+        } elseif ($type === 'vet_admission') {
+            $protocol = VetAdmission::with(['customer', 'vetTests.test'])->findOrFail($id);
+            $customerId = $protocol->customer_id;
+            $protocolNumber = $protocol->protocol_number;
+
+            foreach ($protocol->vetTests as $vt) {
+                $items[] = [
+                    'description' => $vt->test?->name ?? 'Determinación',
+                    'test_id' => $vt->test_id,
+                    'quantity' => 1,
+                    'unit_price' => $vt->price ?? 0,
+                    'iva_rate' => 21,
+                ];
+            }
+        }
+
+        if ($customerId) {
+            $customer = Customer::find($customerId);
+            if ($customer && in_array($customer->iva_condition, ['IVA Responsable Inscripto', 'Responsable Inscripto'])) {
+                $voucherType = 'A';
+            }
+        }
+
+        $forceCompanyId = null;
+        if ($type === 'admission' && isset($protocol) && $protocol->isParticular()) {
+            $forceCompanyId = ipac_sas_company_id();
+        }
+
+        $customers = Customer::where('status', 'activo')->orderBy('name')->get();
+        $pointsOfSale = PointOfSale::where('is_active', true)
+            ->where('company_id', $forceCompanyId ?? active_company_id())
+            ->orderBy('code')->get();
+
+        return view('sales-invoices.create', [
+            'customers' => $customers,
+            'pointsOfSale' => $pointsOfSale,
+            'quote' => null,
+            'selectedCustomerId' => $customerId,
+            'prefillItems' => $items,
+            'prefillVoucherType' => $voucherType,
+            'protocolType' => $type,
+            'protocolId' => $id,
+            'protocolNumber' => $protocolNumber,
+            'forceCompanyId' => $forceCompanyId,
+        ]);
+    }
+
     public function store(Request $request)
     {
         $this->authorize('sales-invoices.create');
@@ -88,6 +164,8 @@ class SalesInvoiceController extends Controller
             'customer_id' => 'required|exists:customers,id',
             'quote_id' => 'nullable|exists:quotes,id',
             'admission_id' => 'nullable|integer',
+            'protocol_type' => 'nullable|string|in:admission,sample,vet_admission',
+            'protocol_id' => 'nullable|integer',
             'issue_date' => 'required|date',
             'due_date' => 'nullable|date',
             'percepciones' => 'nullable|numeric|min:0',
@@ -124,8 +202,10 @@ class SalesInvoiceController extends Controller
             'items.*.iva_rate.in' => 'La alícuota de IVA no es válida.',
         ]);
 
+        $companyId = $request->filled('force_company_id') ? (int) $request->force_company_id : active_company_id();
+
         $invoice = SalesInvoice::create([
-            'company_id' => active_company_id(),
+            'company_id' => $companyId,
             'invoice_number' => $isElectronic ? 'PENDIENTE-AFIP' : $validated['invoice_number'],
             'voucher_type' => $validated['voucher_type'],
             'point_of_sale_id' => $validated['point_of_sale_id'],
@@ -159,6 +239,24 @@ class SalesInvoiceController extends Controller
         }
 
         $invoice->recalculate();
+
+        if ($request->filled('protocol_type') && $request->filled('protocol_id')) {
+            $protocolClass = match ($request->protocol_type) {
+                'admission' => \App\Models\Admission::class,
+                'sample' => \App\Models\Sample::class,
+                'vet_admission' => \App\Models\VetAdmission::class,
+                default => null,
+            };
+
+            if ($protocolClass) {
+                InvoiceProtocol::create([
+                    'sales_invoice_id' => $invoice->id,
+                    'protocol_type' => $protocolClass,
+                    'protocol_id' => $request->protocol_id,
+                    'amount' => $invoice->total,
+                ]);
+            }
+        }
 
         if ($isElectronic) {
             $invoice->load(['pointOfSale', 'customer', 'items']);

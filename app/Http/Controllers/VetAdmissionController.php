@@ -17,7 +17,7 @@ class VetAdmissionController extends Controller
 {
     public function index(Request $request)
     {
-        $query = VetAdmission::with(['customer', 'veterinarian', 'species', 'vetTests', 'labBranch'])
+        $query = VetAdmission::with(['customer', 'veterinarian', 'species', 'vetTests', 'labBranch', 'invoiceProtocols'])
             ->orderBy('date', 'desc')
             ->orderBy('id', 'desc');
 

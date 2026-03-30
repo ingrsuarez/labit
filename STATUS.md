@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-30 (post v1.30.3)
+> Última actualización: 2026-03-30 (post v1.31.0)
 
 ---
 
@@ -9,20 +9,22 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.7.0 / v1.30.3 |
-| **Última completada** | v1.30.3 — Fix protocolos sin sede: visibilidad y asignación masiva |
+| **Versión actual** | v2.7.0 / v1.31.0 |
+| **Última completada** | v1.31.0 — Control de facturación de protocolos |
 | **En proceso** | — |
-| **Próxima** | — (sin prompts pendientes) |
-| **Pendientes en cola** | 0 |
-| **Completadas** | 59 |
+| **Próxima** | v1.31.1 — Facturación masiva por OS, aguas y veterinarias |
+| **Pendientes en cola** | 1 |
+| **Completadas** | 60 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (0)
+### Pendientes (1)
 
-_No hay prompts pendientes._
+| Versión | Nombre | Dependencias |
+|---|---|---|
+| v1.31.1 | Facturación masiva por OS, aguas y veterinarias | v1.31.0 |
 
 ### En proceso (0)
 
@@ -32,6 +34,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.31.0 | Control de facturación de protocolos | 2026-03-30 | v1.31.0 |
 | v1.30.3 | Fix protocolos sin sede: visibilidad y asignación masiva | 2026-03-30 | v1.30.3 |
 | v1.30.2 | Sede por defecto del usuario y selector en header | 2026-03-30 | v1.30.2 |
 | v1.18.1 | Fix etiquetas lab clínico: una por material | 2026-03-29 | v1.18.1 |
@@ -171,7 +174,7 @@ v1.0.0 (completada)
 ## Próximo paso recomendado
 
 Siguiente prompt disponible:
-**(sin prompts pendientes)**
+**v1.31.1** — Facturación masiva por OS, aguas y veterinarias (depende de v1.31.0)
 
 ---
 

@@ -22,6 +22,22 @@
             </div>
         @endif
 
+        @if(isset($protocolNumber) && $protocolNumber)
+            <div class="mb-5 p-4 bg-teal-50 border border-teal-200 rounded-lg">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-teal-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
+                    </svg>
+                    <p class="text-sm text-teal-800">
+                        Facturando protocolo <span class="font-semibold">{{ $protocolNumber }}</span>
+                        @if(isset($forceCompanyId) && $forceCompanyId)
+                            — Empresa: <span class="font-semibold">IPAC Laboratorios SAS</span>
+                        @endif
+                    </p>
+                </div>
+            </div>
+        @endif
+
         @if($errors->any())
             <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <ul class="text-sm text-red-700 list-disc list-inside">
@@ -41,12 +57,19 @@
             @if(request('admission_id'))
                 <input type="hidden" name="admission_id" value="{{ request('admission_id') }}">
             @endif
+            @if(isset($protocolType) && isset($protocolId))
+                <input type="hidden" name="protocol_type" value="{{ $protocolType }}">
+                <input type="hidden" name="protocol_id" value="{{ $protocolId }}">
+            @endif
+            @if(isset($forceCompanyId) && $forceCompanyId)
+                <input type="hidden" name="force_company_id" value="{{ $forceCompanyId }}">
+            @endif
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">Datos del Comprobante</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
                      x-data="{
-                         voucherType: '{{ old('voucher_type', '') }}',
+                         voucherType: '{{ old('voucher_type', $prefillVoucherType ?? '') }}',
                          pointOfSaleId: '{{ old('point_of_sale_id', '') }}',
                          invoiceNumber: '{{ old('invoice_number', '') }}',
                          loading: false,
@@ -281,14 +304,26 @@
                 'iva_rate' => '21',
             ])->values()
             : [];
+
+        $prefillItemsJson = isset($prefillItems) && count($prefillItems) > 0
+            ? collect($prefillItems)->map(fn($i) => [
+                'description' => $i['description'],
+                'test_id' => $i['test_id'] ?? '',
+                'quantity' => floatval($i['quantity']),
+                'unit_price' => floatval($i['unit_price']),
+                'iva_rate' => (string) ($i['iva_rate'] ?? '21'),
+            ])->values()
+            : [];
     @endphp
 
     <script>
         function invoiceForm() {
             const quoteItems = @json($quoteItemsJson);
+            const prefillItems = @json($prefillItemsJson);
+            const initialItems = prefillItems.length > 0 ? prefillItems : (quoteItems.length > 0 ? quoteItems : []);
 
             return {
-                items: quoteItems.length > 0 ? [...quoteItems] : [],
+                items: [...initialItems],
                 percepciones: {{ old('percepciones', 0) }},
                 otrosImpuestos: {{ old('otros_impuestos', 0) }},
                 submitting: false,
