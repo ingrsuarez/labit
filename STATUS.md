@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-29 (post v1.18.1)
+> Última actualización: 2026-03-30 (post v1.30.2)
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.7.0 / v1.30.1 |
-| **Última completada** | v1.18.1 — Fix etiquetas lab por material |
+| **Versión actual** | v2.7.0 / v1.30.2 |
+| **Última completada** | v1.30.2 — Sede por defecto del usuario y selector en header |
 | **En proceso** | — |
 | **Próxima** | — (sin prompts pendientes) |
 | **Pendientes en cola** | 0 |
-| **Completadas** | 57 |
+| **Completadas** | 58 |
 
 ---
 
@@ -28,10 +28,11 @@ _No hay prompts pendientes._
 
 _Sin prompts en ejecución._
 
-### Completados (57)
+### Completados (58)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.30.2 | Sede por defecto del usuario y selector en header | 2026-03-30 | v1.30.2 |
 | v1.18.1 | Fix etiquetas lab clínico: una por material | 2026-03-29 | v1.18.1 |
 | v1.30.1 | Reorganización del sidebar del laboratorio | 2026-03-29 | v1.30.1 |
 | v1.30.0 | Sedes laboratorio y procedencia de protocolos | 2026-03-29 | v1.30.0 |

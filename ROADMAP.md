@@ -68,6 +68,7 @@
 | v1.26.0 | Búsqueda de protocolos por dueño/animal | 2026-03-29 | Filtros por dueño, animal, especie en listado vet |
 | v1.30.1 | Reorganización del sidebar del laboratorio | 2026-03-29 | Módulos arriba, herramientas abajo, Deudores→Saldos |
 | v1.18.1 | Fix etiquetas lab clínico: una por material | 2026-03-29 | 1 etiqueta por tubo/material, botón en index |
+| v1.30.2 | Sede por defecto del usuario y selector en header | 2026-03-30 | default_lab_branch_id, helper, selector header |
 
 ---
 
@@ -82,12 +83,6 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v1.18.1 | Fix etiquetas lab clínico: una por material + sede | 1.5h | v1.30.0 | `pendientes/v1.18.1-fix-etiquetas-lab-por-material.md` |
-| v1.26.2 | UX admisión veterinaria: buscador con Enter + email dueño | 1.5h | ninguna | `pendientes/v1.26.2-ux-admision-vet-buscador-enter.md` |
-| v1.27.0 | Entrada de stock desde factura de compra sin remito + modal crear insumo | 1.5h | ninguna | `pendientes/v1.27.0-stock-desde-factura-compra.md` |
-| v1.28.0 | Lector QR de facturas de compra | 2h | v1.27.0 | `pendientes/v1.28.0-lector-qr-facturas-compra.md` |
-| v1.29.0 | Libro IVA digital (exportación TXT para AFIP) | 3h | v1.28.0 | `pendientes/v1.29.0-libro-iva-digital.md` |
-| v1.30.0 | Sedes de laboratorio y procedencia de protocolos | 3h | ninguna | `pendientes/v1.30.0-sedes-laboratorio-procedencia.md` |
 
 ---
 
@@ -104,8 +99,8 @@
 ## Progreso general
 
 ```
-Completadas:  52 versiones (v1.0.0 → v1.30.1, v2.0.0 → v2.7.0)
-Planificadas: 5 (v1.26.2, v1.27.0, v1.28.0, v1.29.0, v1.30.0)
+Completadas:  53 versiones (v1.0.0 → v1.30.2, v2.0.0 → v2.7.0)
+Planificadas: 0
 En proceso:   0
 Próxima:      — (sin prompts pendientes en cola)
 ```
