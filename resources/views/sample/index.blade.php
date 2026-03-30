@@ -109,6 +109,11 @@
                                 <a href="{{ route('sample.show', $sample) }}" class="text-teal-600 hover:text-teal-800 font-medium">
                                     {{ $sample->protocol_number }}
                                 </a>
+                                @if($sample->isInvoiced())
+                                    <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+                                        <i class="bi bi-check-circle text-[10px] mr-0.5"></i> Fact.
+                                    </span>
+                                @endif
                                 @if($sample->labBranch && !$sample->labBranch->is_central)
                                     <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                                         {{ $sample->labBranch->name }}

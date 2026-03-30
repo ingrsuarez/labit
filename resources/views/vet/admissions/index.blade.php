@@ -127,6 +127,11 @@
                                         <a href="{{ route('vet.admissions.show', $adm) }}" class="text-amber-600 hover:text-amber-800 font-medium">
                                             {{ $adm->protocol_number }}
                                         </a>
+                                        @if($adm->isInvoiced())
+                                            <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+                                                <i class="bi bi-check-circle text-[10px] mr-0.5"></i> Fact.
+                                            </span>
+                                        @endif
                                         @if($adm->labBranch && !$adm->labBranch->is_central)
                                             <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                                                 {{ $adm->labBranch->name }}

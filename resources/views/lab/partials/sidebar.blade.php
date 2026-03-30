@@ -96,6 +96,22 @@
             </a>
             @endcan
 
+            @can('sales-invoices.index')
+            <a href="{{ route('billing.uninvoiced') }}"
+               class="flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                {{ request()->routeIs('billing.*')
+                    ? 'bg-teal-600 text-white'
+                    : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
+                <span class="flex items-center">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
+                    </svg>
+                    Sin facturar
+                </span>
+                <span class="uninvoiced-badge hidden px-2 py-0.5 text-xs font-medium bg-amber-400 text-amber-900 rounded-full"></span>
+            </a>
+            @endcan
+
             <a href="{{ route('lab-branches.index') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
                 {{ request()->routeIs('lab-branches.*')
@@ -161,6 +177,24 @@
         </div>
     </div>
 </aside>
+
+@can('sales-invoices.index')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('{{ route("billing.summary") }}')
+            .then(r => r.json())
+            .then(data => {
+                const total = data.clinico + data.aguas + data.veterinario;
+                const badge = document.querySelector('.uninvoiced-badge');
+                if (total > 0 && badge) {
+                    badge.textContent = total;
+                    badge.classList.remove('hidden');
+                }
+            })
+            .catch(() => {});
+    });
+</script>
+@endcan
 
 <!-- Overlay para móvil -->
 <div id="lab-sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden"></div>
