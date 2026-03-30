@@ -69,6 +69,8 @@
 | v1.30.1 | Reorganización del sidebar del laboratorio | 2026-03-29 | Módulos arriba, herramientas abajo, Deudores→Saldos |
 | v1.18.1 | Fix etiquetas lab clínico: una por material | 2026-03-29 | 1 etiqueta por tubo/material, botón en index |
 | v1.30.2 | Sede por defecto del usuario y selector en header | 2026-03-30 | default_lab_branch_id, helper, selector header |
+| v1.30.3 | Fix protocolos sin sede: visibilidad y asignación masiva | 2026-03-30 | Filtro y asignación masiva de sede a protocolos existentes |
+| v1.31.0 | Control de facturación de protocolos | 2026-03-30 | Tabla pivot invoice_protocols, vista sin facturar, botón Facturar, badge sidebar |
 
 ---
 
@@ -83,14 +85,6 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v1.30.3 | Fix protocolos sin sede: visibilidad y asignación masiva | 1.5h | v1.30.2 | `pendientes/v1.30.3-fix-protocolos-sin-sede.md` |
-| v1.18.1 | Fix etiquetas lab clínico: una por material + sede | 1.5h | v1.30.0 | `pendientes/v1.18.1-fix-etiquetas-lab-por-material.md` |
-| v1.26.2 | UX admisión veterinaria: buscador con Enter + email dueño | 1.5h | ninguna | `pendientes/v1.26.2-ux-admision-vet-buscador-enter.md` |
-| v1.27.0 | Entrada de stock desde factura de compra sin remito + modal crear insumo | 1.5h | ninguna | `pendientes/v1.27.0-stock-desde-factura-compra.md` |
-| v1.28.0 | Lector QR de facturas de compra | 2h | v1.27.0 | `pendientes/v1.28.0-lector-qr-facturas-compra.md` |
-| v1.29.0 | Libro IVA digital (exportación TXT para AFIP) | 3h | v1.28.0 | `pendientes/v1.29.0-libro-iva-digital.md` |
-| v1.30.1 | Reorganización del sidebar del laboratorio | 30min | v1.30.0 | `pendientes/v1.30.1-sidebar-lab-reorg.md` |
-| v1.31.0 | Control de facturación de protocolos | 4h | ninguna | `pendientes/v1.31.0-control-facturacion-protocolos.md` |
 | v1.31.1 | Facturación masiva por OS, aguas y veterinarias | 3h | v1.31.0 | `pendientes/v1.31.1-facturacion-masiva-os-aguas.md` |
 
 ---
@@ -108,10 +102,10 @@
 ## Progreso general
 
 ```
-Completadas:  53 versiones (v1.0.0 → v1.30.2, v2.0.0 → v2.7.0)
-Planificadas: 9 (v1.30.3, v1.18.1, v1.26.2, v1.27.0, v1.28.0, v1.29.0, v1.30.1, v1.31.0, v1.31.1)
+Completadas:  60 versiones (v1.0.0 → v1.31.0, v2.0.0 → v2.7.0)
+Planificadas: 1 (v1.31.1)
 En proceso:   0
-Próxima:      v1.30.3 — Fix protocolos sin sede: visibilidad y asignación masiva
+Próxima:      v1.31.1 — Facturación masiva por OS, aguas y veterinarias
 ```
 
 ---
