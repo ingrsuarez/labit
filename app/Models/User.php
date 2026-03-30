@@ -31,6 +31,7 @@ class User extends Authenticatable
         'email',
         'password',
         'signature_path',
+        'default_lab_branch_id',
     ];
 
     /**
@@ -79,6 +80,11 @@ class User extends Authenticatable
     public function defaultCompany(): ?Company
     {
         return $this->companies()->wherePivot('is_default', true)->first();
+    }
+
+    public function defaultLabBranch()
+    {
+        return $this->belongsTo(LabBranch::class, 'default_lab_branch_id');
     }
 
     public function getSignatureUrlAttribute(): ?string
