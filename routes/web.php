@@ -161,6 +161,10 @@ Route::middleware([
         Route::put('lab/configuracion/correos', [App\Http\Controllers\LabEmailSettingsController::class, 'update'])->name('lab.email-settings.update');
 
         // SEDES DE LABORATORIO
+        Route::get('lab-branches/assign-orphans', [App\Http\Controllers\LabBranchController::class, 'assignOrphans'])
+            ->name('lab-branches.assign-orphans');
+        Route::post('lab-branches/assign-orphans', [App\Http\Controllers\LabBranchController::class, 'assignOrphansStore'])
+            ->name('lab-branches.assign-orphans.store');
         Route::resource('lab-branches', App\Http\Controllers\LabBranchController::class)->except('show');
 
         // Cambiar sede activa en sesión

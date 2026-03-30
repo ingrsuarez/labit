@@ -67,6 +67,7 @@
                             <label class="block text-xs font-medium text-gray-500 mb-1">Sede</label>
                             <select name="lab_branch_id" class="w-full rounded-lg border-gray-300 text-sm focus:ring-amber-500 focus:border-amber-500">
                                 <option value="all" {{ request('lab_branch_id') === 'all' ? 'selected' : '' }}>Todas las sedes</option>
+                                <option value="none" {{ request('lab_branch_id') === 'none' ? 'selected' : '' }}>⚠ Sin sede</option>
                                 @foreach($branches as $branch)
                                     <option value="{{ $branch->id }}" {{ (request('lab_branch_id') == $branch->id || (!request()->has('lab_branch_id') && active_lab_branch_id() == $branch->id)) ? 'selected' : '' }}>{{ $branch->name }}</option>
                                 @endforeach
@@ -129,6 +130,10 @@
                                         @if($adm->labBranch && !$adm->labBranch->is_central)
                                             <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                                                 {{ $adm->labBranch->name }}
+                                            </span>
+                                        @elseif(!$adm->lab_branch_id)
+                                            <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                                                Sin sede
                                             </span>
                                         @endif
                                     </td>

@@ -55,6 +55,7 @@
                 <div>
                     <select x-model="filterBranch" class="rounded-lg border-gray-300 shadow-sm text-sm focus:ring-teal-500 focus:border-teal-500">
                         <option value="">Todas las sedes</option>
+                        <option value="none">⚠ Sin sede</option>
                         @foreach($branches as $branch)
                             <option value="{{ $branch->id }}">{{ $branch->name }}</option>
                         @endforeach
@@ -111,6 +112,10 @@
                                 @if($sample->labBranch && !$sample->labBranch->is_central)
                                     <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                                         {{ $sample->labBranch->name }}
+                                    </span>
+                                @elseif(!$sample->lab_branch_id)
+                                    <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                                        Sin sede
                                     </span>
                                 @endif
                             </td>
@@ -203,7 +208,7 @@
                         place.includes(q);
                     const matchesType = !this.filterType || type === this.filterType.toLowerCase();
                     const matchesStatus = !this.filterStatus || status === this.filterStatus.toLowerCase();
-                    const matchesBranch = !this.filterBranch || branchId === this.filterBranch;
+                    const matchesBranch = !this.filterBranch || (this.filterBranch === 'none' ? !branchId : branchId === this.filterBranch);
                     const visible = matchesSearch && matchesType && matchesStatus && matchesBranch;
                     this.$nextTick(() => this.updateCount());
                     return visible;
