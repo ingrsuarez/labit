@@ -62,7 +62,11 @@ class VetAdmissionController extends Controller
         }
 
         if ($request->filled('lab_branch_id')) {
-            $query->where('lab_branch_id', $request->lab_branch_id);
+            if ($request->lab_branch_id !== 'all') {
+                $query->where('lab_branch_id', $request->lab_branch_id);
+            }
+        } elseif ($activeBranch = active_lab_branch_id()) {
+            $query->where('lab_branch_id', $activeBranch);
         }
 
         $admissions = $query->paginate(20)->withQueryString();
@@ -90,9 +94,9 @@ class VetAdmissionController extends Controller
         }
 
         $tests = Test::where(function ($q) use ($query) {
-                $q->where('code', 'like', "%{$query}%")
-                  ->orWhere('name', 'like', "%{$query}%");
-            })
+            $q->where('code', 'like', "%{$query}%")
+                ->orWhere('name', 'like', "%{$query}%");
+        })
             ->whereJsonContains('categories', 'veterinario')
             ->whereDoesntHave('parentTests')
             ->limit(20)
@@ -179,7 +183,7 @@ class VetAdmissionController extends Controller
         $admission->update(['total_price' => $totalPrice]);
 
         return redirect()->route('vet.admissions.show', $admission)
-            ->with('success', 'Protocolo veterinario creado. Nº ' . $admission->protocol_number);
+            ->with('success', 'Protocolo veterinario creado. Nº '.$admission->protocol_number);
     }
 
     public function show(VetAdmission $vetAdmission)
@@ -385,10 +389,11 @@ class VetAdmissionController extends Controller
         }
 
         if ($test->low || $test->high) {
-            $ref = ($test->low ?? '') . ' - ' . ($test->high ?? '');
+            $ref = ($test->low ?? '').' - '.($test->high ?? '');
             if ($test->other_reference) {
-                $ref .= ' | ' . $test->other_reference;
+                $ref .= ' | '.$test->other_reference;
             }
+
             return trim($ref, ' -');
         }
 

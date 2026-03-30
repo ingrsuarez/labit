@@ -54,7 +54,11 @@ class LabAdmissionController extends Controller
         }
 
         if ($request->filled('lab_branch_id')) {
-            $query->where('lab_branch_id', $request->lab_branch_id);
+            if ($request->lab_branch_id !== 'all') {
+                $query->where('lab_branch_id', $request->lab_branch_id);
+            }
+        } elseif ($activeBranch = active_lab_branch_id()) {
+            $query->where('lab_branch_id', $activeBranch);
         }
 
         $admissions = $query->paginate(20)->withQueryString();

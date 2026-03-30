@@ -87,6 +87,53 @@
                 </x-action-section>
             </div>
 
+            @can('lab.section')
+            <!-- Sede de laboratorio por defecto -->
+            <x-section-border />
+
+            <div class="mt-10 sm:mt-0">
+                <x-action-section>
+                    <x-slot name="title">
+                        Sede de Laboratorio
+                    </x-slot>
+
+                    <x-slot name="description">
+                        Configurá tu sede de laboratorio por defecto. Los listados de protocolos se filtrarán automáticamente por esta sede.
+                    </x-slot>
+
+                    <x-slot name="content">
+                        @if(session('success'))
+                            <div class="mb-4 text-sm text-green-600">{{ session('success') }}</div>
+                        @endif
+
+                        @php
+                            $labBranches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
+                        @endphp
+
+                        <form action="{{ route('user.default-branch') }}" method="POST" class="flex items-end gap-3">
+                            @csrf
+                            @method('PUT')
+                            <div class="flex-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Sede por defecto</label>
+                                <select name="default_lab_branch_id"
+                                        class="w-full rounded-lg border-gray-300 focus:ring-teal-500 focus:border-teal-500">
+                                    <option value="">Sin sede por defecto (ver todas)</option>
+                                    @foreach($labBranches as $branch)
+                                        <option value="{{ $branch->id }}" {{ auth()->user()->default_lab_branch_id == $branch->id ? 'selected' : '' }}>
+                                            {{ $branch->name }}{{ $branch->city ? ' — ' . $branch->city : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <x-button type="submit">
+                                Guardar
+                            </x-button>
+                        </form>
+                    </x-slot>
+                </x-action-section>
+            </div>
+            @endcan
+
             @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::updatePasswords()))
                 <div class="mt-10 sm:mt-0">
                     @livewire('profile.update-password-form')

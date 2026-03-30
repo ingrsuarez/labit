@@ -44,9 +44,9 @@
                 @if(isset($branches) && $branches->count() > 1)
                 <div class="w-48">
                     <select name="lab_branch_id" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500">
-                        <option value="">Todas las sedes</option>
+                        <option value="all" {{ request('lab_branch_id') === 'all' ? 'selected' : '' }}>Todas las sedes</option>
                         @foreach($branches as $branch)
-                            <option value="{{ $branch->id }}" {{ request('lab_branch_id') == $branch->id ? 'selected' : '' }}>
+                            <option value="{{ $branch->id }}" {{ (request('lab_branch_id') == $branch->id || (!request()->has('lab_branch_id') && active_lab_branch_id() == $branch->id)) ? 'selected' : '' }}>
                                 {{ $branch->name }}
                             </option>
                         @endforeach
