@@ -62,11 +62,18 @@ class VetAdmissionController extends Controller
         }
 
         if ($request->filled('lab_branch_id')) {
-            if ($request->lab_branch_id !== 'all') {
+            if ($request->lab_branch_id === 'all') {
+                // No filtrar — se ven todos
+            } elseif ($request->lab_branch_id === 'none') {
+                $query->whereNull('lab_branch_id');
+            } else {
                 $query->where('lab_branch_id', $request->lab_branch_id);
             }
         } elseif ($activeBranch = active_lab_branch_id()) {
-            $query->where('lab_branch_id', $activeBranch);
+            $query->where(function ($q) use ($activeBranch) {
+                $q->where('lab_branch_id', $activeBranch)
+                    ->orWhereNull('lab_branch_id');
+            });
         }
 
         $admissions = $query->paginate(20)->withQueryString();
