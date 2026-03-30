@@ -250,7 +250,7 @@
                                     <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900" x-text="test.code"></td>
                                     <td class="px-4 py-3 text-sm text-gray-900" x-text="test.name"></td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-right">
-                                        <input type="number" step="0.01" x-model="test.price" @input="calculateTotals"
+                                        <input type="number" step="any" x-model="test.price" @input="calculateTotals"
                                                class="w-28 text-right border-gray-300 rounded text-sm">
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-center">
@@ -267,7 +267,7 @@
                                                class="rounded border-gray-300 text-teal-600">
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-right">
-                                        <input type="number" step="0.01" x-model="test.copago" @input="calculateTotals"
+                                        <input type="number" step="any" x-model="test.copago" @input="calculateTotals"
                                                class="w-24 text-right border-gray-300 rounded text-sm">
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-center">
