@@ -365,12 +365,21 @@ Route::middleware([
     });
 
     // =============================================
+    // FACTURACIÓN DE PROTOCOLOS (accesible desde lab y ventas)
+    // =============================================
+    Route::middleware('permission:sales-invoices.index')->group(function () {
+        Route::get('billing/uninvoiced', [App\Http\Controllers\BillingController::class, 'uninvoiced'])->name('billing.uninvoiced');
+        Route::get('billing/summary', [App\Http\Controllers\BillingController::class, 'summary'])->name('billing.summary');
+    });
+
+    // =============================================
     // VENTAS (requiere permiso ventas.section)
     // =============================================
     Route::middleware('can:ventas.section')->group(function () {
         Route::get('sales', [App\Http\Controllers\SalesSectionController::class, 'index'])->name('sales.section');
 
         // SALES INVOICES (Facturas de Venta)
+        Route::get('sales-invoices/from-protocol', [App\Http\Controllers\SalesInvoiceController::class, 'createFromProtocol'])->name('sales-invoices.from-protocol');
         Route::resource('sales-invoices', App\Http\Controllers\SalesInvoiceController::class);
         Route::get('sales-invoices-next-number', [App\Http\Controllers\SalesInvoiceController::class, 'nextNumber'])->name('sales-invoices.next-number');
         Route::post('sales-invoices/{salesInvoice}/retry-afip', [App\Http\Controllers\SalesInvoiceController::class, 'retryAfip'])->name('sales-invoices.retry-afip');

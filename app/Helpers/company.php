@@ -17,3 +17,16 @@ if (! function_exists('active_company')) {
         return $id ? Company::find($id) : null;
     }
 }
+
+if (! function_exists('ipac_sas_company_id')) {
+    function ipac_sas_company_id(): ?int
+    {
+        static $id = null;
+        if ($id === null) {
+            $company = Company::where('cuit', '30-71922759-3')->first();
+            $id = $company?->id ?? active_company_id();
+        }
+
+        return $id;
+    }
+}

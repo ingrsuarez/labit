@@ -394,6 +394,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'samples.section', 'samples.index', 'samples.create', 'samples.edit', 'samples.show',
             'samples-reports.preview', 'samples-reports.print', 'samples-reports.send',
             'samples-labels.print',
+            // Facturación desde protocolos
+            'ventas.section',
+            'sales-invoices.index', 'sales-invoices.create',
+            'points-of-sale.index',
         ];
 
         $recepcionLabRole->syncPermissions(Permission::whereIn('name', $recepcionLabPermissions)->get());

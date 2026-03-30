@@ -20,7 +20,7 @@ class SampleController extends Controller
     public function index(Request $request)
     {
         $this->authorize('samples.index');
-        $query = Sample::with(['customer', 'determinations', 'labBranch'])
+        $query = Sample::with(['customer', 'determinations', 'labBranch', 'invoiceProtocols'])
             ->orderBy('created_at', 'desc');
 
         if ($activeBranch = active_lab_branch_id()) {

@@ -99,4 +99,31 @@ class VetAdmission extends Model
 
         return 'pending';
     }
+
+    public function invoiceProtocols()
+    {
+        return $this->morphMany(InvoiceProtocol::class, 'protocol');
+    }
+
+    public function salesInvoices()
+    {
+        return $this->morphToMany(SalesInvoice::class, 'protocol', 'invoice_protocols')
+            ->withPivot('amount')
+            ->withTimestamps();
+    }
+
+    public function isInvoiced(): bool
+    {
+        return $this->invoiceProtocols()->exists();
+    }
+
+    public function scopeUninvoiced($query)
+    {
+        return $query->whereDoesntHave('invoiceProtocols');
+    }
+
+    public function scopeInvoiced($query)
+    {
+        return $query->whereHas('invoiceProtocols');
+    }
 }

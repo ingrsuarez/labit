@@ -68,6 +68,18 @@
                         Editar
                     </a>
                     @endcan
+                    @can('sales-invoices.create')
+                        @if($admission->isParticular() && !$admission->isInvoiced())
+                            <a href="{{ route('sales-invoices.from-protocol', ['protocol_type' => 'admission', 'protocol_id' => $admission->id]) }}"
+                               class="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="bi bi-receipt mr-1"></i> Facturar
+                            </a>
+                        @elseif($admission->isInvoiced())
+                            <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                                <i class="bi bi-check-circle mr-1"></i> Facturado
+                            </span>
+                        @endif
+                    @endcan
                 </div>
             </div>
         </div>
