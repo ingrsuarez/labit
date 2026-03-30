@@ -24,7 +24,10 @@ class SampleController extends Controller
             ->orderBy('created_at', 'desc');
 
         if ($activeBranch = active_lab_branch_id()) {
-            $query->where('lab_branch_id', $activeBranch);
+            $query->where(function ($q) use ($activeBranch) {
+                $q->where('lab_branch_id', $activeBranch)
+                    ->orWhereNull('lab_branch_id');
+            });
         }
 
         $samples = $query->get();
