@@ -1,5 +1,6 @@
 @php
     $user = auth()->user();
+    $labBranches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
 @endphp
 
 <header class="hidden md:block bg-white shadow-sm border-b sticky top-0 z-30">
@@ -37,6 +38,45 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                     </svg>
                 </button>
+
+                @if($labBranches->count() > 1)
+                <!-- Selector de Sede -->
+                <div x-data="{ open: false }" class="relative">
+                    <button @click="open = !open"
+                            class="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+                        <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                        <span>{{ active_lab_branch_name() }}</span>
+                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div x-show="open" @click.away="open = false" x-cloak
+                         x-transition:enter="transition ease-out duration-100"
+                         x-transition:enter-start="transform opacity-0 scale-95"
+                         x-transition:enter-end="transform opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="transform opacity-100 scale-100"
+                         x-transition:leave-end="transform opacity-0 scale-95"
+                         class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                        <form action="{{ route('switch-lab-branch') }}" method="POST">
+                            @csrf
+                            <button type="submit" name="lab_branch_id" value=""
+                                    class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 {{ !active_lab_branch_id() ? 'font-medium text-teal-600' : 'text-gray-700' }}">
+                                Todas las sedes
+                            </button>
+                            @foreach($labBranches as $branch)
+                                <button type="submit" name="lab_branch_id" value="{{ $branch->id }}"
+                                        class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 {{ active_lab_branch_id() == $branch->id ? 'font-medium text-teal-600' : 'text-gray-700' }}">
+                                    {{ $branch->name }}{{ $branch->city ? ' — ' . $branch->city : '' }}
+                                    @if($branch->is_central) <span class="text-xs text-gray-400">(Central)</span> @endif
+                                </button>
+                            @endforeach
+                        </form>
+                    </div>
+                </div>
+                @endif
 
                 <!-- Usuario Dropdown -->
                 <div x-data="{ open: false }" class="relative">

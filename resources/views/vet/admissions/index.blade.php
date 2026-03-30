@@ -66,9 +66,9 @@
                         <div>
                             <label class="block text-xs font-medium text-gray-500 mb-1">Sede</label>
                             <select name="lab_branch_id" class="w-full rounded-lg border-gray-300 text-sm focus:ring-amber-500 focus:border-amber-500">
-                                <option value="">Todas las sedes</option>
+                                <option value="all" {{ request('lab_branch_id') === 'all' ? 'selected' : '' }}>Todas las sedes</option>
                                 @foreach($branches as $branch)
-                                    <option value="{{ $branch->id }}" {{ request('lab_branch_id') == $branch->id ? 'selected' : '' }}>{{ $branch->name }}</option>
+                                    <option value="{{ $branch->id }}" {{ (request('lab_branch_id') == $branch->id || (!request()->has('lab_branch_id') && active_lab_branch_id() == $branch->id)) ? 'selected' : '' }}>{{ $branch->name }}</option>
                                 @endforeach
                             </select>
                         </div>

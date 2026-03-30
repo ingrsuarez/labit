@@ -20,9 +20,14 @@ class SampleController extends Controller
     public function index(Request $request)
     {
         $this->authorize('samples.index');
-        $samples = Sample::with(['customer', 'determinations', 'labBranch'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = Sample::with(['customer', 'determinations', 'labBranch'])
+            ->orderBy('created_at', 'desc');
+
+        if ($activeBranch = active_lab_branch_id()) {
+            $query->where('lab_branch_id', $activeBranch);
+        }
+
+        $samples = $query->get();
         $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
 
         return view('sample.index', compact('samples', 'branches'));
@@ -145,7 +150,9 @@ class SampleController extends Controller
         $labelMaterials = $sample->determinations
             ->filter(function ($det) use ($testIdsInProtocol) {
                 $test = $det->test;
-                if (!$test || is_null($test->material)) return false;
+                if (! $test || is_null($test->material)) {
+                    return false;
+                }
 
                 if ($test->parentTests->isNotEmpty()) {
                     if ($test->parentTests->pluck('id')->intersect($testIdsInProtocol)->isNotEmpty()) {
@@ -159,7 +166,7 @@ class SampleController extends Controller
 
                 return true;
             })
-            ->map(fn($det) => $det->test->material_abbreviation)
+            ->map(fn ($det) => $det->test->material_abbreviation)
             ->unique()
             ->implode('/');
 
@@ -988,7 +995,9 @@ class SampleController extends Controller
         $materials = $sample->determinations
             ->filter(function ($det) use ($testIdsInProtocol) {
                 $test = $det->test;
-                if (!$test || is_null($test->material)) return false;
+                if (! $test || is_null($test->material)) {
+                    return false;
+                }
 
                 if ($test->parentTests->isNotEmpty()) {
                     if ($test->parentTests->pluck('id')->intersect($testIdsInProtocol)->isNotEmpty()) {
@@ -1002,7 +1011,7 @@ class SampleController extends Controller
 
                 return true;
             })
-            ->map(fn($det) => $det->test->material_abbreviation)
+            ->map(fn ($det) => $det->test->material_abbreviation)
             ->unique()
             ->implode('/');
 
@@ -1028,7 +1037,9 @@ class SampleController extends Controller
         $materials = $sample->determinations
             ->filter(function ($det) use ($testIdsInProtocol) {
                 $test = $det->test;
-                if (!$test || is_null($test->material)) return false;
+                if (! $test || is_null($test->material)) {
+                    return false;
+                }
 
                 if ($test->parentTests->isNotEmpty()) {
                     if ($test->parentTests->pluck('id')->intersect($testIdsInProtocol)->isNotEmpty()) {
@@ -1042,7 +1053,7 @@ class SampleController extends Controller
 
                 return true;
             })
-            ->map(fn($det) => $det->test->material_abbreviation)
+            ->map(fn ($det) => $det->test->material_abbreviation)
             ->unique()
             ->implode('/');
 

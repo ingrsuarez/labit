@@ -60,6 +60,14 @@ Route::middleware([
     Route::post('/user/signature', [App\Http\Controllers\UserSignatureController::class, 'update'])->name('user.signature.update');
     Route::delete('/user/signature', [App\Http\Controllers\UserSignatureController::class, 'destroy'])->name('user.signature.destroy');
 
+    // SEDE POR DEFECTO DEL USUARIO
+    Route::put('/user/default-branch', function (\Illuminate\Http\Request $request) {
+        $request->validate(['default_lab_branch_id' => 'nullable|exists:lab_branches,id']);
+        auth()->user()->update(['default_lab_branch_id' => $request->default_lab_branch_id]);
+
+        return back()->with('success', 'Sede por defecto actualizada.');
+    })->name('user.default-branch');
+
     // SWITCH COMPANY (cambiar empresa activa)
     Route::post('/switch-company', [App\Http\Controllers\CompanyController::class, 'switchCompany'])->name('company.switch');
 
@@ -154,6 +162,19 @@ Route::middleware([
 
         // SEDES DE LABORATORIO
         Route::resource('lab-branches', App\Http\Controllers\LabBranchController::class)->except('show');
+
+        // Cambiar sede activa en sesión
+        Route::post('switch-lab-branch', function (\Illuminate\Http\Request $request) {
+            $branchId = $request->lab_branch_id;
+            if ($branchId) {
+                $branch = \App\Models\LabBranch::findOrFail($branchId);
+                session(['active_lab_branch_id' => $branch->id, 'active_lab_branch_name' => $branch->name]);
+            } else {
+                session()->forget(['active_lab_branch_id', 'active_lab_branch_name']);
+            }
+
+            return back();
+        })->name('switch-lab-branch');
 
         // LAB ADMISSIONS (Admisiones de Pacientes - Laboratorio)
         Route::get('lab/admissions', [App\Http\Controllers\LabAdmissionController::class, 'index'])->name('lab.admissions.index');

@@ -82,7 +82,7 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v1.18.1 | Fix etiquetas lab clínico: una por material | 1h | ninguna | `pendientes/v1.18.1-fix-etiquetas-lab-por-material.md` |
+| v1.18.1 | Fix etiquetas lab clínico: una por material + sede | 1.5h | v1.30.0 | `pendientes/v1.18.1-fix-etiquetas-lab-por-material.md` |
 | v1.26.2 | UX admisión veterinaria: buscador con Enter + email dueño | 1.5h | ninguna | `pendientes/v1.26.2-ux-admision-vet-buscador-enter.md` |
 | v1.27.0 | Entrada de stock desde factura de compra sin remito + modal crear insumo | 1.5h | ninguna | `pendientes/v1.27.0-stock-desde-factura-compra.md` |
 | v1.28.0 | Lector QR de facturas de compra | 2h | v1.27.0 | `pendientes/v1.28.0-lector-qr-facturas-compra.md` |

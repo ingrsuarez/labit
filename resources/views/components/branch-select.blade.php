@@ -4,7 +4,7 @@
         <select name="lab_branch_id" class="w-full border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500">
             @foreach($branches as $branch)
                 <option value="{{ $branch->id }}"
-                    {{ old('lab_branch_id', $selectedBranchId ?? ($branch->is_central ? $branch->id : '')) == $branch->id ? 'selected' : '' }}>
+                    {{ old('lab_branch_id', $selectedBranchId ?? active_lab_branch_id() ?? ($branch->is_central ? $branch->id : '')) == $branch->id ? 'selected' : '' }}>
                     {{ $branch->name }}{{ $branch->city ? ' — ' . $branch->city : '' }}
                 </option>
             @endforeach
