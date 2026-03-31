@@ -103,8 +103,7 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Descripción</th>
-                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-40">Insumo</th>
+                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Descripción / Insumo</th>
                                 <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">Cantidad</th>
                                 <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Precio Unit.</th>
                                 <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Tasa IVA</th>
@@ -116,30 +115,78 @@
                         <tbody class="divide-y divide-gray-200">
                             <template x-for="(item, index) in items" :key="index">
                                 <tr class="hover:bg-gray-50">
-                                    <td class="px-3 py-2">
+                                    <td class="px-3 py-2" x-data="supplySearch(item, index)">
                                         <input type="hidden" :name="'items[' + index + '][description]'" :value="item.description">
                                         <input type="hidden" :name="'items[' + index + '][supply_id]'" :value="item.supply_id || ''">
                                         <input type="hidden" :name="'items[' + index + '][quantity]'" :value="item.quantity">
                                         <input type="hidden" :name="'items[' + index + '][unit_price]'" :value="item.unit_price">
                                         <input type="hidden" :name="'items[' + index + '][iva_rate]'" :value="item.iva_rate">
-                                        <input type="text" x-model="item.description" required placeholder="Descripción del ítem"
-                                               class="w-full rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
-                                    </td>
-                                    <td class="px-3 py-2">
-                                        <select x-model="item.supply_id"
-                                                class="w-full rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
-                                            <option value="">Ninguno</option>
-                                            <template x-for="supply in supplies" :key="supply.id">
-                                                <option :value="supply.id" x-text="supply.name" :selected="supply.id == item.supply_id"></option>
+                                        <input type="hidden" :name="'items[' + index + '][lot_number]'" :value="item.lot_number || ''">
+                                        <input type="hidden" :name="'items[' + index + '][expiration_date]'" :value="item.expiration_date || ''">
+
+                                        <div class="flex items-start gap-2">
+                                            <div class="flex-1 min-w-0 relative">
+                                                <div class="flex items-center gap-1">
+                                                    <input type="text"
+                                                           x-model="searchText"
+                                                           @input.debounce.300ms="doSearch()"
+                                                           @focus="if (searchText.length >= 2) showResults = true"
+                                                           @keydown.arrow-down.prevent="highlightNext()"
+                                                           @keydown.arrow-up.prevent="highlightPrev()"
+                                                           @keydown.enter.prevent="selectHighlighted()"
+                                                           @keydown.escape="showResults = false"
+                                                           @keydown.tab="onTab($event)"
+                                                           placeholder="Buscar insumo o escribir descripción..."
+                                                           required
+                                                           :id="'item-desc-' + index"
+                                                           class="flex-1 min-w-0 rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+
+                                                    <span x-show="item.supply_id" x-cloak
+                                                          class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200 whitespace-nowrap">
+                                                        <span x-text="item._supply_code || 'INS'"></span>
+                                                        <button type="button" @click="unlinkSupply()" class="ml-1 text-teal-400 hover:text-teal-600">&times;</button>
+                                                    </span>
+                                                </div>
+
+                                                <div x-show="showResults && (results.length > 0 || searchText.length >= 2)" x-cloak
+                                                     @click.outside="showResults = false"
+                                                     class="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                                    <template x-for="(supply, i) in results" :key="supply.id">
+                                                        <button type="button"
+                                                                @click="selectSupply(supply)"
+                                                                @mouseenter="highlightedIndex = i"
+                                                                :class="highlightedIndex === i ? 'bg-teal-50 text-teal-800' : 'text-gray-700'"
+                                                                class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 last:border-0">
+                                                            <span class="font-mono text-xs text-gray-400" x-text="supply.code"></span>
+                                                            <span x-text="supply.name"></span>
+                                                        </button>
+                                                    </template>
+
+                                                    <div x-show="results.length === 0 && searchText.length >= 2 && !loading"
+                                                         class="px-3 py-2 text-sm text-gray-400">
+                                                        Sin resultados. Podés escribir una descripción libre.
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <template x-if="item.supply_id && getSupplyTracksLot(item.supply_id)">
+                                                <div class="flex gap-2 shrink-0">
+                                                    <input type="text" x-model="item.lot_number" placeholder="Lote"
+                                                           class="w-28 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
+                                                    <input type="date" x-model="item.expiration_date"
+                                                           class="w-36 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
+                                                </div>
                                             </template>
-                                        </select>
+                                        </div>
                                     </td>
                                     <td class="px-3 py-2">
                                         <input type="number" x-model.number="item.quantity" min="0.01" step="0.01" required
+                                               :id="'item-qty-' + index"
                                                class="w-24 rounded border-gray-300 text-sm text-center focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
                                     <td class="px-3 py-2">
                                         <input type="number" x-model.number="item.unit_price" min="0" step="0.01" required
+                                               :id="'item-price-' + index"
                                                class="w-32 rounded border-gray-300 text-sm text-right focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
                                     <td class="px-3 py-2">
@@ -169,37 +216,37 @@
                         </tbody>
                         <tfoot class="bg-gray-50">
                             <tr>
-                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Subtotal (Neto Gravado)</td>
+                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Subtotal (Neto Gravado)</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(subtotal)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="iva105 > 0">
-                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 10,5%</td>
+                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 10,5%</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(iva105)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="iva21 > 0">
-                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 21%</td>
+                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 21%</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(iva21)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="iva27 > 0">
-                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 27%</td>
+                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 27%</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(iva27)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="percepciones > 0">
-                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Percepciones</td>
+                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Percepciones</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(percepciones)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="otrosImpuestos > 0">
-                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Otros Impuestos</td>
+                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Otros Impuestos</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(otrosImpuestos)"></td>
                                 <td></td>
                             </tr>
                             <tr class="border-t-2 border-gray-300">
-                                <td colspan="6" class="px-3 py-3 text-right text-sm font-bold text-gray-800">TOTAL</td>
+                                <td colspan="5" class="px-3 py-3 text-right text-sm font-bold text-gray-800">TOTAL</td>
                                 <td class="px-3 py-3 text-right text-base font-bold text-gray-900" x-text="'$' + formatMoney(grandTotal)"></td>
                                 <td></td>
                             </tr>
@@ -227,16 +274,114 @@
             return [
                 'description' => $i->description,
                 'supply_id' => $i->supply_id,
+                '_supply_code' => $i->supply ? $i->supply->code : '',
                 'quantity' => floatval($i->quantity),
                 'unit_price' => floatval($i->unit_price),
                 'iva_rate' => strval(floatval($i->iva_rate)),
+                'lot_number' => $i->lot_number ?? '',
+                'expiration_date' => $i->expiration_date ?? '',
             ];
         })->values();
         $suppliesEditJson = \App\Models\Supply::active()->orderBy('name')->get()->map(function ($s) {
-            return ['id' => $s->id, 'name' => $s->code . ' - ' . $s->name];
+            return ['id' => $s->id, 'name' => $s->code . ' - ' . $s->name, 'tracks_lot' => $s->tracks_lot];
         })->values();
     @endphp
     <script>
+        function supplySearch(item, index) {
+            return {
+                searchText: item.description || '',
+                results: [],
+                showResults: false,
+                loading: false,
+                highlightedIndex: -1,
+
+                async doSearch() {
+                    item.description = this.searchText;
+                    if (this.searchText.length < 2) {
+                        this.results = [];
+                        this.showResults = false;
+                        return;
+                    }
+                    this.loading = true;
+                    try {
+                        const resp = await fetch(`{{ route('supplies.search') }}?q=${encodeURIComponent(this.searchText)}`);
+                        this.results = await resp.json();
+                        this.showResults = true;
+                        this.highlightedIndex = -1;
+                    } catch (e) {
+                        this.results = [];
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                selectSupply(supply) {
+                    item.supply_id = supply.id;
+                    item.description = supply.name;
+                    item._supply_code = supply.code;
+                    this.searchText = supply.name;
+                    this.showResults = false;
+
+                    const formEl = this.$root.closest('[x-data="invoiceEditForm()"]');
+                    if (formEl && formEl._x_dataStack) {
+                        const parentData = formEl._x_dataStack[0];
+                        if (parentData && !parentData.supplies.find(s => s.id === supply.id)) {
+                            parentData.supplies.push({ id: supply.id, name: supply.code + ' - ' + supply.name, tracks_lot: supply.tracks_lot });
+                        }
+                    }
+
+                    if (supply.tracks_lot && !item.expiration_date) {
+                        const issueDateEl = document.querySelector('input[name="issue_date"]');
+                        if (issueDateEl && issueDateEl.value) {
+                            const d = new Date(issueDateEl.value);
+                            d.setDate(d.getDate() + 30);
+                            item.expiration_date = d.toISOString().split('T')[0];
+                        }
+                    }
+
+                    this.$nextTick(() => {
+                        const qtyInput = document.querySelector(`#item-qty-${index}`);
+                        if (qtyInput) qtyInput.focus();
+                    });
+                },
+
+                unlinkSupply() {
+                    item.supply_id = '';
+                    item._supply_code = '';
+                },
+
+                highlightNext() {
+                    if (this.highlightedIndex < this.results.length - 1) this.highlightedIndex++;
+                },
+
+                highlightPrev() {
+                    if (this.highlightedIndex > 0) this.highlightedIndex--;
+                },
+
+                selectHighlighted() {
+                    if (this.highlightedIndex >= 0 && this.highlightedIndex < this.results.length) {
+                        this.selectSupply(this.results[this.highlightedIndex]);
+                    }
+                },
+
+                onTab(event) {
+                    if (this.showResults && this.highlightedIndex >= 0) {
+                        event.preventDefault();
+                        this.selectHighlighted();
+                    } else {
+                        this.showResults = false;
+                        item.description = this.searchText;
+                    }
+                },
+
+                init() {
+                    if (item.supply_id && item.description) {
+                        this.searchText = item.description;
+                    }
+                }
+            }
+        }
+
         function invoiceEditForm() {
             return {
                 items: @json($invoiceItemsJson),
@@ -245,11 +390,17 @@
                 supplies: @json($suppliesEditJson),
 
                 addItem() {
-                    this.items.push({ description: '', supply_id: '', quantity: 1, unit_price: 0, iva_rate: '21' });
+                    this.items.push({ description: '', supply_id: '', quantity: 1, unit_price: 0, iva_rate: '21', lot_number: '', expiration_date: '', _supply_code: '' });
                 },
 
                 removeItem(index) {
                     this.items.splice(index, 1);
+                },
+
+                getSupplyTracksLot(supplyId) {
+                    if (!supplyId) return false;
+                    const s = this.supplies.find(s => s.id == supplyId);
+                    return s ? s.tracks_lot : false;
                 },
 
                 itemIva(item) {

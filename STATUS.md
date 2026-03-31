@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-30 (post v1.31.1)
+> Última actualización: 2026-03-31 (post v1.32.1)
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.7.0 / v1.31.1 |
-| **Última completada** | v1.31.1 — Facturación masiva por OS, aguas y veterinarias |
+| **Versión actual** | v2.7.0 / v1.32.1 |
+| **Última completada** | v1.32.1 — Fix layout ítems factura de compra |
 | **En proceso** | — |
-| **Próxima** | v1.32.0 — Buscador inteligente de insumos en facturas de compra |
+| **Próxima** | v1.28.1 — Fix QR scanner captura nativa |
 | **Pendientes en cola** | 1 |
-| **Completadas** | 61 |
+| **Completadas** | 63 |
 
 ---
 
@@ -22,18 +22,20 @@
 
 ### Pendientes (1)
 
-| Versión | Nombre | Dependencias |
+| Versión | Nombre | Prompt |
 |---|---|---|
-| v1.32.0 | Buscador inteligente de insumos en facturas de compra | ninguna |
+| v1.28.1 | Fix QR scanner captura nativa | `pendientes/v1.28.1-fix-qr-scanner-captura-nativa.md` |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (61)
+### Completados (63)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.32.1 | Fix layout ítems factura de compra | 2026-03-31 | v1.32.1 |
+| v1.32.0 | Buscador inteligente de insumos en facturas de compra | 2026-03-31 | v1.32.0 |
 | v1.31.1 | Facturación masiva por OS, aguas y veterinarias | 2026-03-30 | v1.31.1 |
 | v1.31.0 | Control de facturación de protocolos | 2026-03-30 | v1.31.0 |
 | v1.30.3 | Fix protocolos sin sede: visibilidad y asignación masiva | 2026-03-30 | v1.30.3 |
@@ -120,6 +122,7 @@ v1.0.0 (completada)
 │                   └── v1.26.2 — UX buscador Enter + email dueño (completada)
 ├── v1.27.0 — Entrada stock desde factura compra (completada)
 │   └── v1.28.0 — Lector QR facturas de compra (completada)
+├── v1.32.0 — Buscador inteligente de insumos en facturas de compra (completada)
 ├── v1.29.0 — Libro IVA digital AFIP RG 4597 (completada)
 ├── v1.30.0 — Sedes laboratorio y procedencia protocolos (completada)
 ├── v1.5.3 — Seeder jerarquía padre-hijo prácticas (completada)
@@ -174,8 +177,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-Siguiente prompt disponible:
-**v1.32.0** — Buscador inteligente de insumos en facturas de compra (sin dependencias)
+v1.28.1 — Fix QR scanner captura nativa (en cola de pendientes).
 
 ---
 

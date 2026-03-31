@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-03-29
+> Última actualización: 2026-03-31
 
 ---
 
@@ -72,6 +72,8 @@
 | v1.30.3 | Fix protocolos sin sede: visibilidad y asignación masiva | 2026-03-30 | Filtro y asignación masiva de sede a protocolos existentes |
 | v1.31.0 | Control de facturación de protocolos | 2026-03-30 | Tabla pivot invoice_protocols, vista sin facturar, botón Facturar, badge sidebar |
 | v1.31.1 | Facturación masiva por OS, aguas y veterinarias | 2026-03-30 | Batch invoice, preview, checkboxes, agrupación por OS/cliente |
+| v1.32.0 | Buscador inteligente de insumos en facturas de compra | 2026-03-31 | Combobox autocompletado, reemplaza select+input, Tab flow |
+| v1.32.1 | Fix layout ítems factura de compra | 2026-03-31 | Badge inline, lote/fecha horizontal, fix create y edit |
 
 ---
 
@@ -86,13 +88,14 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v1.32.0 | Buscador inteligente de insumos en facturas de compra | 2h | ninguna | `pendientes/v1.32.0-buscador-insumos-facturas-compra.md` |
+| v1.28.1 | Fix QR scanner captura nativa | — | v1.28.0 | `pendientes/v1.28.1-fix-qr-scanner-captura-nativa.md` |
+| v1.28.1 | Fix QR scanner: captura nativa sin permisos | 30min | v1.28.0 | `pendientes/v1.28.1-fix-qr-scanner-captura-nativa.md` |
 
 ---
 
 ## Áreas candidatas (sin planificar)
 
-- **Lector QR facturas de compra**: escaneo de QR de facturas recibidas para autocompletar datos
+- **Lector QR facturas de compra**: ~~escaneo de QR de facturas recibidas para autocompletar datos~~ → completado en v1.28.0
 - **UI/UX**: auditoría visual, migración de componentes, design system
 - **Testing**: suite de tests automatizados, cobertura mínima
 - **DevOps**: CI/CD, ambientes de staging, deploy automatizado
@@ -103,10 +106,10 @@
 ## Progreso general
 
 ```
-Completadas:  61 versiones (v1.0.0 → v1.31.1, v2.0.0 → v2.7.0)
-Planificadas: 1 (v1.32.0)
+Completadas:  63 versiones (v1.0.0 → v1.32.1, v2.0.0 → v2.7.0)
+Planificadas: 1
 En proceso:   0
-Próxima:      v1.32.0 — Buscador inteligente de insumos en facturas de compra
+Próxima:      v1.28.1 — Fix QR scanner captura nativa
 ```
 
 ---
