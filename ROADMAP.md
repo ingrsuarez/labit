@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-03-29
+> Última actualización: 2026-03-31
 
 ---
 
@@ -72,6 +72,7 @@
 | v1.30.3 | Fix protocolos sin sede: visibilidad y asignación masiva | 2026-03-30 | Filtro y asignación masiva de sede a protocolos existentes |
 | v1.31.0 | Control de facturación de protocolos | 2026-03-30 | Tabla pivot invoice_protocols, vista sin facturar, botón Facturar, badge sidebar |
 | v1.31.1 | Facturación masiva por OS, aguas y veterinarias | 2026-03-30 | Batch invoice, preview, checkboxes, agrupación por OS/cliente |
+| v1.32.0 | Buscador inteligente de insumos en facturas de compra | 2026-03-31 | Combobox autocompletado, reemplaza select+input, Tab flow |
 
 ---
 
@@ -86,7 +87,6 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v1.32.0 | Buscador inteligente de insumos en facturas de compra | 2h | ninguna | `pendientes/v1.32.0-buscador-insumos-facturas-compra.md` |
 
 ---
 
@@ -103,10 +103,10 @@
 ## Progreso general
 
 ```
-Completadas:  61 versiones (v1.0.0 → v1.31.1, v2.0.0 → v2.7.0)
-Planificadas: 1 (v1.32.0)
+Completadas:  62 versiones (v1.0.0 → v1.32.0, v2.0.0 → v2.7.0)
+Planificadas: 0
 En proceso:   0
-Próxima:      v1.32.0 — Buscador inteligente de insumos en facturas de compra
+Próxima:      — (sin prompts pendientes)
 ```
 
 ---
