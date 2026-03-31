@@ -115,7 +115,7 @@
                         <tbody class="divide-y divide-gray-200">
                             <template x-for="(item, index) in items" :key="index">
                                 <tr class="hover:bg-gray-50">
-                                    <td class="px-3 py-2 relative" x-data="supplySearch(item, index)">
+                                    <td class="px-3 py-2" x-data="supplySearch(item, index)">
                                         <input type="hidden" :name="'items[' + index + '][description]'" :value="item.description">
                                         <input type="hidden" :name="'items[' + index + '][supply_id]'" :value="item.supply_id || ''">
                                         <input type="hidden" :name="'items[' + index + '][quantity]'" :value="item.quantity">
@@ -124,57 +124,61 @@
                                         <input type="hidden" :name="'items[' + index + '][lot_number]'" :value="item.lot_number || ''">
                                         <input type="hidden" :name="'items[' + index + '][expiration_date]'" :value="item.expiration_date || ''">
 
-                                        <input type="text"
-                                               x-model="searchText"
-                                               @input.debounce.300ms="doSearch()"
-                                               @focus="if (searchText.length >= 2) showResults = true"
-                                               @keydown.arrow-down.prevent="highlightNext()"
-                                               @keydown.arrow-up.prevent="highlightPrev()"
-                                               @keydown.enter.prevent="selectHighlighted()"
-                                               @keydown.escape="showResults = false"
-                                               @keydown.tab="onTab($event)"
-                                               placeholder="Buscar insumo o escribir descripción..."
-                                               required
-                                               :id="'item-desc-' + index"
-                                               class="w-full rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                        <div class="flex items-start gap-2">
+                                            <div class="flex-1 min-w-0 relative">
+                                                <div class="relative">
+                                                    <input type="text"
+                                                           x-model="searchText"
+                                                           @input.debounce.300ms="doSearch()"
+                                                           @focus="if (searchText.length >= 2) showResults = true"
+                                                           @keydown.arrow-down.prevent="highlightNext()"
+                                                           @keydown.arrow-up.prevent="highlightPrev()"
+                                                           @keydown.enter.prevent="selectHighlighted()"
+                                                           @keydown.escape="showResults = false"
+                                                           @keydown.tab="onTab($event)"
+                                                           placeholder="Buscar insumo o escribir descripción..."
+                                                           required
+                                                           :id="'item-desc-' + index"
+                                                           :class="{ 'pr-24': item.supply_id }"
+                                                           class="w-full rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
 
-                                        <template x-if="item.supply_id">
-                                            <div class="flex items-center gap-1 mt-1">
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200">
-                                                    <span x-text="item._supply_code || 'INS'"></span>
-                                                    <button type="button" @click="unlinkSupply()" class="ml-1 text-teal-400 hover:text-teal-600">&times;</button>
-                                                </span>
+                                                    <span x-show="item.supply_id" x-cloak
+                                                          class="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200">
+                                                        <span x-text="item._supply_code || 'INS'"></span>
+                                                        <button type="button" @click="unlinkSupply()" class="ml-1 text-teal-400 hover:text-teal-600">&times;</button>
+                                                    </span>
+                                                </div>
+
+                                                <div x-show="showResults && (results.length > 0 || searchText.length >= 2)" x-cloak
+                                                     @click.outside="showResults = false"
+                                                     class="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                                    <template x-for="(supply, i) in results" :key="supply.id">
+                                                        <button type="button"
+                                                                @click="selectSupply(supply)"
+                                                                @mouseenter="highlightedIndex = i"
+                                                                :class="highlightedIndex === i ? 'bg-teal-50 text-teal-800' : 'text-gray-700'"
+                                                                class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 last:border-0">
+                                                            <span class="font-mono text-xs text-gray-400" x-text="supply.code"></span>
+                                                            <span x-text="supply.name"></span>
+                                                        </button>
+                                                    </template>
+
+                                                    <div x-show="results.length === 0 && searchText.length >= 2 && !loading"
+                                                         class="px-3 py-2 text-sm text-gray-400">
+                                                        Sin resultados. Podés escribir una descripción libre.
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </template>
 
-                                        <div x-show="showResults && (results.length > 0 || searchText.length >= 2)" x-cloak
-                                             @click.outside="showResults = false"
-                                             class="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                            <template x-for="(supply, i) in results" :key="supply.id">
-                                                <button type="button"
-                                                        @click="selectSupply(supply)"
-                                                        @mouseenter="highlightedIndex = i"
-                                                        :class="highlightedIndex === i ? 'bg-teal-50 text-teal-800' : 'text-gray-700'"
-                                                        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 last:border-0">
-                                                    <span class="font-mono text-xs text-gray-400" x-text="supply.code"></span>
-                                                    <span x-text="supply.name"></span>
-                                                </button>
+                                            <template x-if="item.supply_id && getSupplyTracksLot(item.supply_id)">
+                                                <div class="flex gap-2 shrink-0">
+                                                    <input type="text" x-model="item.lot_number" placeholder="Lote"
+                                                           class="w-28 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
+                                                    <input type="date" x-model="item.expiration_date"
+                                                           class="w-36 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
+                                                </div>
                                             </template>
-
-                                            <div x-show="results.length === 0 && searchText.length >= 2 && !loading"
-                                                 class="px-3 py-2 text-sm text-gray-400">
-                                                Sin resultados. Podés escribir una descripción libre.
-                                            </div>
                                         </div>
-
-                                        <template x-if="item.supply_id && getSupplyTracksLot(item.supply_id)">
-                                            <div class="flex gap-2 mt-1">
-                                                <input type="text" x-model="item.lot_number" placeholder="Lote"
-                                                       class="w-1/2 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
-                                                <input type="date" x-model="item.expiration_date"
-                                                       class="w-1/2 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
-                                            </div>
-                                        </template>
                                     </td>
                                     <td class="px-3 py-2">
                                         <input type="number" x-model.number="item.quantity" min="0.01" step="0.01" required
