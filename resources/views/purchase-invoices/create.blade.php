@@ -221,7 +221,7 @@
 
                                         <div class="flex items-start gap-2">
                                             <div class="flex-1 min-w-0 relative">
-                                                <div class="relative">
+                                                <div class="flex items-center gap-1">
                                                     <input type="text"
                                                            x-model="searchText"
                                                            @input.debounce.300ms="doSearch()"
@@ -234,11 +234,10 @@
                                                            placeholder="Buscar insumo o escribir descripción..."
                                                            required
                                                            :id="'item-desc-' + index"
-                                                           :class="{ 'pr-24': item.supply_id }"
-                                                           class="w-full rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                                           class="flex-1 min-w-0 rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
 
                                                     <span x-show="item.supply_id" x-cloak
-                                                          class="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200">
+                                                          class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200 whitespace-nowrap">
                                                         <span x-text="item._supply_code || 'INS'"></span>
                                                         <button type="button" @click="unlinkSupply()" class="ml-1 text-teal-400 hover:text-teal-600">&times;</button>
                                                     </span>
@@ -493,6 +492,15 @@
                         const parentData = formEl._x_dataStack[0];
                         if (parentData && !parentData.supplies.find(s => s.id === supply.id)) {
                             parentData.supplies.push({ id: supply.id, name: supply.code + ' - ' + supply.name, tracks_lot: supply.tracks_lot });
+                        }
+                    }
+
+                    if (supply.tracks_lot && !item.expiration_date) {
+                        const issueDateEl = document.querySelector('input[name="issue_date"]');
+                        if (issueDateEl && issueDateEl.value) {
+                            const d = new Date(issueDateEl.value);
+                            d.setDate(d.getDate() + 30);
+                            item.expiration_date = d.toISOString().split('T')[0];
                         }
                     }
 
