@@ -86,6 +86,7 @@
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
 | v1.31.1 | Facturación masiva por OS, aguas y veterinarias | 3h | v1.31.0 | `pendientes/v1.31.1-facturacion-masiva-os-aguas.md` |
+| v1.32.0 | Buscador inteligente de insumos en facturas de compra | 2h | ninguna | `pendientes/v1.32.0-buscador-insumos-facturas-compra.md` |
 
 ---
 
@@ -103,7 +104,7 @@
 
 ```
 Completadas:  60 versiones (v1.0.0 → v1.31.0, v2.0.0 → v2.7.0)
-Planificadas: 1 (v1.31.1)
+Planificadas: 2 (v1.31.1, v1.32.0)
 En proceso:   0
 Próxima:      v1.31.1 — Facturación masiva por OS, aguas y veterinarias
 ```
