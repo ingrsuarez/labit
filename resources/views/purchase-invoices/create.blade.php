@@ -198,8 +198,7 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Descripción</th>
-                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-40">Insumo</th>
+                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Descripción / Insumo</th>
                                 <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">Cantidad</th>
                                 <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Precio Unit.</th>
                                 <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Tasa IVA</th>
@@ -211,7 +210,7 @@
                         <tbody class="divide-y divide-gray-200">
                             <template x-for="(item, index) in items" :key="index">
                                 <tr class="hover:bg-gray-50">
-                                    <td class="px-3 py-2">
+                                    <td class="px-3 py-2 relative" x-data="supplySearch(item, index)">
                                         <input type="hidden" :name="'items[' + index + '][description]'" :value="item.description">
                                         <input type="hidden" :name="'items[' + index + '][supply_id]'" :value="item.supply_id || ''">
                                         <input type="hidden" :name="'items[' + index + '][quantity]'" :value="item.quantity">
@@ -219,26 +218,60 @@
                                         <input type="hidden" :name="'items[' + index + '][iva_rate]'" :value="item.iva_rate">
                                         <input type="hidden" :name="'items[' + index + '][lot_number]'" :value="item.lot_number || ''">
                                         <input type="hidden" :name="'items[' + index + '][expiration_date]'" :value="item.expiration_date || ''">
-                                        <input type="text" x-model="item.description" required placeholder="Descripción del ítem"
+
+                                        <input type="text"
+                                               x-model="searchText"
+                                               @input.debounce.300ms="doSearch()"
+                                               @focus="if (searchText.length >= 2) showResults = true"
+                                               @keydown.arrow-down.prevent="highlightNext()"
+                                               @keydown.arrow-up.prevent="highlightPrev()"
+                                               @keydown.enter.prevent="selectHighlighted()"
+                                               @keydown.escape="showResults = false"
+                                               @keydown.tab="onTab($event)"
+                                               placeholder="Buscar insumo o escribir descripción..."
+                                               required
+                                               :id="'item-desc-' + index"
                                                class="w-full rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
-                                    </td>
-                                    <td class="px-3 py-2">
-                                        <div class="flex items-center gap-1">
-                                            <select x-model="item.supply_id" @change="onSupplyChange(item)"
-                                                    class="w-full rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
-                                                <option value="">Ninguno</option>
-                                                <template x-for="supply in supplies" :key="supply.id">
-                                                    <option :value="supply.id" x-text="supply.name" :selected="supply.id == item.supply_id"></option>
-                                                </template>
-                                            </select>
-                                            <button type="button" @click="showNewSupplyModal = true; newSupplyForRow = index"
-                                                    class="p-1.5 text-teal-600 hover:text-teal-800 shrink-0" title="Crear insumo nuevo">
+
+                                        <template x-if="item.supply_id">
+                                            <div class="flex items-center gap-1 mt-1">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200">
+                                                    <span x-text="item._supply_code || 'INS'"></span>
+                                                    <button type="button" @click="unlinkSupply()" class="ml-1 text-teal-400 hover:text-teal-600">&times;</button>
+                                                </span>
+                                            </div>
+                                        </template>
+
+                                        <div x-show="showResults && (results.length > 0 || searchText.length >= 2)" x-cloak
+                                             @click.outside="showResults = false"
+                                             class="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                            <template x-for="(supply, i) in results" :key="supply.id">
+                                                <button type="button"
+                                                        @click="selectSupply(supply)"
+                                                        @mouseenter="highlightedIndex = i"
+                                                        :class="highlightedIndex === i ? 'bg-teal-50 text-teal-800' : 'text-gray-700'"
+                                                        class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 last:border-0">
+                                                    <span class="font-mono text-xs text-gray-400" x-text="supply.code"></span>
+                                                    <span x-text="supply.name"></span>
+                                                </button>
+                                            </template>
+
+                                            <button type="button"
+                                                    @click="openCreateModal()"
+                                                    class="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2 border-t border-gray-200">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                                                 </svg>
+                                                <span>Crear insumo "<span x-text="searchText" class="font-medium"></span>"</span>
                                             </button>
+
+                                            <div x-show="results.length === 0 && searchText.length >= 2 && !loading"
+                                                 class="px-3 py-2 text-sm text-gray-400">
+                                                Sin resultados. Podés escribir una descripción libre o crear uno nuevo.
+                                            </div>
                                         </div>
-                                        <template x-if="getSupplyTracksLot(item.supply_id)">
+
+                                        <template x-if="item.supply_id && getSupplyTracksLot(item.supply_id)">
                                             <div class="flex gap-2 mt-1">
                                                 <input type="text" x-model="item.lot_number" placeholder="Lote"
                                                        class="w-1/2 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
@@ -249,10 +282,12 @@
                                     </td>
                                     <td class="px-3 py-2">
                                         <input type="number" x-model.number="item.quantity" min="0.01" step="0.01" required
+                                               :id="'item-qty-' + index"
                                                class="w-24 rounded border-gray-300 text-sm text-center focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
                                     <td class="px-3 py-2">
                                         <input type="number" x-model.number="item.unit_price" min="0" step="0.01" required
+                                               :id="'item-price-' + index"
                                                class="w-32 rounded border-gray-300 text-sm text-right focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
                                     <td class="px-3 py-2">
@@ -282,37 +317,37 @@
                         </tbody>
                         <tfoot class="bg-gray-50">
                             <tr>
-                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Subtotal (Neto Gravado)</td>
+                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Subtotal (Neto Gravado)</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(subtotal)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="iva105 > 0">
-                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 10,5%</td>
+                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 10,5%</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(iva105)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="iva21 > 0">
-                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 21%</td>
+                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 21%</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(iva21)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="iva27 > 0">
-                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 27%</td>
+                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 27%</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(iva27)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="percepciones > 0">
-                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Percepciones</td>
+                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Percepciones</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(percepciones)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="otrosImpuestos > 0">
-                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Otros Impuestos</td>
+                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Otros Impuestos</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(otrosImpuestos)"></td>
                                 <td></td>
                             </tr>
                             <tr class="border-t-2 border-gray-300">
-                                <td colspan="6" class="px-3 py-3 text-right text-sm font-bold text-gray-800">TOTAL</td>
+                                <td colspan="5" class="px-3 py-3 text-right text-sm font-bold text-gray-800">TOTAL</td>
                                 <td class="px-3 py-3 text-right text-base font-bold text-gray-900" x-text="'$' + formatMoney(grandTotal)"></td>
                                 <td></td>
                             </tr>
@@ -414,11 +449,108 @@
             : collect();
     @endphp
     <script>
+        function supplySearch(item, index) {
+            return {
+                searchText: item.description || '',
+                results: [],
+                showResults: false,
+                loading: false,
+                highlightedIndex: -1,
+
+                async doSearch() {
+                    item.description = this.searchText;
+                    if (this.searchText.length < 2) {
+                        this.results = [];
+                        this.showResults = false;
+                        return;
+                    }
+                    this.loading = true;
+                    try {
+                        const resp = await fetch(`{{ route('supplies.search') }}?q=${encodeURIComponent(this.searchText)}`);
+                        this.results = await resp.json();
+                        this.showResults = true;
+                        this.highlightedIndex = -1;
+                    } catch (e) {
+                        this.results = [];
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                selectSupply(supply) {
+                    item.supply_id = supply.id;
+                    item.description = supply.name;
+                    item._supply_code = supply.code;
+                    this.searchText = supply.name;
+                    this.showResults = false;
+
+                    const formEl = this.$root.closest('[x-data="invoiceForm()"]');
+                    if (formEl && formEl._x_dataStack) {
+                        const parentData = formEl._x_dataStack[0];
+                        if (parentData && !parentData.supplies.find(s => s.id === supply.id)) {
+                            parentData.supplies.push({ id: supply.id, name: supply.code + ' - ' + supply.name, tracks_lot: supply.tracks_lot });
+                        }
+                    }
+
+                    this.$nextTick(() => {
+                        const qtyInput = document.querySelector(`#item-qty-${index}`);
+                        if (qtyInput) qtyInput.focus();
+                    });
+                },
+
+                unlinkSupply() {
+                    item.supply_id = '';
+                    item._supply_code = '';
+                },
+
+                highlightNext() {
+                    if (this.highlightedIndex < this.results.length - 1) this.highlightedIndex++;
+                },
+
+                highlightPrev() {
+                    if (this.highlightedIndex > 0) this.highlightedIndex--;
+                },
+
+                selectHighlighted() {
+                    if (this.highlightedIndex >= 0 && this.highlightedIndex < this.results.length) {
+                        this.selectSupply(this.results[this.highlightedIndex]);
+                    }
+                },
+
+                onTab(event) {
+                    if (this.showResults && this.highlightedIndex >= 0) {
+                        event.preventDefault();
+                        this.selectHighlighted();
+                    } else {
+                        this.showResults = false;
+                        item.description = this.searchText;
+                    }
+                },
+
+                openCreateModal() {
+                    this.showResults = false;
+                    const formEl = this.$root.closest('[x-data="invoiceForm()"]');
+                    if (formEl && formEl._x_dataStack) {
+                        const parentData = formEl._x_dataStack[0];
+                        parentData.newSupply.name = this.searchText;
+                        parentData.newSupplyForRow = index;
+                        parentData.showNewSupplyModal = true;
+                    }
+                },
+
+                init() {
+                    if (item.supply_id && item.description) {
+                        this.searchText = item.description;
+                    }
+                }
+            }
+        }
+
         function invoiceForm() {
             const deliveryNoteItems = @json($deliveryNoteItemsJson);
 
             return {
-                items: deliveryNoteItems.length > 0 ? [...deliveryNoteItems.map(i => ({...i, lot_number: '', expiration_date: ''}))] : [],
+                items: deliveryNoteItems.length > 0 ? [...deliveryNoteItems.map(i => ({...i, lot_number: '', expiration_date: '', _supply_code: ''}))] : [],
                 percepciones: {{ old('percepciones', 0) }},
                 otrosImpuestos: {{ old('otros_impuestos', 0) }},
                 supplies: @json(\App\Models\Supply::active()->orderBy('name')->get()->map(function ($s) { return ['id' => $s->id, 'name' => $s->code . ' - ' . $s->name, 'tracks_lot' => $s->tracks_lot]; })),
@@ -569,7 +701,15 @@
                         this.supplies.push({ id: data.id, name: data.code + ' - ' + data.name, tracks_lot: data.tracks_lot });
                         if (this.newSupplyForRow !== null && this.items[this.newSupplyForRow]) {
                             this.items[this.newSupplyForRow].supply_id = data.id;
-                            this.items[this.newSupplyForRow].description = this.items[this.newSupplyForRow].description || data.name;
+                            this.items[this.newSupplyForRow].description = data.name;
+                            this.items[this.newSupplyForRow]._supply_code = data.code;
+                            this.$nextTick(() => {
+                                const descInput = document.querySelector(`#item-desc-${this.newSupplyForRow}`);
+                                if (descInput) {
+                                    descInput.value = data.name;
+                                    descInput.dispatchEvent(new Event('input', { bubbles: true }));
+                                }
+                            });
                         }
                         this.showNewSupplyModal = false;
                         this.newSupply = { name: '', supply_category_id: '', unit: 'unidad', brand: '', min_stock: 0, tracks_lot: false };
