@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Supplier;
 use App\Models\Supply;
 use App\Models\SupplyCategory;
-use App\Models\Supplier;
 use Illuminate\Http\Request;
 
 class SupplyController extends Controller
@@ -20,9 +20,9 @@ class SupplyController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%")
-                  ->orWhere('brand', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('brand', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -58,6 +58,7 @@ class SupplyController extends Controller
 
         $categories = SupplyCategory::active()->orderBy('name')->get();
         $suppliers = Supplier::active()->orderBy('name')->get();
+
         return view('supplies.create', compact('categories', 'suppliers'));
     }
 
@@ -98,7 +99,7 @@ class SupplyController extends Controller
         }
 
         return redirect()->route('supplies.index')
-            ->with('success', 'Insumo "' . $supply->name . '" creado correctamente.');
+            ->with('success', 'Insumo "'.$supply->name.'" creado correctamente.');
     }
 
     public function show(Supply $supply)
@@ -120,6 +121,7 @@ class SupplyController extends Controller
 
         $categories = SupplyCategory::active()->orderBy('name')->get();
         $suppliers = Supplier::active()->orderBy('name')->get();
+
         return view('supplies.edit', compact('supply', 'categories', 'suppliers'));
     }
 
@@ -179,10 +181,11 @@ class SupplyController extends Controller
         $supplies = Supply::active()
             ->where(function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%")
-                      ->orWhere('code', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%");
             })
+            ->orderBy('name')
             ->limit(15)
-            ->get(['id', 'code', 'name', 'unit', 'stock', 'last_price']);
+            ->get(['id', 'code', 'name', 'unit', 'stock', 'last_price', 'tracks_lot']);
 
         return response()->json($supplies);
     }
