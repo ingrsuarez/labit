@@ -372,6 +372,11 @@ Route::middleware([
         Route::get('billing/summary', [App\Http\Controllers\BillingController::class, 'summary'])->name('billing.summary');
     });
 
+    Route::middleware('permission:sales-invoices.create')->group(function () {
+        Route::post('billing/batch-preview', [App\Http\Controllers\BillingController::class, 'batchPreview'])->name('billing.batch-preview');
+        Route::post('billing/batch-invoice', [App\Http\Controllers\BillingController::class, 'batchInvoice'])->name('billing.batch-invoice');
+    });
+
     // =============================================
     // VENTAS (requiere permiso ventas.section)
     // =============================================
