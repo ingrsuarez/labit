@@ -13,18 +13,19 @@
 | **Última completada** | v1.31.0 — Control de facturación de protocolos |
 | **En proceso** | — |
 | **Próxima** | v1.31.1 — Facturación masiva por OS, aguas y veterinarias |
-| **Pendientes en cola** | 1 |
+| **Pendientes en cola** | 2 |
 | **Completadas** | 60 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (1)
+### Pendientes (2)
 
 | Versión | Nombre | Dependencias |
 |---|---|---|
 | v1.31.1 | Facturación masiva por OS, aguas y veterinarias | v1.31.0 |
+| v1.32.0 | Buscador inteligente de insumos en facturas de compra | ninguna |
 
 ### En proceso (0)
 
