@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-31 (post v1.28.1)
+> Última actualización: 2026-03-31 (post v3.0.0)
 
 ---
 
@@ -9,31 +9,30 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v2.7.0 / v1.32.1 |
-| **Última completada** | v1.28.1 — Fix QR scanner captura nativa |
+| **Versión actual** | v3.0.0 / v2.7.0 / v1.32.1 |
+| **Última completada** | v3.0.0 — Infraestructura contable base |
 | **En proceso** | — |
-| **Próxima** | v3.0.0 — Infraestructura contable base |
-| **Pendientes en cola** | 1 |
-| **Completadas** | 64 |
+| **Próxima** | — (cola vacía, planificar nuevas versiones) |
+| **Pendientes en cola** | 0 |
+| **Completadas** | 65 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (1)
+### Pendientes (0)
 
-| Versión | Nombre | Prompt |
-|---|---|---|
-| v3.0.0 | Infraestructura contable base | `pendientes/v3.0.0-infra-contable-base.md` |
+_Sin prompts pendientes. Planificar nuevas versiones._
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (64)
+### Completados (65)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v3.0.0 | Infraestructura contable base | 2026-03-31 | v3.0.0 |
 | v1.28.1 | Fix QR scanner captura nativa | 2026-03-31 | v1.28.1 |
 | v1.32.1 | Fix layout ítems factura de compra | 2026-03-31 | v1.32.1 |
 | v1.32.0 | Buscador inteligente de insumos en facturas de compra | 2026-03-31 | v1.32.0 |
@@ -179,7 +178,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-v3.0.0 — Infraestructura contable base (en cola de pendientes).
+Cola vacía. Ejecutar AgentePM para planificar nuevas versiones.
 
 ---
 
