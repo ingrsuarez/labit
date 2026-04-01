@@ -397,6 +397,18 @@ Route::middleware([
             ->name('accounting.bank-statements.show');
         Route::delete('accounting/bank-accounts/{bankAccount}/statements/{statement}', [App\Http\Controllers\BankStatementController::class, 'destroy'])
             ->name('accounting.bank-statements.destroy');
+        Route::get('accounting/bank-accounts/{bankAccount}/statements/{statement}/reconcile', [App\Http\Controllers\BankReconciliationController::class, 'index'])
+            ->name('accounting.reconciliation.index');
+        Route::post('accounting/bank-accounts/{bankAccount}/statements/{statement}/reconcile/auto', [App\Http\Controllers\BankReconciliationController::class, 'autoReconcile'])
+            ->name('accounting.reconciliation.auto');
+        Route::post('accounting/reconciliation/{movement}/link', [App\Http\Controllers\BankReconciliationController::class, 'link'])
+            ->name('accounting.reconciliation.link');
+        Route::post('accounting/reconciliation/{movement}/unlink', [App\Http\Controllers\BankReconciliationController::class, 'unlink'])
+            ->name('accounting.reconciliation.unlink');
+        Route::post('accounting/reconciliation/{movement}/ignore', [App\Http\Controllers\BankReconciliationController::class, 'ignore'])
+            ->name('accounting.reconciliation.ignore');
+        Route::post('accounting/reconciliation/{statement}/bulk-ignore', [App\Http\Controllers\BankReconciliationController::class, 'bulkIgnore'])
+            ->name('accounting.reconciliation.bulk-ignore');
     });
 
     // =============================================

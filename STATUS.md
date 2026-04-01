@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-01 (v3.1.0 completada)
+> Última actualización: 2026-04-01 (v3.2.0 completada)
 
 ---
 
@@ -9,31 +9,30 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v3.1.0 / v3.0.0 / v2.7.0 / v1.32.1 |
-| **Última completada** | v3.1.0 — Conciliación Bancaria: Cuentas e Importación |
+| **Versión actual** | v3.2.0 / v3.1.0 / v3.0.0 / v2.7.0 / v1.32.1 |
+| **Última completada** | v3.2.0 — Conciliación Bancaria: Motor de Matcheo |
 | **En proceso** | — |
-| **Próxima** | v3.2.0 — Conciliación Bancaria: Motor de Matcheo |
-| **Pendientes en cola** | 1 |
-| **Completadas** | 66 |
+| **Próxima** | — (sin prompts pendientes) |
+| **Pendientes en cola** | 0 |
+| **Completadas** | 67 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (1)
+### Pendientes (0)
 
-| Versión | Nombre | Prompt |
-|---|---|---|
-| v3.2.0 | Conciliación Bancaria: Motor de Matcheo | `pendientes/v3.2.0-conciliacion-bancaria-matcheo.md` |
+_Sin prompts pendientes._
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (66)
+### Completados (67)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v3.2.0 | Conciliación Bancaria: Motor de Matcheo | 2026-04-01 | v3.2.0 |
 | v3.1.0 | Conciliación Bancaria: Cuentas e Importación | 2026-04-01 | v3.1.0 |
 | v3.0.0 | Infraestructura contable base | 2026-03-31 | v3.0.0 |
 | v1.28.1 | Fix QR scanner captura nativa | 2026-03-31 | v1.28.1 |
@@ -150,7 +149,7 @@ v1.0.0 (completada)
 ├── v2.5.0 — Auditoría infraestructura + módulo clínico (completada)
 ├── v3.0.0 — Infraestructura contable base (completada)
 │   └── v3.1.0 — Conciliación Bancaria: Cuentas e Importación (completada)
-│       └── v3.2.0 — Conciliación Bancaria: Motor de Matcheo (pendiente)
+│       └── v3.2.0 — Conciliación Bancaria: Motor de Matcheo (completada)
 ```
 
 ---
