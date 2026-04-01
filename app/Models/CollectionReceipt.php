@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class CollectionReceipt extends Model
 {
@@ -25,6 +26,11 @@ class CollectionReceipt extends Model
     public function creator() { return $this->belongsTo(User::class, 'created_by'); }
     public function confirmer() { return $this->belongsTo(User::class, 'confirmed_by'); }
     public function items() { return $this->hasMany(CollectionReceiptItem::class); }
+
+    public function reconciledMovements(): MorphMany
+    {
+        return $this->morphMany(BankMovement::class, 'reconciled', 'reconciled_type', 'reconciled_id');
+    }
 
     public function recalculate(): void
     {

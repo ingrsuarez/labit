@@ -247,6 +247,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'contabilidad.bank_statements.index',
             'contabilidad.bank_statements.import',
             'contabilidad.bank_statements.delete',
+            'contabilidad.reconciliation.execute',
+            'contabilidad.reconciliation.manual',
         ];
 
         // 3) Crear/asegurar permisos (idempotente)
@@ -366,6 +368,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'contabilidad.bank_accounts.edit',
             'contabilidad.bank_statements.index',
             'contabilidad.bank_statements.import',
+            'contabilidad.reconciliation.execute',
+            'contabilidad.reconciliation.manual',
         ];
 
         $contadorRole->syncPermissions(Permission::whereIn('name', $contadorPermissions)->get());
