@@ -385,6 +385,18 @@ Route::middleware([
             ->name('accounting.section');
         Route::resource('accounting/accounts', App\Http\Controllers\AccountingAccountController::class)
             ->names('accounting.accounts');
+        Route::resource('accounting/bank-accounts', App\Http\Controllers\BankAccountController::class)
+            ->names('accounting.bank-accounts');
+        Route::get('accounting/bank-accounts/{bankAccount}/statements', [App\Http\Controllers\BankStatementController::class, 'index'])
+            ->name('accounting.bank-statements.index');
+        Route::get('accounting/bank-accounts/{bankAccount}/statements/create', [App\Http\Controllers\BankStatementController::class, 'create'])
+            ->name('accounting.bank-statements.create');
+        Route::post('accounting/bank-accounts/{bankAccount}/statements', [App\Http\Controllers\BankStatementController::class, 'store'])
+            ->name('accounting.bank-statements.store');
+        Route::get('accounting/bank-accounts/{bankAccount}/statements/{statement}', [App\Http\Controllers\BankStatementController::class, 'show'])
+            ->name('accounting.bank-statements.show');
+        Route::delete('accounting/bank-accounts/{bankAccount}/statements/{statement}', [App\Http\Controllers\BankStatementController::class, 'destroy'])
+            ->name('accounting.bank-statements.destroy');
     });
 
     // =============================================

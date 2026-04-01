@@ -26,8 +26,12 @@ class AuthAuditSubscriber
             return;
         }
 
+        $userId = \App\Models\User::where('id', $event->user->id)->exists()
+            ? $event->user->id
+            : null;
+
         AuditLog::create([
-            'user_id' => $event->user->id,
+            'user_id' => $userId,
             'user_name' => $event->user->name,
             'action' => 'logout',
             'description' => 'Cerró sesión',

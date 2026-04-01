@@ -15,18 +15,20 @@ return new class extends Migration
             });
         }
 
-        $indexes = collect(DB::select('SHOW INDEX FROM customers'))->pluck('Key_name')->unique()->toArray();
+        if (DB::getDriverName() !== 'sqlite') {
+            $indexes = collect(DB::select('SHOW INDEX FROM customers'))->pluck('Key_name')->unique()->toArray();
 
-        if (in_array('customers_taxid_unique', $indexes)) {
-            Schema::table('customers', function (Blueprint $table) {
-                $table->dropUnique(['taxId']);
-            });
-        }
+            if (in_array('customers_taxid_unique', $indexes)) {
+                Schema::table('customers', function (Blueprint $table) {
+                    $table->dropUnique(['taxId']);
+                });
+            }
 
-        if (in_array('customers_email_unique', $indexes)) {
-            Schema::table('customers', function (Blueprint $table) {
-                $table->dropUnique(['email']);
-            });
+            if (in_array('customers_email_unique', $indexes)) {
+                Schema::table('customers', function (Blueprint $table) {
+                    $table->dropUnique(['email']);
+                });
+            }
         }
 
         DB::table('customers')->whereNull('type')->update(['type' => json_encode(['aguas'])]);

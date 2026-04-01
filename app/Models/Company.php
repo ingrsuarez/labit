@@ -100,6 +100,11 @@ class Company extends Model
         return $this->hasMany(JournalEntry::class);
     }
 
+    public function bankAccounts(): HasMany
+    {
+        return $this->hasMany(BankAccount::class);
+    }
+
     public function displayName(): string
     {
         return $this->short_name ?: $this->name;
