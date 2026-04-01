@@ -76,23 +76,13 @@
                 </div>
 
                 <div class="flex gap-3 mb-3">
-                    <button type="button" @click="startCamera()" x-show="!cameraActive"
-                            class="inline-flex items-center px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        Usar cámara
-                    </button>
-                    <button type="button" @click="stopCamera()" x-show="cameraActive" x-cloak
-                            class="inline-flex items-center px-3 py-2 text-sm bg-red-50 border border-red-300 text-red-700 rounded-lg hover:bg-red-100">
-                        Detener cámara
-                    </button>
                     <label class="inline-flex items-center px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                        Subir imagen
-                        <input type="file" accept="image/*" @change="scanFromFile($event)" class="hidden">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        Escanear QR
+                        <input type="file" accept="image/*" capture="environment" @change="scanFromFile($event)" class="hidden">
                     </label>
                 </div>
 
-                <div id="qr-reader" x-show="cameraActive" x-cloak class="mb-3 max-w-sm"></div>
                 <div id="qr-reader-file" style="display:none"></div>
 
                 <div x-show="scanResult" x-cloak class="p-3 bg-green-50 border border-green-200 rounded-lg text-sm">
@@ -568,8 +558,6 @@
                 supplies: @json(\App\Models\Supply::active()->orderBy('name')->get()->map(function ($s) { return ['id' => $s->id, 'name' => $s->code . ' - ' . $s->name, 'tracks_lot' => $s->tracks_lot]; })),
 
                 // QR Scanner
-                cameraActive: false,
-                scanner: null,
                 scanResult: null,
                 scanError: null,
                 qrData: null,
@@ -600,24 +588,6 @@
                         this.scanError = 'No se pudo leer el QR. Asegurate de que sea el QR de una factura electrónica AFIP.';
                         this.scanResult = null;
                     }
-                },
-
-                startCamera() {
-                    this.cameraActive = true;
-                    this.$nextTick(() => {
-                        this.scanner = new Html5QrcodeScanner('qr-reader', {
-                            fps: 10, qrbox: { width: 250, height: 250 }, rememberLastUsedCamera: true,
-                        });
-                        this.scanner.render(
-                            (text) => { this.decodeAfipQr(text); this.stopCamera(); },
-                            () => {}
-                        );
-                    });
-                },
-
-                stopCamera() {
-                    if (this.scanner) { this.scanner.clear().catch(() => {}); this.scanner = null; }
-                    this.cameraActive = false;
                 },
 
                 async scanFromFile(event) {

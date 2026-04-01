@@ -74,6 +74,7 @@
 | v1.31.1 | Facturación masiva por OS, aguas y veterinarias | 2026-03-30 | Batch invoice, preview, checkboxes, agrupación por OS/cliente |
 | v1.32.0 | Buscador inteligente de insumos en facturas de compra | 2026-03-31 | Combobox autocompletado, reemplaza select+input, Tab flow |
 | v1.32.1 | Fix layout ítems factura de compra | 2026-03-31 | Badge inline, lote/fecha horizontal, fix create y edit |
+| v1.28.1 | Fix QR scanner captura nativa | 2026-03-31 | Reemplazar cámara navegador por capture=environment |
 
 ---
 
@@ -88,8 +89,7 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v1.28.1 | Fix QR scanner captura nativa | — | v1.28.0 | `pendientes/v1.28.1-fix-qr-scanner-captura-nativa.md` |
-| v1.28.1 | Fix QR scanner: captura nativa sin permisos | 30min | v1.28.0 | `pendientes/v1.28.1-fix-qr-scanner-captura-nativa.md` |
+| v3.0.0 | Infraestructura contable base | medio día | v2.0.0 | `pendientes/v3.0.0-infra-contable-base.md` |
 
 ---
 
@@ -106,10 +106,10 @@
 ## Progreso general
 
 ```
-Completadas:  63 versiones (v1.0.0 → v1.32.1, v2.0.0 → v2.7.0)
+Completadas:  64 versiones (v1.0.0 → v1.32.1, v2.0.0 → v2.7.0)
 Planificadas: 1
 En proceso:   0
-Próxima:      v1.28.1 — Fix QR scanner captura nativa
+Próxima:      v3.0.0 — Infraestructura contable base
 ```
 
 ---
