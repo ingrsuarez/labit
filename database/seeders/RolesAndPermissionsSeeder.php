@@ -231,6 +231,15 @@ class RolesAndPermissionsSeeder extends Seeder
 
             // AUDITORÍA
             'auditoria.section',
+
+            // CONTABILIDAD
+            'contabilidad.section',
+            'contabilidad.accounts.index',
+            'contabilidad.accounts.create',
+            'contabilidad.accounts.edit',
+            'contabilidad.accounts.delete',
+            'contabilidad.entries.index',
+            'contabilidad.entries.create',
         ];
 
         // 3) Crear/asegurar permisos (idempotente)
@@ -337,6 +346,14 @@ class RolesAndPermissionsSeeder extends Seeder
             'points-of-sale.create',
             'points-of-sale.edit',
             'points-of-sale.delete',
+
+            // Contabilidad
+            'contabilidad.section',
+            'contabilidad.accounts.index',
+            'contabilidad.accounts.create',
+            'contabilidad.accounts.edit',
+            'contabilidad.entries.index',
+            'contabilidad.entries.create',
         ];
 
         $contadorRole->syncPermissions(Permission::whereIn('name', $contadorPermissions)->get());
