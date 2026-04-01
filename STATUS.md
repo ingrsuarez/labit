@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-01 (sesión PM — conciliación bancaria)
+> Última actualización: 2026-04-01 (v3.1.0 completada)
 
 ---
 
@@ -9,32 +9,32 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v3.0.0 / v2.7.0 / v1.32.1 |
-| **Última completada** | v3.0.0 — Infraestructura contable base |
+| **Versión actual** | v3.1.0 / v3.0.0 / v2.7.0 / v1.32.1 |
+| **Última completada** | v3.1.0 — Conciliación Bancaria: Cuentas e Importación |
 | **En proceso** | — |
-| **Próxima** | v3.1.0 — Conciliación Bancaria: Cuentas e Importación |
-| **Pendientes en cola** | 2 |
-| **Completadas** | 65 |
+| **Próxima** | v3.2.0 — Conciliación Bancaria: Motor de Matcheo |
+| **Pendientes en cola** | 1 |
+| **Completadas** | 66 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (2)
+### Pendientes (1)
 
 | Versión | Nombre | Prompt |
 |---|---|---|
-| v3.1.0 | Conciliación Bancaria: Cuentas e Importación | `pendientes/v3.1.0-conciliacion-bancaria-import.md` |
 | v3.2.0 | Conciliación Bancaria: Motor de Matcheo | `pendientes/v3.2.0-conciliacion-bancaria-matcheo.md` |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (65)
+### Completados (66)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v3.1.0 | Conciliación Bancaria: Cuentas e Importación | 2026-04-01 | v3.1.0 |
 | v3.0.0 | Infraestructura contable base | 2026-03-31 | v3.0.0 |
 | v1.28.1 | Fix QR scanner captura nativa | 2026-03-31 | v1.28.1 |
 | v1.32.1 | Fix layout ítems factura de compra | 2026-03-31 | v1.32.1 |
@@ -148,6 +148,9 @@ v1.0.0 (completada)
 ├── v1.17.0 — Fix impresión de etiquetas Zebra (completada)
 │   └── v1.18.0 — Etiquetas de protocolo para lab clínico (completada)
 ├── v2.5.0 — Auditoría infraestructura + módulo clínico (completada)
+├── v3.0.0 — Infraestructura contable base (completada)
+│   └── v3.1.0 — Conciliación Bancaria: Cuentas e Importación (completada)
+│       └── v3.2.0 — Conciliación Bancaria: Motor de Matcheo (pendiente)
 ```
 
 ---
@@ -181,7 +184,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-Cola vacía. Ejecutar AgenteProgramador para la próxima versión:
+Ejecutar AgenteProgramador para v3.2.0 (Motor de Matcheo):
 → `Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo completo.`
 
 ---
