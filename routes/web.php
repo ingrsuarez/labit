@@ -378,6 +378,16 @@ Route::middleware([
     });
 
     // =============================================
+    // CONTABILIDAD (requiere permiso contabilidad.section)
+    // =============================================
+    Route::middleware('can:contabilidad.section')->group(function () {
+        Route::get('accounting', [App\Http\Controllers\AccountingSectionController::class, 'index'])
+            ->name('accounting.section');
+        Route::resource('accounting/accounts', App\Http\Controllers\AccountingAccountController::class)
+            ->names('accounting.accounts');
+    });
+
+    // =============================================
     // VENTAS (requiere permiso ventas.section)
     // =============================================
     Route::middleware('can:ventas.section')->group(function () {

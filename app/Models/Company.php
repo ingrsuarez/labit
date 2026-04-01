@@ -95,6 +95,11 @@ class Company extends Model
         return $this->hasMany(Employee::class);
     }
 
+    public function journalEntries(): HasMany
+    {
+        return $this->hasMany(JournalEntry::class);
+    }
+
     public function displayName(): string
     {
         return $this->short_name ?: $this->name;
