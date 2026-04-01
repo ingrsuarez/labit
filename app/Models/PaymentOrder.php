@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class PaymentOrder extends Model
 {
@@ -43,6 +45,11 @@ class PaymentOrder extends Model
     public function items()
     {
         return $this->hasMany(PaymentOrderItem::class);
+    }
+
+    public function reconciledMovements(): MorphMany
+    {
+        return $this->morphMany(BankMovement::class, 'reconciled', 'reconciled_type', 'reconciled_id');
     }
 
     public function recalculate(): void

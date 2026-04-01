@@ -50,6 +50,11 @@ $progress = $statement->reconciliation_progress;
             <a href="{{ route('accounting.bank-statements.index', $bankAccount) }}" class="px-4 py-2 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
                 ← Extractos
             </a>
+            @can('contabilidad.reconciliation.execute')
+            <a href="{{ route('accounting.reconciliation.index', [$bankAccount, $statement]) }}" class="px-4 py-2 text-sm text-white bg-zinc-800 rounded-lg hover:bg-zinc-700">
+                Conciliar Extracto
+            </a>
+            @endcan
         </div>
     </div>
 
