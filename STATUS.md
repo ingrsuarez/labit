@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-03-31 (post v3.0.0)
+> Última actualización: 2026-04-01 (sesión PM — conciliación bancaria)
 
 ---
 
@@ -12,17 +12,20 @@
 | **Versión actual** | v3.0.0 / v2.7.0 / v1.32.1 |
 | **Última completada** | v3.0.0 — Infraestructura contable base |
 | **En proceso** | — |
-| **Próxima** | — (cola vacía, planificar nuevas versiones) |
-| **Pendientes en cola** | 0 |
+| **Próxima** | v3.1.0 — Conciliación Bancaria: Cuentas e Importación |
+| **Pendientes en cola** | 2 |
 | **Completadas** | 65 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (0)
+### Pendientes (2)
 
-_Sin prompts pendientes. Planificar nuevas versiones._
+| Versión | Nombre | Prompt |
+|---|---|---|
+| v3.1.0 | Conciliación Bancaria: Cuentas e Importación | `pendientes/v3.1.0-conciliacion-bancaria-import.md` |
+| v3.2.0 | Conciliación Bancaria: Motor de Matcheo | `pendientes/v3.2.0-conciliacion-bancaria-matcheo.md` |
 
 ### En proceso (0)
 
@@ -178,7 +181,8 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-Cola vacía. Ejecutar AgentePM para planificar nuevas versiones.
+Cola vacía. Ejecutar AgenteProgramador para la próxima versión:
+→ `Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo completo.`
 
 ---
 

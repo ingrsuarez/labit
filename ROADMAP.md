@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-03-31
+> Última actualización: 2026-04-01
 
 ---
 
@@ -89,12 +89,16 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v3.0.0 | Infraestructura contable base | medio día | v2.0.0 | `pendientes/v3.0.0-infra-contable-base.md` |
+| v3.1.0 | Conciliación Bancaria: Cuentas e Importación | medio día | v3.0.0 | `pendientes/v3.1.0-conciliacion-bancaria-import.md` |
+| v3.2.0 | Conciliación Bancaria: Motor de Matcheo | medio día | v3.1.0 | `pendientes/v3.2.0-conciliacion-bancaria-matcheo.md` |
 
 ---
 
 ## Áreas candidatas (sin planificar)
 
+- **Asientos automáticos desde transacciones**: generación de asientos desde facturas/cobros/pagos
+- **Libro Diario y Libro Mayor**: interfaces de consulta contable
+- **Tesorería**: saldos en tiempo real por cuenta
 - **Lector QR facturas de compra**: ~~escaneo de QR de facturas recibidas para autocompletar datos~~ → completado en v1.28.0
 - **UI/UX**: auditoría visual, migración de componentes, design system
 - **Testing**: suite de tests automatizados, cobertura mínima
@@ -106,10 +110,10 @@
 ## Progreso general
 
 ```
-Completadas:  64 versiones (v1.0.0 → v1.32.1, v2.0.0 → v2.7.0)
-Planificadas: 1
+Completadas:  65 versiones (v1.0.0 → v1.32.1, v2.0.0 → v2.7.0, v3.0.0)
+Planificadas: 2
 En proceso:   0
-Próxima:      v3.0.0 — Infraestructura contable base
+Próxima:      v3.1.0 — Conciliación Bancaria: Cuentas e Importación
 ```
 
 ---
