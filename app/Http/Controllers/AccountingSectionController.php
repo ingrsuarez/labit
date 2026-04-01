@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AccountingAccount;
+use App\Models\BankMovement;
 use App\Models\JournalEntry;
 
 class AccountingSectionController extends Controller
@@ -13,6 +14,7 @@ class AccountingSectionController extends Controller
 
         $totalAccounts = AccountingAccount::active()->count();
         $totalEntries = JournalEntry::count();
+        $pendingMovements = BankMovement::where('reconciliation_status', 'pending')->count();
 
         $section = [
             'title' => 'Contabilidad',
@@ -20,6 +22,7 @@ class AccountingSectionController extends Controller
             'stats' => [
                 ['label' => 'Cuentas activas', 'value' => $totalAccounts],
                 ['label' => 'Asientos registrados', 'value' => $totalEntries],
+                ['label' => 'Mov. pendientes conciliar', 'value' => $pendingMovements],
             ],
             'items' => [
                 [
@@ -27,6 +30,13 @@ class AccountingSectionController extends Controller
                     'description' => 'Estructura de cuentas contables',
                     'route' => route('accounting.accounts.index'),
                     'icon' => 'M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z',
+                    'active' => true,
+                ],
+                [
+                    'name' => 'Conciliación Bancaria',
+                    'description' => 'Cuentas bancarias y extractos',
+                    'route' => route('accounting.bank-accounts.index'),
+                    'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
                     'active' => true,
                 ],
                 [
@@ -48,13 +58,6 @@ class AccountingSectionController extends Controller
                     'description' => 'Movimientos de caja y bancos',
                     'route' => null,
                     'icon' => 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z',
-                    'active' => false,
-                ],
-                [
-                    'name' => 'Conciliación Bancaria',
-                    'description' => 'Conciliar extractos con registros',
-                    'route' => null,
-                    'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
                     'active' => false,
                 ],
             ],
