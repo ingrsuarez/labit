@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-04 (v1.32.3 completada)
+> Última actualización: 2026-04-04 (v1.34.0 completada)
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v3.2.0 / v3.1.0 / v3.0.0 / v2.7.0 / v1.33.0 |
-| **Última completada** | v1.32.3 — Marca en búsqueda y display de insumos |
+| **Versión actual** | v3.2.0 / v3.1.0 / v3.0.0 / v2.7.0 / v1.34.0 |
+| **Última completada** | v1.34.0 — Asociación de remitos y control de stock en facturas de compra |
 | **En proceso** | — |
-| **Próxima** | v1.34.0 — Remitos asociados control stock |
+| **Próxima** | v1.32.4 — Editar/eliminar remitos sync stock |
 | **Pendientes en cola** | 4 |
-| **Completadas** | 70 |
+| **Completadas** | 71 |
 
 ---
 
@@ -24,7 +24,7 @@
 
 | Versión | Nombre |
 |---|---|
-| v1.34.0 | Remitos asociados control stock |
+| v1.32.4 | Editar/eliminar remitos sync stock |
 | v1.35.0 | Cuenta corriente proveedores |
 | v3.3.0 | Asientos automáticos transacciones |
 | v3.4.0 | Libro diario / Libro mayor |
@@ -33,10 +33,11 @@
 
 _Sin prompts en ejecución._
 
-### Completados (70)
+### Completados (71)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.34.0 | Asociación de remitos y control de stock en facturas de compra | 2026-04-04 | v1.34.0 |
 | v1.32.3 | Marca en búsqueda y display de insumos | 2026-04-04 | v1.32.3 |
 | v1.33.0 | UX y validaciones en formulario de factura de compra | 2026-04-04 | v1.33.0 |
 | v1.32.2 | Fix buscador inteligente de items en remitos | 2026-04-04 | v1.32.2 |
@@ -135,6 +136,8 @@ v1.0.0 (completada)
 │       └── v1.28.1 — Fix QR scanner captura nativa (completada)
 ├── v1.32.0 — Buscador inteligente de insumos en facturas de compra (completada)
 │   └── v1.32.2 — Fix buscador inteligente de items en remitos (completada)
+│       └── v1.33.0 — UX y validaciones factura de compra (completada)
+│           └── v1.34.0 — Asociación remitos y control stock FC (completada)
 ├── v1.29.0 — Libro IVA digital AFIP RG 4597 (completada)
 ├── v1.30.0 — Sedes laboratorio y procedencia protocolos (completada)
 ├── v1.5.3 — Seeder jerarquía padre-hijo prácticas (completada)
@@ -192,7 +195,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-Ejecutar AgenteProgramador para v1.34.0 (Remitos asociados control stock):
+Ejecutar AgenteProgramador para v1.32.4 (Editar/eliminar remitos sync stock):
 → `Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo completo.`
 
 ---
