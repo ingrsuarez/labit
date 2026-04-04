@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Solicitud>
+  <TipoDocumento>DNI</TipoDocumento>
+  <NumeroDocumento>31095134</NumeroDocumento>
+  <Apellidos>Tolaba</Apellidos>
+  <Nombres>Sergio Ruben</Nombres>
+  <Sexo>Varón</Sexo>
+  <FechaNacimiento>19840706</FechaNacimiento>
+  <Direccion>
+    <Calle></Calle>
+    <Altura>0</Altura>
+    <CodigoPostal>0</CodigoPostal>
+    <Localidad></Localidad>
+    <Provincia></Provincia>
+    <Pais>Argentina</Pais>
+  </Direccion>
+  <Telefono>2993329389</Telefono>
+  <Mail></Mail>
+  <Empleador>728</Empleador>
+  <CUIT>33-71033608-9</CUIT>
+  <OrdenPrestacion>
+    <AccessionNumber>214967</AccessionNumber>
+    <Fecha>20250905</Fecha>
+    <Hora>0741</Hora>
+    <Profesional>LABO</Profesional>
+    <Practicas>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0700</Prestacion>
+        <Nombre>PSA (Antigeno Prostatico Especifico)</Nombre>
+      </Practica>
+    </Practicas>
+  </OrdenPrestacion>
+  <Profesional>
+    <NombreCompleto>LABORATORIO</NombreCompleto>
+    <MatriculaProvincial></MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+  </Profesional>
+  <Sucursal>
+    <Id>2</Id>
+    <Nombre>Clinica Añelo</Nombre>
+  </Sucursal>
+  <ResponsableExamen>
+    <NombreCompleto>SABRINA LAURA LEON</NombreCompleto>
+    <MatriculaProvincial>M.P.N. ESP N°2873</MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+    <Especialidad>MEDICINA DEL TRABAJO</Especialidad>
+  </ResponsableExamen>
+</Solicitud>

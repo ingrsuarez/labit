@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Solicitud>
+  <TipoDocumento>DNI</TipoDocumento>
+  <NumeroDocumento>38082586</NumeroDocumento>
+  <Apellidos>Soto</Apellidos>
+  <Nombres>Franco Nicolas</Nombres>
+  <Sexo>Varón</Sexo>
+  <FechaNacimiento>19930516</FechaNacimiento>
+  <Direccion>
+    <Calle></Calle>
+    <Altura>0</Altura>
+    <CodigoPostal>8309</CodigoPostal>
+    <Localidad>Centenario</Localidad>
+    <Provincia>Neuquen</Provincia>
+    <Pais>Argentina</Pais>
+  </Direccion>
+  <Telefono></Telefono>
+  <Mail></Mail>
+  <Empleador>31</Empleador>
+  <CUIT>30-71146351-4</CUIT>
+  <OrdenPrestacion>
+    <AccessionNumber>214787</AccessionNumber>
+    <Fecha>20250904</Fecha>
+    <Hora>1035</Hora>
+    <Profesional>LABO</Profesional>
+    <Practicas>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0297</Prestacion>
+        <Nombre>Eritrosedimentación</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0412</Prestacion>
+        <Nombre>Glucemia</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0475</Prestacion>
+        <Nombre>Hemograma</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0711</Prestacion>
+        <Nombre>Orina completa.</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0902</Prestacion>
+        <Nombre>Uremia</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>999</Prestacion>
+        <Nombre>Cocaína COC / Marihuana THC</Nombre>
+      </Practica>
+    </Practicas>
+  </OrdenPrestacion>
+  <Profesional>
+    <NombreCompleto>LABORATORIO</NombreCompleto>
+    <MatriculaProvincial></MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+  </Profesional>
+  <Sucursal>
+    <Id>1</Id>
+    <Nombre>Clinica PIN</Nombre>
+  </Sucursal>
+  <ResponsableExamen>
+    <NombreCompleto>SABRINA LAURA LEON</NombreCompleto>
+    <MatriculaProvincial>M.P.N. ESP N°2873</MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+    <Especialidad>MEDICINA DEL TRABAJO</Especialidad>
+  </ResponsableExamen>
+</Solicitud>

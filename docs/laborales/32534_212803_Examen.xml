@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Solicitud>
+  <TipoDocumento>DNI</TipoDocumento>
+  <NumeroDocumento>25406418</NumeroDocumento>
+  <Apellidos>Huaiquipan</Apellidos>
+  <Nombres>Ruben Emilio</Nombres>
+  <Sexo>Varón</Sexo>
+  <FechaNacimiento>19770130</FechaNacimiento>
+  <Direccion>
+    <Calle></Calle>
+    <Altura>0</Altura>
+    <CodigoPostal>8303</CodigoPostal>
+    <Localidad>Cinco Saltos</Localidad>
+    <Provincia>Rio Negro</Provincia>
+    <Pais>Argentina</Pais>
+  </Direccion>
+  <Telefono></Telefono>
+  <Mail></Mail>
+  <Empleador>41</Empleador>
+  <CUIT>30-69729588-3</CUIT>
+  <OrdenPrestacion>
+    <AccessionNumber>212803</AccessionNumber>
+    <Fecha>20250902</Fecha>
+    <Hora>0738</Hora>
+    <Profesional>LABO</Profesional>
+    <Practicas>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0174</Prestacion>
+        <Nombre>Colesterol total.</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0297</Prestacion>
+        <Nombre>Eritrosedimentación</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0412</Prestacion>
+        <Nombre>Glucemia</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0475</Prestacion>
+        <Nombre>Hemograma</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0481</Prestacion>
+        <Nombre>Hepatograma (TGO-TGP-FAL-Bilirrubina)</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0700</Prestacion>
+        <Nombre>PSA (Antigeno Prostatico Especifico)</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0711</Prestacion>
+        <Nombre>Orina completa.</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>08.05.01</Prestacion>
+        <Nombre>Colesterol LDL</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>08.05.02</Prestacion>
+        <Nombre>Colesterol HDL</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0876</Prestacion>
+        <Nombre>Trigliceridos</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0902</Prestacion>
+        <Nombre>Uremia</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>DROG.X 6</Prestacion>
+        <Nombre>MET/BZO/THC/COC/OPI/AMP (ASO)</Nombre>
+      </Practica>
+    </Practicas>
+  </OrdenPrestacion>
+  <Profesional>
+    <NombreCompleto>LABORATORIO</NombreCompleto>
+    <MatriculaProvincial></MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+  </Profesional>
+  <Sucursal>
+    <Id>1</Id>
+    <Nombre>Clinica PIN</Nombre>
+  </Sucursal>
+  <ResponsableExamen>
+    <NombreCompleto>SABRINA LAURA LEON</NombreCompleto>
+    <MatriculaProvincial>M.P.N. ESP N°2873</MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+    <Especialidad>MEDICINA DEL TRABAJO</Especialidad>
+  </ResponsableExamen>
+</Solicitud>

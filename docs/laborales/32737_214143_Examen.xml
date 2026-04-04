@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Solicitud>
+  <TipoDocumento>DNI</TipoDocumento>
+  <NumeroDocumento>34659083</NumeroDocumento>
+  <Apellidos>Casanoves</Apellidos>
+  <Nombres>Jonatan Americo</Nombres>
+  <Sexo>Varón</Sexo>
+  <FechaNacimiento>19881029</FechaNacimiento>
+  <Direccion>
+    <Calle></Calle>
+    <Altura>0</Altura>
+    <CodigoPostal>8307</CodigoPostal>
+    <Localidad>Catriel</Localidad>
+    <Provincia>Rio Negro</Provincia>
+    <Pais>Argentina</Pais>
+  </Direccion>
+  <Telefono></Telefono>
+  <Mail>pamela.vallejos@bravaingenieria.com.ar</Mail>
+  <Empleador>275</Empleador>
+  <CUIT>30-71511546-4</CUIT>
+  <OrdenPrestacion>
+    <AccessionNumber>214143</AccessionNumber>
+    <Fecha>20250903</Fecha>
+    <Hora>1059</Hora>
+    <Profesional>LABO</Profesional>
+    <Practicas>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0017</Prestacion>
+        <Nombre>Alcoholemia</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0297</Prestacion>
+        <Nombre>Eritrosedimentación</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0412</Prestacion>
+        <Nombre>Glucemia</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0475</Prestacion>
+        <Nombre>Hemograma</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0711</Prestacion>
+        <Nombre>Orina completa.</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0902</Prestacion>
+        <Nombre>Uremia</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>999</Prestacion>
+        <Nombre>Cocaína COC / Marihuana THC</Nombre>
+      </Practica>
+    </Practicas>
+  </OrdenPrestacion>
+  <Profesional>
+    <NombreCompleto>LABORATORIO</NombreCompleto>
+    <MatriculaProvincial></MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+  </Profesional>
+  <Sucursal>
+    <Id>1</Id>
+    <Nombre>Clinica PIN</Nombre>
+  </Sucursal>
+  <ResponsableExamen>
+    <NombreCompleto>SABRINA LAURA LEON</NombreCompleto>
+    <MatriculaProvincial>M.P.N. ESP N°2873</MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+    <Especialidad>MEDICINA DEL TRABAJO</Especialidad>
+  </ResponsableExamen>
+</Solicitud>

@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Solicitud>
+  <TipoDocumento>DNI</TipoDocumento>
+  <NumeroDocumento>95928958</NumeroDocumento>
+  <Apellidos>Sifontes Gonzalez</Apellidos>
+  <Nombres>Gerardo Benito</Nombres>
+  <Sexo>Varón</Sexo>
+  <FechaNacimiento>19920721</FechaNacimiento>
+  <Direccion>
+    <Calle></Calle>
+    <Altura>0</Altura>
+    <CodigoPostal>8300</CodigoPostal>
+    <Localidad>Neuquen</Localidad>
+    <Provincia>Neuquen</Provincia>
+    <Pais>Argentina</Pais>
+  </Direccion>
+  <Telefono></Telefono>
+  <Mail></Mail>
+  <Empleador>178</Empleador>
+  <CUIT>30-65786206-8</CUIT>
+  <OrdenPrestacion>
+    <AccessionNumber>214167</AccessionNumber>
+    <Fecha>20250904</Fecha>
+    <Hora>0701</Hora>
+    <Profesional>LABO</Profesional>
+    <Practicas>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0041</Prestacion>
+        <Nombre>Hemograma Completo ART</Nombre>
+      </Practica>
+    </Practicas>
+  </OrdenPrestacion>
+  <Profesional>
+    <NombreCompleto>LABORATORIO</NombreCompleto>
+    <MatriculaProvincial></MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+  </Profesional>
+  <Sucursal>
+    <Id>1</Id>
+    <Nombre>Clinica PIN</Nombre>
+  </Sucursal>
+  <ResponsableExamen>
+    <NombreCompleto>SABRINA LAURA LEON</NombreCompleto>
+    <MatriculaProvincial>M.P.N. ESP N°2873</MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+    <Especialidad>MEDICINA DEL TRABAJO</Especialidad>
+  </ResponsableExamen>
+</Solicitud>

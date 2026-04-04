@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Solicitud>
+  <TipoDocumento>DNI</TipoDocumento>
+  <NumeroDocumento>40322236</NumeroDocumento>
+  <Apellidos>Hernandez</Apellidos>
+  <Nombres>Camila Luciana</Nombres>
+  <Sexo>Mujer</Sexo>
+  <FechaNacimiento>19970716</FechaNacimiento>
+  <Direccion>
+    <Calle></Calle>
+    <Altura>0</Altura>
+    <CodigoPostal>0</CodigoPostal>
+    <Localidad></Localidad>
+    <Provincia></Provincia>
+    <Pais>Argentina</Pais>
+  </Direccion>
+  <Telefono>2996017126</Telefono>
+  <Mail>rrhh@foodservicenqn.com.ar</Mail>
+  <Empleador>128</Empleador>
+  <CUIT>30-70828233-9</CUIT>
+  <OrdenPrestacion>
+    <AccessionNumber>214495</AccessionNumber>
+    <Fecha>20250904</Fecha>
+    <Hora>0846</Hora>
+    <Profesional>LABO</Profesional>
+    <Practicas>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0297</Prestacion>
+        <Nombre>Eritrosedimentación</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0412</Prestacion>
+        <Nombre>Glucemia</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0475</Prestacion>
+        <Nombre>Hemograma</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0711</Prestacion>
+        <Nombre>Orina completa.</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0902</Prestacion>
+        <Nombre>Uremia</Nombre>
+      </Practica>
+    </Practicas>
+  </OrdenPrestacion>
+  <Profesional>
+    <NombreCompleto>LABORATORIO</NombreCompleto>
+    <MatriculaProvincial></MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+  </Profesional>
+  <Sucursal>
+    <Id>2</Id>
+    <Nombre>Clinica Añelo</Nombre>
+  </Sucursal>
+  <ResponsableExamen>
+    <NombreCompleto>SABRINA LAURA LEON</NombreCompleto>
+    <MatriculaProvincial>M.P.N. ESP N°2873</MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+    <Especialidad>MEDICINA DEL TRABAJO</Especialidad>
+  </ResponsableExamen>
+</Solicitud>

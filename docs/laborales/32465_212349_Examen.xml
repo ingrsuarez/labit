@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Solicitud>
+  <TipoDocumento>DNI</TipoDocumento>
+  <NumeroDocumento>32247574</NumeroDocumento>
+  <Apellidos>Flores</Apellidos>
+  <Nombres>Jorge Alexis</Nombres>
+  <Sexo>Varón</Sexo>
+  <FechaNacimiento>19860911</FechaNacimiento>
+  <Direccion>
+    <Calle></Calle>
+    <Altura>0</Altura>
+    <CodigoPostal>0</CodigoPostal>
+    <Localidad></Localidad>
+    <Provincia></Provincia>
+    <Pais>Argentina</Pais>
+  </Direccion>
+  <Telefono>2995475430</Telefono>
+  <Mail>serviciomedico@ensi.com.ar</Mail>
+  <Empleador>464</Empleador>
+  <CUIT>30-64491219-8</CUIT>
+  <OrdenPrestacion>
+    <AccessionNumber>212349</AccessionNumber>
+    <Fecha>20250901</Fecha>
+    <Hora>0801</Hora>
+    <Profesional>LABO</Profesional>
+    <Practicas>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0174</Prestacion>
+        <Nombre>Colesterol total.</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0297</Prestacion>
+        <Nombre>Eritrosedimentación</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0412</Prestacion>
+        <Nombre>Glucemia</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0475</Prestacion>
+        <Nombre>Hemograma</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0711</Prestacion>
+        <Nombre>Orina completa.</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0746</Prestacion>
+        <Nombre>Recuento de Plaquetas (PNSA)</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0902</Prestacion>
+        <Nombre>Uremia</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>1007</Prestacion>
+        <Nombre>Colesterol HDL y LDL</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>43.01.05</Prestacion>
+        <Nombre>Acido Urico en Sangre</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>999</Prestacion>
+        <Nombre>Cocaína COC / Marihuana THC</Nombre>
+      </Practica>
+    </Practicas>
+  </OrdenPrestacion>
+  <Profesional>
+    <NombreCompleto>LABORATORIO</NombreCompleto>
+    <MatriculaProvincial></MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+  </Profesional>
+  <Sucursal>
+    <Id>2</Id>
+    <Nombre>Clinica Añelo</Nombre>
+  </Sucursal>
+  <ResponsableExamen>
+    <NombreCompleto>SABRINA LAURA LEON</NombreCompleto>
+    <MatriculaProvincial>M.P.N. ESP N°2873</MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+    <Especialidad>MEDICINA DEL TRABAJO</Especialidad>
+  </ResponsableExamen>
+</Solicitud>

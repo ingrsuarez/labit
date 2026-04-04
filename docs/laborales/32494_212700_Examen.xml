@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Solicitud>
+  <TipoDocumento>DNI</TipoDocumento>
+  <NumeroDocumento>42167455</NumeroDocumento>
+  <Apellidos>Salas</Apellidos>
+  <Nombres>Celina Del Rosario</Nombres>
+  <Sexo>Mujer</Sexo>
+  <FechaNacimiento>19990721</FechaNacimiento>
+  <Direccion>
+    <Calle></Calle>
+    <Altura>0</Altura>
+    <CodigoPostal>0</CodigoPostal>
+    <Localidad></Localidad>
+    <Provincia></Provincia>
+    <Pais>Argentina</Pais>
+  </Direccion>
+  <Telefono>2604023166</Telefono>
+  <Mail>valeria.lorente@southex.com.ar</Mail>
+  <Empleador>595</Empleador>
+  <CUIT>30-71456675-6</CUIT>
+  <OrdenPrestacion>
+    <AccessionNumber>212700</AccessionNumber>
+    <Fecha>20250901</Fecha>
+    <Hora>1448</Hora>
+    <Profesional>LABO</Profesional>
+    <Practicas>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>999</Prestacion>
+        <Nombre>Cocaína COC / Marihuana THC</Nombre>
+      </Practica>
+    </Practicas>
+  </OrdenPrestacion>
+  <Profesional>
+    <NombreCompleto>LABORATORIO</NombreCompleto>
+    <MatriculaProvincial></MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+  </Profesional>
+  <Sucursal>
+    <Id>2</Id>
+    <Nombre>Clinica Añelo</Nombre>
+  </Sucursal>
+  <ResponsableExamen>
+    <NombreCompleto>SABRINA LAURA LEON</NombreCompleto>
+    <MatriculaProvincial>M.P.N. ESP N°2873</MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+    <Especialidad>MEDICINA DEL TRABAJO</Especialidad>
+  </ResponsableExamen>
+</Solicitud>

@@ -103,7 +103,7 @@
                     </button>
                 </div>
 
-                <div x-show="items.length > 0" class="overflow-x-auto">
+                <div x-show="items.length > 0" class="overflow-visible">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -118,7 +118,7 @@
                         <tbody class="divide-y divide-gray-200">
                             <template x-for="(item, index) in items" :key="index">
                                 <tr class="hover:bg-gray-50">
-                                    <td class="px-3 py-2 text-sm">
+                                    <td class="px-3 py-2 text-sm relative" x-data="item.from_po ? {} : supplySearch(item, index)">
                                         <input type="hidden" :name="'items[' + index + '][supply_id]'" :value="item.supply_id">
                                         <input type="hidden" :name="'items[' + index + '][purchase_order_item_id]'" :value="item.purchase_order_item_id || ''">
                                         <template x-if="item.from_po">
@@ -128,17 +128,59 @@
                                             </span>
                                         </template>
                                         <template x-if="!item.from_po">
-                                            <select :name="'items[' + index + '][supply_id_select]'"
-                                                    x-model="item.supply_id"
-                                                    required
-                                                    class="w-full rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
-                                                <option value="">Seleccionar insumo...</option>
-                                                @foreach(\App\Models\Supply::active()->orderBy('name')->get() as $sup)
-                                                    <option value="{{ $sup->id }}">
-                                                        {{ $sup->code }} - {{ $sup->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
+                                            <div>
+                                                <div class="flex items-center gap-1">
+                                                    <input type="text"
+                                                           x-model="searchText"
+                                                           @input.debounce.300ms="doSearch()"
+                                                           @focus="if (searchText.length >= 2) showResults = true"
+                                                           @keydown.arrow-down.prevent="highlightNext()"
+                                                           @keydown.arrow-up.prevent="highlightPrev()"
+                                                           @keydown.enter.prevent="selectHighlighted()"
+                                                           @keydown.escape="showResults = false"
+                                                           @keydown.tab="onTab($event)"
+                                                           placeholder="Buscar insumo..."
+                                                           required
+                                                           :id="'item-supply-' + index"
+                                                           class="flex-1 min-w-0 rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+
+                                                    <span x-show="item.supply_id" x-cloak
+                                                          class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200 whitespace-nowrap">
+                                                        <span x-text="item._supply_code || ''"></span>
+                                                        <button type="button" @click="unlinkSupply()" class="ml-1 text-teal-400 hover:text-teal-600">&times;</button>
+                                                    </span>
+                                                </div>
+
+                                                <div x-show="showResults && (results.length > 0 || (searchText.length >= 2 && !loading))" x-cloak
+                                                     @click.outside="showResults = false"
+                                                     class="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                                    <template x-for="(supply, i) in results" :key="supply.id">
+                                                        <button type="button"
+                                                                @click="selectSupply(supply)"
+                                                                @mouseenter="highlightedIndex = i"
+                                                                :class="highlightedIndex === i ? 'bg-teal-50 text-teal-800' : 'text-gray-700'"
+                                                                class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 last:border-0">
+                                                            <span class="font-mono text-xs text-gray-400" x-text="supply.code"></span>
+                                                            <span x-text="supply.name"></span>
+                                                        </button>
+                                                    </template>
+
+                                                    <div x-show="results.length === 0 && searchText.length >= 2 && !loading"
+                                                         class="px-3 py-2 text-sm text-gray-400">
+                                                        No se encontraron insumos.
+                                                    </div>
+
+                                                    <button type="button"
+                                                            x-show="searchText.length >= 2 && !loading"
+                                                            @click="openCreateModal()"
+                                                            class="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2 border-t border-gray-200">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                                        </svg>
+                                                        <span>Crear insumo "<span x-text="searchText" class="font-medium"></span>"</span>
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </template>
                                     </td>
                                     <td class="px-3 py-2 text-center text-sm text-gray-500" x-show="hasPOItems">
@@ -151,6 +193,7 @@
                                         <input type="number" :name="'items[' + index + '][quantity_received]'"
                                                x-model.number="item.quantity_received"
                                                min="0.01" step="0.01" required
+                                               :id="'item-qty-' + index"
                                                class="w-28 rounded border-gray-300 text-sm text-center focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
                                     <td class="px-3 py-2">
@@ -187,6 +230,68 @@
                 </button>
             </div>
         </form>
+
+        {{-- Modal crear insumo --}}
+        <div x-show="showNewSupplyModal" x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+             @keydown.escape.window="showNewSupplyModal = false">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6" @click.outside="showNewSupplyModal = false">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Crear Insumo Nuevo</h3>
+                <p class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4">El insumo se creará con stock 0. El stock se actualizará al aceptar el remito.</p>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
+                        <input type="text" x-model="newSupply.name" required
+                               class="w-full border-gray-300 rounded-lg text-sm focus:ring-teal-500 focus:border-teal-500"
+                               placeholder="Nombre del insumo">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                        <select x-model="newSupply.supply_category_id"
+                                class="w-full border-gray-300 rounded-lg text-sm focus:ring-teal-500 focus:border-teal-500">
+                            <option value="">Sin categoría</option>
+                            @foreach(\App\Models\SupplyCategory::active()->orderBy('name')->get() as $cat)
+                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Unidad *</label>
+                        <select x-model="newSupply.unit" required
+                                class="w-full border-gray-300 rounded-lg text-sm focus:ring-teal-500 focus:border-teal-500">
+                            <option value="unidad">Unidad</option>
+                            <option value="litro">Litro</option>
+                            <option value="kg">Kilogramo</option>
+                            <option value="caja">Caja</option>
+                            <option value="pack">Pack</option>
+                            <option value="metro">Metro</option>
+                            <option value="rollo">Rollo</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Marca</label>
+                        <input type="text" x-model="newSupply.brand"
+                               class="w-full border-gray-300 rounded-lg text-sm focus:ring-teal-500 focus:border-teal-500"
+                               placeholder="Opcional">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" x-model="newSupply.tracks_lot" id="editNewSupplyTracksLot"
+                               class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <label for="editNewSupplyTracksLot" class="text-sm text-gray-700">¿Controla lote/vencimiento?</label>
+                    </div>
+                </div>
+                <div x-show="newSupplyError" class="mt-3 text-sm text-red-600" x-text="newSupplyError"></div>
+                <div class="mt-5 flex justify-end gap-3">
+                    <button type="button" @click="showNewSupplyModal = false"
+                            class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancelar</button>
+                    <button type="button" @click="createSupply()" :disabled="newSupplySaving"
+                            class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50">
+                        <span x-show="!newSupplySaving">Crear Insumo</span>
+                        <span x-show="newSupplySaving">Creando...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     @php
@@ -194,6 +299,8 @@
             return [
                 'supply_id' => $item->supply_id,
                 'supply_name' => $item->supply->name ?? 'Insumo eliminado',
+                '_supply_name' => $item->supply->name ?? '',
+                '_supply_code' => $item->supply->code ?? '',
                 'unit' => $item->supply->unit ?? '',
                 'ordered_qty' => $item->purchaseOrderItem?->quantity,
                 'pending_qty' => $item->purchaseOrderItem?->pending_quantity,
@@ -224,6 +331,88 @@
         });
     @endphp
     <script>
+        function supplySearch(item, index) {
+            return {
+                searchText: item._supply_name || '',
+                results: [],
+                showResults: false,
+                loading: false,
+                highlightedIndex: -1,
+
+                async doSearch() {
+                    if (this.searchText.length < 2) {
+                        this.results = [];
+                        this.showResults = false;
+                        return;
+                    }
+                    this.loading = true;
+                    try {
+                        const resp = await fetch(`{{ route('supplies.search') }}?q=${encodeURIComponent(this.searchText)}`);
+                        this.results = await resp.json();
+                        this.showResults = true;
+                        this.highlightedIndex = -1;
+                    } catch (e) {
+                        this.results = [];
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                selectSupply(supply) {
+                    item.supply_id = supply.id;
+                    item._supply_name = supply.name;
+                    item._supply_code = supply.code;
+                    this.searchText = supply.name;
+                    this.showResults = false;
+                    this.$nextTick(() => {
+                        const qtyInput = document.querySelector(`#item-qty-${index}`);
+                        if (qtyInput) qtyInput.focus();
+                    });
+                },
+
+                unlinkSupply() {
+                    item.supply_id = '';
+                    item._supply_code = '';
+                    item._supply_name = '';
+                    this.searchText = '';
+                },
+
+                highlightNext() {
+                    if (this.highlightedIndex < this.results.length - 1) this.highlightedIndex++;
+                },
+
+                highlightPrev() {
+                    if (this.highlightedIndex > 0) this.highlightedIndex--;
+                },
+
+                selectHighlighted() {
+                    if (this.highlightedIndex >= 0 && this.highlightedIndex < this.results.length) {
+                        this.selectSupply(this.results[this.highlightedIndex]);
+                    }
+                },
+
+                onTab(event) {
+                    if (this.showResults && this.highlightedIndex >= 0) {
+                        event.preventDefault();
+                        this.selectHighlighted();
+                    } else {
+                        this.showResults = false;
+                    }
+                },
+
+                openCreateModal() {
+                    this.showResults = false;
+                    const formEl = this.$root.closest('[x-data="deliveryForm()"]') || this.$root.closest('[x-data="deliveryEditForm()"]');
+                    if (formEl && formEl._x_dataStack) {
+                        const parentData = formEl._x_dataStack[0];
+                        parentData.newSupply.name = this.searchText;
+                        parentData.newSupplyForRow = index;
+                        parentData.showNewSupplyModal = true;
+                    }
+                }
+            }
+        }
+
         function deliveryEditForm() {
             const existingItems = @json($existingItemsJson);
 
@@ -252,6 +441,8 @@
                     this.items.push({
                         supply_id: '',
                         supply_name: '',
+                        _supply_name: '',
+                        _supply_code: '',
                         unit: '',
                         ordered_qty: null,
                         pending_qty: null,
@@ -264,6 +455,57 @@
 
                 removeItem(index) {
                     this.items.splice(index, 1);
+                },
+
+                showNewSupplyModal: false,
+                newSupplyForRow: null,
+                newSupplySaving: false,
+                newSupplyError: '',
+                newSupply: { name: '', supply_category_id: '', unit: 'unidad', brand: '', min_stock: 0, tracks_lot: false },
+
+                async createSupply() {
+                    if (!this.newSupply.name.trim()) {
+                        this.newSupplyError = 'El nombre es obligatorio.';
+                        return;
+                    }
+                    this.newSupplySaving = true;
+                    this.newSupplyError = '';
+                    try {
+                        const resp = await fetch('{{ route("supplies.store") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            body: JSON.stringify(this.newSupply),
+                        });
+                        if (!resp.ok) {
+                            const err = await resp.json();
+                            this.newSupplyError = err.message || 'Error al crear el insumo.';
+                            return;
+                        }
+                        const data = await resp.json();
+                        if (this.newSupplyForRow !== null && this.items[this.newSupplyForRow]) {
+                            this.items[this.newSupplyForRow].supply_id = data.id;
+                            this.items[this.newSupplyForRow]._supply_name = data.name;
+                            this.items[this.newSupplyForRow]._supply_code = data.code;
+                            this.$nextTick(() => {
+                                const input = document.querySelector(`#item-supply-${this.newSupplyForRow}`);
+                                if (input) {
+                                    input.value = data.name;
+                                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                                }
+                            });
+                        }
+                        this.showNewSupplyModal = false;
+                        this.newSupply = { name: '', supply_category_id: '', unit: 'unidad', brand: '', min_stock: 0, tracks_lot: false };
+                    } catch (e) {
+                        this.newSupplyError = 'Error de red al crear el insumo.';
+                    } finally {
+                        this.newSupplySaving = false;
+                    }
                 }
             }
         }
