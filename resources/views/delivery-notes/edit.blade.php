@@ -147,9 +147,10 @@
                                                            class="flex-1 min-w-0 rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
 
                                                     <span x-show="item.supply_id" x-cloak
-                                                          class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200 whitespace-nowrap">
-                                                        <span x-text="item._supply_code || ''"></span>
-                                                        <button type="button" @click="unlinkSupply()" class="ml-1 text-teal-400 hover:text-teal-600">&times;</button>
+                                                          class="shrink-0 inline-flex items-center gap-2 mt-0.5">
+                                                        <span class="text-xs text-teal-700 font-mono" x-text="item._supply_code"></span>
+                                                        <span class="text-xs text-gray-500" x-text="item._supply_label || item._supply_name"></span>
+                                                        <button type="button" @click="unlinkSupply()" class="text-xs text-gray-400 hover:text-red-500">&times;</button>
                                                     </span>
                                                 </div>
 
@@ -164,6 +165,9 @@
                                                                 class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 last:border-0">
                                                             <span class="font-mono text-xs text-gray-400" x-text="supply.code"></span>
                                                             <span x-text="supply.name"></span>
+                                                            <template x-if="supply.brand">
+                                                                <span class="text-xs text-gray-400" x-text="'— ' + supply.brand"></span>
+                                                            </template>
                                                         </button>
                                                     </template>
 
@@ -313,10 +317,14 @@
 
     @php
         $existingItemsJson = $deliveryNote->items->map(function ($item) {
+            $brand = $item->supply->brand ?? '';
+            $name = $item->supply->name ?? '';
             return [
                 'supply_id' => $item->supply_id,
                 'supply_name' => $item->supply->name ?? 'Insumo eliminado',
-                '_supply_name' => $item->supply->name ?? '',
+                '_supply_name' => $name,
+                '_supply_brand' => $brand,
+                '_supply_label' => $brand ? "{$name} — {$brand}" : $name,
                 '_supply_code' => $item->supply->code ?? '',
                 '_tracks_lot' => $item->supply->tracks_lot ?? false,
                 'unit' => $item->supply->unit ?? '',
@@ -356,7 +364,7 @@
     <script>
         function supplySearch(item, index) {
             return {
-                searchText: item._supply_name || '',
+                searchText: item._supply_label || item._supply_name || '',
                 results: [],
                 showResults: false,
                 loading: false,
@@ -382,15 +390,21 @@
                 },
 
                 selectSupply(supply) {
+                    const label = supply.brand
+                        ? `${supply.name} — ${supply.brand}`
+                        : supply.name;
+
                     item.supply_id = supply.id;
                     item._supply_name = supply.name;
+                    item._supply_brand = supply.brand || '';
+                    item._supply_label = label;
                     item._supply_code = supply.code;
                     item._tracks_lot = !!supply.tracks_lot;
                     if (!supply.tracks_lot) {
                         item.lot_number = '';
                         item.expiration_date = '';
                     }
-                    this.searchText = supply.name;
+                    this.searchText = label;
                     this.showResults = false;
                     this.$nextTick(() => {
                         const qtyInput = document.querySelector(`#item-qty-${index}`);
