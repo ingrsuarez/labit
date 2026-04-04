@@ -187,7 +187,7 @@
                                                 <div>
                                                     <label class="block text-xs font-medium text-gray-600 mb-1">N° de Lote <span class="text-red-500">*</span></label>
                                                     <input type="text" name="items[{{ $item->id }}][lot_number]"
-                                                           value="{{ old("items.{$item->id}.lot_number") }}"
+                                                           value="{{ old("items.{$item->id}.lot_number", $item->lot_number) }}"
                                                            required
                                                            placeholder="Ej: LOT-2026-001"
                                                            class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
@@ -198,7 +198,7 @@
                                                 <div>
                                                     <label class="block text-xs font-medium text-gray-600 mb-1">Fecha de Vencimiento <span class="text-red-500">*</span></label>
                                                     <input type="date" name="items[{{ $item->id }}][expiration_date]"
-                                                           value="{{ old("items.{$item->id}.expiration_date") }}"
+                                                           value="{{ old("items.{$item->id}.expiration_date", $item->expiration_date?->format('Y-m-d')) }}"
                                                            required
                                                            class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                                                     @error("items.{$item->id}.expiration_date")

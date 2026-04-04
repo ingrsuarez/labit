@@ -104,18 +104,20 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Insumo</th>
+                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider" style="max-width: 260px;">Insumo</th>
                                 <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-28" x-show="hasPOItems">Pedido</th>
                                 <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-28" x-show="hasPOItems">Pendiente</th>
-                                <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Cant. Recibida</th>
-                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-48">Notas</th>
+                                <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Cant.</th>
+                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Lote</th>
+                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-36">Vencimiento</th>
+                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-36">Notas</th>
                                 <th class="px-3 py-2 w-10"></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
                             <template x-for="(item, index) in items" :key="index">
                                 <tr class="hover:bg-gray-50">
-                                    <td class="px-3 py-2 text-sm relative" x-data="item.from_po ? {} : supplySearch(item, index)">
+                                    <td class="px-3 py-2 text-sm relative" style="max-width: 260px;" x-data="item.from_po ? {} : supplySearch(item, index)">
                                         <input type="hidden" :name="'items[' + index + '][supply_id]'" :value="item.supply_id">
                                         <input type="hidden" :name="'items[' + index + '][purchase_order_item_id]'" :value="item.purchase_order_item_id || ''">
                                         <template x-if="item.from_po">
@@ -191,11 +193,26 @@
                                                x-model.number="item.quantity_received"
                                                min="0.01" step="0.01" required
                                                :id="'item-qty-' + index"
-                                               class="w-28 rounded border-gray-300 text-sm text-center focus:border-zinc-500 focus:ring-zinc-500">
+                                               class="w-24 rounded border-gray-300 text-sm text-center focus:border-zinc-500 focus:ring-zinc-500">
+                                    </td>
+                                    <td class="px-3 py-2">
+                                        <input type="text" :name="'items[' + index + '][lot_number]'"
+                                               x-model="item.lot_number"
+                                               placeholder="—"
+                                               :disabled="!item._tracks_lot"
+                                               :class="item._tracks_lot ? '' : 'bg-gray-50 text-gray-300'"
+                                               class="w-24 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
+                                    </td>
+                                    <td class="px-3 py-2">
+                                        <input type="date" :name="'items[' + index + '][expiration_date]'"
+                                               x-model="item.expiration_date"
+                                               :disabled="!item._tracks_lot"
+                                               :class="item._tracks_lot ? '' : 'bg-gray-50 text-gray-300'"
+                                               class="w-32 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
                                     <td class="px-3 py-2">
                                         <input type="text" :name="'items[' + index + '][notes]'" x-model="item.notes"
-                                               placeholder="Opcional"
+                                               placeholder="—"
                                                class="w-full rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
                                     <td class="px-3 py-2 text-center">
@@ -303,6 +320,9 @@
                     'pending_qty' => $item->pending_quantity,
                     'purchase_order_item_id' => $item->id,
                     'quantity_received' => $item->pending_quantity,
+                    'lot_number' => '',
+                    'expiration_date' => '',
+                    '_tracks_lot' => $item->supply->tracks_lot,
                     'notes' => '',
                     'from_po' => true,
                 ];
@@ -321,6 +341,9 @@
                             'pending_qty' => $item->pending_quantity,
                             'purchase_order_item_id' => $item->id,
                             'quantity_received' => $item->pending_quantity,
+                            'lot_number' => '',
+                            'expiration_date' => '',
+                            '_tracks_lot' => $item->supply->tracks_lot,
                             'notes' => '',
                             'from_po' => true,
                         ];
@@ -360,6 +383,11 @@
                     item.supply_id = supply.id;
                     item._supply_name = supply.name;
                     item._supply_code = supply.code;
+                    item._tracks_lot = !!supply.tracks_lot;
+                    if (!supply.tracks_lot) {
+                        item.lot_number = '';
+                        item.expiration_date = '';
+                    }
                     this.searchText = supply.name;
                     this.showResults = false;
                     this.$nextTick(() => {
@@ -440,11 +468,14 @@
                         supply_name: '',
                         _supply_name: '',
                         _supply_code: '',
+                        _tracks_lot: false,
                         unit: '',
                         ordered_qty: null,
                         pending_qty: null,
                         purchase_order_item_id: null,
                         quantity_received: 1,
+                        lot_number: '',
+                        expiration_date: '',
                         notes: '',
                         from_po: false,
                     });
@@ -488,6 +519,7 @@
                             this.items[this.newSupplyForRow].supply_id = data.id;
                             this.items[this.newSupplyForRow]._supply_name = data.name;
                             this.items[this.newSupplyForRow]._supply_code = data.code;
+                            this.items[this.newSupplyForRow]._tracks_lot = !!data.tracks_lot;
                             this.$nextTick(() => {
                                 const input = document.querySelector(`#item-supply-${this.newSupplyForRow}`);
                                 if (input) {

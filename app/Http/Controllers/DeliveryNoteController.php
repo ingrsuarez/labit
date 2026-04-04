@@ -81,6 +81,8 @@ class DeliveryNoteController extends Controller
             'items.*.quantity_received' => 'required|numeric|min:0.01',
             'items.*.purchase_order_item_id' => 'nullable|exists:purchase_order_items,id',
             'items.*.notes' => 'nullable|string|max:255',
+            'items.*.lot_number' => 'nullable|string|max:100',
+            'items.*.expiration_date' => 'nullable|date',
         ], [
             'remito_number.required' => 'El número de remito es obligatorio.',
             'supplier_id.required' => 'Debe seleccionar un proveedor.',
@@ -108,6 +110,8 @@ class DeliveryNoteController extends Controller
                 'supply_id' => $itemData['supply_id'],
                 'quantity_received' => $itemData['quantity_received'],
                 'purchase_order_item_id' => $itemData['purchase_order_item_id'] ?? null,
+                'lot_number' => $itemData['lot_number'] ?? null,
+                'expiration_date' => $itemData['expiration_date'] ?? null,
                 'notes' => $itemData['notes'] ?? null,
             ]);
         }
@@ -185,6 +189,8 @@ class DeliveryNoteController extends Controller
             'items.*.quantity_received' => 'required|numeric|min:0.01',
             'items.*.purchase_order_item_id' => 'nullable|exists:purchase_order_items,id',
             'items.*.notes' => 'nullable|string|max:255',
+            'items.*.lot_number' => 'nullable|string|max:100',
+            'items.*.expiration_date' => 'nullable|date',
         ], [
             'remito_number.required' => 'El número de remito es obligatorio.',
             'supplier_id.required' => 'Debe seleccionar un proveedor.',
@@ -211,6 +217,8 @@ class DeliveryNoteController extends Controller
                 'supply_id' => $itemData['supply_id'],
                 'quantity_received' => $itemData['quantity_received'],
                 'purchase_order_item_id' => $itemData['purchase_order_item_id'] ?? null,
+                'lot_number' => $itemData['lot_number'] ?? null,
+                'expiration_date' => $itemData['expiration_date'] ?? null,
                 'notes' => $itemData['notes'] ?? null,
             ]);
         }
@@ -275,8 +283,8 @@ class DeliveryNoteController extends Controller
                 $lotNumber = null;
                 $expirationDate = null;
                 if ($supply->tracks_lot) {
-                    $lotNumber = $request->input("items.{$item->id}.lot_number");
-                    $expirationDate = $request->input("items.{$item->id}.expiration_date");
+                    $lotNumber = $request->input("items.{$item->id}.lot_number", $item->lot_number);
+                    $expirationDate = $request->input("items.{$item->id}.expiration_date", $item->expiration_date?->format('Y-m-d'));
                 }
 
                 StockMovement::create([
