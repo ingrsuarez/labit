@@ -28,6 +28,42 @@
             @if($invoice->purchase_order_id)
                 <input type="hidden" name="purchase_order_id" value="{{ $invoice->purchase_order_id }}">
             @endif
+            <input type="hidden" name="delivery_note_id" x-bind:value="delivery_note_id || ''" x-show="false">
+
+            {{-- Remito asociado --}}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
+                <h3 class="text-sm font-semibold text-gray-700 mb-4">Remito asociado <span class="text-gray-400 font-normal">(opcional)</span></h3>
+                <div class="flex items-start gap-4">
+                    <div class="flex-1" x-show="!delivery_note_id">
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Seleccionar remito</label>
+                        <select x-model="selectedDeliveryNoteId"
+                                @change="onDeliveryNoteChange()"
+                                :disabled="!supplier_id"
+                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                            <option value="" x-text="supplier_id ? 'Sin remito' : 'Seleccioná un proveedor primero'"></option>
+                            <template x-for="note in availableDeliveryNotes" :key="note.id">
+                                <option :value="note.id" x-text="`${note.remito_number} — ${note.date}`"></option>
+                            </template>
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">Al seleccionar un remito, sus ítems se importan automáticamente.</p>
+                    </div>
+                    <template x-if="delivery_note_id">
+                        <div class="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+                            <svg class="w-5 h-5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/>
+                            </svg>
+                            <div>
+                                <p class="text-sm font-medium text-blue-800" x-text="'Remito: ' + selectedDeliveryNoteNumber"></p>
+                                <p class="text-xs text-blue-500">El stock fue actualizado por este remito.</p>
+                            </div>
+                            <button type="button" @click="removeDeliveryNote()"
+                                    class="ml-4 text-blue-400 hover:text-blue-600 text-xs underline">
+                                Quitar remito
+                            </button>
+                        </div>
+                    </template>
+                </div>
+            </div>
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">Datos del Comprobante</h2>
@@ -58,7 +94,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor <span class="text-red-500">*</span></label>
-                        <select name="supplier_id" x-model="supplier_id" @change="checkDuplicate()" required class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                        <select name="supplier_id" x-model="supplier_id" @change="checkDuplicate(); onSupplierChange()" required class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                             @foreach($suppliers as $sup)
                                 <option value="{{ $sup->id }}" {{ old('supplier_id', $invoice->supplier_id) == $sup->id ? 'selected' : '' }}>{{ $sup->name }}</option>
                             @endforeach
@@ -119,6 +155,7 @@
                                 <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Tasa IVA</th>
                                 <th class="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">IVA</th>
                                 <th class="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Total</th>
+                                <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-16">Stock</th>
                                 <th class="px-3 py-2 w-10"></th>
                             </tr>
                         </thead>
@@ -133,6 +170,7 @@
                                         <input type="hidden" :name="'items[' + index + '][iva_rate]'" :value="item.iva_rate">
                                         <input type="hidden" :name="'items[' + index + '][lot_number]'" :value="item.lot_number || ''">
                                         <input type="hidden" :name="'items[' + index + '][expiration_date]'" :value="item.expiration_date || ''">
+                                        <input type="hidden" :name="'items[' + index + '][updates_stock]'" :value="item.updates_stock ? '1' : '0'">
 
                                         <div class="flex items-start gap-2">
                                             <div class="flex-1 min-w-0 relative">
@@ -220,6 +258,22 @@
                                         <span x-text="'$' + formatMoney(itemTotal(item))"></span>
                                     </td>
                                     <td class="px-3 py-2 text-center">
+                                        <template x-if="!delivery_note_id">
+                                            <input type="checkbox"
+                                                   x-model="item.updates_stock"
+                                                   class="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                                                   title="Marcar si este ítem actualiza el stock al guardar">
+                                        </template>
+                                        <template x-if="delivery_note_id">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200"
+                                                  title="Stock actualizado por el remito asociado">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/>
+                                                </svg>
+                                            </span>
+                                        </template>
+                                    </td>
+                                    <td class="px-3 py-2 text-center">
                                         <button type="button" @click="removeItem(index)" class="text-red-400 hover:text-red-600">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -231,37 +285,37 @@
                         </tbody>
                         <tfoot class="bg-gray-50">
                             <tr>
-                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Subtotal (Neto Gravado)</td>
+                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Subtotal (Neto Gravado)</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(subtotal)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="iva105 > 0">
-                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 10,5%</td>
+                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 10,5%</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(iva105)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="iva21 > 0">
-                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 21%</td>
+                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 21%</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(iva21)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="iva27 > 0">
-                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 27%</td>
+                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 27%</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(iva27)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="percepciones > 0">
-                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Percepciones</td>
+                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Percepciones</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(percepciones)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="otrosImpuestos > 0">
-                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Otros Impuestos</td>
+                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Otros Impuestos</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(otrosImpuestos)"></td>
                                 <td></td>
                             </tr>
                             <tr class="border-t-2 border-gray-300">
-                                <td colspan="5" class="px-3 py-3 text-right text-sm font-bold text-gray-800">TOTAL</td>
+                                <td colspan="6" class="px-3 py-3 text-right text-sm font-bold text-gray-800">TOTAL</td>
                                 <td class="px-3 py-3 text-right text-base font-bold text-gray-900" x-text="'$' + formatMoney(grandTotal)"></td>
                                 <td></td>
                             </tr>
@@ -298,6 +352,7 @@
                 'iva_rate' => strval(floatval($i->iva_rate)),
                 'lot_number' => $i->lot_number ?? '',
                 'expiration_date' => $i->expiration_date ?? '',
+                'updates_stock' => (bool) $i->updates_stock,
             ];
         })->values();
         $suppliesEditJson = \App\Models\Supply::active()->orderBy('name')->get()->map(function ($s) {
@@ -420,6 +475,77 @@
                 editId: {{ $invoice->id }},
                 duplicateWarning: false,
 
+                delivery_note_id: {{ $invoice->delivery_note_id ?? 'null' }},
+                selectedDeliveryNoteId: '{{ $invoice->delivery_note_id ?? '' }}',
+                selectedDeliveryNoteNumber: '{{ $invoice->deliveryNote?->remito_number ?? '' }}',
+                availableDeliveryNotes: [],
+                loadingDeliveryNotes: false,
+
+                async onSupplierChange() {
+                    this.delivery_note_id = null;
+                    this.selectedDeliveryNoteId = '';
+                    this.selectedDeliveryNoteNumber = '';
+                    this.availableDeliveryNotes = [];
+                    if (!this.supplier_id) return;
+
+                    this.loadingDeliveryNotes = true;
+                    try {
+                        const resp = await fetch(`{{ route('delivery-notes.by-supplier') }}?supplier_id=${this.supplier_id}`);
+                        this.availableDeliveryNotes = await resp.json();
+                    } catch (e) {
+                        this.availableDeliveryNotes = [];
+                    } finally {
+                        this.loadingDeliveryNotes = false;
+                    }
+                },
+
+                async onDeliveryNoteChange() {
+                    if (!this.selectedDeliveryNoteId) {
+                        this.delivery_note_id = null;
+                        this.selectedDeliveryNoteNumber = '';
+                        return;
+                    }
+
+                    if (this.items.length > 0 && !confirm('Al asociar el remito se van a reemplazar los ítems actuales. ¿Continuás?')) {
+                        this.selectedDeliveryNoteId = '';
+                        return;
+                    }
+
+                    try {
+                        const resp = await fetch(`/delivery-notes/${this.selectedDeliveryNoteId}/items`);
+                        const data = await resp.json();
+
+                        this.delivery_note_id = data.delivery_note.id;
+                        this.selectedDeliveryNoteNumber = data.delivery_note.number;
+
+                        this.items = data.items.map(item => ({
+                            ...item,
+                            iva_rate: '21',
+                            updates_stock: false,
+                        }));
+                    } catch (e) {
+                        alert('Error al cargar los ítems del remito. Intentá de nuevo.');
+                        this.selectedDeliveryNoteId = '';
+                    }
+                },
+
+                removeDeliveryNote() {
+                    if (this.items.length > 0 && !confirm('Al quitar el remito, los ítems quedan pero el stock se actualizará al guardar. ¿Continuás?')) return;
+                    this.delivery_note_id = null;
+                    this.selectedDeliveryNoteId = '';
+                    this.selectedDeliveryNoteNumber = '';
+                    this.items = this.items.map(item => ({ ...item, updates_stock: true }));
+                },
+
+                async initDeliveryNotes() {
+                    if (this.supplier_id) {
+                        try {
+                            const resp = await fetch(`{{ route('delivery-notes.by-supplier') }}?supplier_id=${this.supplier_id}`);
+                            this.availableDeliveryNotes = await resp.json();
+                        } catch (e) {}
+                    }
+                },
+
                 padPointOfSale() {
                     if (this.point_of_sale) {
                         this.point_of_sale = String(parseInt(this.point_of_sale) || 0).padStart(5, '0');
@@ -461,7 +587,7 @@
                 },
 
                 addItem() {
-                    this.items.push({ description: '', supply_id: '', quantity: 1, unit_price: 0, iva_rate: '21', lot_number: '', expiration_date: '', _supply_code: '' });
+                    this.items.push({ description: '', supply_id: '', quantity: 1, unit_price: 0, iva_rate: '21', lot_number: '', expiration_date: '', _supply_code: '', updates_stock: !this.delivery_note_id });
                 },
 
                 removeItem(index) {
@@ -512,6 +638,10 @@
 
                 formatMoney(val) {
                     return new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
+                },
+
+                init() {
+                    this.initDeliveryNotes();
                 }
             }
         }

@@ -12,13 +12,14 @@ class PurchaseInvoiceItem extends Model
     protected $fillable = [
         'purchase_invoice_id', 'supply_id', 'description',
         'quantity', 'unit_price', 'iva_rate', 'iva_amount', 'total',
-        'lot_number', 'expiration_date',
+        'lot_number', 'expiration_date', 'updates_stock',
     ];
 
     protected $casts = [
         'quantity' => 'decimal:2', 'unit_price' => 'decimal:2',
         'iva_rate' => 'decimal:2', 'iva_amount' => 'decimal:2', 'total' => 'decimal:2',
         'expiration_date' => 'date',
+        'updates_stock' => 'boolean',
     ];
 
     public function invoice() { return $this->belongsTo(PurchaseInvoice::class, 'purchase_invoice_id'); }

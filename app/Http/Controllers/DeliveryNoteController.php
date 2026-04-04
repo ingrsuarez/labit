@@ -11,6 +11,49 @@ use Illuminate\Support\Facades\DB;
 
 class DeliveryNoteController extends Controller
 {
+    public function bySupplier(Request $request)
+    {
+        $request->validate(['supplier_id' => 'required|integer']);
+
+        $notes = DeliveryNote::where('company_id', active_company_id())
+            ->where('supplier_id', $request->supplier_id)
+            ->orderByDesc('date')
+            ->limit(50)
+            ->get(['id', 'remito_number', 'date', 'supplier_id']);
+
+        return response()->json($notes);
+    }
+
+    public function getItems(DeliveryNote $deliveryNote)
+    {
+        abort_if($deliveryNote->company_id !== active_company_id(), 403);
+
+        $items = $deliveryNote->items()->with('supply:id,code,name,brand,tracks_lot')->get();
+
+        return response()->json([
+            'delivery_note' => [
+                'id'     => $deliveryNote->id,
+                'number' => $deliveryNote->remito_number,
+                'date'   => $deliveryNote->date?->format('Y-m-d'),
+            ],
+            'items' => $items->map(fn($item) => [
+                'supply_id'      => $item->supply_id,
+                '_supply_name'   => $item->supply?->name ?? '',
+                '_supply_code'   => $item->supply?->code ?? '',
+                '_supply_brand'  => $item->supply?->brand ?? '',
+                '_supply_label'  => $item->supply ? ($item->supply->brand ? "{$item->supply->name} — {$item->supply->brand}" : $item->supply->name) : '',
+                '_tracks_lot'    => $item->supply?->tracks_lot ?? false,
+                'quantity'       => (int) $item->quantity_received,
+                'lot_number'     => $item->lot_number ?? '',
+                'expiration_date'=> $item->expiration_date?->format('Y-m-d') ?? '',
+                'unit_price'     => 0,
+                'iva_rate'       => '21',
+                'updates_stock'  => false,
+                'description'    => $item->supply ? ($item->supply->brand ? "{$item->supply->name} — {$item->supply->brand}" : $item->supply->name) : '',
+            ]),
+        ]);
+    }
+
     public function index(Request $request)
     {
         $this->authorize('delivery-notes.index');

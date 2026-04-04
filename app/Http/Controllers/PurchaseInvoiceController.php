@@ -15,7 +15,7 @@ class PurchaseInvoiceController extends Controller
     {
         $this->authorize('purchase-invoices.index');
 
-        $query = PurchaseInvoice::with(['supplier', 'creator'])
+        $query = PurchaseInvoice::with(['supplier', 'creator', 'deliveryNote'])
             ->where('company_id', active_company_id())
             ->orderByDesc('created_at');
 
@@ -118,6 +118,7 @@ class PurchaseInvoiceController extends Controller
             'items.*.iva_rate' => 'required|in:0,10.5,21,27',
             'items.*.lot_number' => 'nullable|string|max:50',
             'items.*.expiration_date' => 'nullable|date',
+            'items.*.updates_stock' => 'nullable|boolean',
         ], [
             'invoice_number.required' => 'El número de factura es obligatorio.',
             'voucher_type.required' => 'El tipo de comprobante es obligatorio.',
@@ -177,41 +178,40 @@ class PurchaseInvoiceController extends Controller
                 'total' => $total,
                 'lot_number' => $itemData['lot_number'] ?? null,
                 'expiration_date' => $itemData['expiration_date'] ?? null,
+                'updates_stock' => filter_var($itemData['updates_stock'] ?? true, FILTER_VALIDATE_BOOLEAN),
             ]);
         }
 
         $invoice->recalculate();
 
-        if (! $invoice->delivery_note_id) {
-            foreach ($invoice->items()->whereNotNull('supply_id')->get() as $item) {
-                $supply = $item->supply;
-                if (! $supply) {
-                    continue;
-                }
-
-                $previousStock = $supply->stock;
-                $newStock = $previousStock + $item->quantity;
-
-                StockMovement::create([
-                    'supply_id' => $supply->id,
-                    'type' => 'entrada',
-                    'quantity' => $item->quantity,
-                    'previous_stock' => $previousStock,
-                    'new_stock' => $newStock,
-                    'reason' => 'compra',
-                    'reference_type' => PurchaseInvoice::class,
-                    'reference_id' => $invoice->id,
-                    'lot_number' => $item->lot_number,
-                    'expiration_date' => $item->expiration_date,
-                    'notes' => "Factura de compra {$invoice->full_number}",
-                    'user_id' => auth()->id(),
-                ]);
-
-                $supply->update([
-                    'stock' => $newStock,
-                    'last_price' => $item->unit_price,
-                ]);
+        foreach ($invoice->items()->whereNotNull('supply_id')->where('updates_stock', true)->get() as $item) {
+            $supply = $item->supply;
+            if (! $supply) {
+                continue;
             }
+
+            $previousStock = $supply->stock;
+            $newStock = $previousStock + $item->quantity;
+
+            StockMovement::create([
+                'supply_id' => $supply->id,
+                'type' => 'entrada',
+                'quantity' => $item->quantity,
+                'previous_stock' => $previousStock,
+                'new_stock' => $newStock,
+                'reason' => 'compra',
+                'reference_type' => PurchaseInvoice::class,
+                'reference_id' => $invoice->id,
+                'lot_number' => $item->lot_number,
+                'expiration_date' => $item->expiration_date,
+                'notes' => "Factura de compra {$invoice->full_number}",
+                'user_id' => auth()->id(),
+            ]);
+
+            $supply->update([
+                'stock' => $newStock,
+                'last_price' => $item->unit_price,
+            ]);
         }
 
         return redirect()->route('purchase-invoices.show', $invoice)
@@ -244,6 +244,7 @@ class PurchaseInvoiceController extends Controller
         }
 
         $purchaseInvoice->load('items.supply');
+        $purchaseInvoice->load('deliveryNote');
         $suppliers = Supplier::active()->orderBy('name')->get();
 
         return view('purchase-invoices.edit', [
@@ -286,6 +287,7 @@ class PurchaseInvoiceController extends Controller
             'items.*.iva_rate' => 'required|in:0,10.5,21,27',
             'items.*.lot_number' => 'nullable|string|max:50',
             'items.*.expiration_date' => 'nullable|date',
+            'items.*.updates_stock' => 'nullable|boolean',
         ], [
             'invoice_number.required' => 'El número de factura es obligatorio.',
             'voucher_type.required' => 'El tipo de comprobante es obligatorio.',
@@ -343,6 +345,7 @@ class PurchaseInvoiceController extends Controller
                 'total' => $total,
                 'lot_number' => $itemData['lot_number'] ?? null,
                 'expiration_date' => $itemData['expiration_date'] ?? null,
+                'updates_stock' => filter_var($itemData['updates_stock'] ?? true, FILTER_VALIDATE_BOOLEAN),
             ]);
         }
 
@@ -365,18 +368,16 @@ class PurchaseInvoiceController extends Controller
 
         $fullNumber = $purchaseInvoice->full_number;
 
-        if (! $purchaseInvoice->delivery_note_id) {
-            $movements = StockMovement::where('reference_type', PurchaseInvoice::class)
-                ->where('reference_id', $purchaseInvoice->id)
-                ->get();
+        $movements = StockMovement::where('reference_type', PurchaseInvoice::class)
+            ->where('reference_id', $purchaseInvoice->id)
+            ->get();
 
-            foreach ($movements as $movement) {
-                $supply = $movement->supply;
-                if ($supply) {
-                    $supply->decrement('stock', $movement->quantity);
-                }
-                $movement->delete();
+        foreach ($movements as $movement) {
+            $supply = $movement->supply;
+            if ($supply) {
+                $supply->decrement('stock', $movement->quantity);
             }
+            $movement->delete();
         }
 
         $purchaseInvoice->delete();
