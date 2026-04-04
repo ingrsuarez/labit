@@ -353,6 +353,8 @@ Route::middleware([
         Route::patch('purchase-orders/{purchase_order}/status', [App\Http\Controllers\PurchaseOrderController::class, 'updateStatus'])->name('purchase-orders.updateStatus');
 
         // DELIVERY NOTES (Remitos)
+        Route::get('delivery-notes/by-supplier', [App\Http\Controllers\DeliveryNoteController::class, 'bySupplier'])->name('delivery-notes.by-supplier');
+        Route::get('delivery-notes/{delivery_note}/items', [App\Http\Controllers\DeliveryNoteController::class, 'getItems'])->name('delivery-notes.items');
         Route::resource('delivery-notes', App\Http\Controllers\DeliveryNoteController::class);
         Route::post('delivery-notes/{delivery_note}/accept', [App\Http\Controllers\DeliveryNoteController::class, 'accept'])->name('delivery-notes.accept');
 
