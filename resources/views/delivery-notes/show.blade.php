@@ -12,7 +12,7 @@
                 </span>
             </div>
             <div class="flex items-center gap-3">
-                @if($deliveryNote->status === 'pendiente')
+                @if(!$deliveryNote->hasPurchaseInvoice())
                     <a href="{{ route('delivery-notes.edit', $deliveryNote) }}"
                        class="inline-flex items-center px-4 py-2 bg-zinc-700 text-white text-sm font-medium rounded-lg hover:bg-zinc-800 transition-colors">
                         Editar
@@ -27,6 +27,22 @@
         @endif
         @if(session('error'))
             <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{{ session('error') }}</div>
+        @endif
+        @if(session('warning'))
+            <div class="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm">{{ session('warning') }}</div>
+        @endif
+
+        @if($deliveryNote->hasPurchaseInvoice())
+        <div class="mb-4 p-3 rounded-lg bg-blue-50 border border-blue-200 flex items-center gap-2">
+            <svg class="w-4 h-4 text-blue-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                      clip-rule="evenodd"/>
+            </svg>
+            <p class="text-sm text-blue-700">
+                Este remito tiene una factura de compra asociada. No puede editarse ni eliminarse.
+            </p>
+        </div>
         @endif
 
         <!-- Info Cards -->

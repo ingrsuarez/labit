@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DeliveryNote extends Model
 {
@@ -40,6 +41,16 @@ class DeliveryNote extends Model
     public function items()
     {
         return $this->hasMany(DeliveryNoteItem::class);
+    }
+
+    public function purchaseInvoices(): HasMany
+    {
+        return $this->hasMany(PurchaseInvoice::class, 'delivery_note_id');
+    }
+
+    public function hasPurchaseInvoice(): bool
+    {
+        return $this->purchaseInvoices()->exists();
     }
 
     public function getStatusLabelAttribute(): string
