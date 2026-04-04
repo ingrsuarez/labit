@@ -274,7 +274,7 @@
                                         </div>
                                     </td>
                                     <td class="px-3 py-2">
-                                        <input type="number" x-model.number="item.quantity" min="0.01" step="0.01" required
+                                        <input type="number" x-model.number="item.quantity" min="1" step="1" required
                                                :id="'item-qty-' + index"
                                                class="w-24 rounded border-gray-300 text-sm text-center focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>

@@ -78,7 +78,7 @@ class DeliveryNoteController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.supply_id' => 'required|exists:supplies,id',
-            'items.*.quantity_received' => 'required|numeric|min:0.01',
+            'items.*.quantity_received' => 'required|integer|min:1',
             'items.*.purchase_order_item_id' => 'nullable|exists:purchase_order_items,id',
             'items.*.notes' => 'nullable|string|max:255',
             'items.*.lot_number' => 'nullable|string|max:100',
@@ -91,7 +91,7 @@ class DeliveryNoteController extends Controller
             'items.min' => 'Debe agregar al menos un ítem.',
             'items.*.supply_id.required' => 'Debe seleccionar un insumo.',
             'items.*.quantity_received.required' => 'La cantidad recibida es obligatoria.',
-            'items.*.quantity_received.min' => 'La cantidad recibida debe ser mayor a 0.',
+            'items.*.quantity_received.min' => 'La cantidad recibida debe ser al menos 1.',
         ]);
 
         $deliveryNote = DeliveryNote::create([
@@ -186,7 +186,7 @@ class DeliveryNoteController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.supply_id' => 'required|exists:supplies,id',
-            'items.*.quantity_received' => 'required|numeric|min:0.01',
+            'items.*.quantity_received' => 'required|integer|min:1',
             'items.*.purchase_order_item_id' => 'nullable|exists:purchase_order_items,id',
             'items.*.notes' => 'nullable|string|max:255',
             'items.*.lot_number' => 'nullable|string|max:100',
@@ -199,7 +199,7 @@ class DeliveryNoteController extends Controller
             'items.min' => 'Debe agregar al menos un ítem.',
             'items.*.supply_id.required' => 'Debe seleccionar un insumo.',
             'items.*.quantity_received.required' => 'La cantidad recibida es obligatoria.',
-            'items.*.quantity_received.min' => 'La cantidad recibida debe ser mayor a 0.',
+            'items.*.quantity_received.min' => 'La cantidad recibida debe ser al menos 1.',
         ]);
 
         $deliveryNote->update([

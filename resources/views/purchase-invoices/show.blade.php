@@ -188,7 +188,7 @@
                                         -
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-800 text-right">{{ number_format($item->quantity, 2, ',', '.') }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-800 text-right">{{ number_format($item->quantity, 0, ',', '.') }}</td>
                                 <td class="px-4 py-3 text-sm text-gray-600 text-right">${{ number_format($item->unit_price, 2, ',', '.') }}</td>
                                 <td class="px-4 py-3 text-sm text-gray-600 text-center">{{ number_format($item->iva_rate, 1, ',', '.') }}%</td>
                                 <td class="px-4 py-3 text-sm text-gray-600 text-right">${{ number_format($item->iva_amount, 2, ',', '.') }}</td>

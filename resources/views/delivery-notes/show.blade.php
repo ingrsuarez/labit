@@ -124,7 +124,7 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-800 text-right font-semibold">
-                                    {{ number_format($item->quantity_received, 2, ',', '.') }}
+                                    {{ number_format($item->quantity_received, 0, ',', '.') }}
                                 </td>
                                 @if($deliveryNote->purchase_order_id)
                                     <td class="px-4 py-3 text-sm text-gray-500 text-right">
@@ -181,7 +181,7 @@
                                         <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
                                             <p class="text-sm font-medium text-gray-800 mb-2">
                                                 {{ $item->supply->name }}
-                                                <span class="text-gray-400 font-normal">({{ number_format($item->quantity_received, 2, ',', '.') }} {{ $item->supply->unit }})</span>
+                                                <span class="text-gray-400 font-normal">({{ number_format($item->quantity_received, 0, ',', '.') }} {{ $item->supply->unit }})</span>
                                             </p>
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                 <div>

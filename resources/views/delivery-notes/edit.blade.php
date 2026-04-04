@@ -186,15 +186,15 @@
                                         </template>
                                     </td>
                                     <td class="px-3 py-2 text-center text-sm text-gray-500" x-show="hasPOItems">
-                                        <span x-text="item.ordered_qty ? parseFloat(item.ordered_qty).toLocaleString('es-AR', {minimumFractionDigits: 2}) : '-'"></span>
+                                        <span x-text="item.ordered_qty ? parseInt(item.ordered_qty).toLocaleString('es-AR') : '-'"></span>
                                     </td>
                                     <td class="px-3 py-2 text-center text-sm text-gray-500" x-show="hasPOItems">
-                                        <span x-text="item.pending_qty ? parseFloat(item.pending_qty).toLocaleString('es-AR', {minimumFractionDigits: 2}) : '-'"></span>
+                                        <span x-text="item.pending_qty ? parseInt(item.pending_qty).toLocaleString('es-AR') : '-'"></span>
                                     </td>
                                     <td class="px-3 py-2">
                                         <input type="number" :name="'items[' + index + '][quantity_received]'"
                                                x-model.number="item.quantity_received"
-                                               min="0.01" step="0.01" required
+                                               min="1" step="1" required
                                                :id="'item-qty-' + index"
                                                class="w-24 rounded border-gray-300 text-sm text-center focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
