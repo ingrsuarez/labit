@@ -134,6 +134,8 @@
             </div>
         </div>
 
+        <x-journal-entry-widget :source="$paymentOrder" />
+
         @if($paymentOrder->notes)
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
                 <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Notas</h3>

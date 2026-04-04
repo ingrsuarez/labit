@@ -55,4 +55,11 @@ class JournalEntry extends Model
 
         return ($max ?? 0) + 1;
     }
+
+    public static function deleteForSource(object $source): void
+    {
+        self::where('source_type', get_class($source))
+            ->where('source_id', $source->id)
+            ->delete();
+    }
 }

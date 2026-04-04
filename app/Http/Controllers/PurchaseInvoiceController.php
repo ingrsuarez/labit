@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\DeliveryNote;
+use App\Models\JournalEntry;
 use App\Models\PurchaseInvoice;
 use App\Models\PurchaseOrder;
 use App\Models\StockMovement;
 use App\Models\Supplier;
+use App\Services\AccountingEntryService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PurchaseInvoiceController extends Controller
 {
@@ -214,6 +217,15 @@ class PurchaseInvoiceController extends Controller
             ]);
         }
 
+        try {
+            $invoice->refresh()->load('items.supply', 'supplier');
+            if (! JournalEntry::where('source_type', PurchaseInvoice::class)->where('source_id', $invoice->id)->exists()) {
+                (new AccountingEntryService)->fromPurchaseInvoice($invoice);
+            }
+        } catch (\Throwable $e) {
+            Log::error('Error generando asiento para factura compra #'.$invoice->id.': '.$e->getMessage());
+        }
+
         return redirect()->route('purchase-invoices.show', $invoice)
             ->with('success', 'Factura '.$invoice->full_number.' creada correctamente.');
     }
@@ -380,6 +392,7 @@ class PurchaseInvoiceController extends Controller
             $movement->delete();
         }
 
+        JournalEntry::deleteForSource($purchaseInvoice);
         $purchaseInvoice->delete();
 
         return redirect()->route('purchase-invoices.index')
