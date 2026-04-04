@@ -44,6 +44,25 @@ class PurchaseInvoiceController extends Controller
         return view('purchase-invoices.index', compact('invoices', 'total_balance'));
     }
 
+    public function checkDuplicate(Request $request)
+    {
+        $request->validate([
+            'supplier_id' => 'required|integer',
+            'point_of_sale' => 'required|string',
+            'invoice_number' => 'required|string',
+            'exclude_id' => 'nullable|integer',
+        ]);
+
+        $exists = PurchaseInvoice::where('company_id', active_company_id())
+            ->where('supplier_id', $request->supplier_id)
+            ->where('point_of_sale', $request->point_of_sale)
+            ->where('invoice_number', $request->invoice_number)
+            ->when($request->exclude_id, fn ($q) => $q->where('id', '!=', $request->exclude_id))
+            ->exists();
+
+        return response()->json(['duplicate' => $exists]);
+    }
+
     public function create(Request $request)
     {
         $this->authorize('purchase-invoices.create');
