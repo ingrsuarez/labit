@@ -94,6 +94,17 @@ class DeliveryNoteController extends Controller
             'items.*.quantity_received.min' => 'La cantidad recibida debe ser al menos 1.',
         ]);
 
+        $duplicate = DeliveryNote::where('company_id', active_company_id())
+            ->where('remito_number', $validated['remito_number'])
+            ->where('supplier_id', $validated['supplier_id'])
+            ->exists();
+
+        if ($duplicate) {
+            return back()->withInput()->withErrors([
+                'remito_number' => 'Ya existe un remito con este número para el mismo proveedor.',
+            ]);
+        }
+
         $deliveryNote = DeliveryNote::create([
             'remito_number' => $validated['remito_number'],
             'company_id' => active_company_id(),

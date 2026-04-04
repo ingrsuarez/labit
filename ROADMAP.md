@@ -93,7 +93,7 @@
 | v3.2.0 | Conciliación Bancaria: Motor de Matcheo | medio día | v3.1.0 | `pendientes/v3.2.0-conciliacion-bancaria-matcheo.md` |
 | v1.32.2 | Fix buscador inteligente de ítems en remitos | 30min | v1.32.0 | `pendientes/v1.32.2-fix-buscador-items-remitos.md` |
 | v1.32.3 | Marca en búsqueda y display de insumos | 30min | v1.32.0, v1.32.2 | `pendientes/v1.32.3-marca-busqueda-display-insumos.md` |
-| v1.33.0 | UX y validaciones en formulario de factura de compra | 1h | v1.32.0 | `pendientes/v1.33.0-ux-validaciones-factura-compra.md` |
+| v1.33.0 | UX, validaciones y selector de empresa en factura de compra | 2h | v1.32.0 | `pendientes/v1.33.0-ux-validaciones-factura-compra.md` |
 | v1.34.0 | Asociación de remitos y control de stock en facturas de compra | medio día | v1.33.0, v1.27.0, v1.32.0 | `pendientes/v1.34.0-remitos-asociados-control-stock.md` |
 | v3.3.0 | Asientos automáticos desde transacciones | 1 día | v3.0.0, v3.2.0 | `pendientes/v3.3.0-asientos-automaticos-transacciones.md` |
 | v3.4.0 | Libro Diario y Libro Mayor | medio día | v3.3.0 | `pendientes/v3.4.0-libro-diario-libro-mayor.md` |

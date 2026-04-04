@@ -32,7 +32,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('delivery-notes.update', $deliveryNote) }}">
+        <form method="POST" action="{{ route('delivery-notes.update', $deliveryNote) }}" @keydown.enter="if ($event.target.tagName === 'INPUT') $event.preventDefault()">
             @csrf
             @method('PUT')
 
@@ -205,6 +205,7 @@
                                     <td class="px-3 py-2">
                                         <input type="text" :name="'items[' + index + '][lot_number]'"
                                                x-model="item.lot_number"
+                                               @keydown.enter.prevent
                                                placeholder="—"
                                                :disabled="!item._tracks_lot"
                                                :class="item._tracks_lot ? '' : 'bg-gray-50 text-gray-300'"
@@ -219,6 +220,7 @@
                                     </td>
                                     <td class="px-3 py-2">
                                         <input type="text" :name="'items[' + index + '][notes]'" x-model="item.notes"
+                                               @keydown.enter.prevent
                                                placeholder="—"
                                                class="w-full rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>

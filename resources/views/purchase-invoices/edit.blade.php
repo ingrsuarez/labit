@@ -18,7 +18,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('purchase-invoices.update', $invoice) }}">
+        <form method="POST" action="{{ route('purchase-invoices.update', $invoice) }}" @keydown.enter="if ($event.target.tagName === 'INPUT') $event.preventDefault()">
             @csrf
             @method('PUT')
 
@@ -186,6 +186,7 @@
                                             <template x-if="item.supply_id && getSupplyTracksLot(item.supply_id)">
                                                 <div class="flex gap-2 shrink-0">
                                                     <input type="text" x-model="item.lot_number" placeholder="Lote"
+                                                           @keydown.enter.prevent
                                                            class="w-28 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
                                                     <input type="date" x-model="item.expiration_date"
                                                            class="w-36 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
