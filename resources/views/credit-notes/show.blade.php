@@ -258,5 +258,7 @@
                 </div>
             </div>
         </div>
+
+        <x-journal-entry-widget :source="$creditNote" />
     </div>
 </x-admin-layout>

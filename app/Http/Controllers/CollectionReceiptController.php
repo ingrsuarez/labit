@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\CollectionReceipt;
-use App\Models\CollectionReceiptItem;
 use App\Models\Customer;
+use App\Models\JournalEntry;
 use App\Models\SalesInvoice;
+use App\Services\AccountingEntryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CollectionReceiptController extends Controller
 {
@@ -23,7 +25,7 @@ class CollectionReceiptController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('number', 'like', "%{$search}%")
-                  ->orWhereHas('customer', fn($sq) => $sq->where('name', 'like', "%{$search}%"));
+                    ->orWhereHas('customer', fn ($sq) => $sq->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -103,7 +105,7 @@ class CollectionReceiptController extends Controller
         $collectionReceipt->recalculate();
 
         return redirect()->route('collection-receipts.show', $collectionReceipt)
-            ->with('success', 'Recibo de cobro ' . $collectionReceipt->number . ' creado correctamente.');
+            ->with('success', 'Recibo de cobro '.$collectionReceipt->number.' creado correctamente.');
     }
 
     public function show(CollectionReceipt $collectionReceipt)
@@ -113,6 +115,7 @@ class CollectionReceiptController extends Controller
         abort_if($collectionReceipt->company_id !== active_company_id(), 403);
 
         $collectionReceipt->load(['customer', 'creator', 'confirmer', 'items.invoice.customer']);
+
         return view('collection-receipts.show', compact('collectionReceipt'));
     }
 
@@ -136,7 +139,7 @@ class CollectionReceiptController extends Controller
             ->where('company_id', active_company_id())
             ->where(function ($q) use ($existingInvoiceIds) {
                 $q->whereIn('status', ['pendiente', 'parcialmente_cobrada'])
-                  ->orWhereIn('id', $existingInvoiceIds);
+                    ->orWhereIn('id', $existingInvoiceIds);
             })
             ->orderByDesc('issue_date')
             ->get();
@@ -209,6 +212,7 @@ class CollectionReceiptController extends Controller
         }
 
         $number = $collectionReceipt->number;
+        JournalEntry::deleteForSource($collectionReceipt);
         $collectionReceipt->delete();
 
         return redirect()->route('collection-receipts.index')
@@ -242,9 +246,19 @@ class CollectionReceiptController extends Controller
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Error al confirmar el recibo de cobro: ' . $e->getMessage());
+
+            return back()->with('error', 'Error al confirmar el recibo de cobro: '.$e->getMessage());
         }
 
-        return back()->with('success', 'Recibo de cobro ' . $collectionReceipt->number . ' confirmado.');
+        try {
+            $collectionReceipt->refresh();
+            if (! JournalEntry::where('source_type', CollectionReceipt::class)->where('source_id', $collectionReceipt->id)->exists()) {
+                (new AccountingEntryService)->fromCollectionReceipt($collectionReceipt->load('customer'));
+            }
+        } catch (\Throwable $e) {
+            Log::error('Error generando asiento para RC #'.$collectionReceipt->id.': '.$e->getMessage());
+        }
+
+        return back()->with('success', 'Recibo de cobro '.$collectionReceipt->number.' confirmado.');
     }
 }

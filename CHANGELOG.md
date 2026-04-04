@@ -5,6 +5,26 @@
 
 ---
 
+## [v3.3.0] — 2026-04-04 — Asientos automáticos desde transacciones
+
+### Agregado
+- `AccountingEntryService` con generación de asientos (`is_automatic = true`) desde factura de venta, nota de crédito, recibo de cobro, factura de compra y orden de pago; validación de cuentas del plan y balance debe/haber; resolución de cuenta de caja/banco según medio de pago
+- `JournalEntry::deleteForSource()` para eliminar asientos vinculados al borrar el documento fuente (líneas en cascada por FK)
+- Componente Blade `journal-entry-widget` y uso en vistas `show` de facturas de venta, notas de crédito, recibos de cobro, facturas de compra y órdenes de pago
+
+### Modificado
+- `SalesInvoiceController`: registro de asiento tras emisión (electrónica autorizada o no electrónica) y reintento AFIP; borrado de asiento en `destroy`
+- `CreditNoteController`: registro tras `store` / AFIP con anti-duplicado; regla electrónica solo si `status === confirmada`; borrado en `destroy` y tras reintento exitoso
+- `CollectionReceiptController`: asiento al **confirmar** el recibo (no en borrador); borrado de asiento en `destroy`
+- `PurchaseInvoiceController`: asiento tras alta con ítems y stock; borrado en `destroy`
+- `PaymentOrderController`: asiento al pasar la OP a estado **`pagada`** en `confirm()`
+
+### Notas
+- Si falta una cuenta contable requerida, no se crea el asiento y se registra advertencia en el log; la operación comercial sigue igual
+- Recibos de cobro y órdenes de pago generan asiento en el momento en que el documento pasa a estado definitivo (confirmado / pagado), coherente con el flujo de borrador del proyecto
+
+---
+
 ## [v1.35.0] — 2026-04-04 — Cuenta corriente de proveedores
 
 ### Agregado
