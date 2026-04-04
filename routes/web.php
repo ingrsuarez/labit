@@ -327,6 +327,12 @@ Route::middleware([
     Route::middleware('can:compras.section')->group(function () {
         Route::get('purchases', [App\Http\Controllers\PurchaseSectionController::class, 'index'])->name('purchases.section');
 
+        // SUPPLIER STATEMENT (Cuenta Corriente de Proveedores)
+        Route::get('suppliers/statement', [App\Http\Controllers\SupplierStatementController::class, 'index'])
+            ->name('suppliers.statement');
+        Route::get('suppliers/statement/pdf', [App\Http\Controllers\SupplierStatementController::class, 'pdf'])
+            ->name('suppliers.statement.pdf');
+
         // SUPPLIERS (Proveedores)
         Route::get('suppliers/search', [App\Http\Controllers\SupplierController::class, 'search'])->name('suppliers.search');
         Route::get('suppliers/by-cuit/{cuit}', [App\Http\Controllers\SupplierController::class, 'findByCuit'])->name('suppliers.by-cuit');
