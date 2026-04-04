@@ -5,6 +5,27 @@
 
 ---
 
+## [v1.35.0] — 2026-04-04 — Cuenta corriente de proveedores
+
+### Agregado
+- `SupplierStatementController` con métodos `index()` (HTML), `pdf()` (descarga mPDF) y privados `buildStatementData()` y `calculateOpenBalance()`
+- Vista `suppliers/statement.blade.php`: formulario de filtros, encabezado de proveedor, tabla con columnas Fecha/Comprobante/Detalle/Debe/Haber/Saldo
+- Vista `suppliers/statement-pdf.blade.php`: PDF con estilos inline para mPDF, encabezado empresa/proveedor/período, misma tabla
+- Saldo inicial (movimientos previos al período) calculado automáticamente
+- Saldo acumulado por fila con criterio contable de cuenta de pasivo (Haber - Debe)
+- Badge **AC** (Acreedor) / **AD** (Deudor) en cada fila de saldo y en el saldo final
+- Botón "Descargar PDF" visible solo cuando hay proveedor seleccionado
+- Link "Cta. Cte. Proveedores" en sidebar de compras con ícono de gráfico
+- Rutas `GET /suppliers/statement` y `GET /suppliers/statement/pdf` dentro del grupo `can:compras.section`
+
+### Notas
+- Movimientos incluidos: facturas de compra (Haber) y órdenes de pago con `status='pagada'` (Debe)
+- Adaptado a campos reales del proyecto: `Supplier.tax_id` (no `cuit`), `PaymentOrder.status='pagada'` (no `'confirmed'`)
+- PDF sin Tailwind — solo HTML con estilos inline para compatibilidad con mPDF
+- Leyenda en pie de tabla: AC = Saldo Acreedor, AD = Saldo Deudor
+
+---
+
 ## [v1.32.4] — 2026-04-04 — Editar y eliminar remitos con sincronización de stock
 
 ### Agregado

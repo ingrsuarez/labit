@@ -76,6 +76,7 @@
 | v1.32.1 | Fix layout ítems factura de compra | 2026-03-31 | Badge inline, lote/fecha horizontal, fix create y edit |
 | v1.28.1 | Fix QR scanner captura nativa | 2026-03-31 | Reemplazar cámara navegador por capture=environment |
 | v1.32.4 | Editar y eliminar remitos con sincronización de stock | 2026-04-04 | Editar/eliminar solo sin FC; revertir/sincronizar stock |
+| v1.35.0 | Cuenta corriente de proveedores | 2026-04-04 | SupplierStatementController, HTML+PDF, saldo acumulado |
 
 ---
 
@@ -116,10 +117,10 @@
 ## Progreso general
 
 ```
-Completadas:  68 versiones (v1.0.0 → v1.32.4, v2.0.0 → v2.7.0, v3.0.0 → v3.2.0)
-Planificadas: 7
+Completadas:  69 versiones (v1.0.0 → v1.35.0, v2.0.0 → v2.7.0, v3.0.0 → v3.2.0)
+Planificadas: 6
 En proceso:   0
-Próxima:      v1.35.0 — Cuenta corriente de proveedores
+Próxima:      v3.3.0 — Asientos automáticos desde transacciones
 ```
 
 ---
