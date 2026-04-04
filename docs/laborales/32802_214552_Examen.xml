@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Solicitud>
+  <TipoDocumento>DNI</TipoDocumento>
+  <NumeroDocumento>16782832</NumeroDocumento>
+  <Apellidos>Dimenza</Apellidos>
+  <Nombres>Sergio</Nombres>
+  <Sexo>Varón</Sexo>
+  <FechaNacimiento>19640315</FechaNacimiento>
+  <Direccion>
+    <Calle></Calle>
+    <Altura>0</Altura>
+    <CodigoPostal>0</CodigoPostal>
+    <Localidad></Localidad>
+    <Provincia></Provincia>
+    <Pais>Argentina</Pais>
+  </Direccion>
+  <Telefono>2994525279</Telefono>
+  <Mail></Mail>
+  <Empleador>324</Empleador>
+  <CUIT>30-58737529-6</CUIT>
+  <OrdenPrestacion>
+    <AccessionNumber>214552</AccessionNumber>
+    <Fecha>20250904</Fecha>
+    <Hora>0902</Hora>
+    <Profesional>LABO</Profesional>
+    <Practicas>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0001</Prestacion>
+        <Nombre>Determinacion Fenol Urinario ART</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0041</Prestacion>
+        <Nombre>Hemograma Completo ART</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0042</Prestacion>
+        <Nombre>Orina Completa ART</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0170</Prestacion>
+        <Nombre>Metahemoglobinemia ART</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0682</Prestacion>
+        <Nombre>Hidroxipireno ART</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>660005</Prestacion>
+        <Nombre>Hepatograma Completo ART</Nombre>
+      </Practica>
+    </Practicas>
+  </OrdenPrestacion>
+  <Profesional>
+    <NombreCompleto>LABORATORIO</NombreCompleto>
+    <MatriculaProvincial></MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+  </Profesional>
+  <Sucursal>
+    <Id>2</Id>
+    <Nombre>Clinica Añelo</Nombre>
+  </Sucursal>
+  <ResponsableExamen>
+    <NombreCompleto>SABRINA LAURA LEON</NombreCompleto>
+    <MatriculaProvincial>M.P.N. ESP N°2873</MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+    <Especialidad>MEDICINA DEL TRABAJO</Especialidad>
+  </ResponsableExamen>
+</Solicitud>

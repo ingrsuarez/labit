@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Solicitud>
+  <TipoDocumento>DNI</TipoDocumento>
+  <NumeroDocumento>21387050</NumeroDocumento>
+  <Apellidos>Castro</Apellidos>
+  <Nombres>Daniel Antonio</Nombres>
+  <Sexo>Varón</Sexo>
+  <FechaNacimiento>19700424</FechaNacimiento>
+  <Direccion>
+    <Calle></Calle>
+    <Altura>0</Altura>
+    <CodigoPostal>8300</CodigoPostal>
+    <Localidad>Neuquen</Localidad>
+    <Provincia>Neuquen</Provincia>
+    <Pais>Argentina</Pais>
+  </Direccion>
+  <Telefono></Telefono>
+  <Mail></Mail>
+  <Empleador>419</Empleador>
+  <CUIT>30-61102253-7</CUIT>
+  <OrdenPrestacion>
+    <AccessionNumber>213219</AccessionNumber>
+    <Fecha>20250902</Fecha>
+    <Hora>0952</Hora>
+    <Profesional>LABO</Profesional>
+    <Practicas>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0005</Prestacion>
+        <Nombre>Ortocresol ART</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0008</Prestacion>
+        <Nombre>Hexanodiona Urinario A.R.T.</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>0696</Prestacion>
+        <Nombre>Metanol Urinario ART</Nombre>
+      </Practica>
+      <Practica>
+        <Subnomenclador>1</Subnomenclador>
+        <Prestacion>23665</Prestacion>
+        <Nombre>Acido Metil Hipurico Urinario ART</Nombre>
+      </Practica>
+    </Practicas>
+  </OrdenPrestacion>
+  <Profesional>
+    <NombreCompleto>LABORATORIO</NombreCompleto>
+    <MatriculaProvincial></MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+  </Profesional>
+  <Sucursal>
+    <Id>1</Id>
+    <Nombre>Clinica PIN</Nombre>
+  </Sucursal>
+  <ResponsableExamen>
+    <NombreCompleto>SABRINA LAURA LEON</NombreCompleto>
+    <MatriculaProvincial>M.P.N. ESP N°2873</MatriculaProvincial>
+    <MatriculaNacional></MatriculaNacional>
+    <Especialidad>MEDICINA DEL TRABAJO</Especialidad>
+  </ResponsableExamen>
+</Solicitud>

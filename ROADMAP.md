@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-01
+> Última actualización: 2026-04-04
 
 ---
 
@@ -91,6 +91,10 @@
 |---|---|---|---|---|
 | v3.1.0 | Conciliación Bancaria: Cuentas e Importación | medio día | v3.0.0 | `pendientes/v3.1.0-conciliacion-bancaria-import.md` |
 | v3.2.0 | Conciliación Bancaria: Motor de Matcheo | medio día | v3.1.0 | `pendientes/v3.2.0-conciliacion-bancaria-matcheo.md` |
+| v1.32.2 | Fix buscador inteligente de ítems en remitos | 30min | v1.32.0 | `pendientes/v1.32.2-fix-buscador-items-remitos.md` |
+| v1.33.0 | UX y validaciones en formulario de factura de compra | 1h | v1.32.0 | `pendientes/v1.33.0-ux-validaciones-factura-compra.md` |
+| v1.34.0 | Asociación de remitos y control de stock en facturas de compra | medio día | v1.33.0, v1.27.0, v1.32.0 | `pendientes/v1.34.0-remitos-asociados-control-stock.md` |
+| v3.3.0 | Asientos automáticos desde transacciones | 1 día | v3.0.0, v3.2.0 | `pendientes/v3.3.0-asientos-automaticos-transacciones.md` |
 
 ---
 
@@ -110,12 +114,13 @@
 ## Progreso general
 
 ```
-Completadas:  65 versiones (v1.0.0 → v1.32.1, v2.0.0 → v2.7.0, v3.0.0)
-Planificadas: 2
+Completadas:  67 versiones (v1.0.0 → v1.32.1, v2.0.0 → v2.7.0, v3.0.0 → v3.2.0)
+Planificadas: 6
 En proceso:   0
-Próxima:      v3.1.0 — Conciliación Bancaria: Cuentas e Importación
+Próxima:      v1.32.2 — Fix buscador inteligente de ítems en remitos
 ```
 
 ---
 
 > Este documento se actualiza al finalizar cada versión o sesión de planificación.
+
