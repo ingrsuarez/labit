@@ -5,6 +5,26 @@
 
 ---
 
+## [v1.32.2] — 2026-04-04 — Fix buscador inteligente de items en remitos
+
+### Corregido
+- Reemplazar `<select>` simple de insumos en remitos (create/edit) por combobox con búsqueda inteligente (patrón v1.32.0)
+- Fix `overflow-x-auto` que recortaba el dropdown de búsqueda al abrir
+
+### Agregado
+- Búsqueda con debounce 300ms vía endpoint `supplies.search` (reutilizado, sin duplicación)
+- Badge del insumo vinculado con código y botón desvincular (&times;)
+- Tab flow: al seleccionar insumo el foco salta a "Cant. Recibida"
+- Navegación por teclado (flechas, Enter, Escape, Tab) en el dropdown
+- Pre-llenado correcto de `_supply_name` y `_supply_code` al editar remitos existentes
+- Modal "Crear Insumo Nuevo" con stock 0 (el stock se actualiza al aceptar el remito)
+
+### Notas
+- El endpoint `supplies.search` ya existía de v1.32.0, no se crearon rutas nuevas
+- El modal de crear insumo es análogo al de facturas de compra, adaptado para el contexto de remitos
+
+---
+
 ## [v1.19.1] — 2026-03-29 — Fix deselección de padre en determinaciones
 
 ### Corregido

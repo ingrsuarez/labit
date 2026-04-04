@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-01 (v3.2.0 completada)
+> Última actualización: 2026-04-04 (v1.32.2 completada)
 
 ---
 
@@ -9,29 +9,35 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v3.2.0 / v3.1.0 / v3.0.0 / v2.7.0 / v1.32.1 |
-| **Última completada** | v3.2.0 — Conciliación Bancaria: Motor de Matcheo |
+| **Versión actual** | v3.2.0 / v3.1.0 / v3.0.0 / v2.7.0 / v1.32.2 |
+| **Última completada** | v1.32.2 — Fix buscador inteligente de items en remitos |
 | **En proceso** | — |
-| **Próxima** | — (sin prompts pendientes) |
-| **Pendientes en cola** | 0 |
-| **Completadas** | 67 |
+| **Próxima** | v1.33.0 — UX validaciones factura de compra |
+| **Pendientes en cola** | 4 |
+| **Completadas** | 68 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (0)
+### Pendientes (4)
 
-_Sin prompts pendientes._
+| Versión | Nombre |
+|---|---|
+| v1.33.0 | UX validaciones factura de compra |
+| v1.34.0 | Remitos asociados control stock |
+| v3.3.0 | Asientos automáticos transacciones |
+| v3.4.0 | Libro diario / Libro mayor |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (67)
+### Completados (68)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.32.2 | Fix buscador inteligente de items en remitos | 2026-04-04 | v1.32.2 |
 | v3.2.0 | Conciliación Bancaria: Motor de Matcheo | 2026-04-01 | v3.2.0 |
 | v3.1.0 | Conciliación Bancaria: Cuentas e Importación | 2026-04-01 | v3.1.0 |
 | v3.0.0 | Infraestructura contable base | 2026-03-31 | v3.0.0 |
@@ -126,6 +132,7 @@ v1.0.0 (completada)
 │   └── v1.28.0 — Lector QR facturas de compra (completada)
 │       └── v1.28.1 — Fix QR scanner captura nativa (completada)
 ├── v1.32.0 — Buscador inteligente de insumos en facturas de compra (completada)
+│   └── v1.32.2 — Fix buscador inteligente de items en remitos (completada)
 ├── v1.29.0 — Libro IVA digital AFIP RG 4597 (completada)
 ├── v1.30.0 — Sedes laboratorio y procedencia protocolos (completada)
 ├── v1.5.3 — Seeder jerarquía padre-hijo prácticas (completada)
@@ -183,7 +190,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-Ejecutar AgenteProgramador para v3.2.0 (Motor de Matcheo):
+Ejecutar AgenteProgramador para v1.33.0 (UX validaciones factura de compra):
 → `Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo completo.`
 
 ---
