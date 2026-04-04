@@ -5,6 +5,30 @@
 
 ---
 
+## [v1.32.4] — 2026-04-04 — Editar y eliminar remitos con sincronización de stock
+
+### Agregado
+- Relaciones `purchaseInvoices()` (HasMany) y `hasPurchaseInvoice()` en modelo `DeliveryNote`
+- `DeliveryNoteStockService` con métodos `reverseStockForDeletion()` y `syncStockAfterUpdate()`
+- Botones "Editar" y "Eliminar" en listado de remitos, condicionados por existencia de FC asociada
+- Botones deshabilitados con tooltip explicativo cuando el remito tiene FC asociada
+- Banner informativo en vista `show` cuando el remito tiene FC asociada
+- Flash `warning` en vista `show` para mensajes de redirección desde `edit()`
+
+### Modificado
+- `DeliveryNoteController::edit()`: reemplaza restricción de status por verificación de FC asociada
+- `DeliveryNoteController::update()`: agrega guard de FC + sincronización de stock si remito aceptado
+- `DeliveryNoteController::destroy()`: agrega guard de FC + reversión de stock si remito aceptado, envuelto en `DB::transaction()`
+- `DeliveryNoteController::index()`: eager loading de `purchaseInvoices:id,delivery_note_id` para evitar N+1
+
+### Notas
+- Editar/eliminar solo permitido si el remito no tiene factura de compra asociada
+- Si el remito está en estado `aceptado` (tiene movimientos de stock): al eliminar se revierte el stock; al editar se recrea
+- Si el remito está en estado `pendiente`: la operación procede sin tocar movimientos de stock
+- `StockMovement` usa `reference_type`/`reference_id` (polimórfico) con tipo `'entrada'` y razón `'compra'`
+
+---
+
 ## [v1.32.2] — 2026-04-04 — Fix buscador inteligente de items en remitos
 
 ### Corregido

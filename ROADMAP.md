@@ -1,4 +1,4 @@
-﻿# ROADMAP — Labit
+# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
 > Última actualización: 2026-04-04
@@ -75,6 +75,7 @@
 | v1.32.0 | Buscador inteligente de insumos en facturas de compra | 2026-03-31 | Combobox autocompletado, reemplaza select+input, Tab flow |
 | v1.32.1 | Fix layout ítems factura de compra | 2026-03-31 | Badge inline, lote/fecha horizontal, fix create y edit |
 | v1.28.1 | Fix QR scanner captura nativa | 2026-03-31 | Reemplazar cámara navegador por capture=environment |
+| v1.32.4 | Editar y eliminar remitos con sincronización de stock | 2026-04-04 | Editar/eliminar solo sin FC; revertir/sincronizar stock |
 
 ---
 
@@ -93,9 +94,6 @@
 | v3.2.0 | Conciliación Bancaria: Motor de Matcheo | medio día | v3.1.0 | `pendientes/v3.2.0-conciliacion-bancaria-matcheo.md` |
 | v1.32.2 | Buscador de ítems + selector de empresa en remitos | 1h | v1.32.0 | `pendientes/v1.32.2-fix-buscador-items-remitos.md` |
 | v1.32.3 | Marca en búsqueda y display de insumos (facturas de compra) | 1h | v1.32.0, v1.32.2 | `pendientes/v1.32.3-marca-busqueda-display-insumos.md` |
-| v1.32.4 | Editar y eliminar remitos con sincronización de stock | 2h | v1.32.2, v1.27.0 | `pendientes/v1.32.4-editar-eliminar-remitos-sync-stock.md` |
-| v1.33.0 | UX, validaciones y selector de empresa en factura de compra | 2h | v1.32.0 | `pendientes/v1.33.0-ux-validaciones-factura-compra.md` |
-| v1.34.0 | Asociación de remitos y control de stock en facturas de compra | medio día | v1.33.0, v1.32.4, v1.27.0 | `pendientes/v1.34.0-remitos-asociados-control-stock.md` |
 | v3.3.0 | Asientos automáticos desde transacciones | 1 día | v3.0.0, v3.2.0 | `pendientes/v3.3.0-asientos-automaticos-transacciones.md` |
 | v3.4.0 | Libro Diario y Libro Mayor | medio día | v3.3.0 | `pendientes/v3.4.0-libro-diario-libro-mayor.md` |
 | v1.35.0 | Cuenta corriente de proveedores | 1h | v1.27.0, v1.33.0 | `pendientes/v1.35.0-cuenta-corriente-proveedores.md` |
@@ -118,10 +116,10 @@
 ## Progreso general
 
 ```
-Completadas:  67 versiones (v1.0.0 → v1.32.1, v2.0.0 → v2.7.0, v3.0.0 → v3.2.0)
-Planificadas: 10
+Completadas:  68 versiones (v1.0.0 → v1.32.4, v2.0.0 → v2.7.0, v3.0.0 → v3.2.0)
+Planificadas: 7
 En proceso:   0
-Próxima:      v1.32.2 — Fix buscador inteligente de ítems en remitos
+Próxima:      v1.35.0 — Cuenta corriente de proveedores
 ```
 
 ---
