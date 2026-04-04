@@ -42,19 +42,23 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Punto de Venta</label>
-                        <input type="text" name="point_of_sale" value="{{ old('point_of_sale', $invoice->point_of_sale) }}"
-                               placeholder="Ej: 00001"
+                        <input type="text" name="point_of_sale" x-model="point_of_sale"
+                               @blur="padPointOfSale(); checkDuplicate()"
+                               maxlength="5"
+                               placeholder="00000"
                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">N° Factura <span class="text-red-500">*</span></label>
-                        <input type="text" name="invoice_number" value="{{ old('invoice_number', $invoice->invoice_number) }}" required
-                               placeholder="Ej: 00012345"
+                        <input type="text" name="invoice_number" x-model="invoice_number"
+                               @blur="padInvoiceNumber(); checkDuplicate()"
+                               maxlength="8" required
+                               placeholder="00000000"
                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor <span class="text-red-500">*</span></label>
-                        <select name="supplier_id" required class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                        <select name="supplier_id" x-model="supplier_id" @change="checkDuplicate()" required class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                             @foreach($suppliers as $sup)
                                 <option value="{{ $sup->id }}" {{ old('supplier_id', $invoice->supplier_id) == $sup->id ? 'selected' : '' }}>{{ $sup->name }}</option>
                             @endforeach
@@ -62,12 +66,13 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Fecha Emisión <span class="text-red-500">*</span></label>
-                        <input type="date" name="issue_date" value="{{ old('issue_date', $invoice->issue_date->format('Y-m-d')) }}" required
+                        <input type="date" name="issue_date" x-model="issue_date"
+                               @change="autoCalcDueDate()" required
                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Fecha Vencimiento</label>
-                        <input type="date" name="due_date" value="{{ old('due_date', $invoice->due_date?->format('Y-m-d')) }}"
+                        <input type="date" name="due_date" x-model="due_date"
                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
                     <div>
@@ -83,6 +88,11 @@
                     <div class="md:col-span-2 lg:col-span-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
                         <textarea name="notes" rows="2" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">{{ old('notes', $invoice->notes) }}</textarea>
+                    </div>
+                    <div x-show="duplicateWarning" x-cloak
+                         class="lg:col-span-4 md:col-span-2 flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <span>Ya existe una factura de este proveedor con el mismo Punto de Venta y N° de Factura.</span>
                     </div>
                 </div>
             </div>
@@ -388,6 +398,54 @@
                 percepciones: {{ old('percepciones', $invoice->percepciones) }},
                 otrosImpuestos: {{ old('otros_impuestos', $invoice->otros_impuestos) }},
                 supplies: @json($suppliesEditJson),
+
+                point_of_sale: '{{ old('point_of_sale', $invoice->point_of_sale) }}',
+                invoice_number: '{{ old('invoice_number', $invoice->invoice_number) }}',
+                supplier_id: '{{ old('supplier_id', $invoice->supplier_id) }}',
+                issue_date: '{{ old('issue_date', $invoice->issue_date->format('Y-m-d')) }}',
+                due_date: '{{ old('due_date', $invoice->due_date?->format('Y-m-d')) }}',
+                editId: {{ $invoice->id }},
+                duplicateWarning: false,
+
+                padPointOfSale() {
+                    if (this.point_of_sale) {
+                        this.point_of_sale = String(parseInt(this.point_of_sale) || 0).padStart(5, '0');
+                    }
+                },
+
+                padInvoiceNumber() {
+                    if (this.invoice_number) {
+                        this.invoice_number = String(parseInt(this.invoice_number) || 0).padStart(8, '0');
+                    }
+                },
+
+                async checkDuplicate() {
+                    if (!this.supplier_id || !this.point_of_sale || !this.invoice_number) {
+                        this.duplicateWarning = false;
+                        return;
+                    }
+                    try {
+                        const params = new URLSearchParams({
+                            supplier_id: this.supplier_id,
+                            point_of_sale: this.point_of_sale,
+                            invoice_number: this.invoice_number,
+                            exclude_id: this.editId || '',
+                        });
+                        const resp = await fetch(`{{ route('purchase-invoices.check-duplicate') }}?${params}`);
+                        const data = await resp.json();
+                        this.duplicateWarning = data.duplicate;
+                    } catch (e) {
+                        this.duplicateWarning = false;
+                    }
+                },
+
+                autoCalcDueDate() {
+                    if (this.issue_date && !this.due_date) {
+                        const issue = new Date(this.issue_date + 'T12:00:00');
+                        issue.setDate(issue.getDate() + 30);
+                        this.due_date = issue.toISOString().split('T')[0];
+                    }
+                },
 
                 addItem() {
                     this.items.push({ description: '', supply_id: '', quantity: 1, unit_price: 0, iva_rate: '21', lot_number: '', expiration_date: '', _supply_code: '' });

@@ -357,6 +357,7 @@ Route::middleware([
         Route::post('delivery-notes/{delivery_note}/accept', [App\Http\Controllers\DeliveryNoteController::class, 'accept'])->name('delivery-notes.accept');
 
         // PURCHASE INVOICES (Facturas de Compra)
+        Route::get('purchase-invoices/check-duplicate', [App\Http\Controllers\PurchaseInvoiceController::class, 'checkDuplicate'])->name('purchase-invoices.check-duplicate');
         Route::resource('purchase-invoices', App\Http\Controllers\PurchaseInvoiceController::class);
 
         // PAYMENT ORDERS (Órdenes de Pago)
