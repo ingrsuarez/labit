@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-05 (develop / master + hotfix **v1.38.2** / **v1.38.1** fecha stock remito)
+> Última actualización: 2026-04-05 (develop — **v1.39.0** merge; master sin release nuevo)
 
 ---
 
@@ -9,30 +9,34 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.38.2** / **v1.38.1** / **v3.4.0** / v3.3.0 / … / v1.38.0 / **v1.36.1** / **v1.35.3** / **v1.35.2** |
+| **Versión actual** | **v1.39.0** (develop) / **v1.38.2** / **v3.4.0** / … |
 | **Última en master** | 2026-04-05 — `release: develop -> master` (**v3.4.0**, **v1.35.3**, **v1.36.1**, **v1.35.2**); tags en remoto |
-| **Última completada** | v3.4.0 — Libro Diario, Libro Mayor y asientos manuales |
+| **Última completada** | v1.39.0 — Recibos de cobro: múltiples medios y e-cheq (cartera) |
 | **En proceso** | — |
-| **Próxima** | — |
-| **Pendientes en cola** | 0 |
-| **Completadas** | 82 |
+| **Próxima** | v1.39.1 — Pago a proveedor con e-cheqs en cartera (OP) |
+| **Pendientes en cola** | 1 |
+| **Completadas** | 84 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (0)
+### Pendientes (1)
 
-_Sin prompts pendientes._
+| Archivo | Versión |
+|---|---|
+| `v1.39.1-pago-proveedor-echeq-cartera.md` | v1.39.1 |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (82)
+### Completados (84)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.39.0 | Recibos de cobro: múltiples medios y e-cheq (cartera) | 2026-04-05 | v1.39.0 |
+| v1.38.2 | Hotfix ParseError recibo de cobro create | 2026-04-05 | v1.38.2 |
 | v3.4.0 | Libro Diario, Libro Mayor y asientos manuales | 2026-04-05 | v3.4.0 |
 | v1.35.3 | Movimientos stock: selector de lotes | 2026-04-05 | v1.35.3 |
 | v1.36.1 | FC compra: editar y reasignar empresa | 2026-04-05 | v1.36.1 |
