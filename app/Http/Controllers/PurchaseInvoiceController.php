@@ -293,6 +293,7 @@ class PurchaseInvoiceController extends Controller
                     'expiration_date' => $item->expiration_date,
                     'notes' => "Factura de compra {$invoice->full_number}",
                     'user_id' => auth()->id(),
+                    'occurred_at' => $invoice->issue_date->copy()->setTime(12, 0, 0),
                 ]);
 
                 $supply->refresh()->update([

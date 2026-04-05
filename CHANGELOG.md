@@ -31,6 +31,18 @@
 
 ---
 
+## [v1.38.1] — 2026-04-05 — Hotfix: fecha de movimientos de stock desde remito y FC
+
+### Agregado
+- Columna `occurred_at` en `stock_movements` (backfill desde `created_at`); listado y filtros usan `COALESCE(occurred_at, created_at)`
+- Columna `stock_received_at` en `delivery_notes`; al **aceptar remito**, campo **Fecha de recepción en stock** (por defecto = fecha del remito)
+- En remito **aceptado**, edición permite ajustar la fecha de recepción en stock antes de resincronizar movimientos
+
+### Modificado
+- Entradas por remito (`accept`, `DeliveryNoteStockService::syncStockAfterUpdate`) y por factura de compra con stock usan `occurred_at` coherente con el documento
+
+---
+
 ## [v1.37.0] — 2026-04-05 — Stock por sede (modelo, migraciones y movimientos)
 
 ### Agregado

@@ -14,10 +14,21 @@ class DeliveryNote extends Model
 
     protected $fillable = [
         'company_id', 'lab_branch_id', 'remito_number', 'purchase_order_id', 'supplier_id', 'date',
-        'status', 'notes', 'received_by',
+        'stock_received_at', 'status', 'notes', 'received_by',
     ];
 
-    protected $casts = ['date' => 'date'];
+    protected $casts = [
+        'date' => 'date',
+        'stock_received_at' => 'date',
+    ];
+
+    /** Fecha/hora usada en movimientos de stock (mediodía local para fecha contable). */
+    public function stockMovementOccurredAt(): \Carbon\Carbon
+    {
+        $d = $this->stock_received_at ?? $this->date;
+
+        return \Carbon\Carbon::parse($d)->setTime(12, 0, 0);
+    }
 
     public function company(): BelongsTo
     {

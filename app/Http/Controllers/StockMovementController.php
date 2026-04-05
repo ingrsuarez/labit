@@ -19,7 +19,7 @@ class StockMovementController extends Controller
         $this->authorize('stock-movements.index');
 
         $query = StockMovement::with(['supply', 'user', 'labBranch'])
-            ->orderByDesc('created_at');
+            ->orderByRaw('COALESCE(occurred_at, created_at) DESC');
 
         if ($request->filled('lab_branch_id')) {
             $query->where('lab_branch_id', $request->lab_branch_id);
@@ -38,11 +38,13 @@ class StockMovementController extends Controller
         }
 
         if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
+            $start = Carbon::parse($request->date_from)->startOfDay();
+            $query->whereRaw('COALESCE(occurred_at, created_at) >= ?', [$start->toDateTimeString()]);
         }
 
         if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
+            $end = Carbon::parse($request->date_to)->endOfDay();
+            $query->whereRaw('COALESCE(occurred_at, created_at) <= ?', [$end->toDateTimeString()]);
         }
 
         $movements = $query->paginate(20)->withQueryString();

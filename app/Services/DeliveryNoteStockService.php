@@ -45,6 +45,7 @@ class DeliveryNoteStockService
                 'reference_id' => $deliveryNote->id,
                 'notes' => "Remito #{$deliveryNote->remito_number} (editado)",
                 'user_id' => auth()->id(),
+                'occurred_at' => $deliveryNote->stockMovementOccurredAt(),
             ]);
 
             $updateData = [];
