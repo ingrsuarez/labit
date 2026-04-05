@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Company;
 use App\Models\DeliveryNote;
 use App\Models\DeliveryNoteItem;
+use App\Models\LabBranch;
 use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Models\Supply;
@@ -43,12 +44,19 @@ class DeliveryNoteAcceptTest extends TestCase
         ]);
         $user->companies()->attach($company->id, ['is_default' => true]);
 
-        return [$user, $company];
+        $branch = LabBranch::query()->create([
+            'name' => 'Sede Central Test',
+            'is_central' => true,
+            'is_active' => true,
+        ]);
+        $user->update(['default_lab_branch_id' => $branch->id]);
+
+        return [$user, $company, $branch];
     }
 
     private function createPendingNoteWithTwoSupplies(): array
     {
-        [$user, $company] = $this->comprasUserWithCompany();
+        [$user, $company, $branch] = $this->comprasUserWithCompany();
 
         $suffix = uniqid('', true);
         $supplier = Supplier::query()->create([
@@ -82,6 +90,7 @@ class DeliveryNoteAcceptTest extends TestCase
 
         $note = DeliveryNote::query()->create([
             'company_id' => $company->id,
+            'lab_branch_id' => $branch->id,
             'remito_number' => 'R-'.$suffix,
             'supplier_id' => $supplier->id,
             'purchase_order_id' => null,
@@ -111,12 +120,12 @@ class DeliveryNoteAcceptTest extends TestCase
             'notes' => null,
         ]);
 
-        return [$user, $company, $note, $itemNoLot, $itemWithLot, $supplyNoLot, $supplyWithLot];
+        return [$user, $company, $branch, $note, $itemNoLot, $itemWithLot, $supplyNoLot, $supplyWithLot];
     }
 
     public function test_accept_succeeds_when_only_tracks_lot_item_has_lot_data(): void
     {
-        [$user, $company, $note, $itemNoLot, $itemWithLot, $supplyNoLot, $supplyWithLot] = $this->createPendingNoteWithTwoSupplies();
+        [$user, $company, $branch, $note, $itemNoLot, $itemWithLot, $supplyNoLot, $supplyWithLot] = $this->createPendingNoteWithTwoSupplies();
 
         $response = $this->actingAs($user)
             ->withSession(['active_company_id' => $company->id])
@@ -141,11 +150,12 @@ class DeliveryNoteAcceptTest extends TestCase
             ->first();
         $this->assertNotNull($movement);
         $this->assertSame('LOT-001', $movement->lot_number);
+        $this->assertSame($branch->id, (int) $movement->lab_branch_id);
     }
 
     public function test_accept_validation_fails_when_tracks_lot_item_missing_lot(): void
     {
-        [$user, $company, $note, , $itemWithLot] = $this->createPendingNoteWithTwoSupplies();
+        [$user, $company, , $note, , $itemWithLot] = $this->createPendingNoteWithTwoSupplies();
 
         $response = $this->actingAs($user)
             ->withSession(['active_company_id' => $company->id])
@@ -164,7 +174,7 @@ class DeliveryNoteAcceptTest extends TestCase
 
     public function test_show_displays_lot_control_badges(): void
     {
-        [$user, $company, $note] = $this->createPendingNoteWithTwoSupplies();
+        [$user, $company, , $note] = $this->createPendingNoteWithTwoSupplies();
 
         $response = $this->actingAs($user)
             ->withSession(['active_company_id' => $company->id])

@@ -6,9 +6,10 @@ use App\Models\DeliveryNote;
 use App\Models\JournalEntry;
 use App\Models\PurchaseInvoice;
 use App\Models\PurchaseOrder;
-use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Services\AccountingEntryService;
+use App\Services\LabBranchResolver;
+use App\Services\SupplyStockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -193,9 +194,12 @@ class PurchaseInvoiceController extends Controller
         $deliveryNoteIds = $this->resolveDeliveryNoteIds($request);
         $this->validateDeliveryNotesForInvoice($deliveryNoteIds, (int) $validated['supplier_id'], null);
 
+        $invoiceLabBranchId = $this->resolveInvoiceLabBranchId($deliveryNoteIds);
+
         $invoice = PurchaseInvoice::create([
             'invoice_number' => $validated['invoice_number'],
             'company_id' => active_company_id(),
+            'lab_branch_id' => $invoiceLabBranchId,
             'voucher_type' => $validated['voucher_type'],
             'point_of_sale' => $validated['point_of_sale'] ?? null,
             'supplier_id' => $validated['supplier_id'],
@@ -244,34 +248,30 @@ class PurchaseInvoiceController extends Controller
 
         $invoice->recalculate();
 
-        foreach ($invoice->items()->whereNotNull('supply_id')->where('updates_stock', true)->get() as $item) {
-            $supply = $item->supply;
-            if (! $supply) {
-                continue;
+        $stockItems = $invoice->items()->whereNotNull('supply_id')->where('updates_stock', true)->get();
+        if ($stockItems->isNotEmpty()) {
+            $branch = LabBranchResolver::requireActiveBranchForStock($invoice->lab_branch_id);
+            $stockSvc = app(SupplyStockService::class);
+            foreach ($stockItems as $item) {
+                $supply = $item->supply;
+                if (! $supply) {
+                    continue;
+                }
+
+                $stockSvc->recordEntrada($supply, $branch->id, (float) $item->quantity, [
+                    'reason' => 'compra',
+                    'reference_type' => PurchaseInvoice::class,
+                    'reference_id' => $invoice->id,
+                    'lot_number' => $item->lot_number,
+                    'expiration_date' => $item->expiration_date,
+                    'notes' => "Factura de compra {$invoice->full_number}",
+                    'user_id' => auth()->id(),
+                ]);
+
+                $supply->refresh()->update([
+                    'last_price' => $item->unit_price,
+                ]);
             }
-
-            $previousStock = $supply->stock;
-            $newStock = $previousStock + $item->quantity;
-
-            StockMovement::create([
-                'supply_id' => $supply->id,
-                'type' => 'entrada',
-                'quantity' => $item->quantity,
-                'previous_stock' => $previousStock,
-                'new_stock' => $newStock,
-                'reason' => 'compra',
-                'reference_type' => PurchaseInvoice::class,
-                'reference_id' => $invoice->id,
-                'lot_number' => $item->lot_number,
-                'expiration_date' => $item->expiration_date,
-                'notes' => "Factura de compra {$invoice->full_number}",
-                'user_id' => auth()->id(),
-            ]);
-
-            $supply->update([
-                'stock' => $newStock,
-                'last_price' => $item->unit_price,
-            ]);
         }
 
         try {
@@ -390,6 +390,7 @@ class PurchaseInvoiceController extends Controller
             'voucher_type' => $validated['voucher_type'],
             'point_of_sale' => $validated['point_of_sale'] ?? null,
             'supplier_id' => $validated['supplier_id'],
+            'lab_branch_id' => $this->resolveInvoiceLabBranchId($deliveryNoteIds),
             'delivery_note_id' => $deliveryNoteIds[0] ?? null,
             'purchase_order_id' => $validated['purchase_order_id'] ?? null,
             'issue_date' => $validated['issue_date'],
@@ -451,23 +452,27 @@ class PurchaseInvoiceController extends Controller
 
         $fullNumber = $purchaseInvoice->full_number;
 
-        $movements = StockMovement::where('reference_type', PurchaseInvoice::class)
-            ->where('reference_id', $purchaseInvoice->id)
-            ->get();
-
-        foreach ($movements as $movement) {
-            $supply = $movement->supply;
-            if ($supply) {
-                $supply->decrement('stock', $movement->quantity);
-            }
-            $movement->delete();
-        }
+        app(SupplyStockService::class)->deleteMovementsForReference(PurchaseInvoice::class, $purchaseInvoice->id);
 
         JournalEntry::deleteForSource($purchaseInvoice);
         $purchaseInvoice->delete();
 
         return redirect()->route('purchase-invoices.index')
             ->with('success', "Factura {$fullNumber} eliminada.");
+    }
+
+    /** @param  list<int>  $deliveryNoteIds */
+    protected function resolveInvoiceLabBranchId(array $deliveryNoteIds): ?int
+    {
+        $companyId = active_company_id();
+        if ($deliveryNoteIds !== []) {
+            $first = DeliveryNote::where('company_id', $companyId)->whereKey($deliveryNoteIds[0])->first();
+            if ($first?->lab_branch_id) {
+                return (int) $first->lab_branch_id;
+            }
+        }
+
+        return LabBranchResolver::resolveBranchIdForStock();
     }
 
     /** @return list<int> */

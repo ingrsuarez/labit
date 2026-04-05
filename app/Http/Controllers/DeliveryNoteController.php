@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\DeliveryNote;
 use App\Models\PurchaseOrder;
-use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Services\DeliveryNoteStockService;
+use App\Services\LabBranchResolver;
+use App\Services\SupplyStockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -151,9 +152,22 @@ class DeliveryNoteController extends Controller
             ]);
         }
 
+        $labBranchId = null;
+        if (! empty($validated['purchase_order_id'])) {
+            $po = PurchaseOrder::where('company_id', active_company_id())
+                ->find($validated['purchase_order_id']);
+            if ($po) {
+                $labBranchId = $po->lab_branch_id;
+            }
+        }
+        if ($labBranchId === null) {
+            $labBranchId = LabBranchResolver::resolveBranchIdForStock();
+        }
+
         $deliveryNote = DeliveryNote::create([
             'remito_number' => $validated['remito_number'],
             'company_id' => active_company_id(),
+            'lab_branch_id' => $labBranchId,
             'supplier_id' => $validated['supplier_id'],
             'purchase_order_id' => $validated['purchase_order_id'] ?? null,
             'date' => $validated['date'],
@@ -263,10 +277,23 @@ class DeliveryNoteController extends Controller
 
         $wasAccepted = $deliveryNote->status === 'aceptado';
 
+        $labBranchId = $deliveryNote->lab_branch_id;
+        if (! empty($validated['purchase_order_id'])) {
+            $po = PurchaseOrder::where('company_id', active_company_id())
+                ->find($validated['purchase_order_id']);
+            if ($po && $po->lab_branch_id) {
+                $labBranchId = $po->lab_branch_id;
+            }
+        }
+        if ($labBranchId === null) {
+            $labBranchId = LabBranchResolver::resolveBranchIdForStock();
+        }
+
         $deliveryNote->update([
             'remito_number' => $validated['remito_number'],
             'supplier_id' => $validated['supplier_id'],
             'purchase_order_id' => $validated['purchase_order_id'] ?? null,
+            'lab_branch_id' => $labBranchId,
             'date' => $validated['date'],
             'notes' => $validated['notes'] ?? null,
         ]);
@@ -357,10 +384,11 @@ class DeliveryNoteController extends Controller
         DB::beginTransaction();
 
         try {
+            $branch = LabBranchResolver::requireActiveBranchForStock($deliveryNote->lab_branch_id);
+            $stockSvc = app(SupplyStockService::class);
+
             foreach ($deliveryNote->items as $item) {
                 $supply = $item->supply;
-                $previousStock = (float) $supply->stock;
-                $newStock = $previousStock + (float) $item->quantity_received;
 
                 $lotNumber = null;
                 $expirationDate = null;
@@ -369,12 +397,7 @@ class DeliveryNoteController extends Controller
                     $expirationDate = $request->input("items.{$item->id}.expiration_date", $item->expiration_date?->format('Y-m-d'));
                 }
 
-                StockMovement::create([
-                    'supply_id' => $supply->id,
-                    'type' => 'entrada',
-                    'quantity' => $item->quantity_received,
-                    'previous_stock' => $previousStock,
-                    'new_stock' => $newStock,
+                $stockSvc->recordEntrada($supply, $branch->id, (float) $item->quantity_received, [
                     'reason' => 'compra',
                     'lot_number' => $lotNumber,
                     'expiration_date' => $expirationDate,
@@ -383,11 +406,13 @@ class DeliveryNoteController extends Controller
                     'user_id' => auth()->id(),
                 ]);
 
-                $updateData = ['stock' => $newStock];
+                $updateData = [];
                 if ($item->purchaseOrderItem && $item->purchaseOrderItem->unit_price) {
                     $updateData['last_price'] = $item->purchaseOrderItem->unit_price;
                 }
-                $supply->update($updateData);
+                if ($updateData !== []) {
+                    $supply->refresh()->update($updateData);
+                }
 
                 if ($item->purchase_order_item_id && $item->purchaseOrderItem) {
                     $item->purchaseOrderItem->increment('received_quantity', $item->quantity_received);
@@ -411,6 +436,10 @@ class DeliveryNoteController extends Controller
             $deliveryNote->update(['status' => 'aceptado']);
 
             DB::commit();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+
+            return back()->withErrors($e->errors());
         } catch (\Exception $e) {
             DB::rollBack();
 

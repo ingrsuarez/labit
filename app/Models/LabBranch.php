@@ -13,7 +13,7 @@ class LabBranch extends Model
 
     protected $casts = [
         'is_central' => 'boolean',
-        'is_active'  => 'boolean',
+        'is_active' => 'boolean',
     ];
 
     public function scopeActive($query)
@@ -34,5 +34,10 @@ class LabBranch extends Model
     public function vetAdmissions()
     {
         return $this->hasMany(VetAdmission::class, 'lab_branch_id');
+    }
+
+    public function supplyBranchStocks()
+    {
+        return $this->hasMany(SupplyLabBranchStock::class, 'lab_branch_id');
     }
 }

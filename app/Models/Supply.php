@@ -47,6 +47,11 @@ class Supply extends Model
         return $this->hasMany(StockMovement::class);
     }
 
+    public function branchStocks()
+    {
+        return $this->hasMany(SupplyLabBranchStock::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

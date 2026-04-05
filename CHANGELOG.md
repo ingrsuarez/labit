@@ -5,6 +5,19 @@
 
 ---
 
+## [v1.37.0] — 2026-04-05 — Stock por sede (modelo, migraciones y movimientos)
+
+### Agregado
+- Tabla `supply_lab_branch_stock` y columna `lab_branch_id` en `stock_movements`, `purchase_orders`, `delivery_notes`, `purchase_invoices`
+- Migración con backfill (sede central o primera activa) y saldos por insumo con stock positivo; `supplies.stock` como suma cache
+- `SupplyLabBranchStock`, `LabBranchResolver`, `SupplyStockService` (entrada/salida/ajuste, reversión por referencia)
+- Tests `StockByBranchTest`
+
+### Modificado
+- Aceptar remito, FC con stock, ajuste manual, `DeliveryNoteStockService` y borrado de FC usan stock por sede
+
+---
+
 ## [v1.36.0] — 2026-04-05 — Múltiples remitos en factura de compra
 
 ### Agregado
