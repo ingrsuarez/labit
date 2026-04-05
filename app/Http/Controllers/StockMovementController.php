@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\StockMovement;
 use App\Models\Supply;
 use App\Services\LabBranchResolver;
+use App\Services\SupplyLotBalanceService;
 use App\Services\SupplyStockService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -95,6 +97,41 @@ class StockMovementController extends Controller
         ]);
 
         $supply = Supply::findOrFail($validated['supply_id']);
+
+        if ($validated['type'] === 'salida' && $supply->tracks_lot) {
+            if ($request->boolean('manual_lot_exit')) {
+                $request->validate([
+                    'confirm_manual_lot_exit' => 'accepted',
+                    'lot_number' => 'required|string|max:100',
+                    'expiration_date' => 'nullable|date',
+                ], [
+                    'confirm_manual_lot_exit.accepted' => 'Debés confirmar el consumo manual de lote (sin selector de saldo por lote).',
+                    'lot_number.required' => 'Indicá el número de lote.',
+                ]);
+            } else {
+                $request->validate([
+                    'lot_number' => 'required|string|max:100',
+                    'expiration_date' => 'nullable|date',
+                ], [
+                    'lot_number.required' => 'Seleccioná un lote de la lista o usá el modo manual.',
+                ]);
+
+                $lot = trim((string) $request->input('lot_number'));
+                $expRaw = $request->input('expiration_date');
+                $expYmd = $expRaw ? Carbon::parse($expRaw)->format('Y-m-d') : null;
+                $avail = app(SupplyLotBalanceService::class)->quantityAvailableForLot(
+                    $supply->id,
+                    (int) $validated['lab_branch_id'],
+                    $lot,
+                    $expYmd
+                );
+                if ($avail + 0.0001 < (int) $validated['quantity']) {
+                    throw ValidationException::withMessages([
+                        'quantity' => 'La cantidad supera el disponible del lote en esta sede ('.max(0, (int) round($avail)).').',
+                    ]);
+                }
+            }
+        }
 
         try {
             $branch = LabBranchResolver::requireDocumentBranch((int) $validated['lab_branch_id']);

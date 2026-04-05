@@ -343,6 +343,8 @@ Route::middleware([
 
         // SUPPLIES (Insumos)
         Route::get('supplies/search', [App\Http\Controllers\SupplyController::class, 'search'])->name('supplies.search');
+        Route::get('supplies/{supply}/available-lots', [App\Http\Controllers\SupplyController::class, 'availableLots'])
+            ->name('supplies.available-lots');
         Route::resource('supplies', App\Http\Controllers\SupplyController::class);
 
         // STOCK MOVEMENTS (Movimientos de Stock)

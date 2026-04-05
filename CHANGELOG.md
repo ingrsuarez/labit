@@ -5,6 +5,18 @@
 
 ---
 
+## [v1.35.3] — 2026-04-05 — Selector de lotes en salidas manuales de stock
+
+### Agregado
+- `SupplyLotBalanceService`: saldo por lote desde `stock_movements` (entrada/salida con `lot_number`; ajustes no reparten por lote; filtrado por sede)
+- `GET supplies/{supply}/available-lots` (JSON) para el formulario de movimientos
+- En **salida** con insumo `tracks_lot`: selector de lotes con disponible; aviso y modo manual con confirmación si no hay buckets; validación servidor de cantidad vs disponible del lote
+
+### Notas
+- El consumo manual **recomienda** elegir lote existente cuando hay saldo calculado; la suma por lote puede no coincidir con el stock global tras ajustes sin trazabilidad por lote.
+
+---
+
 ## [v1.38.0] — 2026-04-05 — Stock por sede: compras, remitos, FC y vistas
 
 ### Agregado
