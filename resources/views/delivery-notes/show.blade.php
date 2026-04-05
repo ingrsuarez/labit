@@ -32,6 +32,18 @@
             <div class="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm">{{ session('warning') }}</div>
         @endif
 
+        @if($deliveryNote->status === 'pendiente')
+            <div class="mb-4 p-4 bg-sky-50 border border-sky-200 rounded-lg flex items-start gap-3">
+                <svg class="w-5 h-5 text-sky-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <div class="text-sm text-sky-900">
+                    <p class="font-medium">El remito está pendiente: el stock del depósito no cambia todavía.</p>
+                    <p class="mt-1 text-sky-800/90">Los <strong>movimientos de stock</strong> (y el incremento de existencias) se registran cuando presionás <strong>Aceptar remito</strong> en la sección inferior de esta página.</p>
+                </div>
+            </div>
+        @endif
+
         @if($deliveryNote->hasPurchaseInvoice())
         <div class="mb-4 p-3 rounded-lg bg-blue-50 border border-blue-200 flex items-center gap-2">
             <svg class="w-4 h-4 text-blue-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -122,6 +134,7 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Insumo</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Control de lote</th>
                             <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Cantidad Recibida</th>
                             @if($deliveryNote->purchase_order_id)
                                 <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Pedido en OC</th>
@@ -137,6 +150,15 @@
                                     {{ $item->supply->name ?? 'Insumo eliminado' }}
                                     @if($item->supply)
                                         <span class="text-gray-400 text-xs ml-1">({{ $item->supply->unit }})</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-sm">
+                                    @if($item->supply && $item->supply->tracks_lot === true)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">Controla lote</span>
+                                    @elseif($item->supply)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">Sin lote</span>
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">Sin insumo</span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-800 text-right font-semibold">
@@ -171,7 +193,7 @@
         <!-- Accept Section (only for pendiente) -->
         @if($deliveryNote->status === 'pendiente')
             @php
-                $hasLotItems = $deliveryNote->items->contains(fn($item) => $item->supply && $item->supply->tracks_lot);
+                $hasLotItems = $deliveryNote->items->contains(fn ($item) => $item->supply && $item->supply->tracks_lot === true);
             @endphp
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5" x-data="{ confirming: false }">
@@ -193,7 +215,7 @@
                             <p class="text-xs text-gray-500 mb-3">Los siguientes insumos requieren número de lote y fecha de vencimiento.</p>
                             <div class="space-y-3">
                                 @foreach($deliveryNote->items as $item)
-                                    @if($item->supply && $item->supply->tracks_lot)
+                                    @if($item->supply && $item->supply->tracks_lot === true)
                                         <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
                                             <p class="text-sm font-medium text-gray-800 mb-2">
                                                 {{ $item->supply->name }}
