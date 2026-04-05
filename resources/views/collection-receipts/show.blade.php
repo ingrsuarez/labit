@@ -8,7 +8,7 @@
             ];
             $paymentMethodLabels = [
                 'transferencia' => 'Transferencia',
-                'cheque' => 'Cheque',
+                'cheque' => 'Cheque / e-cheq (legado)',
                 'efectivo' => 'Efectivo',
                 'tarjeta' => 'Tarjeta',
                 'deposito' => 'Depósito',
@@ -63,14 +63,16 @@
                         <dt class="text-sm text-gray-500">Fecha</dt>
                         <dd class="text-sm font-medium text-gray-800">{{ $collectionReceipt->date->format('d/m/Y') }}</dd>
                     </div>
-                    <div class="flex justify-between">
-                        <dt class="text-sm text-gray-500">Método de Pago</dt>
-                        <dd class="text-sm font-medium text-gray-800">{{ $paymentMethodLabels[$collectionReceipt->payment_method] ?? '-' }}</dd>
-                    </div>
-                    <div class="flex justify-between">
-                        <dt class="text-sm text-gray-500">Referencia de Pago</dt>
-                        <dd class="text-sm font-medium text-gray-800">{{ $collectionReceipt->payment_reference ?? '-' }}</dd>
-                    </div>
+                    @if($collectionReceipt->payments->isEmpty())
+                        <div class="flex justify-between">
+                            <dt class="text-sm text-gray-500">Método de Pago (legado)</dt>
+                            <dd class="text-sm font-medium text-gray-800">{{ $paymentMethodLabels[$collectionReceipt->payment_method] ?? '-' }}</dd>
+                        </div>
+                        <div class="flex justify-between">
+                            <dt class="text-sm text-gray-500">Referencia de Pago</dt>
+                            <dd class="text-sm font-medium text-gray-800">{{ $collectionReceipt->payment_reference ?? '-' }}</dd>
+                        </div>
+                    @endif
                 </dl>
             </div>
 
@@ -98,6 +100,42 @@
                 </dl>
             </div>
         </div>
+
+        @if($collectionReceipt->payments->isNotEmpty())
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+                <div class="px-4 py-3 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-800">Medios de pago</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tipo</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Importe</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Detalle</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @foreach($collectionReceipt->payments as $pay)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3 text-sm font-medium text-gray-800">{{ $pay->line_type_label }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-800 text-right">${{ number_format($pay->amount, 2, ',', '.') }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">
+                                        @if($pay->line_type === 'transferencia')
+                                            {{ $pay->bankAccount?->display_name ?? '—' }}
+                                        @elseif($pay->line_type === 'echeq')
+                                            N° {{ $pay->cheque_number }} — {{ $pay->bank_name }} — vto. {{ $pay->due_date?->format('d/m/Y') }}
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endif
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
             <div class="px-4 py-3 border-b border-gray-200">
