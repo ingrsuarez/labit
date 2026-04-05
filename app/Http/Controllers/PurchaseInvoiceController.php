@@ -10,7 +10,9 @@ use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Services\AccountingEntryService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class PurchaseInvoiceController extends Controller
 {
@@ -18,7 +20,7 @@ class PurchaseInvoiceController extends Controller
     {
         $this->authorize('purchase-invoices.index');
 
-        $query = PurchaseInvoice::with(['supplier', 'creator', 'deliveryNote'])
+        $query = PurchaseInvoice::with(['supplier', 'creator', 'deliveryNotes'])
             ->where('company_id', active_company_id())
             ->orderByDesc('created_at');
 
@@ -66,6 +68,46 @@ class PurchaseInvoiceController extends Controller
         return response()->json(['duplicate' => $exists]);
     }
 
+    /**
+     * Remitos aceptados del proveedor que se pueden asociar a una FC (libres o ya vinculados a la misma factura en edición).
+     */
+    public function availableDeliveryNotes(Request $request)
+    {
+        if (auth()->user()->cannot('purchase-invoices.create') && auth()->user()->cannot('purchase-invoices.edit')) {
+            abort(403);
+        }
+
+        $request->validate([
+            'supplier_id' => 'required|integer',
+            'purchase_invoice_id' => 'nullable|integer|exists:purchase_invoices,id',
+        ]);
+
+        $companyId = active_company_id();
+        $supplierId = (int) $request->supplier_id;
+        $excludePi = $request->filled('purchase_invoice_id') ? (int) $request->purchase_invoice_id : null;
+
+        if ($excludePi) {
+            $pi = PurchaseInvoice::where('company_id', $companyId)->find($excludePi);
+            if (! $pi) {
+                abort(404);
+            }
+        }
+
+        $notes = DeliveryNote::query()
+            ->where('company_id', $companyId)
+            ->where('supplier_id', $supplierId)
+            ->where('status', 'aceptado')
+            ->orderByDesc('date')
+            ->get(['id', 'remito_number', 'date']);
+
+        $eligible = $notes->filter(function (DeliveryNote $dn) use ($excludePi) {
+            return $this->deliveryNoteIsFreeForPurchaseInvoice($dn->id, $excludePi)
+                || $this->deliveryNoteIsLinkedToPurchaseInvoice($dn->id, $excludePi);
+        });
+
+        return response()->json($eligible->values());
+    }
+
     public function create(Request $request)
     {
         $this->authorize('purchase-invoices.create');
@@ -104,6 +146,8 @@ class PurchaseInvoiceController extends Controller
             'point_of_sale' => 'nullable|string',
             'supplier_id' => 'required|exists:suppliers,id',
             'delivery_note_id' => 'nullable|exists:delivery_notes,id',
+            'delivery_note_ids' => 'nullable|array',
+            'delivery_note_ids.*' => 'integer|exists:delivery_notes,id',
             'purchase_order_id' => 'nullable|exists:purchase_orders,id',
             'issue_date' => 'required|date',
             'due_date' => 'nullable|date',
@@ -146,13 +190,16 @@ class PurchaseInvoiceController extends Controller
             'items.*.iva_rate.in' => 'La alícuota de IVA no es válida.',
         ]);
 
+        $deliveryNoteIds = $this->resolveDeliveryNoteIds($request);
+        $this->validateDeliveryNotesForInvoice($deliveryNoteIds, (int) $validated['supplier_id'], null);
+
         $invoice = PurchaseInvoice::create([
             'invoice_number' => $validated['invoice_number'],
             'company_id' => active_company_id(),
             'voucher_type' => $validated['voucher_type'],
             'point_of_sale' => $validated['point_of_sale'] ?? null,
             'supplier_id' => $validated['supplier_id'],
-            'delivery_note_id' => $validated['delivery_note_id'] ?? null,
+            'delivery_note_id' => $deliveryNoteIds[0] ?? null,
             'purchase_order_id' => $validated['purchase_order_id'] ?? null,
             'issue_date' => $validated['issue_date'],
             'due_date' => $validated['due_date'] ?? null,
@@ -167,9 +214,19 @@ class PurchaseInvoiceController extends Controller
             'created_by' => auth()->id(),
         ]);
 
+        $invoice->deliveryNotes()->sync($deliveryNoteIds);
+        $invoice->refresh();
+        $invoice->forceFill(['delivery_note_id' => $deliveryNoteIds[0] ?? null])->saveQuietly();
+
+        $hasLinkedDeliveryNotes = count($deliveryNoteIds) > 0;
+
         foreach ($validated['items'] as $itemData) {
             $ivaAmount = round($itemData['quantity'] * $itemData['unit_price'] * $itemData['iva_rate'] / 100, 2);
             $total = $itemData['quantity'] * $itemData['unit_price'] + $ivaAmount;
+
+            $updatesStock = $hasLinkedDeliveryNotes
+                ? false
+                : filter_var($itemData['updates_stock'] ?? true, FILTER_VALIDATE_BOOLEAN);
 
             $invoice->items()->create([
                 'description' => $itemData['description'],
@@ -181,7 +238,7 @@ class PurchaseInvoiceController extends Controller
                 'total' => $total,
                 'lot_number' => $itemData['lot_number'] ?? null,
                 'expiration_date' => $itemData['expiration_date'] ?? null,
-                'updates_stock' => filter_var($itemData['updates_stock'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'updates_stock' => $updatesStock,
             ]);
         }
 
@@ -237,7 +294,7 @@ class PurchaseInvoiceController extends Controller
         $this->authorize('purchase-invoices.index');
 
         $purchaseInvoice->load([
-            'supplier', 'deliveryNote', 'purchaseOrder', 'creator',
+            'supplier', 'deliveryNotes', 'purchaseOrder', 'creator',
             'items.supply', 'paymentOrderItems.paymentOrder',
         ]);
 
@@ -255,8 +312,7 @@ class PurchaseInvoiceController extends Controller
                 ->with('error', 'Solo se pueden editar facturas en estado pendiente.');
         }
 
-        $purchaseInvoice->load('items.supply');
-        $purchaseInvoice->load('deliveryNote');
+        $purchaseInvoice->load(['items.supply', 'deliveryNotes']);
         $suppliers = Supplier::active()->orderBy('name')->get();
 
         return view('purchase-invoices.edit', [
@@ -282,6 +338,8 @@ class PurchaseInvoiceController extends Controller
             'point_of_sale' => 'nullable|string',
             'supplier_id' => 'required|exists:suppliers,id',
             'delivery_note_id' => 'nullable|exists:delivery_notes,id',
+            'delivery_note_ids' => 'nullable|array',
+            'delivery_note_ids.*' => 'integer|exists:delivery_notes,id',
             'purchase_order_id' => 'nullable|exists:purchase_orders,id',
             'issue_date' => 'required|date',
             'due_date' => 'nullable|date',
@@ -324,12 +382,15 @@ class PurchaseInvoiceController extends Controller
             'items.*.iva_rate.in' => 'La alícuota de IVA no es válida.',
         ]);
 
+        $deliveryNoteIds = $this->resolveDeliveryNoteIds($request);
+        $this->validateDeliveryNotesForInvoice($deliveryNoteIds, (int) $validated['supplier_id'], $purchaseInvoice->id);
+
         $purchaseInvoice->update([
             'invoice_number' => $validated['invoice_number'],
             'voucher_type' => $validated['voucher_type'],
             'point_of_sale' => $validated['point_of_sale'] ?? null,
             'supplier_id' => $validated['supplier_id'],
-            'delivery_note_id' => $validated['delivery_note_id'] ?? null,
+            'delivery_note_id' => $deliveryNoteIds[0] ?? null,
             'purchase_order_id' => $validated['purchase_order_id'] ?? null,
             'issue_date' => $validated['issue_date'],
             'due_date' => $validated['due_date'] ?? null,
@@ -341,11 +402,21 @@ class PurchaseInvoiceController extends Controller
             'qr_data' => isset($validated['qr_data']) ? json_decode($validated['qr_data'], true) : null,
         ]);
 
+        $purchaseInvoice->deliveryNotes()->sync($deliveryNoteIds);
+        $purchaseInvoice->refresh();
+        $purchaseInvoice->forceFill(['delivery_note_id' => $deliveryNoteIds[0] ?? null])->saveQuietly();
+
+        $hasLinkedDeliveryNotes = count($deliveryNoteIds) > 0;
+
         $purchaseInvoice->items()->delete();
 
         foreach ($validated['items'] as $itemData) {
             $ivaAmount = round($itemData['quantity'] * $itemData['unit_price'] * $itemData['iva_rate'] / 100, 2);
             $total = $itemData['quantity'] * $itemData['unit_price'] + $ivaAmount;
+
+            $updatesStock = $hasLinkedDeliveryNotes
+                ? false
+                : filter_var($itemData['updates_stock'] ?? true, FILTER_VALIDATE_BOOLEAN);
 
             $purchaseInvoice->items()->create([
                 'description' => $itemData['description'],
@@ -357,7 +428,7 @@ class PurchaseInvoiceController extends Controller
                 'total' => $total,
                 'lot_number' => $itemData['lot_number'] ?? null,
                 'expiration_date' => $itemData['expiration_date'] ?? null,
-                'updates_stock' => filter_var($itemData['updates_stock'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'updates_stock' => $updatesStock,
             ]);
         }
 
@@ -397,5 +468,78 @@ class PurchaseInvoiceController extends Controller
 
         return redirect()->route('purchase-invoices.index')
             ->with('success', "Factura {$fullNumber} eliminada.");
+    }
+
+    /** @return list<int> */
+    protected function resolveDeliveryNoteIds(Request $request): array
+    {
+        $raw = $request->input('delivery_note_ids', []);
+        if (! is_array($raw)) {
+            $raw = [];
+        }
+        $ids = collect($raw)->map(fn ($v) => (int) $v)->filter(fn ($id) => $id > 0)->unique()->values()->all();
+        if ($request->filled('delivery_note_id')) {
+            $single = (int) $request->delivery_note_id;
+            if ($single > 0) {
+                $ids = collect([$single])->merge($ids)->unique()->values()->all();
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * @param  list<int>  $ids
+     */
+    protected function validateDeliveryNotesForInvoice(array $ids, int $supplierId, ?int $excludePurchaseInvoiceId): void
+    {
+        $companyId = active_company_id();
+
+        foreach ($ids as $dnId) {
+            $dn = DeliveryNote::where('company_id', $companyId)->find($dnId);
+            if (! $dn) {
+                throw ValidationException::withMessages([
+                    'delivery_note_ids' => 'Uno de los remitos no existe o no pertenece a la empresa activa.',
+                ]);
+            }
+            if ((int) $dn->supplier_id !== (int) $supplierId) {
+                throw ValidationException::withMessages([
+                    'delivery_note_ids' => 'El remito '.$dn->remito_number.' no pertenece al proveedor seleccionado.',
+                ]);
+            }
+            if (! $this->deliveryNoteIsFreeForPurchaseInvoice($dnId, $excludePurchaseInvoiceId)) {
+                throw ValidationException::withMessages([
+                    'delivery_note_ids' => 'El remito '.$dn->remito_number.' ya está asociado a otra factura de compra.',
+                ]);
+            }
+        }
+    }
+
+    protected function deliveryNoteIsFreeForPurchaseInvoice(int $deliveryNoteId, ?int $excludePurchaseInvoiceId): bool
+    {
+        $inPivot = DB::table('delivery_note_purchase_invoice')
+            ->where('delivery_note_id', $deliveryNoteId)
+            ->when($excludePurchaseInvoiceId, fn ($q) => $q->where('purchase_invoice_id', '!=', $excludePurchaseInvoiceId))
+            ->exists();
+
+        $legacy = PurchaseInvoice::query()
+            ->where('delivery_note_id', $deliveryNoteId)
+            ->when($excludePurchaseInvoiceId, fn ($q) => $q->where('id', '!=', $excludePurchaseInvoiceId))
+            ->exists();
+
+        return ! $inPivot && ! $legacy;
+    }
+
+    protected function deliveryNoteIsLinkedToPurchaseInvoice(int $deliveryNoteId, ?int $purchaseInvoiceId): bool
+    {
+        if (! $purchaseInvoiceId) {
+            return false;
+        }
+
+        return DB::table('delivery_note_purchase_invoice')
+            ->where('delivery_note_id', $deliveryNoteId)
+            ->where('purchase_invoice_id', $purchaseInvoiceId)
+            ->exists()
+            || PurchaseInvoice::where('id', $purchaseInvoiceId)->where('delivery_note_id', $deliveryNoteId)->exists();
     }
 }

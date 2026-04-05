@@ -130,7 +130,7 @@
                                         {{ $note->receiver->name ?? '-' }}
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-right text-sm">
-                                        @php $hasInvoice = $note->relationLoaded('purchaseInvoices') ? $note->purchaseInvoices->isNotEmpty() : $note->hasPurchaseInvoice(); @endphp
+                                        @php $hasInvoice = ($note->purchase_invoices_exists ?? false) || ($note->legacy_linked_purchase_invoices_exists ?? false); @endphp
                                         <div class="flex items-center justify-end gap-2">
                                             <a href="{{ route('delivery-notes.show', $note) }}" class="text-gray-500 hover:text-zinc-700">Ver</a>
 
