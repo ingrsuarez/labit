@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class PurchaseInvoice extends Model
 {
@@ -36,6 +37,22 @@ class PurchaseInvoice extends Model
         return $this->belongsTo(Supplier::class);
     }
 
+    /**
+     * Remitos vinculados (fuente de verdad: pivote). La columna {@see $delivery_note_id} se sincroniza
+     * con el primer remito de la pivote por compatibilidad con código legacy.
+     */
+    public function deliveryNotes(): BelongsToMany
+    {
+        return $this->belongsToMany(DeliveryNote::class, 'delivery_note_purchase_invoice')
+            ->withTimestamps();
+    }
+
+    public function hasDeliveryNotes(): bool
+    {
+        return $this->deliveryNotes()->exists() || $this->delivery_note_id !== null;
+    }
+
+    /** @deprecated Prefer {@see deliveryNotes()}; apunta al primer remito vía FK legacy. */
     public function deliveryNote()
     {
         return $this->belongsTo(DeliveryNote::class);

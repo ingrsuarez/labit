@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-04 (v3.3.0 completada)
+> Última actualización: 2026-04-05 (v1.36.0 completada)
 
 ---
 
@@ -78,6 +78,7 @@
 | v1.32.4 | Editar y eliminar remitos con sincronización de stock | 2026-04-04 | Editar/eliminar solo sin FC; revertir/sincronizar stock |
 | v1.35.0 | Cuenta corriente de proveedores | 2026-04-04 | SupplierStatementController, HTML+PDF, saldo acumulado |
 | v3.3.0 | Asientos automáticos desde transacciones | 2026-04-04 | AccountingEntryService, hooks FV/NC/RC/FC/OP, widget en vistas show |
+| v1.36.0 | Múltiples remitos en factura de compra | 2026-04-05 | Tabla pivote `delivery_note_purchase_invoice`, formularios create/edit FC, tests |
 
 ---
 
@@ -92,6 +93,8 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
+| v1.37.0 | Stock por sede: modelo, migración y movimientos | 2–3 días | v1.30.2, v1.32.4, v2.2.0 | `pendientes/v1.37.0-stock-por-sede-modelo-y-movimientos.md` |
+| v1.38.0 | Stock por sede: compras, remitos, FC y vistas | 1–2 días | v1.37.0 | `pendientes/v1.38.0-stock-por-sede-compras-y-vistas.md` |
 | v3.4.0 | Libro Diario y Libro Mayor | medio día | v3.3.0 | `pendientes/v3.4.0-libro-diario-libro-mayor.md` |
 
 ---
@@ -111,10 +114,10 @@
 ## Progreso general
 
 ```
-Completadas:  70 versiones (v1.0.0 → v1.35.0, v2.0.0 → v2.7.0, v3.0.0 → v3.3.0)
-Planificadas: 1
+Completadas:  71 versiones (v1.0.0 → v1.36.0, v2.0.0 → v2.7.0, v3.0.0 → v3.3.0)
+Planificadas: 3
 En proceso:   0
-Próxima:      v3.4.0 — Libro Diario y Libro Mayor
+Próxima:      v1.37.0 — Stock por sede: modelo y movimientos
 ```
 
 ---

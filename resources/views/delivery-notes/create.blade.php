@@ -328,7 +328,7 @@
                     'quantity_received' => $item->pending_quantity,
                     'lot_number' => '',
                     'expiration_date' => '',
-                    '_tracks_lot' => $item->supply->tracks_lot,
+                    '_tracks_lot' => $item->supply->tracks_lot === true,
                     'notes' => '',
                     'from_po' => true,
                 ];
@@ -349,7 +349,7 @@
                             'quantity_received' => $item->pending_quantity,
                             'lot_number' => '',
                             'expiration_date' => '',
-                            '_tracks_lot' => $item->supply->tracks_lot,
+                            '_tracks_lot' => $item->supply->tracks_lot === true,
                             'notes' => '',
                             'from_po' => true,
                         ];

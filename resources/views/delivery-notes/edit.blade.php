@@ -319,17 +319,17 @@
 
     @php
         $existingItemsJson = $deliveryNote->items->map(function ($item) {
-            $brand = $item->supply->brand ?? '';
-            $name = $item->supply->name ?? '';
+            $brand = $item->supply?->brand ?? '';
+            $name = $item->supply?->name ?? '';
             return [
                 'supply_id' => $item->supply_id,
-                'supply_name' => $item->supply->name ?? 'Insumo eliminado',
+                'supply_name' => $item->supply?->name ?? 'Insumo eliminado',
                 '_supply_name' => $name,
                 '_supply_brand' => $brand,
                 '_supply_label' => $brand ? "{$name} — {$brand}" : $name,
-                '_supply_code' => $item->supply->code ?? '',
-                '_tracks_lot' => $item->supply->tracks_lot ?? false,
-                'unit' => $item->supply->unit ?? '',
+                '_supply_code' => $item->supply?->code ?? '',
+                '_tracks_lot' => $item->supply?->tracks_lot === true,
+                'unit' => $item->supply?->unit ?? '',
                 'ordered_qty' => $item->purchaseOrderItem?->quantity,
                 'pending_qty' => $item->purchaseOrderItem?->pending_quantity,
                 'purchase_order_item_id' => $item->purchase_order_item_id,
@@ -355,7 +355,7 @@
                             'quantity_received' => $item->pending_quantity,
                             'lot_number' => '',
                             'expiration_date' => '',
-                            '_tracks_lot' => $item->supply->tracks_lot,
+                            '_tracks_lot' => $item->supply->tracks_lot === true,
                             'notes' => '',
                             'from_po' => true,
                         ];

@@ -27,12 +27,16 @@
             <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{{ session('error') }}</div>
         @endif
 
-        @if($invoice->deliveryNote)
-            <div class="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 mb-6">
+        @if($invoice->deliveryNotes->isNotEmpty())
+            <div class="flex flex-wrap items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 mb-6">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/>
                 </svg>
-                <span>Stock actualizado por el remito <strong>{{ $invoice->deliveryNote->remito_number }}</strong>.</span>
+                <span>Los remitos asociados ya actualizaron el stock:
+                    @foreach($invoice->deliveryNotes as $dn)
+                        <a href="{{ route('delivery-notes.show', $dn) }}" class="font-semibold underline mx-1">{{ $dn->remito_number }}</a>@if(!$loop->last),@endif
+                    @endforeach
+                </span>
             </div>
         @elseif($invoice->items->where('updates_stock', true)->whereNotNull('supply_id')->count() > 0)
             <div class="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-4 py-2 mb-6">
@@ -64,15 +68,13 @@
                         <dd class="text-sm font-medium text-gray-800">{{ $invoice->invoice_number }}</dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-sm text-gray-500">Remito</dt>
-                        <dd class="text-sm font-medium text-gray-800">
-                            @if($invoice->deliveryNote)
-                                <a href="{{ route('delivery-notes.show', $invoice->deliveryNote) }}" class="text-zinc-700 hover:text-zinc-900 underline">
-                                    {{ $invoice->deliveryNote->number }}
-                                </a>
-                            @else
+                        <dt class="text-sm text-gray-500">Remitos</dt>
+                        <dd class="text-sm font-medium text-gray-800 text-right">
+                            @forelse($invoice->deliveryNotes as $dn)
+                                <a href="{{ route('delivery-notes.show', $dn) }}" class="text-zinc-700 hover:text-zinc-900 underline inline-block">{{ $dn->remito_number }}</a>@if(!$loop->last)<span class="text-gray-400">, </span>@endif
+                            @empty
                                 -
-                            @endif
+                            @endforelse
                         </dd>
                     </div>
                     <div class="flex justify-between">
