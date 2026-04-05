@@ -17,6 +17,14 @@
         <!-- Filtros -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
             <form method="GET" action="{{ route('stock-movements.index') }}" class="flex flex-col md:flex-row gap-3 flex-wrap">
+                <div class="w-full md:w-48">
+                    <select name="lab_branch_id" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                        <option value="">Todas las sedes</option>
+                        @foreach($branches as $br)
+                            <option value="{{ $br->id }}" {{ (string) request('lab_branch_id') === (string) $br->id ? 'selected' : '' }}>{{ $br->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="w-full md:w-56">
                     <select name="supply_id" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                         <option value="">Todos los insumos</option>
@@ -46,7 +54,7 @@
                 <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium transition-colors">
                     Filtrar
                 </button>
-                @if(request()->hasAny(['supply_id', 'type', 'date_from', 'date_to', 'reason']))
+                @if(request()->hasAny(['lab_branch_id', 'supply_id', 'type', 'date_from', 'date_to', 'reason']))
                     <a href="{{ route('stock-movements.index') }}" class="px-4 py-2 text-gray-500 hover:text-gray-700 text-sm font-medium transition-colors">
                         Limpiar
                     </a>
@@ -68,6 +76,7 @@
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Fecha</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Insumo</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Sede</th>
                                 <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Tipo</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Cantidad</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Anterior</th>
@@ -96,6 +105,9 @@
                                         <a href="{{ route('supplies.show', $mov->supply_id) }}" class="text-zinc-700 hover:text-zinc-900 font-medium">
                                             {{ $mov->supply->name }}
                                         </a>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                                        {{ $mov->labBranch->name ?? '—' }}
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-center">
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $colors[$mov->type] ?? 'bg-gray-100 text-gray-700' }}">

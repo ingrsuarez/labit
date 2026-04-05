@@ -26,7 +26,7 @@ class DeliveryNoteStockService
     {
         $this->reverseStockForDeletion($deliveryNote);
 
-        $branch = LabBranchResolver::requireActiveBranchForStock($deliveryNote->lab_branch_id);
+        $branch = LabBranchResolver::requireDocumentBranch($deliveryNote->lab_branch_id);
 
         $newItems = $deliveryNote->items()->with('supply')->get();
 

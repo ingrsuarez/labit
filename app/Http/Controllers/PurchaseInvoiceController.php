@@ -13,6 +13,7 @@ use App\Services\SupplyStockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class PurchaseInvoiceController extends Controller
@@ -21,9 +22,13 @@ class PurchaseInvoiceController extends Controller
     {
         $this->authorize('purchase-invoices.index');
 
-        $query = PurchaseInvoice::with(['supplier', 'creator', 'deliveryNotes'])
+        $query = PurchaseInvoice::with(['supplier', 'creator', 'deliveryNotes', 'labBranch'])
             ->where('company_id', active_company_id())
             ->orderByDesc('created_at');
+
+        if ($request->filled('lab_branch_id')) {
+            $query->where('lab_branch_id', $request->lab_branch_id);
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -47,7 +52,9 @@ class PurchaseInvoiceController extends Controller
             ->whereIn('status', ['pendiente', 'parcialmente_pagada'])
             ->sum('balance');
 
-        return view('purchase-invoices.index', compact('invoices', 'total_balance'));
+        $branches = LabBranchResolver::activeBranchesForForms();
+
+        return view('purchase-invoices.index', compact('invoices', 'total_balance', 'branches'));
     }
 
     public function checkDuplicate(Request $request)
@@ -99,7 +106,7 @@ class PurchaseInvoiceController extends Controller
             ->where('supplier_id', $supplierId)
             ->where('status', 'aceptado')
             ->orderByDesc('date')
-            ->get(['id', 'remito_number', 'date']);
+            ->get(['id', 'remito_number', 'date', 'lab_branch_id']);
 
         $eligible = $notes->filter(function (DeliveryNote $dn) use ($excludePi) {
             return $this->deliveryNoteIsFreeForPurchaseInvoice($dn->id, $excludePi)
@@ -129,11 +136,14 @@ class PurchaseInvoiceController extends Controller
                 ->findOrFail($request->purchase_order_id);
         }
 
+        $branches = LabBranchResolver::activeBranchesForForms();
+
         return view('purchase-invoices.create', [
             'suppliers' => $suppliers,
             'deliveryNote' => $deliveryNote,
             'purchaseOrder' => $purchaseOrder,
             'selectedSupplierId' => $request->supplier_id,
+            'branches' => $branches,
         ]);
     }
 
@@ -146,6 +156,11 @@ class PurchaseInvoiceController extends Controller
             'voucher_type' => 'required|in:A,B,C',
             'point_of_sale' => 'nullable|string',
             'supplier_id' => 'required|exists:suppliers,id',
+            'lab_branch_id' => [
+                'required',
+                'integer',
+                Rule::exists('lab_branches', 'id')->where(fn ($q) => $q->where('is_active', true)),
+            ],
             'delivery_note_id' => 'nullable|exists:delivery_notes,id',
             'delivery_note_ids' => 'nullable|array',
             'delivery_note_ids.*' => 'integer|exists:delivery_notes,id',
@@ -173,6 +188,8 @@ class PurchaseInvoiceController extends Controller
             'voucher_type.in' => 'El tipo de comprobante debe ser A, B o C.',
             'supplier_id.required' => 'Debe seleccionar un proveedor.',
             'supplier_id.exists' => 'El proveedor seleccionado no es válido.',
+            'lab_branch_id.required' => 'Seleccioná la sede / depósito.',
+            'lab_branch_id.exists' => 'La sede no es válida o está inactiva.',
             'issue_date.required' => 'La fecha de emisión es obligatoria.',
             'issue_date.date' => 'La fecha de emisión no es válida.',
             'due_date.date' => 'La fecha de vencimiento no es válida.',
@@ -193,13 +210,12 @@ class PurchaseInvoiceController extends Controller
 
         $deliveryNoteIds = $this->resolveDeliveryNoteIds($request);
         $this->validateDeliveryNotesForInvoice($deliveryNoteIds, (int) $validated['supplier_id'], null);
-
-        $invoiceLabBranchId = $this->resolveInvoiceLabBranchId($deliveryNoteIds);
+        $this->validateLinkedDeliveryNotesBranchConsistency($deliveryNoteIds, (int) $validated['lab_branch_id']);
 
         $invoice = PurchaseInvoice::create([
             'invoice_number' => $validated['invoice_number'],
             'company_id' => active_company_id(),
-            'lab_branch_id' => $invoiceLabBranchId,
+            'lab_branch_id' => (int) $validated['lab_branch_id'],
             'voucher_type' => $validated['voucher_type'],
             'point_of_sale' => $validated['point_of_sale'] ?? null,
             'supplier_id' => $validated['supplier_id'],
@@ -314,10 +330,12 @@ class PurchaseInvoiceController extends Controller
 
         $purchaseInvoice->load(['items.supply', 'deliveryNotes']);
         $suppliers = Supplier::active()->orderBy('name')->get();
+        $branches = LabBranchResolver::activeBranchesForForms();
 
         return view('purchase-invoices.edit', [
             'invoice' => $purchaseInvoice,
             'suppliers' => $suppliers,
+            'branches' => $branches,
         ]);
     }
 
@@ -337,6 +355,11 @@ class PurchaseInvoiceController extends Controller
             'voucher_type' => 'required|in:A,B,C',
             'point_of_sale' => 'nullable|string',
             'supplier_id' => 'required|exists:suppliers,id',
+            'lab_branch_id' => [
+                'required',
+                'integer',
+                Rule::exists('lab_branches', 'id')->where(fn ($q) => $q->where('is_active', true)),
+            ],
             'delivery_note_id' => 'nullable|exists:delivery_notes,id',
             'delivery_note_ids' => 'nullable|array',
             'delivery_note_ids.*' => 'integer|exists:delivery_notes,id',
@@ -364,6 +387,8 @@ class PurchaseInvoiceController extends Controller
             'voucher_type.in' => 'El tipo de comprobante debe ser A, B o C.',
             'supplier_id.required' => 'Debe seleccionar un proveedor.',
             'supplier_id.exists' => 'El proveedor seleccionado no es válido.',
+            'lab_branch_id.required' => 'Seleccioná la sede / depósito.',
+            'lab_branch_id.exists' => 'La sede no es válida o está inactiva.',
             'issue_date.required' => 'La fecha de emisión es obligatoria.',
             'issue_date.date' => 'La fecha de emisión no es válida.',
             'due_date.date' => 'La fecha de vencimiento no es válida.',
@@ -384,13 +409,14 @@ class PurchaseInvoiceController extends Controller
 
         $deliveryNoteIds = $this->resolveDeliveryNoteIds($request);
         $this->validateDeliveryNotesForInvoice($deliveryNoteIds, (int) $validated['supplier_id'], $purchaseInvoice->id);
+        $this->validateLinkedDeliveryNotesBranchConsistency($deliveryNoteIds, (int) $validated['lab_branch_id']);
 
         $purchaseInvoice->update([
             'invoice_number' => $validated['invoice_number'],
             'voucher_type' => $validated['voucher_type'],
             'point_of_sale' => $validated['point_of_sale'] ?? null,
             'supplier_id' => $validated['supplier_id'],
-            'lab_branch_id' => $this->resolveInvoiceLabBranchId($deliveryNoteIds),
+            'lab_branch_id' => (int) $validated['lab_branch_id'],
             'delivery_note_id' => $deliveryNoteIds[0] ?? null,
             'purchase_order_id' => $validated['purchase_order_id'] ?? null,
             'issue_date' => $validated['issue_date'],
@@ -461,18 +487,40 @@ class PurchaseInvoiceController extends Controller
             ->with('success', "Factura {$fullNumber} eliminada.");
     }
 
-    /** @param  list<int>  $deliveryNoteIds */
-    protected function resolveInvoiceLabBranchId(array $deliveryNoteIds): ?int
+    /**
+     * Remitos vinculados: misma sede y coincide con la sede elegida en la factura.
+     *
+     * @param  list<int>  $deliveryNoteIds
+     */
+    protected function validateLinkedDeliveryNotesBranchConsistency(array $deliveryNoteIds, int $invoiceLabBranchId): void
     {
+        if ($deliveryNoteIds === []) {
+            return;
+        }
+
         $companyId = active_company_id();
-        if ($deliveryNoteIds !== []) {
-            $first = DeliveryNote::where('company_id', $companyId)->whereKey($deliveryNoteIds[0])->first();
-            if ($first?->lab_branch_id) {
-                return (int) $first->lab_branch_id;
+        $notes = DeliveryNote::where('company_id', $companyId)->whereIn('id', $deliveryNoteIds)->get();
+
+        foreach ($notes as $dn) {
+            if (! $dn->lab_branch_id) {
+                throw ValidationException::withMessages([
+                    'delivery_note_ids' => 'El remito '.$dn->remito_number.' no tiene sede asignada. Corregí el remito antes de asociar la factura.',
+                ]);
             }
         }
 
-        return LabBranchResolver::resolveBranchIdForStock();
+        $distinct = $notes->pluck('lab_branch_id')->map(fn ($id) => (int) $id)->unique()->values();
+        if ($distinct->count() > 1) {
+            throw ValidationException::withMessages([
+                'delivery_note_ids' => 'Los remitos asociados deben ser todos de la misma sede.',
+            ]);
+        }
+
+        if ((int) $distinct->first() !== $invoiceLabBranchId) {
+            throw ValidationException::withMessages([
+                'lab_branch_id' => 'La sede de la factura debe coincidir con la de los remitos seleccionados.',
+            ]);
+        }
     }
 
     /** @return list<int> */

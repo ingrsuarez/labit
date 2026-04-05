@@ -38,6 +38,15 @@
                         </select>
                     </div>
                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sede / depósito <span class="text-red-500">*</span></label>
+                        <select name="lab_branch_id" required class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                            <option value="">Seleccionar...</option>
+                            @foreach($branches as $br)
+                                <option value="{{ $br->id }}" {{ (string) old('lab_branch_id', $order->lab_branch_id) === (string) $br->id ? 'selected' : '' }}>{{ $br->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Fecha <span class="text-red-500">*</span></label>
                         <input type="date" name="date" value="{{ old('date', $order->date->format('Y-m-d')) }}" required
                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">

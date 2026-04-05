@@ -7,6 +7,8 @@ use App\Models\Supply;
 use App\Services\LabBranchResolver;
 use App\Services\SupplyStockService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class StockMovementController extends Controller
 {
@@ -14,8 +16,12 @@ class StockMovementController extends Controller
     {
         $this->authorize('stock-movements.index');
 
-        $query = StockMovement::with(['supply', 'user'])
+        $query = StockMovement::with(['supply', 'user', 'labBranch'])
             ->orderByDesc('created_at');
+
+        if ($request->filled('lab_branch_id')) {
+            $query->where('lab_branch_id', $request->lab_branch_id);
+        }
 
         if ($request->filled('supply_id')) {
             $query->where('supply_id', $request->supply_id);
@@ -39,8 +45,9 @@ class StockMovementController extends Controller
 
         $movements = $query->paginate(20)->withQueryString();
         $supplies = Supply::orderBy('name')->get(['id', 'code', 'name']);
+        $branches = LabBranchResolver::activeBranchesForForms();
 
-        return view('stock-movements.index', compact('movements', 'supplies'));
+        return view('stock-movements.index', compact('movements', 'supplies', 'branches'));
     }
 
     public function create()
@@ -48,8 +55,9 @@ class StockMovementController extends Controller
         $this->authorize('stock-movements.create');
 
         $supplies = Supply::active()->orderBy('name')->get();
+        $branches = LabBranchResolver::activeBranchesForForms();
 
-        return view('stock-movements.create', compact('supplies'));
+        return view('stock-movements.create', compact('supplies', 'branches'));
     }
 
     public function store(Request $request)
@@ -58,6 +66,11 @@ class StockMovementController extends Controller
 
         $validated = $request->validate([
             'supply_id' => 'required|exists:supplies,id',
+            'lab_branch_id' => [
+                'required',
+                'integer',
+                Rule::exists('lab_branches', 'id')->where(fn ($q) => $q->where('is_active', true)),
+            ],
             'type' => 'required|in:entrada,salida,ajuste',
             'quantity' => 'required|numeric|min:0.01',
             'lot_number' => 'nullable|string|max:100',
@@ -65,13 +78,20 @@ class StockMovementController extends Controller
             'notes' => 'nullable|string|max:500',
         ], [
             'supply_id.required' => 'Debe seleccionar un insumo.',
+            'lab_branch_id.required' => 'Seleccioná la sede / depósito.',
+            'lab_branch_id.exists' => 'La sede no es válida o está inactiva.',
             'type.required' => 'Debe seleccionar el tipo de movimiento.',
             'quantity.required' => 'La cantidad es obligatoria.',
             'quantity.min' => 'La cantidad debe ser mayor a 0.',
         ]);
 
         $supply = Supply::findOrFail($validated['supply_id']);
-        $branch = LabBranchResolver::requireActiveBranchForStock();
+
+        try {
+            $branch = LabBranchResolver::requireDocumentBranch((int) $validated['lab_branch_id']);
+        } catch (ValidationException $e) {
+            return back()->withInput()->withErrors($e->errors());
+        }
 
         $payload = [
             'reason' => 'ajuste_manual',
