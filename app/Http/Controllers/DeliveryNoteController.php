@@ -310,6 +310,10 @@ class DeliveryNoteController extends Controller
             abort(403, 'Remito con factura asociada no puede editarse.');
         }
 
+        if ($request->input('stock_received_at') === '') {
+            $request->merge(['stock_received_at' => null]);
+        }
+
         $validated = $request->validate([
             'remito_number' => 'required|string|max:100',
             'supplier_id' => 'required|exists:suppliers,id',
@@ -457,6 +461,10 @@ class DeliveryNoteController extends Controller
 
         if (! empty($rules)) {
             $request->validate($rules, $messages);
+        }
+
+        if ($request->input('stock_received_at') === '') {
+            $request->merge(['stock_received_at' => null]);
         }
 
         $request->validate([

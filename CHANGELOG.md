@@ -31,6 +31,13 @@
 
 ---
 
+## [v1.38.2] — 2026-04-05 — Hotfix: validación `stock_received_at` vacío en remito
+
+### Corregido
+- Normalizar cadena vacía a `null` al aceptar o editar remito (evita error de validación `date` si se borra la fecha de recepción en stock)
+
+---
+
 ## [v1.38.1] — 2026-04-05 — Hotfix: fecha de movimientos de stock desde remito y FC
 
 ### Agregado
