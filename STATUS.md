@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-05 (develop: **v1.36.1** + v1.35.2; master sin release nuevo)
+> Última actualización: 2026-04-05 (develop: **v1.35.3** + v1.36.1 + v1.35.2; master sin release nuevo)
 
 ---
 
@@ -9,33 +9,33 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v3.3.0 / … / v1.38.0 / **v1.36.1** / **v1.35.2** |
-| **Última en master** | 2026-04-05 — tag **v1.38.0** (develop incluye **v1.36.1**, **v1.35.2**) |
-| **Última completada** | v1.36.1 — FC compra: reasignar empresa al editar (contabilidad) |
+| **Versión actual** | v3.3.0 / … / v1.38.0 / **v1.36.1** / **v1.35.3** / **v1.35.2** |
+| **Última en master** | 2026-04-05 — tag **v1.38.0** (develop incluye **v1.35.3**, **v1.36.1**, **v1.35.2**) |
+| **Última completada** | v1.35.3 — Movimientos stock: selector de lotes en salidas |
 | **En proceso** | — |
-| **Próxima** | v1.35.3 — movimientos stock selector de lotes (cola: v3.4.0) |
-| **Pendientes en cola** | 2 |
-| **Completadas** | 80 |
+| **Próxima** | v3.4.0 — Libro diario / Libro mayor |
+| **Pendientes en cola** | 1 |
+| **Completadas** | 81 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (2)
+### Pendientes (1)
 
 | Versión | Nombre |
 |---|---|
-| v1.35.3 | Movimientos stock: selector de lotes |
 | v3.4.0 | Libro diario / Libro mayor |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (80)
+### Completados (81)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.35.3 | Movimientos stock: selector de lotes | 2026-04-05 | v1.35.3 |
 | v1.36.1 | FC compra: editar y reasignar empresa | 2026-04-05 | v1.36.1 |
 | v1.35.2 | Movimientos stock: cantidad entera | 2026-04-05 | v1.35.2 |
 | v1.38.0 | Stock por sede: compras, remitos, FC y vistas | 2026-04-05 | v1.38.0 |
@@ -207,7 +207,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-Ejecutar AgenteProgramador para **v1.35.3** (movimientos stock: selector de lotes); en cola queda **v3.4.0**:
+Ejecutar AgenteProgramador para **v3.4.0** (libro diario / libro mayor) — único pendiente en cola `v*`:
 → `Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo completo.`
 
 ---
