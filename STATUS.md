@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-05 (v1.38.0 completada)
+> Última actualización: 2026-04-05 (hotfix migraciones pivot + v1.38.0)
 
 ---
 
@@ -12,19 +12,18 @@
 | **Versión actual** | v3.3.0 / v3.2.0 / v3.1.0 / v3.0.0 / v2.7.0 / v1.38.0 |
 | **Última completada** | v1.38.0 — Stock por sede: compras, remitos, FC y vistas |
 | **En proceso** | — |
-| **Próxima** | HOTFIX migraciones pivot + `lab_branch_id`; en cola también v1.35.2, v1.35.3, v1.36.1, v3.4.0 |
-| **Pendientes en cola** | 5 (incl. 1 hotfix) |
+| **Próxima** | v1.35.2 — movimientos stock cantidad entera (cola: v1.35.3, v1.36.1, v3.4.0) |
+| **Pendientes en cola** | 4 |
 | **Completadas** | 78 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (5)
+### Pendientes (4)
 
 | Versión | Nombre |
 |---|---|
-| HOTFIX | Migraciones: pivot FC–remitos + `lab_branch_id` |
 | v1.35.2 | Movimientos stock: cantidad entera |
 | v1.35.3 | Movimientos stock: selector de lotes |
 | v1.36.1 | FC compra: editar y reasignar empresa |
@@ -207,7 +206,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-Ejecutar AgenteProgramador para el siguiente prompt disponible (p. ej. HOTFIX migraciones o **v1.35.2** si aplica el orden `v*` del workflow):
+Ejecutar AgenteProgramador para **v1.35.2** (movimientos stock: cantidad entera), siguiente en cola `v*`:
 → `Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo completo.`
 
 ---

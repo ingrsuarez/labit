@@ -95,7 +95,6 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| **HOTFIX** | Migraciones: pivot FC–remitos + `lab_branch_id` | 30min | — | `pendientes/HOTFIX-migraciones-pivot-fc-remitos-y-lab-branch.md` |
 | v1.35.2 | Movimientos stock: cantidad entera | — | — | `pendientes/v1.35.2-movimientos-stock-cantidad-entera.md` |
 | v1.35.3 | Movimientos stock: selector de lotes | — | — | `pendientes/v1.35.3-movimientos-stock-selector-lotes.md` |
 | v1.36.1 | FC compra: editar y reasignar empresa | — | — | `pendientes/v1.36.1-fc-compra-edit-reasignar-empresa.md` |
@@ -119,9 +118,9 @@
 
 ```
 Completadas:  78 (tabla en STATUS.md; última v1.38.0)
-Planificadas: 4 + 1 hotfix
+Planificadas: 4
 En proceso:   0
-Próxima:      HOTFIX migraciones (pivot + lab_branch); cola v1.35.2 / v1.35.3 / v1.36.1 / v3.4.0
+Próxima:      v1.35.2 → v1.35.3 → v1.36.1 → v3.4.0
 ```
 
 ---
