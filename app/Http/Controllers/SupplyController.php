@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Supplier;
 use App\Models\Supply;
 use App\Models\SupplyCategory;
+use App\Services\SupplyLotBalanceService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SupplyController extends Controller
 {
@@ -189,5 +191,38 @@ class SupplyController extends Controller
             ->get(['id', 'code', 'name', 'brand', 'unit', 'stock', 'last_price', 'tracks_lot']);
 
         return response()->json($supplies);
+    }
+
+    /**
+     * Lotes con saldo > 0 para un insumo en una sede (movimientos manuales / trazabilidad).
+     */
+    public function availableLots(Request $request, Supply $supply)
+    {
+        $this->authorize('stock-movements.create');
+
+        if (! $supply->is_active) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'lab_branch_id' => [
+                'required',
+                'integer',
+                Rule::exists('lab_branches', 'id')->where(fn ($q) => $q->where('is_active', true)),
+            ],
+        ]);
+
+        $rows = app(SupplyLotBalanceService::class)->availableLots(
+            $supply->id,
+            (int) $validated['lab_branch_id']
+        );
+
+        return response()->json(
+            $rows->map(fn (object $r) => [
+                'lot_number' => $r->lot_number,
+                'expiration_date' => $r->expiration_date,
+                'quantity' => max(0, (int) round($r->quantity)),
+            ])->values()->all()
+        );
     }
 }

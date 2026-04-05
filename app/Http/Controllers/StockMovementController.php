@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\StockMovement;
 use App\Models\Supply;
 use App\Services\LabBranchResolver;
+use App\Services\SupplyLotBalanceService;
 use App\Services\SupplyStockService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -64,6 +66,8 @@ class StockMovementController extends Controller
     {
         $this->authorize('stock-movements.create');
 
+        $isAjuste = $request->input('type') === 'ajuste';
+
         $validated = $request->validate([
             'supply_id' => 'required|exists:supplies,id',
             'lab_branch_id' => [
@@ -72,7 +76,11 @@ class StockMovementController extends Controller
                 Rule::exists('lab_branches', 'id')->where(fn ($q) => $q->where('is_active', true)),
             ],
             'type' => 'required|in:entrada,salida,ajuste',
-            'quantity' => 'required|numeric|min:0.01',
+            'quantity' => [
+                'required',
+                'integer',
+                Rule::when($isAjuste, ['min:0'], ['min:1']),
+            ],
             'lot_number' => 'nullable|string|max:100',
             'expiration_date' => 'nullable|date',
             'notes' => 'nullable|string|max:500',
@@ -82,10 +90,48 @@ class StockMovementController extends Controller
             'lab_branch_id.exists' => 'La sede no es válida o está inactiva.',
             'type.required' => 'Debe seleccionar el tipo de movimiento.',
             'quantity.required' => 'La cantidad es obligatoria.',
-            'quantity.min' => 'La cantidad debe ser mayor a 0.',
+            'quantity.integer' => 'La cantidad debe ser un número entero.',
+            'quantity.min' => $isAjuste
+                ? 'La cantidad debe ser un número entero mayor o igual a 0.'
+                : 'La cantidad debe ser al menos 1.',
         ]);
 
         $supply = Supply::findOrFail($validated['supply_id']);
+
+        if ($validated['type'] === 'salida' && $supply->tracks_lot) {
+            if ($request->boolean('manual_lot_exit')) {
+                $request->validate([
+                    'confirm_manual_lot_exit' => 'accepted',
+                    'lot_number' => 'required|string|max:100',
+                    'expiration_date' => 'nullable|date',
+                ], [
+                    'confirm_manual_lot_exit.accepted' => 'Debés confirmar el consumo manual de lote (sin selector de saldo por lote).',
+                    'lot_number.required' => 'Indicá el número de lote.',
+                ]);
+            } else {
+                $request->validate([
+                    'lot_number' => 'required|string|max:100',
+                    'expiration_date' => 'nullable|date',
+                ], [
+                    'lot_number.required' => 'Seleccioná un lote de la lista o usá el modo manual.',
+                ]);
+
+                $lot = trim((string) $request->input('lot_number'));
+                $expRaw = $request->input('expiration_date');
+                $expYmd = $expRaw ? Carbon::parse($expRaw)->format('Y-m-d') : null;
+                $avail = app(SupplyLotBalanceService::class)->quantityAvailableForLot(
+                    $supply->id,
+                    (int) $validated['lab_branch_id'],
+                    $lot,
+                    $expYmd
+                );
+                if ($avail + 0.0001 < (int) $validated['quantity']) {
+                    throw ValidationException::withMessages([
+                        'quantity' => 'La cantidad supera el disponible del lote en esta sede ('.max(0, (int) round($avail)).').',
+                    ]);
+                }
+            }
+        }
 
         try {
             $branch = LabBranchResolver::requireDocumentBranch((int) $validated['lab_branch_id']);
@@ -97,7 +143,7 @@ class StockMovementController extends Controller
             'reason' => 'ajuste_manual',
             'lot_number' => $validated['lot_number'] ?? null,
             'expiration_date' => $validated['expiration_date'] ?? null,
-            'notes' => $validated['notes'],
+            'notes' => $validated['notes'] ?? null,
             'user_id' => auth()->id(),
         ];
 

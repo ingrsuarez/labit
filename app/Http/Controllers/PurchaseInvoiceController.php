@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\DeliveryNote;
 use App\Models\JournalEntry;
 use App\Models\PurchaseInvoice;
@@ -66,7 +67,16 @@ class PurchaseInvoiceController extends Controller
             'exclude_id' => 'nullable|integer',
         ]);
 
-        $exists = PurchaseInvoice::where('company_id', active_company_id())
+        $companyId = active_company_id();
+        if ($request->filled('exclude_id')) {
+            $inv = PurchaseInvoice::query()->find($request->exclude_id);
+            if (! $inv || ! auth()->user()->companies->contains('id', (int) $inv->company_id)) {
+                abort(403);
+            }
+            $companyId = (int) $inv->company_id;
+        }
+
+        $exists = PurchaseInvoice::where('company_id', $companyId)
             ->where('supplier_id', $request->supplier_id)
             ->where('point_of_sale', $request->point_of_sale)
             ->where('invoice_number', $request->invoice_number)
@@ -90,15 +100,16 @@ class PurchaseInvoiceController extends Controller
             'purchase_invoice_id' => 'nullable|integer|exists:purchase_invoices,id',
         ]);
 
-        $companyId = active_company_id();
         $supplierId = (int) $request->supplier_id;
         $excludePi = $request->filled('purchase_invoice_id') ? (int) $request->purchase_invoice_id : null;
 
+        $companyId = active_company_id();
         if ($excludePi) {
-            $pi = PurchaseInvoice::where('company_id', $companyId)->find($excludePi);
-            if (! $pi) {
+            $pi = PurchaseInvoice::query()->find($excludePi);
+            if (! $pi || ! auth()->user()->companies->contains('id', (int) $pi->company_id)) {
                 abort(404);
             }
+            $companyId = (int) $pi->company_id;
         }
 
         $notes = DeliveryNote::query()
@@ -305,7 +316,7 @@ class PurchaseInvoiceController extends Controller
 
     public function show(PurchaseInvoice $purchaseInvoice)
     {
-        abort_if($purchaseInvoice->company_id !== active_company_id(), 403);
+        $this->ensureUserCanAccessPurchaseInvoiceCompany($purchaseInvoice);
 
         $this->authorize('purchase-invoices.index');
 
@@ -319,7 +330,7 @@ class PurchaseInvoiceController extends Controller
 
     public function edit(PurchaseInvoice $purchaseInvoice)
     {
-        abort_if($purchaseInvoice->company_id !== active_company_id(), 403);
+        $this->ensureUserCanAccessPurchaseInvoiceCompany($purchaseInvoice);
 
         $this->authorize('purchase-invoices.edit');
 
@@ -331,17 +342,19 @@ class PurchaseInvoiceController extends Controller
         $purchaseInvoice->load(['items.supply', 'deliveryNotes']);
         $suppliers = Supplier::active()->orderBy('name')->get();
         $branches = LabBranchResolver::activeBranchesForForms();
+        $companies = auth()->user()->companies()->orderBy('name')->get();
 
         return view('purchase-invoices.edit', [
             'invoice' => $purchaseInvoice,
             'suppliers' => $suppliers,
             'branches' => $branches,
+            'companies' => $companies,
         ]);
     }
 
     public function update(Request $request, PurchaseInvoice $purchaseInvoice)
     {
-        abort_if($purchaseInvoice->company_id !== active_company_id(), 403);
+        $this->ensureUserCanAccessPurchaseInvoiceCompany($purchaseInvoice);
 
         $this->authorize('purchase-invoices.edit');
 
@@ -350,7 +363,20 @@ class PurchaseInvoiceController extends Controller
                 ->with('error', 'Solo se pueden editar facturas en estado pendiente.');
         }
 
+        $remitosCompanyId = (int) $purchaseInvoice->company_id;
+        $previousCompanyId = $remitosCompanyId;
+
         $validated = $request->validate([
+            'company_id' => [
+                'required',
+                'integer',
+                Rule::exists('companies', 'id'),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! auth()->user()->companies->contains('id', (int) $value)) {
+                        $fail('No tenés acceso a la empresa seleccionada.');
+                    }
+                },
+            ],
             'invoice_number' => 'required|string',
             'voucher_type' => 'required|in:A,B,C',
             'point_of_sale' => 'nullable|string',
@@ -405,13 +431,15 @@ class PurchaseInvoiceController extends Controller
             'items.*.unit_price.min' => 'El precio unitario no puede ser negativo.',
             'items.*.iva_rate.required' => 'La alícuota de IVA es obligatoria.',
             'items.*.iva_rate.in' => 'La alícuota de IVA no es válida.',
+            'company_id.required' => 'Debés indicar la empresa del comprobante.',
         ]);
 
         $deliveryNoteIds = $this->resolveDeliveryNoteIds($request);
-        $this->validateDeliveryNotesForInvoice($deliveryNoteIds, (int) $validated['supplier_id'], $purchaseInvoice->id);
-        $this->validateLinkedDeliveryNotesBranchConsistency($deliveryNoteIds, (int) $validated['lab_branch_id']);
+        $this->validateDeliveryNotesForInvoice($deliveryNoteIds, (int) $validated['supplier_id'], $purchaseInvoice->id, $remitosCompanyId);
+        $this->validateLinkedDeliveryNotesBranchConsistency($deliveryNoteIds, (int) $validated['lab_branch_id'], $remitosCompanyId);
 
         $purchaseInvoice->update([
+            'company_id' => (int) $validated['company_id'],
             'invoice_number' => $validated['invoice_number'],
             'voucher_type' => $validated['voucher_type'],
             'point_of_sale' => $validated['point_of_sale'] ?? null,
@@ -461,13 +489,30 @@ class PurchaseInvoiceController extends Controller
 
         $purchaseInvoice->recalculate();
 
+        $newCompanyId = (int) $validated['company_id'];
+        if ($previousCompanyId !== $newCompanyId
+            && JournalEntry::where('source_type', PurchaseInvoice::class)->where('source_id', $purchaseInvoice->id)->exists()) {
+            JournalEntry::deleteForSource($purchaseInvoice);
+            try {
+                (new AccountingEntryService)->fromPurchaseInvoice($purchaseInvoice->fresh(['items.supply', 'supplier']));
+            } catch (\Throwable $e) {
+                Log::error('Error regenerando asiento FC compra #'.$purchaseInvoice->id.' tras cambio de empresa: '.$e->getMessage());
+            }
+        }
+
+        $success = 'Factura actualizada correctamente.';
+        if ($previousCompanyId !== $newCompanyId) {
+            $name = Company::query()->whereKey($newCompanyId)->value('name') ?? 'la nueva empresa';
+            $success .= ' Factura asignada a '.$name.'. Cambiá la empresa activa para verla en el listado.';
+        }
+
         return redirect()->route('purchase-invoices.show', $purchaseInvoice)
-            ->with('success', 'Factura actualizada correctamente.');
+            ->with('success', $success);
     }
 
     public function destroy(PurchaseInvoice $purchaseInvoice)
     {
-        abort_if($purchaseInvoice->company_id !== active_company_id(), 403);
+        $this->ensureUserCanAccessPurchaseInvoiceCompany($purchaseInvoice);
 
         $this->authorize('purchase-invoices.delete');
 
@@ -492,13 +537,13 @@ class PurchaseInvoiceController extends Controller
      *
      * @param  list<int>  $deliveryNoteIds
      */
-    protected function validateLinkedDeliveryNotesBranchConsistency(array $deliveryNoteIds, int $invoiceLabBranchId): void
+    protected function validateLinkedDeliveryNotesBranchConsistency(array $deliveryNoteIds, int $invoiceLabBranchId, ?int $companyId = null): void
     {
         if ($deliveryNoteIds === []) {
             return;
         }
 
-        $companyId = active_company_id();
+        $companyId ??= active_company_id();
         $notes = DeliveryNote::where('company_id', $companyId)->whereIn('id', $deliveryNoteIds)->get();
 
         foreach ($notes as $dn) {
@@ -544,9 +589,9 @@ class PurchaseInvoiceController extends Controller
     /**
      * @param  list<int>  $ids
      */
-    protected function validateDeliveryNotesForInvoice(array $ids, int $supplierId, ?int $excludePurchaseInvoiceId): void
+    protected function validateDeliveryNotesForInvoice(array $ids, int $supplierId, ?int $excludePurchaseInvoiceId, ?int $companyId = null): void
     {
-        $companyId = active_company_id();
+        $companyId ??= active_company_id();
 
         foreach ($ids as $dnId) {
             $dn = DeliveryNote::where('company_id', $companyId)->find($dnId);
@@ -594,5 +639,13 @@ class PurchaseInvoiceController extends Controller
             ->where('purchase_invoice_id', $purchaseInvoiceId)
             ->exists()
             || PurchaseInvoice::where('id', $purchaseInvoiceId)->where('delivery_note_id', $deliveryNoteId)->exists();
+    }
+
+    protected function ensureUserCanAccessPurchaseInvoiceCompany(PurchaseInvoice $purchaseInvoice): void
+    {
+        abort_unless(
+            auth()->user()->companies->contains('id', (int) $purchaseInvoice->company_id),
+            403
+        );
     }
 }

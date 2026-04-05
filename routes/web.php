@@ -343,6 +343,8 @@ Route::middleware([
 
         // SUPPLIES (Insumos)
         Route::get('supplies/search', [App\Http\Controllers\SupplyController::class, 'search'])->name('supplies.search');
+        Route::get('supplies/{supply}/available-lots', [App\Http\Controllers\SupplyController::class, 'availableLots'])
+            ->name('supplies.available-lots');
         Route::resource('supplies', App\Http\Controllers\SupplyController::class);
 
         // STOCK MOVEMENTS (Movimientos de Stock)
@@ -394,6 +396,11 @@ Route::middleware([
     Route::middleware('can:contabilidad.section')->group(function () {
         Route::get('accounting', [App\Http\Controllers\AccountingSectionController::class, 'index'])
             ->name('accounting.section');
+        Route::resource('accounting/journal', App\Http\Controllers\JournalEntryController::class)
+            ->names('accounting.journal')
+            ->except(['show']);
+        Route::get('accounting/ledger', [App\Http\Controllers\AccountingLedgerController::class, 'index'])
+            ->name('accounting.ledger');
         Route::resource('accounting/accounts', App\Http\Controllers\AccountingAccountController::class)
             ->names('accounting.accounts');
         Route::resource('accounting/bank-accounts', App\Http\Controllers\BankAccountController::class)

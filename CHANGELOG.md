@@ -5,6 +5,18 @@
 
 ---
 
+## [v1.35.3] — 2026-04-05 — Selector de lotes en salidas manuales de stock
+
+### Agregado
+- `SupplyLotBalanceService`: saldo por lote desde `stock_movements` (entrada/salida con `lot_number`; ajustes no reparten por lote; filtrado por sede)
+- `GET supplies/{supply}/available-lots` (JSON) para el formulario de movimientos
+- En **salida** con insumo `tracks_lot`: selector de lotes con disponible; aviso y modo manual con confirmación si no hay buckets; validación servidor de cantidad vs disponible del lote
+
+### Notas
+- El consumo manual **recomienda** elegir lote existente cuando hay saldo calculado; la suma por lote puede no coincidir con el stock global tras ajustes sin trazabilidad por lote.
+
+---
+
 ## [v1.38.0] — 2026-04-05 — Stock por sede: compras, remitos, FC y vistas
 
 ### Agregado
@@ -43,6 +55,22 @@
 
 ### Modificado
 - Con remitos vinculados, los ítems de la FC fuerzan `updates_stock` en falso para evitar doble impacto de stock
+
+---
+
+## [v3.4.0] — 2026-04-05 — Libro Diario, Libro Mayor y asientos manuales
+
+### Agregado
+- `JournalEntryController`: listado con filtros (fechas, tipo automático/manual, búsqueda, número de asiento), alta/edición/baja de asientos **manuales** con partida doble; `sourcePresentation()` para enlaces al documento origen
+- `AccountingLedgerController`: Libro Mayor por cuenta imputable con saldo inicial del período, movimientos del mes, saldo acumulado y enlace al Libro Diario por número/fecha
+- Rutas `accounting.journal.*` (resource sin `show`) y `accounting.ledger`
+- Vistas Blade: `accounting/journal` (índice con líneas expandibles, crear/editar con Alpine.js) y `accounting/ledger/index`
+- Permisos `contabilidad.entries.edit`, `contabilidad.entries.delete`, `contabilidad.ledger.index` en `RolesAndPermissionsSeeder` (rol contador)
+- Dashboard contable: tarjetas activas Libro Diario / Libro Mayor; estadísticas de asientos del mes y automáticos vs manuales (empresa activa)
+- Tests `JournalAndLedgerTest`
+
+### Notas
+- Tras desplegar: `php artisan db:seed --class=RolesAndPermissionsSeeder` (y `php artisan permission:cache-reset` si aplica)
 
 ---
 

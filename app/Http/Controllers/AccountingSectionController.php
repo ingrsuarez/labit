@@ -13,15 +13,36 @@ class AccountingSectionController extends Controller
         $this->authorize('contabilidad.section');
 
         $totalAccounts = AccountingAccount::active()->count();
-        $totalEntries = JournalEntry::count();
         $pendingMovements = BankMovement::where('reconciliation_status', 'pending')->count();
+
+        $companyId = active_company_id() ?? auth()->user()->companies()->first()?->id;
+        $entriesThisMonth = 0;
+        $autoCount = 0;
+        $manualCount = 0;
+        if ($companyId) {
+            $entriesThisMonth = JournalEntry::query()
+                ->where('company_id', $companyId)
+                ->whereYear('date', now()->year)
+                ->whereMonth('date', now()->month)
+                ->count();
+            $autoCount = JournalEntry::query()
+                ->where('company_id', $companyId)
+                ->where('is_automatic', true)
+                ->count();
+            $manualCount = JournalEntry::query()
+                ->where('company_id', $companyId)
+                ->where('is_automatic', false)
+                ->count();
+        }
 
         $section = [
             'title' => 'Contabilidad',
             'description' => 'Plan de cuentas, libro diario y reportes contables',
             'stats' => [
                 ['label' => 'Cuentas activas', 'value' => $totalAccounts],
-                ['label' => 'Asientos registrados', 'value' => $totalEntries],
+                ['label' => 'Asientos este mes (empresa activa)', 'value' => $entriesThisMonth],
+                ['label' => 'Asientos automáticos', 'value' => $autoCount],
+                ['label' => 'Asientos manuales', 'value' => $manualCount],
                 ['label' => 'Mov. pendientes conciliar', 'value' => $pendingMovements],
             ],
             'items' => [
@@ -42,16 +63,16 @@ class AccountingSectionController extends Controller
                 [
                     'name' => 'Libro Diario',
                     'description' => 'Registro cronológico de asientos',
-                    'route' => null,
+                    'route' => route('accounting.journal.index'),
                     'icon' => 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253',
-                    'active' => false,
+                    'active' => true,
                 ],
                 [
                     'name' => 'Libro Mayor',
                     'description' => 'Movimientos por cuenta',
-                    'route' => null,
+                    'route' => route('accounting.ledger'),
                     'icon' => 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-                    'active' => false,
+                    'active' => true,
                 ],
                 [
                     'name' => 'Tesorería',
