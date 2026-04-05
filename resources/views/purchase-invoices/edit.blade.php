@@ -60,6 +60,15 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">Datos del Comprobante</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="md:col-span-2 lg:col-span-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Empresa <span class="text-red-500">*</span></label>
+                        <select name="company_id" required class="w-full max-w-md rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                            @foreach($companies as $co)
+                                <option value="{{ $co->id }}" {{ (string) old('company_id', $invoice->company_id) === (string) $co->id ? 'selected' : '' }}>{{ $co->name }}</option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Define en qué empresa queda registrada la compra a efectos contables. No modifica stock ni remitos.</p>
+                    </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Tipo Comprobante <span class="text-red-500">*</span></label>
                         <select name="voucher_type" required class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
