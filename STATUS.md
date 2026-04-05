@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-05 (develop y **master** alineados; release **v3.4.0**, **v1.35.3**, **v1.36.1**, **v1.35.2**)
+> Última actualización: 2026-04-05 (develop / master + hotfix **v1.38.1** fecha stock remito)
 
 ---
 
@@ -9,7 +9,7 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v3.4.0** / v3.3.0 / … / v1.38.0 / **v1.36.1** / **v1.35.3** / **v1.35.2** |
+| **Versión actual** | **v1.38.1** / **v3.4.0** / v3.3.0 / … / v1.38.0 / **v1.36.1** / **v1.35.3** / **v1.35.2** |
 | **Última en master** | 2026-04-05 — `release: develop -> master` (**v3.4.0**, **v1.35.3**, **v1.36.1**, **v1.35.2**); tags en remoto |
 | **Última completada** | v3.4.0 — Libro Diario, Libro Mayor y asientos manuales |
 | **En proceso** | — |

@@ -213,6 +213,17 @@
                 <form method="POST" action="{{ route('delivery-notes.accept', $deliveryNote) }}">
                     @csrf
 
+                    <div class="mb-5">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de recepción en stock</label>
+                        <input type="date" name="stock_received_at"
+                               value="{{ old('stock_received_at', $deliveryNote->date->format('Y-m-d')) }}"
+                               class="w-full max-w-xs rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                        <p class="text-xs text-gray-500 mt-1">Por defecto coincide con la fecha del remito. Cambiala si la mercadería ingresó en otra fecha.</p>
+                        @error('stock_received_at')
+                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     @if($hasLotItems)
                         <div class="mb-5">
                             <h3 class="text-sm font-semibold text-gray-700 mb-3">Datos de Lote</h3>

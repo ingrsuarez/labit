@@ -67,6 +67,15 @@
                                value="{{ old('date', $deliveryNote->date->format('Y-m-d')) }}" required
                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
+                    @if($deliveryNote->status === 'aceptado')
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Fecha recepción en stock</label>
+                        <input type="date" name="stock_received_at"
+                               value="{{ old('stock_received_at', $deliveryNote->stock_received_at?->format('Y-m-d') ?? $deliveryNote->date->format('Y-m-d')) }}"
+                               class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                        <p class="text-xs text-gray-500 mt-1">Usada al sincronizar movimientos. Si queda vacío, se usa la fecha del remito.</p>
+                    </div>
+                    @endif
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Sede / depósito <span class="text-red-500">*</span></label>
                         <select name="lab_branch_id" x-model="lab_branch_id" required class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
