@@ -41,7 +41,7 @@
                                         data-unit="{{ $sup->unit }}"
                                         data-tracks-lot="{{ $sup->tracks_lot ? '1' : '0' }}"
                                         {{ old('supply_id') == $sup->id ? 'selected' : '' }}>
-                                    {{ $sup->code }} - {{ $sup->name }}{{ $sup->brand ? ' ('.$sup->brand.')' : '' }} (Stock: {{ number_format($sup->stock, 2) }} {{ $sup->unit }})
+                                    {{ $sup->code }} - {{ $sup->name }}{{ $sup->brand ? ' ('.$sup->brand.')' : '' }} (Stock: {{ number_format((int) round((float) $sup->stock), 0, ',', '.') }} {{ $sup->unit }})
                                 </option>
                             @endforeach
                         </select>
@@ -61,7 +61,7 @@
                          class="p-3 bg-zinc-50 rounded-lg border border-zinc-200">
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-600">Stock actual:</span>
-                            <span class="text-lg font-bold text-gray-800" x-text="currentStock + ' ' + currentUnit"></span>
+                            <span class="text-lg font-bold text-gray-800" x-text="stockDisplay + ' ' + currentUnit"></span>
                         </div>
                     </div>
 
@@ -79,9 +79,11 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad <span class="text-red-500">*</span></label>
-                        <input type="number" name="quantity" value="{{ old('quantity') }}" step="0.01" min="0.01" required
-                               class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500"
-                               placeholder="0.00">
+                        <input type="number" name="quantity" value="{{ old('quantity') }}" step="1"
+                               x-bind:min="type === 'ajuste' ? 0 : 1"
+                               x-bind:placeholder="type === 'ajuste' ? '0' : '1'"
+                               required
+                               class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
 
                     <template x-if="tracksLot">
@@ -127,17 +129,21 @@
                 supplyId: '{{ old("supply_id", "") }}',
                 type: '{{ old("type", "") }}',
                 currentStock: null,
+                stockDisplay: '',
                 currentUnit: '',
                 tracksLot: false,
                 updateSupplyInfo() {
                     const select = document.querySelector('select[name="supply_id"]');
                     const option = select.options[select.selectedIndex];
                     if (option && option.value) {
-                        this.currentStock = option.dataset.stock;
+                        const raw = option.dataset.stock;
+                        this.currentStock = raw;
+                        this.stockDisplay = raw !== undefined && raw !== '' ? String(Math.round(parseFloat(raw))) : '';
                         this.currentUnit = option.dataset.unit;
                         this.tracksLot = option.dataset.tracksLot === '1';
                     } else {
                         this.currentStock = null;
+                        this.stockDisplay = '';
                         this.currentUnit = '';
                         this.tracksLot = false;
                     }
