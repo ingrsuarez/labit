@@ -8,6 +8,37 @@ use Illuminate\Validation\ValidationException;
 class LabBranchResolver
 {
     /**
+     * Sedes activas para formularios (compras, stock).
+     */
+    public static function activeBranchesForForms()
+    {
+        return LabBranch::query()->active()->orderBy('name')->get();
+    }
+
+    /**
+     * Sede del documento obligatoria (remito, etc.): no usa fallback a usuario.
+     *
+     * @throws ValidationException
+     */
+    public static function requireDocumentBranch(?int $labBranchId): LabBranch
+    {
+        if (! $labBranchId) {
+            throw ValidationException::withMessages([
+                'lab_branch_id' => 'El documento debe tener una sede / depósito asignado. Editá el registro y elegí la sede antes de continuar.',
+            ]);
+        }
+
+        $branch = LabBranch::query()->active()->whereKey($labBranchId)->first();
+        if (! $branch) {
+            throw ValidationException::withMessages([
+                'lab_branch_id' => 'La sede asignada no existe o está inactiva.',
+            ]);
+        }
+
+        return $branch;
+    }
+
+    /**
      * Primera sede activa central, o primera activa por id (misma regla que migración v1.37.0).
      */
     public static function defaultDatabaseBranchId(): ?int

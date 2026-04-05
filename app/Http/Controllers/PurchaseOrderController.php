@@ -8,6 +8,7 @@ use App\Models\Supplier;
 use App\Models\Supply;
 use App\Services\LabBranchResolver;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class PurchaseOrderController extends Controller
 {
@@ -15,9 +16,13 @@ class PurchaseOrderController extends Controller
     {
         $this->authorize('purchase-orders.index');
 
-        $query = PurchaseOrder::with(['supplier', 'creator', 'items'])
+        $query = PurchaseOrder::with(['supplier', 'creator', 'items', 'labBranch'])
             ->where('company_id', active_company_id())
             ->orderByDesc('created_at');
+
+        if ($request->filled('lab_branch_id')) {
+            $query->where('lab_branch_id', $request->lab_branch_id);
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -32,8 +37,9 @@ class PurchaseOrderController extends Controller
         }
 
         $orders = $query->paginate(15)->withQueryString();
+        $branches = LabBranchResolver::activeBranchesForForms();
 
-        return view('purchase-orders.index', compact('orders'));
+        return view('purchase-orders.index', compact('orders', 'branches'));
     }
 
     public function create(Request $request)
@@ -50,7 +56,9 @@ class PurchaseOrderController extends Controller
                 ->find($request->from_quotation);
         }
 
-        return view('purchase-orders.create', compact('suppliers', 'supplies', 'quotation'));
+        $branches = LabBranchResolver::activeBranchesForForms();
+
+        return view('purchase-orders.create', compact('suppliers', 'supplies', 'quotation', 'branches'));
     }
 
     public function store(Request $request)
@@ -59,6 +67,11 @@ class PurchaseOrderController extends Controller
 
         $validated = $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
+            'lab_branch_id' => [
+                'required',
+                'integer',
+                Rule::exists('lab_branches', 'id')->where(fn ($q) => $q->where('is_active', true)),
+            ],
             'date' => 'required|date',
             'expected_delivery_date' => 'nullable|date',
             'tax_rate' => 'required|numeric|min:0',
@@ -71,6 +84,8 @@ class PurchaseOrderController extends Controller
             'items.*.notes' => 'nullable|string|max:255',
         ], [
             'supplier_id.required' => 'Debe seleccionar un proveedor.',
+            'lab_branch_id.required' => 'Seleccioná la sede / depósito.',
+            'lab_branch_id.exists' => 'La sede no es válida o está inactiva.',
             'date.required' => 'La fecha es obligatoria.',
             'tax_rate.required' => 'La alícuota de IVA es obligatoria.',
             'tax_rate.numeric' => 'La alícuota de IVA debe ser un valor numérico.',
@@ -87,7 +102,7 @@ class PurchaseOrderController extends Controller
         $po = PurchaseOrder::create([
             'number' => PurchaseOrder::generateNumber(),
             'company_id' => active_company_id(),
-            'lab_branch_id' => LabBranchResolver::resolveBranchIdForStock(),
+            'lab_branch_id' => $validated['lab_branch_id'],
             'supplier_id' => $validated['supplier_id'],
             'quotation_request_id' => $validated['quotation_request_id'] ?? null,
             'date' => $validated['date'],
@@ -121,7 +136,7 @@ class PurchaseOrderController extends Controller
 
         $this->authorize('purchase-orders.index');
 
-        $purchaseOrder->load(['supplier', 'creator', 'approver', 'items.supply', 'quotationRequest', 'deliveryNotes']);
+        $purchaseOrder->load(['supplier', 'creator', 'approver', 'items.supply', 'quotationRequest', 'deliveryNotes', 'labBranch']);
 
         return view('purchase-orders.show', ['order' => $purchaseOrder]);
     }
@@ -140,11 +155,13 @@ class PurchaseOrderController extends Controller
         $purchaseOrder->load(['items.supply']);
         $suppliers = Supplier::active()->orderBy('name')->get();
         $supplies = Supply::active()->orderBy('name')->get();
+        $branches = LabBranchResolver::activeBranchesForForms();
 
         return view('purchase-orders.edit', [
             'order' => $purchaseOrder,
             'suppliers' => $suppliers,
             'supplies' => $supplies,
+            'branches' => $branches,
         ]);
     }
 
@@ -161,6 +178,11 @@ class PurchaseOrderController extends Controller
 
         $validated = $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
+            'lab_branch_id' => [
+                'required',
+                'integer',
+                Rule::exists('lab_branches', 'id')->where(fn ($q) => $q->where('is_active', true)),
+            ],
             'date' => 'required|date',
             'expected_delivery_date' => 'nullable|date',
             'tax_rate' => 'required|numeric|min:0',
@@ -173,6 +195,8 @@ class PurchaseOrderController extends Controller
             'items.*.notes' => 'nullable|string|max:255',
         ], [
             'supplier_id.required' => 'Debe seleccionar un proveedor.',
+            'lab_branch_id.required' => 'Seleccioná la sede / depósito.',
+            'lab_branch_id.exists' => 'La sede no es válida o está inactiva.',
             'date.required' => 'La fecha es obligatoria.',
             'tax_rate.required' => 'La alícuota de IVA es obligatoria.',
             'tax_rate.numeric' => 'La alícuota de IVA debe ser un valor numérico.',
@@ -188,6 +212,7 @@ class PurchaseOrderController extends Controller
 
         $purchaseOrder->update([
             'supplier_id' => $validated['supplier_id'],
+            'lab_branch_id' => $validated['lab_branch_id'],
             'date' => $validated['date'],
             'expected_delivery_date' => $validated['expected_delivery_date'] ?? null,
             'tax_rate' => $validated['tax_rate'],

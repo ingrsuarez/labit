@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-05 (v1.37.0 completada)
+> Última actualización: 2026-04-05 (v1.38.0 completada)
 
 ---
 
@@ -80,6 +80,7 @@
 | v3.3.0 | Asientos automáticos desde transacciones | 2026-04-04 | AccountingEntryService, hooks FV/NC/RC/FC/OP, widget en vistas show |
 | v1.36.0 | Múltiples remitos en factura de compra | 2026-04-05 | Tabla pivote `delivery_note_purchase_invoice`, formularios create/edit FC, tests |
 | v1.37.0 | Stock por sede: modelo, migración y movimientos | 2026-04-05 | `supply_lab_branch_stock`, `LabBranchResolver`, `SupplyStockService`, backfill |
+| v1.38.0 | Stock por sede: compras, remitos, FC y vistas | 2026-04-05 | `lab_branch_id` en OC/remitos/FC/movimientos; vistas insumos por sede; tests |
 
 ---
 
@@ -94,7 +95,9 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v1.38.0 | Stock por sede: compras, remitos, FC y vistas | 1–2 días | v1.37.0 | `pendientes/v1.38.0-stock-por-sede-compras-y-vistas.md` |
+| v1.35.2 | Movimientos stock: cantidad entera | — | — | `pendientes/v1.35.2-movimientos-stock-cantidad-entera.md` |
+| v1.35.3 | Movimientos stock: selector de lotes | — | — | `pendientes/v1.35.3-movimientos-stock-selector-lotes.md` |
+| v1.36.1 | FC compra: editar y reasignar empresa | — | — | `pendientes/v1.36.1-fc-compra-edit-reasignar-empresa.md` |
 | v3.4.0 | Libro Diario y Libro Mayor | medio día | v3.3.0 | `pendientes/v3.4.0-libro-diario-libro-mayor.md` |
 
 ---
@@ -114,10 +117,10 @@
 ## Progreso general
 
 ```
-Completadas:  72 versiones (v1.0.0 → v1.37.0, v2.0.0 → v2.7.0, v3.0.0 → v3.3.0)
-Planificadas: 2
+Completadas:  78 (tabla en STATUS.md; última v1.38.0)
+Planificadas: 4
 En proceso:   0
-Próxima:      v1.38.0 — Stock por sede: compras y vistas
+Próxima:      v1.35.2 → v1.35.3 → v1.36.1 → v3.4.0
 ```
 
 ---

@@ -9,15 +9,17 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('delivery_note_purchase_invoice', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('purchase_invoice_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('delivery_note_id')->constrained()->cascadeOnDelete();
-            $table->timestamps();
+        if (! Schema::hasTable('delivery_note_purchase_invoice')) {
+            Schema::create('delivery_note_purchase_invoice', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('purchase_invoice_id')->constrained()->cascadeOnDelete();
+                $table->foreignId('delivery_note_id')->constrained()->cascadeOnDelete();
+                $table->timestamps();
 
-            $table->unique('delivery_note_id', 'dn_pi_delivery_note_unique');
-            $table->unique(['purchase_invoice_id', 'delivery_note_id'], 'dn_pi_pair_unique');
-        });
+                $table->unique('delivery_note_id', 'dn_pi_delivery_note_unique');
+                $table->unique(['purchase_invoice_id', 'delivery_note_id'], 'dn_pi_pair_unique');
+            });
+        }
 
         $now = now();
         DB::table('purchase_invoices')
@@ -26,7 +28,7 @@ return new class extends Migration
             ->select(['id', 'delivery_note_id'])
             ->lazy()
             ->each(function ($row) use ($now) {
-                DB::table('delivery_note_purchase_invoice')->insert([
+                DB::table('delivery_note_purchase_invoice')->insertOrIgnore([
                     'purchase_invoice_id' => $row->id,
                     'delivery_note_id' => $row->delivery_note_id,
                     'created_at' => $now,

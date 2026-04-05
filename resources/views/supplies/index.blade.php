@@ -117,6 +117,7 @@
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Categoría</th>
                                 <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Unidad</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Stock</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider max-w-[14rem]">Por sede</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Mínimo</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Últ. Precio</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Acciones</th>
@@ -161,6 +162,16 @@
                                                 {{ number_format($supply->stock, 2, ',', '.') }}
                                             </span>
                                         @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-xs text-gray-600 max-w-[14rem]">
+                                        @php
+                                            $byBranch = $supply->branchStocks->sortBy(fn ($r) => $r->labBranch->name ?? '');
+                                        @endphp
+                                        @forelse($byBranch as $bs)
+                                            <div class="truncate" title="{{ $bs->labBranch->name ?? '—' }}">{{ $bs->labBranch->name ?? '—' }}: {{ number_format($bs->quantity, 2, ',', '.') }}</div>
+                                        @empty
+                                            <span class="text-gray-400">—</span>
+                                        @endforelse
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">
                                         {{ number_format($supply->min_stock, 2, ',', '.') }}

@@ -149,6 +149,15 @@
                         </select>
                     </div>
                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sede / depósito <span class="text-red-500">*</span></label>
+                        <select name="lab_branch_id" x-model="lab_branch_id" required class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                            <option value="">Seleccionar...</option>
+                            @foreach($branches as $br)
+                                <option value="{{ $br->id }}">{{ $br->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Fecha Emisión <span class="text-red-500">*</span></label>
                         <input type="date" name="issue_date" x-model="issue_date"
                                @change="autoCalcDueDate()" required
@@ -632,6 +641,7 @@
                 point_of_sale: '{{ old('point_of_sale') }}',
                 invoice_number: '{{ old('invoice_number') }}',
                 supplier_id: '{{ old('supplier_id', $selectedSupplierId ?? $deliveryNote?->supplier_id ?? $purchaseOrder?->supplier_id ?? '') }}',
+                lab_branch_id: '{{ old('lab_branch_id', $deliveryNote?->lab_branch_id ?? $purchaseOrder?->lab_branch_id ?? '') }}',
                 issue_date: '{{ old('issue_date', date('Y-m-d')) }}',
                 due_date: '{{ old('due_date') }}',
                 editId: null,
@@ -651,6 +661,19 @@
                     return this.availableDeliveryNotes.filter(n => !this.deliveryNoteIds.includes(n.id));
                 },
 
+                syncBranchFromLinkedRemitos() {
+                    const ids = this.deliveryNoteIds;
+                    if (!ids.length) return;
+                    const branches = ids.map(id => {
+                        const n = this.availableDeliveryNotes.find(x => Number(x.id) === Number(id));
+                        return n && n.lab_branch_id != null ? Number(n.lab_branch_id) : null;
+                    }).filter(b => b != null);
+                    const uniq = [...new Set(branches)];
+                    if (uniq.length === 1) {
+                        this.lab_branch_id = String(uniq[0]);
+                    }
+                },
+
                 async fetchAvailableDeliveryNotes() {
                     if (!this.supplier_id) {
                         this.availableDeliveryNotes = [];
@@ -665,6 +688,7 @@
                         this.availableDeliveryNotes = [];
                     } finally {
                         this.loadingDeliveryNotes = false;
+                        this.syncBranchFromLinkedRemitos();
                     }
                 },
 
@@ -702,6 +726,7 @@
                             updates_stock: false,
                         }));
                         this.items = [...this.items, ...newRows];
+                        this.syncBranchFromLinkedRemitos();
                     } catch (e) {
                         alert('Error al cargar los ítems del remito. Intentá de nuevo.');
                     }
@@ -710,6 +735,7 @@
                 removeDeliveryNoteById(dnId) {
                     this.deliveryNoteIds = this.deliveryNoteIds.filter(i => i !== dnId);
                     delete this.deliveryNoteLabels[dnId];
+                    this.syncBranchFromLinkedRemitos();
                 },
 
                 padPointOfSale() {

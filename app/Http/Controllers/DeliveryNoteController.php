@@ -10,9 +10,55 @@ use App\Services\LabBranchResolver;
 use App\Services\SupplyStockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class DeliveryNoteController extends Controller
 {
+    protected function assertRemitoBranchMatchesPurchaseOrder(?int $purchaseOrderId, int $labBranchId): void
+    {
+        if (! $purchaseOrderId) {
+            return;
+        }
+
+        $po = PurchaseOrder::where('company_id', active_company_id())->find($purchaseOrderId);
+        if ($po && $po->lab_branch_id && (int) $po->lab_branch_id !== (int) $labBranchId) {
+            throw ValidationException::withMessages([
+                'lab_branch_id' => 'La sede debe coincidir con la de la orden de compra vinculada.',
+            ]);
+        }
+    }
+
+    public function checkDuplicateRemito(Request $request)
+    {
+        abort_unless(
+            auth()->user()->can('delivery-notes.create') || auth()->user()->can('delivery-notes.edit'),
+            403
+        );
+
+        $validated = $request->validate([
+            'remito_number' => 'required|string|max:100',
+            'supplier_id' => 'required|integer|exists:suppliers,id',
+            'exclude_id' => 'nullable|integer',
+        ]);
+
+        $remito = trim($validated['remito_number']);
+        if ($remito === '') {
+            return response()->json(['duplicate' => false]);
+        }
+
+        $query = DeliveryNote::query()
+            ->where('company_id', active_company_id())
+            ->where('remito_number', $remito)
+            ->where('supplier_id', $validated['supplier_id']);
+
+        if (! empty($validated['exclude_id'])) {
+            $query->where('id', '!=', (int) $validated['exclude_id']);
+        }
+
+        return response()->json(['duplicate' => $query->exists()]);
+    }
+
     public function bySupplier(Request $request)
     {
         $request->validate(['supplier_id' => 'required|integer']);
@@ -60,11 +106,15 @@ class DeliveryNoteController extends Controller
     {
         $this->authorize('delivery-notes.index');
 
-        $query = DeliveryNote::with(['supplier', 'purchaseOrder', 'receiver'])
+        $query = DeliveryNote::with(['supplier', 'purchaseOrder', 'receiver', 'labBranch'])
             ->withExists('purchaseInvoices')
             ->withExists('legacyLinkedPurchaseInvoices')
             ->where('company_id', active_company_id())
             ->orderByDesc('created_at');
+
+        if ($request->filled('lab_branch_id')) {
+            $query->where('lab_branch_id', $request->lab_branch_id);
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -79,8 +129,9 @@ class DeliveryNoteController extends Controller
         }
 
         $deliveryNotes = $query->paginate(15)->withQueryString();
+        $branches = LabBranchResolver::activeBranchesForForms();
 
-        return view('delivery-notes.index', compact('deliveryNotes'));
+        return view('delivery-notes.index', compact('deliveryNotes', 'branches'));
     }
 
     public function create(Request $request)
@@ -110,7 +161,9 @@ class DeliveryNoteController extends Controller
             ->orderByDesc('date')
             ->get();
 
-        return view('delivery-notes.create', compact('suppliers', 'purchaseOrder', 'purchaseOrders'));
+        $branches = LabBranchResolver::activeBranchesForForms();
+
+        return view('delivery-notes.create', compact('suppliers', 'purchaseOrder', 'purchaseOrders', 'branches'));
     }
 
     public function store(Request $request)
@@ -120,6 +173,11 @@ class DeliveryNoteController extends Controller
         $validated = $request->validate([
             'remito_number' => 'required|string|max:100',
             'supplier_id' => 'required|exists:suppliers,id',
+            'lab_branch_id' => [
+                'required',
+                'integer',
+                Rule::exists('lab_branches', 'id')->where(fn ($q) => $q->where('is_active', true)),
+            ],
             'purchase_order_id' => 'nullable|exists:purchase_orders,id',
             'date' => 'required|date',
             'notes' => 'nullable|string',
@@ -133,6 +191,8 @@ class DeliveryNoteController extends Controller
         ], [
             'remito_number.required' => 'El número de remito es obligatorio.',
             'supplier_id.required' => 'Debe seleccionar un proveedor.',
+            'lab_branch_id.required' => 'Seleccioná la sede / depósito.',
+            'lab_branch_id.exists' => 'La sede no es válida o está inactiva.',
             'date.required' => 'La fecha es obligatoria.',
             'items.required' => 'Debe agregar al menos un ítem.',
             'items.min' => 'Debe agregar al menos un ítem.',
@@ -141,8 +201,15 @@ class DeliveryNoteController extends Controller
             'items.*.quantity_received.min' => 'La cantidad recibida debe ser al menos 1.',
         ]);
 
+        $this->assertRemitoBranchMatchesPurchaseOrder(
+            isset($validated['purchase_order_id']) ? (int) $validated['purchase_order_id'] : null,
+            (int) $validated['lab_branch_id']
+        );
+
+        $remitoNumber = trim($validated['remito_number']);
+
         $duplicate = DeliveryNote::where('company_id', active_company_id())
-            ->where('remito_number', $validated['remito_number'])
+            ->where('remito_number', $remitoNumber)
             ->where('supplier_id', $validated['supplier_id'])
             ->exists();
 
@@ -152,22 +219,10 @@ class DeliveryNoteController extends Controller
             ]);
         }
 
-        $labBranchId = null;
-        if (! empty($validated['purchase_order_id'])) {
-            $po = PurchaseOrder::where('company_id', active_company_id())
-                ->find($validated['purchase_order_id']);
-            if ($po) {
-                $labBranchId = $po->lab_branch_id;
-            }
-        }
-        if ($labBranchId === null) {
-            $labBranchId = LabBranchResolver::resolveBranchIdForStock();
-        }
-
         $deliveryNote = DeliveryNote::create([
-            'remito_number' => $validated['remito_number'],
+            'remito_number' => $remitoNumber,
             'company_id' => active_company_id(),
-            'lab_branch_id' => $labBranchId,
+            'lab_branch_id' => $validated['lab_branch_id'],
             'supplier_id' => $validated['supplier_id'],
             'purchase_order_id' => $validated['purchase_order_id'] ?? null,
             'date' => $validated['date'],
@@ -200,7 +255,7 @@ class DeliveryNoteController extends Controller
 
         $this->authorize('delivery-notes.index');
 
-        $deliveryNote->load(['supplier', 'purchaseOrder', 'receiver', 'items.supply', 'items.purchaseOrderItem']);
+        $deliveryNote->load(['supplier', 'purchaseOrder', 'receiver', 'labBranch', 'items.supply', 'items.purchaseOrderItem']);
 
         return view('delivery-notes.show', ['deliveryNote' => $deliveryNote]);
     }
@@ -233,11 +288,14 @@ class DeliveryNoteController extends Controller
             ->orderByDesc('date')
             ->get();
 
+        $branches = LabBranchResolver::activeBranchesForForms();
+
         return view('delivery-notes.edit', [
             'deliveryNote' => $deliveryNote,
             'suppliers' => $suppliers,
             'purchaseOrder' => $purchaseOrder,
             'purchaseOrders' => $purchaseOrders,
+            'branches' => $branches,
         ]);
     }
 
@@ -254,6 +312,11 @@ class DeliveryNoteController extends Controller
         $validated = $request->validate([
             'remito_number' => 'required|string|max:100',
             'supplier_id' => 'required|exists:suppliers,id',
+            'lab_branch_id' => [
+                'required',
+                'integer',
+                Rule::exists('lab_branches', 'id')->where(fn ($q) => $q->where('is_active', true)),
+            ],
             'purchase_order_id' => 'nullable|exists:purchase_orders,id',
             'date' => 'required|date',
             'notes' => 'nullable|string',
@@ -267,6 +330,8 @@ class DeliveryNoteController extends Controller
         ], [
             'remito_number.required' => 'El número de remito es obligatorio.',
             'supplier_id.required' => 'Debe seleccionar un proveedor.',
+            'lab_branch_id.required' => 'Seleccioná la sede / depósito.',
+            'lab_branch_id.exists' => 'La sede no es válida o está inactiva.',
             'date.required' => 'La fecha es obligatoria.',
             'items.required' => 'Debe agregar al menos un ítem.',
             'items.min' => 'Debe agregar al menos un ítem.',
@@ -275,25 +340,32 @@ class DeliveryNoteController extends Controller
             'items.*.quantity_received.min' => 'La cantidad recibida debe ser al menos 1.',
         ]);
 
+        $this->assertRemitoBranchMatchesPurchaseOrder(
+            isset($validated['purchase_order_id']) ? (int) $validated['purchase_order_id'] : null,
+            (int) $validated['lab_branch_id']
+        );
+
+        $remitoNumber = trim($validated['remito_number']);
+
+        $duplicate = DeliveryNote::where('company_id', active_company_id())
+            ->where('remito_number', $remitoNumber)
+            ->where('supplier_id', $validated['supplier_id'])
+            ->where('id', '!=', $deliveryNote->id)
+            ->exists();
+
+        if ($duplicate) {
+            return back()->withInput()->withErrors([
+                'remito_number' => 'Ya existe un remito con este número para el mismo proveedor.',
+            ]);
+        }
+
         $wasAccepted = $deliveryNote->status === 'aceptado';
 
-        $labBranchId = $deliveryNote->lab_branch_id;
-        if (! empty($validated['purchase_order_id'])) {
-            $po = PurchaseOrder::where('company_id', active_company_id())
-                ->find($validated['purchase_order_id']);
-            if ($po && $po->lab_branch_id) {
-                $labBranchId = $po->lab_branch_id;
-            }
-        }
-        if ($labBranchId === null) {
-            $labBranchId = LabBranchResolver::resolveBranchIdForStock();
-        }
-
         $deliveryNote->update([
-            'remito_number' => $validated['remito_number'],
+            'remito_number' => $remitoNumber,
             'supplier_id' => $validated['supplier_id'],
             'purchase_order_id' => $validated['purchase_order_id'] ?? null,
-            'lab_branch_id' => $labBranchId,
+            'lab_branch_id' => $validated['lab_branch_id'],
             'date' => $validated['date'],
             'notes' => $validated['notes'] ?? null,
         ]);
@@ -381,10 +453,15 @@ class DeliveryNoteController extends Controller
             $request->validate($rules, $messages);
         }
 
+        try {
+            $branch = LabBranchResolver::requireDocumentBranch($deliveryNote->lab_branch_id);
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->errors());
+        }
+
         DB::beginTransaction();
 
         try {
-            $branch = LabBranchResolver::requireActiveBranchForStock($deliveryNote->lab_branch_id);
             $stockSvc = app(SupplyStockService::class);
 
             foreach ($deliveryNote->items as $item) {

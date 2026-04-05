@@ -46,6 +46,20 @@
             </div>
         </div>
 
+        @if($supply->branchStocks->isNotEmpty())
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+                <h2 class="text-sm font-semibold text-gray-800 mb-3">Stock por sede</h2>
+                <ul class="divide-y divide-gray-100">
+                    @foreach($supply->branchStocks->sortBy(fn ($r) => $r->labBranch->name ?? '') as $bs)
+                        <li class="py-2 flex justify-between text-sm">
+                            <span class="text-gray-600">{{ $bs->labBranch->name ?? '—' }}</span>
+                            <span class="font-medium text-gray-800">{{ number_format($bs->quantity, 2, ',', '.') }} {{ $supply->unit }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         @if($supply->description)
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
                 <p class="text-sm text-gray-600">{{ $supply->description }}</p>
@@ -68,6 +82,7 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Fecha</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Sede</th>
                                 <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Tipo</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Cantidad</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Stock Anterior</th>
@@ -91,6 +106,7 @@
                                 @endphp
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3 text-sm text-gray-600">{{ $mov->created_at->format('d/m/Y H:i') }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">{{ $mov->labBranch->name ?? '—' }}</td>
                                     <td class="px-4 py-3 text-center">
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $colors[$mov->type] ?? 'bg-gray-100 text-gray-700' }}">
                                             {{ $mov->type_label }}

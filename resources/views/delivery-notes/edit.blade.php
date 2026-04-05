@@ -1,5 +1,5 @@
 <x-admin-layout>
-    <div class="p-4 md:p-6" x-data="deliveryEditForm()">
+    <div class="p-4 md:p-6" x-data="deliveryEditForm()" @add-remito-item="addFreeItemAndFocusNext()">
         <div class="flex items-center justify-between mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Editar Remito {{ $deliveryNote->remito_number }}</h1>
@@ -32,29 +32,32 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('delivery-notes.update', $deliveryNote) }}" @keydown.enter="if ($event.target.tagName === 'INPUT') $event.preventDefault()">
+        <form method="POST" action="{{ route('delivery-notes.update', $deliveryNote) }}" @keydown.enter="remitoHeaderEnter($event)" @submit="if (duplicateRemitoWarning) { $event.preventDefault(); }">
             @csrf
             @method('PUT')
 
             <!-- Datos Generales -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">Datos del Remito</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div x-show="duplicateRemitoWarning" x-cloak class="mb-4 p-3 rounded-lg border border-amber-300 bg-amber-50 text-sm text-amber-900 flex gap-2 items-start">
+                    <svg class="w-5 h-5 shrink-0 text-amber-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <span>Ya existe otro remito con este número para el mismo proveedor. Corregí antes de guardar.</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">N° Remito <span class="text-red-500">*</span></label>
-                        <input type="text" name="remito_number"
-                               value="{{ old('remito_number', $deliveryNote->remito_number) }}" required
-                               class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                        <input type="text" name="remito_number" x-model="remitoNumberForDup" @input.debounce.400ms="checkDuplicateRemito()" required
+                               :class="duplicateRemitoWarning ? 'w-full rounded-lg border-red-400 text-sm focus:border-red-500 focus:ring-red-500' : 'w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500'">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor <span class="text-red-500">*</span></label>
-                        <select name="supplier_id" required class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                        <select name="supplier_id" x-model="supplierIdForDup" @change="checkDuplicateRemito()" required
+                                :class="duplicateRemitoWarning ? 'w-full rounded-lg border-red-400 text-sm focus:border-red-500 focus:ring-red-500' : 'w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500'">
                             <option value="">Seleccionar...</option>
                             @foreach($suppliers as $sup)
-                                <option value="{{ $sup->id }}"
-                                    {{ old('supplier_id', $deliveryNote->supplier_id) == $sup->id ? 'selected' : '' }}>
-                                    {{ $sup->name }}
-                                </option>
+                                <option value="{{ $sup->id }}">{{ $sup->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -65,6 +68,15 @@
                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sede / depósito <span class="text-red-500">*</span></label>
+                        <select name="lab_branch_id" x-model="lab_branch_id" required class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                            <option value="">Seleccionar...</option>
+                            @foreach($branches as $br)
+                                <option value="{{ $br->id }}">{{ $br->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="md:col-span-2 lg:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Orden de Compra</label>
                         <select name="purchase_order_id" x-model="selectedPO" @change="loadPOItems()"
                                 class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
@@ -82,7 +94,7 @@
                             @endif
                         </select>
                     </div>
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-2 lg:col-span-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
                         <textarea name="notes" rows="2" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500"
                                   placeholder="Observaciones opcionales">{{ old('notes', $deliveryNote->notes) }}</textarea>
@@ -91,7 +103,7 @@
             </div>
 
             <!-- Items -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
+            <div id="remito-items-section" class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-800">Ítems del Remito</h2>
                     <button type="button" @click="addFreeItem()"
@@ -138,7 +150,7 @@
                                                            @focus="if (searchText.length >= 2) showResults = true"
                                                            @keydown.arrow-down.prevent="highlightNext()"
                                                            @keydown.arrow-up.prevent="highlightPrev()"
-                                                           @keydown.enter.prevent="selectHighlighted()"
+                                                           @keydown.enter.prevent="onSupplySearchEnter()"
                                                            @keydown.escape="showResults = false"
                                                            @keydown.tab="onTab($event)"
                                                            placeholder="Buscar insumo..."
@@ -200,12 +212,13 @@
                                                x-model.number="item.quantity_received"
                                                min="1" step="1" required
                                                :id="'item-qty-' + index"
+                                               @keydown.enter.prevent="$dispatch('add-remito-item')"
                                                class="w-24 rounded border-gray-300 text-sm text-center focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
                                     <td class="px-3 py-2">
                                         <input type="text" :name="'items[' + index + '][lot_number]'"
                                                x-model="item.lot_number"
-                                               @keydown.enter.prevent
+                                               @keydown.enter.prevent="$dispatch('add-remito-item')"
                                                placeholder="—"
                                                :disabled="!item._tracks_lot"
                                                :class="item._tracks_lot ? '' : 'bg-gray-50 text-gray-300'"
@@ -214,13 +227,14 @@
                                     <td class="px-3 py-2">
                                         <input type="date" :name="'items[' + index + '][expiration_date]'"
                                                x-model="item.expiration_date"
+                                               @keydown.enter.prevent="$dispatch('add-remito-item')"
                                                :disabled="!item._tracks_lot"
                                                :class="item._tracks_lot ? '' : 'bg-gray-50 text-gray-300'"
                                                class="w-32 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
                                     <td class="px-3 py-2">
                                         <input type="text" :name="'items[' + index + '][notes]'" x-model="item.notes"
-                                               @keydown.enter.prevent
+                                               @keydown.enter.prevent="$dispatch('add-remito-item')"
                                                placeholder="—"
                                                class="w-full rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
@@ -247,7 +261,7 @@
                    class="px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 text-sm">
                     Cancelar
                 </a>
-                <button type="submit" :disabled="items.length === 0"
+                <button type="submit" :disabled="items.length === 0 || duplicateRemitoWarning"
                         class="px-6 py-3 bg-zinc-700 text-white font-semibold rounded-lg hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm shadow-sm">
                     Guardar Cambios
                 </button>
@@ -362,6 +376,10 @@
                     })->values()
             ];
         });
+        $poBranchByIdJson = $purchaseOrders->mapWithKeys(fn ($po) => [$po->id => $po->lab_branch_id]);
+        if ($purchaseOrder) {
+            $poBranchByIdJson[$purchaseOrder->id] = $purchaseOrder->lab_branch_id;
+        }
     @endphp
     <script>
         function supplySearch(item, index) {
@@ -435,6 +453,15 @@
                     }
                 },
 
+                onSupplySearchEnter() {
+                    if (this.showResults && this.highlightedIndex >= 0 && this.highlightedIndex < this.results.length) {
+                        this.selectHighlighted();
+
+                        return;
+                    }
+                    this.$dispatch('add-remito-item');
+                },
+
                 onTab(event) {
                     if (this.showResults && this.highlightedIndex >= 0) {
                         event.preventDefault();
@@ -461,9 +488,16 @@
             const existingItems = @json($existingItemsJson);
 
             const purchaseOrdersItemsMap = @json($poItemsMap);
+            const poBranchById = @json($poBranchByIdJson);
 
             return {
+                remitoNumberForDup: @json(old('remito_number', $deliveryNote->remito_number)),
+                supplierIdForDup: '{{ old('supplier_id', $deliveryNote->supplier_id) }}',
+                duplicateRemitoWarning: false,
+                excludeRemitoId: {{ $deliveryNote->id }},
+
                 selectedPO: '{{ old("purchase_order_id", $deliveryNote->purchase_order_id ?? "") }}',
+                lab_branch_id: '{{ old("lab_branch_id", $deliveryNote->lab_branch_id ?? "") }}',
                 items: [...existingItems],
 
                 get hasPOItems() {
@@ -478,6 +512,9 @@
                         this.items = [...poItems, ...freeItems];
                     } else {
                         this.items = [...freeItems];
+                    }
+                    if (this.selectedPO && poBranchById[this.selectedPO]) {
+                        this.lab_branch_id = String(poBranchById[this.selectedPO]);
                     }
                 },
 
@@ -500,8 +537,64 @@
                     });
                 },
 
+                addFreeItemAndFocusNext() {
+                    this.addFreeItem();
+                    this.$nextTick(() => {
+                        const idx = this.items.length - 1;
+                        const row = this.items[idx];
+                        let el = document.getElementById('item-supply-' + idx);
+                        if (! el || row?.from_po) {
+                            el = document.getElementById('item-qty-' + idx);
+                        }
+                        el?.focus();
+                    });
+                },
+
+                remitoHeaderEnter($event) {
+                    const t = $event.target;
+                    if (t.tagName === 'TEXTAREA') {
+                        return;
+                    }
+                    if (t.tagName === 'INPUT' && ! t.closest('#remito-items-section')) {
+                        $event.preventDefault();
+                    }
+                },
+
+                async checkDuplicateRemito() {
+                    const num = (this.remitoNumberForDup || '').trim();
+                    const sup = this.supplierIdForDup;
+                    if (! num || ! sup) {
+                        this.duplicateRemitoWarning = false;
+
+                        return;
+                    }
+                    try {
+                        const params = new URLSearchParams({
+                            remito_number: num,
+                            supplier_id: String(sup),
+                        });
+                        if (this.excludeRemitoId) {
+                            params.set('exclude_id', String(this.excludeRemitoId));
+                        }
+                        const resp = await fetch(`{{ route('delivery-notes.check-duplicate') }}?${params}`, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                Accept: 'application/json',
+                            },
+                        });
+                        const data = await resp.json();
+                        this.duplicateRemitoWarning = !! data.duplicate;
+                    } catch (e) {
+                        this.duplicateRemitoWarning = false;
+                    }
+                },
+
                 removeItem(index) {
                     this.items.splice(index, 1);
+                },
+
+                init() {
+                    this.$nextTick(() => this.checkDuplicateRemito());
                 },
 
                 showNewSupplyModal: false,

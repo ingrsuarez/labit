@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Company;
 use App\Models\DeliveryNote;
 use App\Models\DeliveryNoteItem;
+use App\Models\LabBranch;
 use App\Models\PurchaseInvoice;
 use App\Models\Supplier;
 use App\Models\Supply;
@@ -60,13 +61,20 @@ class PurchaseInvoiceMultipleDeliveryNotesTest extends TestCase
             'status' => 'activo',
         ]);
 
-        return [$user, $company, $supplier];
+        $branch = LabBranch::query()->create([
+            'name' => 'Sede FC '.$suffix,
+            'is_central' => true,
+            'is_active' => true,
+        ]);
+
+        return [$user, $company, $supplier, $branch];
     }
 
-    private function createAcceptedNote(int $companyId, int $supplierId, int $userId, Supply $supply, string $remitoNumber): DeliveryNote
+    private function createAcceptedNote(int $companyId, int $supplierId, int $userId, Supply $supply, string $remitoNumber, int $labBranchId): DeliveryNote
     {
         $note = DeliveryNote::query()->create([
             'company_id' => $companyId,
+            'lab_branch_id' => $labBranchId,
             'remito_number' => $remitoNumber,
             'supplier_id' => $supplierId,
             'purchase_order_id' => null,
@@ -90,7 +98,7 @@ class PurchaseInvoiceMultipleDeliveryNotesTest extends TestCase
 
     public function test_store_syncs_three_delivery_notes_and_sets_legacy_first(): void
     {
-        [$user, $company, $supplier] = $this->setupUserCompanySupplier();
+        [$user, $company, $supplier, $branch] = $this->setupUserCompanySupplier();
         $supply = Supply::query()->create([
             'code' => 'INS-A',
             'name' => 'Insumo A',
@@ -102,9 +110,9 @@ class PurchaseInvoiceMultipleDeliveryNotesTest extends TestCase
             'tracks_lot' => false,
         ]);
 
-        $dn1 = $this->createAcceptedNote($company->id, $supplier->id, $user->id, $supply, 'R-1');
-        $dn2 = $this->createAcceptedNote($company->id, $supplier->id, $user->id, $supply, 'R-2');
-        $dn3 = $this->createAcceptedNote($company->id, $supplier->id, $user->id, $supply, 'R-3');
+        $dn1 = $this->createAcceptedNote($company->id, $supplier->id, $user->id, $supply, 'R-1', $branch->id);
+        $dn2 = $this->createAcceptedNote($company->id, $supplier->id, $user->id, $supply, 'R-2', $branch->id);
+        $dn3 = $this->createAcceptedNote($company->id, $supplier->id, $user->id, $supply, 'R-3', $branch->id);
 
         $response = $this->actingAs($user)
             ->withSession(['active_company_id' => $company->id])
@@ -113,6 +121,7 @@ class PurchaseInvoiceMultipleDeliveryNotesTest extends TestCase
                 'voucher_type' => 'B',
                 'point_of_sale' => '00002',
                 'supplier_id' => $supplier->id,
+                'lab_branch_id' => $branch->id,
                 'delivery_note_ids' => [$dn1->id, $dn2->id, $dn3->id],
                 'issue_date' => now()->toDateString(),
                 'percepciones' => 0,
@@ -139,7 +148,7 @@ class PurchaseInvoiceMultipleDeliveryNotesTest extends TestCase
 
     public function test_cannot_attach_delivery_note_already_linked_to_another_invoice(): void
     {
-        [$user, $company, $supplier] = $this->setupUserCompanySupplier();
+        [$user, $company, $supplier, $branch] = $this->setupUserCompanySupplier();
         $supply = Supply::query()->create([
             'code' => 'INS-B',
             'name' => 'Insumo B',
@@ -151,10 +160,11 @@ class PurchaseInvoiceMultipleDeliveryNotesTest extends TestCase
             'tracks_lot' => false,
         ]);
 
-        $dn = $this->createAcceptedNote($company->id, $supplier->id, $user->id, $supply, 'R-TAKEN');
+        $dn = $this->createAcceptedNote($company->id, $supplier->id, $user->id, $supply, 'R-TAKEN', $branch->id);
 
         $first = PurchaseInvoice::query()->create([
             'company_id' => $company->id,
+            'lab_branch_id' => $branch->id,
             'invoice_number' => '00000010',
             'voucher_type' => 'B',
             'supplier_id' => $supplier->id,
@@ -180,6 +190,7 @@ class PurchaseInvoiceMultipleDeliveryNotesTest extends TestCase
                 'invoice_number' => '00000011',
                 'voucher_type' => 'B',
                 'supplier_id' => $supplier->id,
+                'lab_branch_id' => $branch->id,
                 'delivery_note_ids' => [$dn->id],
                 'issue_date' => now()->toDateString(),
                 'percepciones' => 0,
@@ -201,7 +212,7 @@ class PurchaseInvoiceMultipleDeliveryNotesTest extends TestCase
 
     public function test_delivery_note_has_purchase_invoice_when_in_pivot(): void
     {
-        [$user, $company, $supplier] = $this->setupUserCompanySupplier();
+        [$user, $company, $supplier, $branch] = $this->setupUserCompanySupplier();
         $supply = Supply::query()->create([
             'code' => 'INS-C',
             'name' => 'Insumo C',
@@ -212,10 +223,11 @@ class PurchaseInvoiceMultipleDeliveryNotesTest extends TestCase
             'is_active' => true,
             'tracks_lot' => false,
         ]);
-        $dn = $this->createAcceptedNote($company->id, $supplier->id, $user->id, $supply, 'R-PV');
+        $dn = $this->createAcceptedNote($company->id, $supplier->id, $user->id, $supply, 'R-PV', $branch->id);
 
         $invoice = PurchaseInvoice::query()->create([
             'company_id' => $company->id,
+            'lab_branch_id' => $branch->id,
             'invoice_number' => '00000020',
             'voucher_type' => 'B',
             'supplier_id' => $supplier->id,

@@ -13,7 +13,7 @@ class SupplyController extends Controller
     {
         $this->authorize('supplies.index');
 
-        $query = Supply::with(['category', 'defaultSupplier'])
+        $query = Supply::with(['category', 'defaultSupplier', 'branchStocks.labBranch'])
             ->orderBy('name');
 
         if ($request->filled('search')) {
@@ -106,9 +106,9 @@ class SupplyController extends Controller
     {
         $this->authorize('supplies.index');
 
-        $supply->load(['category', 'defaultSupplier']);
+        $supply->load(['category', 'defaultSupplier', 'branchStocks.labBranch']);
         $movements = $supply->stockMovements()
-            ->with('user')
+            ->with(['user', 'labBranch'])
             ->orderByDesc('created_at')
             ->paginate(20);
 
