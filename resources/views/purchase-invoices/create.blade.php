@@ -17,7 +17,7 @@
                     </svg>
                     <p class="text-sm text-blue-800">
                         Generando factura a partir del Remito
-                        <a href="{{ route('delivery-notes.show', $deliveryNote) }}" class="font-semibold underline hover:text-blue-900">{{ $deliveryNote->number }}</a>
+                        <a href="{{ route('delivery-notes.show', $deliveryNote) }}" class="font-semibold underline hover:text-blue-900">{{ $deliveryNote->remito_number }}</a>
                         — Proveedor: {{ $deliveryNote->supplier->name }}
                     </p>
                 </div>
@@ -51,13 +51,12 @@
         <form method="POST" action="{{ route('purchase-invoices.store') }}" @keydown.enter="if ($event.target.tagName === 'INPUT') $event.preventDefault()">
             @csrf
 
-            @if($deliveryNote)
-                <input type="hidden" name="delivery_note_id" value="{{ $deliveryNote->id }}">
-            @endif
             @if($purchaseOrder)
                 <input type="hidden" name="purchase_order_id" value="{{ $purchaseOrder->id }}">
             @endif
-            <input type="hidden" name="delivery_note_id" x-bind:value="delivery_note_id || ''" x-show="false">
+            <template x-for="dnId in deliveryNoteIds" :key="dnId">
+                <input type="hidden" name="delivery_note_ids[]" :value="dnId">
+            </template>
 
             <input type="hidden" name="cae" :value="qrData?.codAut || ''">
             <input type="hidden" name="cuit_emisor" :value="qrData?.cuit || ''">
@@ -163,11 +162,13 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Percepciones</label>
                         <input type="number" name="percepciones" x-model.number="percepciones" value="{{ old('percepciones', 0) }}" min="0" step="0.01"
+                               :tabindex="items.length ? (100 + items.length * 2) : undefined"
                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Otros Impuestos</label>
                         <input type="number" name="otros_impuestos" x-model.number="otrosImpuestos" value="{{ old('otros_impuestos', 0) }}" min="0" step="0.01"
+                               :tabindex="items.length ? (101 + items.length * 2) : undefined"
                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
                     <div class="md:col-span-2 lg:col-span-4">
@@ -183,42 +184,33 @@
                 </div>
             </div>
 
-            {{-- Remito asociado --}}
-            @unless($deliveryNote)
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5" x-show="!{{ $deliveryNote ? 'true' : 'false' }}">
-                <h3 class="text-sm font-semibold text-gray-700 mb-4">Remito asociado <span class="text-gray-400 font-normal">(opcional)</span></h3>
-                <div class="flex items-start gap-4">
-                    <div class="flex-1" x-show="!delivery_note_id">
-                        <label class="block text-xs font-medium text-gray-500 mb-1">Seleccionar remito</label>
+            {{-- Remitos asociados (varios); también si se abrió desde un remito se pueden agregar más --}}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
+                <h3 class="text-sm font-semibold text-gray-700 mb-2">Remitos asociados <span class="text-gray-400 font-normal">(opcional)</span></h3>
+                <p class="text-xs text-gray-500 mb-3">Podés vincular varios remitos. Cada uno agrega líneas nuevas a la grilla (sin fusionar cantidades). Los remitos asociados ya actualizaron el stock: los ítems no vuelven a impactar depósito.</p>
+                <div class="flex flex-wrap gap-2 mb-3" x-show="deliveryNoteIds.length > 0" x-cloak>
+                    <template x-for="dnId in deliveryNoteIds" :key="dnId">
+                        <span class="inline-flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-sm text-blue-900">
+                            <span x-text="deliveryNoteLabels[dnId] || ('#' + dnId)"></span>
+                            <button type="button" @click="removeDeliveryNoteById(dnId)" class="text-blue-500 hover:text-blue-800 p-0.5" title="Quitar remito (las líneas importadas no se borran solas)">&times;</button>
+                        </span>
+                    </template>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 sm:items-end">
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Agregar remito</label>
                         <select x-model="selectedDeliveryNoteId"
-                                @change="onDeliveryNoteChange()"
+                                @change="onSelectDeliveryNoteToAdd()"
                                 :disabled="!supplier_id"
                                 class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
-                            <option value="" x-text="supplier_id ? 'Sin remito' : 'Seleccioná un proveedor primero'"></option>
-                            <template x-for="note in availableDeliveryNotes" :key="note.id">
+                            <option value="" x-text="supplier_id ? 'Elegir remito…' : 'Seleccioná un proveedor primero'"></option>
+                            <template x-for="note in notesAvailableToAdd()" :key="note.id">
                                 <option :value="note.id" x-text="`${note.remito_number} — ${note.date}`"></option>
                             </template>
                         </select>
-                        <p class="text-xs text-gray-400 mt-1">Al seleccionar un remito, sus ítems se importan automáticamente.</p>
                     </div>
-                    <template x-if="delivery_note_id">
-                        <div class="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
-                            <svg class="w-5 h-5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/>
-                            </svg>
-                            <div>
-                                <p class="text-sm font-medium text-blue-800" x-text="'Remito: ' + selectedDeliveryNoteNumber"></p>
-                                <p class="text-xs text-blue-500">El stock fue actualizado por este remito.</p>
-                            </div>
-                            <button type="button" @click="removeDeliveryNote()"
-                                    class="ml-4 text-blue-400 hover:text-blue-600 text-xs underline">
-                                Quitar remito
-                            </button>
-                        </div>
-                    </template>
                 </div>
             </div>
-            @endunless
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
                 <div class="flex items-center justify-between mb-4">
@@ -331,11 +323,13 @@
                                     <td class="px-3 py-2">
                                         <input type="number" x-model.number="item.quantity" min="1" step="1" required
                                                :id="'item-qty-' + index"
+                                               :tabindex="100 + index * 2"
                                                class="w-24 rounded border-gray-300 text-sm text-center focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
                                     <td class="px-3 py-2">
                                         <input type="number" x-model.number="item.unit_price" min="0" step="0.01" required
-                                               :id="'item-price-' + index"
+                                               :id="'item-unit-' + index"
+                                               :tabindex="101 + index * 2"
                                                class="w-32 rounded border-gray-300 text-sm text-right focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
                                     <td class="px-3 py-2">
@@ -354,15 +348,15 @@
                                         <span x-text="'$' + formatMoney(itemTotal(item))"></span>
                                     </td>
                                     <td class="px-3 py-2 text-center">
-                                        <template x-if="!delivery_note_id">
+                                        <template x-if="!hasLinkedDeliveryNotes()">
                                             <input type="checkbox"
                                                    x-model="item.updates_stock"
                                                    class="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
                                                    title="Marcar si este ítem actualiza el stock al guardar">
                                         </template>
-                                        <template x-if="delivery_note_id">
+                                        <template x-if="hasLinkedDeliveryNotes()">
                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200"
-                                                  title="Stock actualizado por el remito asociado">
+                                                  title="Los remitos asociados ya actualizaron el stock">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/>
                                                 </svg>
@@ -626,9 +620,11 @@
 
         function invoiceForm() {
             const deliveryNoteItems = @json($deliveryNoteItemsJson);
+            const initialDnIds = @json($deliveryNote ? [$deliveryNote->id] : []);
+            const initialDnLabels = @json($deliveryNote ? [ (string) $deliveryNote->id => $deliveryNote->remito_number ] : []);
 
             return {
-                items: deliveryNoteItems.length > 0 ? [...deliveryNoteItems.map(i => ({...i, lot_number: '', expiration_date: '', _supply_code: ''}))] : [],
+                items: deliveryNoteItems.length > 0 ? [...deliveryNoteItems.map(i => ({...i, lot_number: '', expiration_date: '', _supply_code: '', updates_stock: false}))] : [],
                 percepciones: {{ old('percepciones', 0) }},
                 otrosImpuestos: {{ old('otros_impuestos', 0) }},
                 supplies: @json(\App\Models\Supply::active()->orderBy('name')->get()->map(function ($s) { return ['id' => $s->id, 'name' => $s->code . ' - ' . $s->name, 'tracks_lot' => $s->tracks_lot]; })),
@@ -641,22 +637,29 @@
                 editId: null,
                 duplicateWarning: false,
 
-                delivery_note_id: {{ $deliveryNote ? $deliveryNote->id : 'null' }},
+                deliveryNoteIds: initialDnIds,
+                deliveryNoteLabels: initialDnLabels,
                 selectedDeliveryNoteId: '',
-                selectedDeliveryNoteNumber: '{{ $deliveryNote?->remito_number ?? '' }}',
                 availableDeliveryNotes: [],
                 loadingDeliveryNotes: false,
 
-                async onSupplierChange() {
-                    this.delivery_note_id = null;
-                    this.selectedDeliveryNoteId = '';
-                    this.selectedDeliveryNoteNumber = '';
-                    this.availableDeliveryNotes = [];
-                    if (!this.supplier_id) return;
+                hasLinkedDeliveryNotes() {
+                    return this.deliveryNoteIds.length > 0;
+                },
 
+                notesAvailableToAdd() {
+                    return this.availableDeliveryNotes.filter(n => !this.deliveryNoteIds.includes(n.id));
+                },
+
+                async fetchAvailableDeliveryNotes() {
+                    if (!this.supplier_id) {
+                        this.availableDeliveryNotes = [];
+                        return;
+                    }
                     this.loadingDeliveryNotes = true;
                     try {
-                        const resp = await fetch(`{{ route('delivery-notes.by-supplier') }}?supplier_id=${this.supplier_id}`);
+                        const params = new URLSearchParams({ supplier_id: this.supplier_id });
+                        const resp = await fetch(`{{ route('purchase-invoices.available-delivery-notes') }}?${params}`);
                         this.availableDeliveryNotes = await resp.json();
                     } catch (e) {
                         this.availableDeliveryNotes = [];
@@ -665,42 +668,48 @@
                     }
                 },
 
-                async onDeliveryNoteChange() {
-                    if (!this.selectedDeliveryNoteId) {
-                        this.delivery_note_id = null;
-                        this.selectedDeliveryNoteNumber = '';
-                        return;
-                    }
+                async onSupplierChange() {
+                    this.deliveryNoteIds = [];
+                    this.deliveryNoteLabels = {};
+                    this.selectedDeliveryNoteId = '';
+                    this.availableDeliveryNotes = [];
+                    if (!this.supplier_id) return;
+                    await this.fetchAvailableDeliveryNotes();
+                },
 
-                    if (this.items.length > 0 && !confirm('Al asociar el remito se van a reemplazar los ítems actuales. ¿Continuás?')) {
-                        this.selectedDeliveryNoteId = '';
-                        return;
+                init() {
+                    if (this.supplier_id) {
+                        this.fetchAvailableDeliveryNotes();
                     }
+                },
+
+                async onSelectDeliveryNoteToAdd() {
+                    const id = this.selectedDeliveryNoteId ? parseInt(this.selectedDeliveryNoteId, 10) : null;
+                    this.selectedDeliveryNoteId = '';
+                    if (!id) return;
+                    if (this.deliveryNoteIds.includes(id)) return;
 
                     try {
-                        const resp = await fetch(`/delivery-notes/${this.selectedDeliveryNoteId}/items`);
+                        const resp = await fetch(`/delivery-notes/${id}/items`);
                         const data = await resp.json();
 
-                        this.delivery_note_id = data.delivery_note.id;
-                        this.selectedDeliveryNoteNumber = data.delivery_note.number;
+                        this.deliveryNoteIds.push(id);
+                        this.deliveryNoteLabels[id] = data.delivery_note.number || data.delivery_note.remito_number || ('#' + id);
 
-                        this.items = data.items.map(item => ({
+                        const newRows = data.items.map(item => ({
                             ...item,
                             iva_rate: '21',
                             updates_stock: false,
                         }));
+                        this.items = [...this.items, ...newRows];
                     } catch (e) {
                         alert('Error al cargar los ítems del remito. Intentá de nuevo.');
-                        this.selectedDeliveryNoteId = '';
                     }
                 },
 
-                removeDeliveryNote() {
-                    if (this.items.length > 0 && !confirm('Al quitar el remito, los ítems quedan pero el stock se actualizará al guardar. ¿Continuás?')) return;
-                    this.delivery_note_id = null;
-                    this.selectedDeliveryNoteId = '';
-                    this.selectedDeliveryNoteNumber = '';
-                    this.items = this.items.map(item => ({ ...item, updates_stock: true }));
+                removeDeliveryNoteById(dnId) {
+                    this.deliveryNoteIds = this.deliveryNoteIds.filter(i => i !== dnId);
+                    delete this.deliveryNoteLabels[dnId];
                 },
 
                 padPointOfSale() {
@@ -822,7 +831,7 @@
                 newSupply: { name: '', supply_category_id: '', unit: 'unidad', brand: '', min_stock: 0, tracks_lot: false },
 
                 addItem() {
-                    this.items.push({ description: '', supply_id: '', quantity: 1, unit_price: 0, iva_rate: '21', lot_number: '', expiration_date: '', updates_stock: !this.delivery_note_id });
+                    this.items.push({ description: '', supply_id: '', quantity: 1, unit_price: 0, iva_rate: '21', lot_number: '', expiration_date: '', updates_stock: !this.hasLinkedDeliveryNotes() });
                 },
 
                 removeItem(index) {

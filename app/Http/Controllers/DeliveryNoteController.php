@@ -59,7 +59,9 @@ class DeliveryNoteController extends Controller
     {
         $this->authorize('delivery-notes.index');
 
-        $query = DeliveryNote::with(['supplier', 'purchaseOrder', 'receiver', 'purchaseInvoices:id,delivery_note_id'])
+        $query = DeliveryNote::with(['supplier', 'purchaseOrder', 'receiver'])
+            ->withExists('purchaseInvoices')
+            ->withExists('legacyLinkedPurchaseInvoices')
             ->where('company_id', active_company_id())
             ->orderByDesc('created_at');
 
