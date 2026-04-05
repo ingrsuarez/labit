@@ -12,7 +12,7 @@ class PurchaseInvoice extends Model
     use HasFactory;
 
     protected $fillable = [
-        'company_id', 'invoice_number', 'voucher_type', 'point_of_sale', 'supplier_id',
+        'company_id', 'lab_branch_id', 'invoice_number', 'voucher_type', 'point_of_sale', 'supplier_id',
         'delivery_note_id', 'purchase_order_id', 'issue_date', 'due_date',
         'subtotal', 'iva_21', 'iva_10_5', 'iva_27', 'percepciones', 'otros_impuestos',
         'total', 'amount_paid', 'balance', 'status', 'notes', 'created_by',
@@ -30,6 +30,11 @@ class PurchaseInvoice extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function labBranch(): BelongsTo
+    {
+        return $this->belongsTo(LabBranch::class, 'lab_branch_id');
     }
 
     public function supplier()

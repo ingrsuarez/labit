@@ -13,7 +13,7 @@ class DeliveryNote extends Model
     use HasFactory;
 
     protected $fillable = [
-        'company_id', 'remito_number', 'purchase_order_id', 'supplier_id', 'date',
+        'company_id', 'lab_branch_id', 'remito_number', 'purchase_order_id', 'supplier_id', 'date',
         'status', 'notes', 'received_by',
     ];
 
@@ -32,6 +32,11 @@ class DeliveryNote extends Model
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    public function labBranch(): BelongsTo
+    {
+        return $this->belongsTo(LabBranch::class, 'lab_branch_id');
     }
 
     public function receiver()

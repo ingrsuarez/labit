@@ -11,6 +11,7 @@ class StockMovement extends Model
 
     protected $fillable = [
         'supply_id',
+        'lab_branch_id',
         'type',
         'quantity',
         'previous_stock',
@@ -34,6 +35,11 @@ class StockMovement extends Model
     public function supply()
     {
         return $this->belongsTo(Supply::class);
+    }
+
+    public function labBranch()
+    {
+        return $this->belongsTo(LabBranch::class, 'lab_branch_id');
     }
 
     public function user()

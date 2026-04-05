@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\StockMovement;
 use App\Models\Supply;
+use App\Services\LabBranchResolver;
+use App\Services\SupplyStockService;
 use Illuminate\Http\Request;
 
 class StockMovementController extends Controller
@@ -46,6 +48,7 @@ class StockMovementController extends Controller
         $this->authorize('stock-movements.create');
 
         $supplies = Supply::active()->orderBy('name')->get();
+
         return view('stock-movements.create', compact('supplies'));
     }
 
@@ -68,35 +71,32 @@ class StockMovementController extends Controller
         ]);
 
         $supply = Supply::findOrFail($validated['supply_id']);
-        $previousStock = $supply->stock;
+        $branch = LabBranchResolver::requireActiveBranchForStock();
 
-        $newStock = match ($validated['type']) {
-            'entrada' => $previousStock + $validated['quantity'],
-            'salida' => $previousStock - $validated['quantity'],
-            'ajuste' => $validated['quantity'],
-        };
-
-        if ($newStock < 0) {
-            return back()->withInput()
-                ->with('error', 'No hay suficiente stock. Stock actual: ' . $previousStock);
-        }
-
-        StockMovement::create([
-            'supply_id' => $supply->id,
-            'type' => $validated['type'],
-            'quantity' => $validated['quantity'],
-            'previous_stock' => $previousStock,
-            'new_stock' => $newStock,
+        $payload = [
             'reason' => 'ajuste_manual',
             'lot_number' => $validated['lot_number'] ?? null,
             'expiration_date' => $validated['expiration_date'] ?? null,
             'notes' => $validated['notes'],
             'user_id' => auth()->id(),
-        ]);
+        ];
 
-        $supply->update(['stock' => $newStock]);
+        $stockSvc = app(SupplyStockService::class);
+
+        try {
+            match ($validated['type']) {
+                'entrada' => $stockSvc->recordEntrada($supply, $branch->id, (float) $validated['quantity'], $payload),
+                'salida' => $stockSvc->recordSalida($supply, $branch->id, (float) $validated['quantity'], $payload),
+                'ajuste' => $stockSvc->recordAjuste($supply, $branch->id, (float) $validated['quantity'], $payload),
+            };
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withInput()
+                ->withErrors($e->errors());
+        }
+
+        $supply->refresh();
 
         return redirect()->route('stock-movements.index')
-            ->with('success', 'Movimiento de stock registrado. Nuevo stock de "' . $supply->name . '": ' . $newStock);
+            ->with('success', 'Movimiento de stock registrado. Nuevo stock global de "'.$supply->name.'": '.$supply->stock);
     }
 }

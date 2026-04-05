@@ -6,6 +6,7 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseQuotationRequest;
 use App\Models\Supplier;
 use App\Models\Supply;
+use App\Services\LabBranchResolver;
 use Illuminate\Http\Request;
 
 class PurchaseOrderController extends Controller
@@ -86,6 +87,7 @@ class PurchaseOrderController extends Controller
         $po = PurchaseOrder::create([
             'number' => PurchaseOrder::generateNumber(),
             'company_id' => active_company_id(),
+            'lab_branch_id' => LabBranchResolver::resolveBranchIdForStock(),
             'supplier_id' => $validated['supplier_id'],
             'quotation_request_id' => $validated['quotation_request_id'] ?? null,
             'date' => $validated['date'],
