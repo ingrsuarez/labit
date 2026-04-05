@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-05 (hotfix migraciones pivot + v1.38.0)
+> Última actualización: 2026-04-05 (release **master** = develop: v1.38.0 + hotfix migraciones pivot)
 
 ---
 
@@ -10,6 +10,7 @@
 | Campo | Valor |
 |---|---|
 | **Versión actual** | v3.3.0 / v3.2.0 / v3.1.0 / v3.0.0 / v2.7.0 / v1.38.0 |
+| **Última en master** | 2026-04-05 — mismo conjunto que develop (tag **v1.38.0**; hotfix pivot en código) |
 | **Última completada** | v1.38.0 — Stock por sede: compras, remitos, FC y vistas |
 | **En proceso** | — |
 | **Próxima** | v1.35.2 — movimientos stock cantidad entera (cola: v1.35.3, v1.36.1, v3.4.0) |
@@ -196,9 +197,9 @@ v1.0.0 (completada)
 |---|---|
 | `README.md` | Actualizado (v1.0.1) |
 | `ROADMAP.md` | Actualizado |
-| `BLUEPRINT.md` | Actualizado |
+| `BLUEPRINT.md` | Actualizado (DD-004 stock por sede, 2026-04-05) |
 | `STATUS.md` | Actualizado (este archivo) |
-| `CHANGELOG.md` | Actualizado |
+| `CHANGELOG.md` | Actualizado (v1.38.0 + hotfix migración, 2026-04-05) |
 | `RESUMEN_INSTITUCIONAL.md` | Completo |
 | `agent-bootstrap/PHASES.md` | Creado |
 

@@ -5,6 +5,20 @@
 
 ---
 
+## [v1.38.0] — 2026-04-05 — Stock por sede: compras, remitos, FC y vistas
+
+### Agregado
+- Selector y validación de **sede / depósito** (`lab_branch_id`) en órdenes de compra, remitos, facturas de compra y movimientos de stock manuales; filtros por sede en índices correspondientes
+- Remitos: precarga y coherencia de sede con OC vinculada; aceptación de remito usa siempre la sede del documento (`LabBranchResolver` / `SupplyStockService`)
+- Facturas de compra: sede para impacto de stock; alineación con uno o varios remitos (misma sede)
+- Vistas de insumos: desglose de stock **por sede** (listado y ficha)
+- Tests en `StockByBranchTest`: FC sin remito en sede elegida; flujo OC → remito → aceptar; error si la sede del remito no coincide con la OC
+
+### Corregido
+- Migración `2026_04_05_160000_create_delivery_note_purchase_invoice_table`: **idempotente** si la tabla pivote `delivery_note_purchase_invoice` ya existía sin fila en `migrations`; backfill con `insertOrIgnore` para no duplicar filas (desbloquea la cadena hasta `2026_04_05_220000` y columnas `lab_branch_id`)
+
+---
+
 ## [v1.37.0] — 2026-04-05 — Stock por sede (modelo, migraciones y movimientos)
 
 ### Agregado

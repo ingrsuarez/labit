@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-05 (v1.38.0 completada)
+> Última actualización: 2026-04-05 (release master: v1.38.0 + hotfix migración pivot)
 
 ---
 
@@ -121,6 +121,7 @@ Completadas:  78 (tabla en STATUS.md; última v1.38.0)
 Planificadas: 4
 En proceso:   0
 Próxima:      v1.35.2 → v1.35.3 → v1.36.1 → v3.4.0
+Release master: 2026-04-05 — alineado con develop (v1.38.0, hotfix migraciones pivot)
 ```
 
 ---

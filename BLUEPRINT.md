@@ -2,7 +2,7 @@
 
 > Arquitectura técnica, estructura del proyecto y decisiones de diseño.
 > Fuente de verdad para el Agente CTO y cualquier agente que necesite contexto técnico.
-> Última actualización: 2026-03-14
+> Última actualización: 2026-04-05
 
 ---
 
@@ -50,7 +50,7 @@ labit/
 ├── customer_files/           → Archivos de clientes (uploads)
 ├── database/
 │   ├── factories/            → Factories para testing
-│   ├── migrations/           → 90 migraciones
+│   ├── migrations/           → 90+ migraciones (incl. stock por sede, pivote FC–remitos)
 │   └── seeders/              → Seeders (roles, permisos, datos iniciales)
 ├── docs/                     → Documentación adicional
 ├── public/                   → Assets públicos y entry point
@@ -125,7 +125,7 @@ Los permisos se gestionan con Spatie Laravel Permission y se asignan por secció
 | **Lab clínico** | Patient, Admission, AdmissionTest, Test, Insurance, InsuranceTest | LabAdmissionController, LabSectionController, LabReportController | Admisiones, protocolo, carga y validación de resultados |
 | **Lab muestras** | Sample, SampleDetermination, TestReferenceValue, ReferenceCategory, Material | SampleController, TestController, ReferenceCategoryController | Muestras de aguas/alimentos, PDFs, etiquetas, email |
 | **Ventas** | Customer, SalesInvoice, SalesInvoiceItem, Quote, QuoteItem, CollectionReceipt, PointOfSale, Service | SalesInvoiceController, QuoteController, CollectionReceiptController, CustomerController | Presupuestos, facturas, recibos de cobro, puntos de venta |
-| **Compras** | Supplier, Supply, SupplyCategory, StockMovement, PurchaseQuotationRequest, PurchaseOrder, DeliveryNote, PurchaseInvoice, PaymentOrder | PurchaseOrderController, DeliveryNoteController, PurchaseInvoiceController, PaymentOrderController | Flujo completo: cotización → OC → remito → factura → pago |
+| **Compras** | Supplier, Supply, SupplyCategory, SupplyLabBranchStock, StockMovement, PurchaseQuotationRequest, PurchaseOrder, DeliveryNote, PurchaseInvoice, PaymentOrder | PurchaseOrderController, DeliveryNoteController, PurchaseInvoiceController, PaymentOrderController | Flujo cotización → OC → remito → factura → pago; **stock por sede** (`lab_branch_id` en documentos de compra y movimientos) |
 | **RRHH** | Employee, Job, Category, Leave, Holiday, Payroll, PayrollItem, SalaryItem, Document, DocumentFile | EmployeeController, PayrollController, VacationController, LeaveController, DocumentController | Legajos, organigrama, liquidaciones, vacaciones, ausencias |
 | **Calidad** | NonConformity, NonConformityFollowUp, Circular, CircularSignature | NonConformityController, CircularController | No conformidades, circulares con firma digital |
 | **Portal** | (usa modelos de RRHH y Calidad) | EmployeePortalController, Portal\CircularController | Dashboard, equipo, recibos, solicitudes, circulares |
@@ -149,6 +149,11 @@ Los permisos se gestionan con Spatie Laravel Permission y se asignan por secció
 - **Decisión:** Un solo sistema de auth con middleware `check.access` que bifurca admin vs portal
 - **Razón:** Evitar duplicar la autenticación; los empleados son usuarios con rol restringido
 - **Consecuencia:** Todo usuario autenticado pasa por `check.access` que decide la redirección
+
+### DD-004: Stock de insumos por sede (depósito)
+- **Decisión:** Cantidades por `supply_id` + `lab_branch_id` en `supply_lab_branch_stock`; `supplies.stock` como total cache; servicios `SupplyStockService` y `LabBranchResolver` para entrada/salida/ajuste y validación de sede en formularios
+- **Razón:** Coherencia con sedes de laboratorio (v1.30.x) y trazabilidad de inventario por depósito
+- **Consecuencia:** OC, remitos, FC y movimientos manuales exponen y validan sede; la migración pivote FC–múltiples remitos es **idempotente** ante tablas ya creadas para no cortar la cadena de `migrate`
 
 ---
 
