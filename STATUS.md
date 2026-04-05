@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-05 (release **master** = develop: v1.38.0 + hotfix migraciones pivot)
+> Última actualización: 2026-04-05 (develop: **v1.35.2** mergeado; master sin release nuevo)
 
 ---
 
@@ -9,23 +9,22 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v3.3.0 / v3.2.0 / v3.1.0 / v3.0.0 / v2.7.0 / v1.38.0 |
-| **Última en master** | 2026-04-05 — mismo conjunto que develop (tag **v1.38.0**; hotfix pivot en código) |
-| **Última completada** | v1.38.0 — Stock por sede: compras, remitos, FC y vistas |
+| **Versión actual** | v3.3.0 / v3.2.0 / v3.1.0 / v3.0.0 / v2.7.0 / v1.38.0 / **v1.35.2** |
+| **Última en master** | 2026-04-05 — tag **v1.38.0** (develop va por delante con **v1.35.2**) |
+| **Última completada** | v1.35.2 — Movimientos stock: cantidad entera (ajuste manual) |
 | **En proceso** | — |
-| **Próxima** | v1.35.2 — movimientos stock cantidad entera (cola: v1.35.3, v1.36.1, v3.4.0) |
-| **Pendientes en cola** | 4 |
-| **Completadas** | 78 |
+| **Próxima** | v1.35.3 — movimientos stock selector de lotes (cola: v1.36.1, v3.4.0) |
+| **Pendientes en cola** | 3 |
+| **Completadas** | 79 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (4)
+### Pendientes (3)
 
 | Versión | Nombre |
 |---|---|
-| v1.35.2 | Movimientos stock: cantidad entera |
 | v1.35.3 | Movimientos stock: selector de lotes |
 | v1.36.1 | FC compra: editar y reasignar empresa |
 | v3.4.0 | Libro diario / Libro mayor |
@@ -34,10 +33,11 @@
 
 _Sin prompts en ejecución._
 
-### Completados (78)
+### Completados (79)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.35.2 | Movimientos stock: cantidad entera | 2026-04-05 | v1.35.2 |
 | v1.38.0 | Stock por sede: compras, remitos, FC y vistas | 2026-04-05 | v1.38.0 |
 | v1.37.0 | Stock por sede: modelo, migraciones y movimientos | 2026-04-05 | v1.37.0 |
 | v1.36.0 | Múltiples remitos en factura de compra | 2026-04-05 | v1.36.0 |
@@ -207,7 +207,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-Ejecutar AgenteProgramador para **v1.35.2** (movimientos stock: cantidad entera), siguiente en cola `v*`:
+Ejecutar AgenteProgramador para **v1.35.3** (movimientos stock: selector de lotes), siguiente en cola `v*`:
 → `Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo completo.`
 
 ---
