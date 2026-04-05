@@ -11,7 +11,7 @@ class PurchaseOrder extends Model
     use HasFactory;
 
     protected $fillable = [
-        'number', 'company_id', 'supplier_id', 'quotation_request_id', 'date', 'expected_delivery_date',
+        'number', 'company_id', 'lab_branch_id', 'supplier_id', 'quotation_request_id', 'date', 'expected_delivery_date',
         'status', 'subtotal', 'tax_rate', 'tax_amount', 'total', 'notes',
         'created_by', 'approved_by', 'approved_at',
     ];
@@ -29,6 +29,11 @@ class PurchaseOrder extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function labBranch(): BelongsTo
+    {
+        return $this->belongsTo(LabBranch::class, 'lab_branch_id');
     }
 
     public function supplier()
