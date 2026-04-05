@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-04 (v3.3.0 completada)
+> Última actualización: 2026-04-05 (v1.35.1 completada)
 
 ---
 
@@ -9,31 +9,36 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v3.3.0 / v3.2.0 / v3.1.0 / v3.0.0 / v2.7.0 / v1.35.0 |
-| **Última completada** | v3.3.0 — Asientos automáticos desde transacciones |
+| **Versión actual** | v3.3.0 / v3.2.0 / v3.1.0 / v3.0.0 / v2.7.0 / v1.35.1 |
+| **Última completada** | v1.35.1 — Remito: lote/vencimiento solo si `tracks_lot` |
 | **En proceso** | — |
-| **Próxima** | v3.4.0 — Libro diario / Libro mayor |
-| **Pendientes en cola** | 1 |
-| **Completadas** | 74 |
+| **Próxima** | v1.35.2 — Cantidad entera en ajuste de stock |
+| **Pendientes en cola** | 5 |
+| **Completadas** | 75 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (1)
+### Pendientes (5)
 
 | Versión | Nombre |
 |---|---|
+| v1.35.2 | Movimientos de stock: cantidad entera |
+| v1.36.0 | Múltiples remitos en factura de compra |
+| v1.37.0 | Stock por sede: modelo y movimientos |
+| v1.38.0 | Stock por sede: compras y vistas |
 | v3.4.0 | Libro diario / Libro mayor |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (74)
+### Completados (75)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.35.1 | Remito: lote/vencimiento solo si insumo `tracks_lot` | 2026-04-05 | v1.35.1 |
 | v3.3.0 | Asientos automáticos desde transacciones | 2026-04-04 | v3.3.0 |
 | v1.35.0 | Cuenta corriente de proveedores | 2026-04-04 | v1.35.0 |
 | v1.32.4 | Editar y eliminar remitos con sincronización de stock | 2026-04-04 | v1.32.4 |
