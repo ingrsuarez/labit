@@ -172,7 +172,10 @@ class DeliveryNoteController extends Controller
         }
 
         return redirect()->route('delivery-notes.show', $deliveryNote)
-            ->with('success', 'Remito '.$deliveryNote->remito_number.' creado correctamente.');
+            ->with(
+                'success',
+                'Remito '.$deliveryNote->remito_number.' guardado en estado pendiente. Para actualizar el stock y generar movimientos en el historial, abrí esta pantalla y presioná «Aceptar remito» (abajo).'
+            );
     }
 
     public function show(DeliveryNote $deliveryNote)
@@ -326,14 +329,22 @@ class DeliveryNoteController extends Controller
 
         $deliveryNote->load(['items.supply', 'items.purchaseOrderItem']);
 
+        foreach ($deliveryNote->items as $item) {
+            if (! $item->supply) {
+                return back()->with('error',
+                    'El remito tiene ítems sin insumo asociado. Corregí el remito antes de aceptar.');
+            }
+        }
+
         $rules = [];
         $messages = [];
         foreach ($deliveryNote->items as $item) {
-            if ($item->supply->tracks_lot) {
+            $supply = $item->supply;
+            if ($supply->tracks_lot === true) {
                 $rules["items.{$item->id}.lot_number"] = 'required|string|max:100';
                 $rules["items.{$item->id}.expiration_date"] = 'required|date';
-                $messages["items.{$item->id}.lot_number.required"] = "El número de lote es obligatorio para {$item->supply->name}.";
-                $messages["items.{$item->id}.expiration_date.required"] = "La fecha de vencimiento es obligatoria para {$item->supply->name}.";
+                $messages["items.{$item->id}.lot_number.required"] = "El número de lote es obligatorio para {$supply->name}.";
+                $messages["items.{$item->id}.expiration_date.required"] = "La fecha de vencimiento es obligatoria para {$supply->name}.";
             }
         }
 
@@ -351,7 +362,7 @@ class DeliveryNoteController extends Controller
 
                 $lotNumber = null;
                 $expirationDate = null;
-                if ($supply->tracks_lot) {
+                if ($supply->tracks_lot === true) {
                     $lotNumber = $request->input("items.{$item->id}.lot_number", $item->lot_number);
                     $expirationDate = $request->input("items.{$item->id}.expiration_date", $item->expiration_date?->format('Y-m-d'));
                 }

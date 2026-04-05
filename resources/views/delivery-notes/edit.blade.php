@@ -130,8 +130,8 @@
                                             </span>
                                         </template>
                                         <template x-if="!item.from_po">
-                                            <div>
-                                                <div class="flex items-center gap-1">
+                                            <div class="relative min-w-0 w-full max-w-[280px]">
+                                                <div x-show="!item.supply_id" class="relative w-full" x-cloak>
                                                     <input type="text"
                                                            x-model="searchText"
                                                            @input.debounce.300ms="doSearch()"
@@ -141,50 +141,50 @@
                                                            @keydown.enter.prevent="selectHighlighted()"
                                                            @keydown.escape="showResults = false"
                                                            @keydown.tab="onTab($event)"
-                                                           placeholder="Buscar insumo..."
+                                                           placeholder="Buscar insumo… (Enter para elegir)"
                                                            required
                                                            :id="'item-supply-' + index"
-                                                           class="flex-1 min-w-0 rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                                           autocomplete="off"
+                                                           class="w-full rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                                    <div x-show="showResults && (results.length > 0 || (searchText.length >= 2 && !loading))" x-cloak
+                                                         @click.outside="showResults = false"
+                                                         class="absolute z-[60] left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                                        <template x-for="(supply, i) in results" :key="supply.id">
+                                                            <button type="button"
+                                                                    @click="selectSupply(supply)"
+                                                                    @mouseenter="highlightedIndex = i"
+                                                                    :class="highlightedIndex === i ? 'bg-teal-50 text-teal-800' : 'text-gray-700'"
+                                                                    class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 last:border-0">
+                                                                <span class="font-mono text-xs text-gray-400" x-text="supply.code"></span>
+                                                                <span x-text="supply.name"></span>
+                                                                <template x-if="supply.brand">
+                                                                    <span class="text-xs text-gray-400" x-text="'— ' + supply.brand"></span>
+                                                                </template>
+                                                            </button>
+                                                        </template>
 
-                                                    <span x-show="item.supply_id" x-cloak
-                                                          class="shrink-0 inline-flex items-center gap-2 mt-0.5">
-                                                        <span class="text-xs text-teal-700 font-mono" x-text="item._supply_code"></span>
-                                                        <span class="text-xs text-gray-500" x-text="item._supply_label || item._supply_name"></span>
-                                                        <button type="button" @click="unlinkSupply()" class="text-xs text-gray-400 hover:text-red-500">&times;</button>
-                                                    </span>
-                                                </div>
+                                                        <div x-show="results.length === 0 && searchText.length >= 2 && !loading"
+                                                             class="px-3 py-2 text-sm text-gray-400">
+                                                            No se encontraron insumos.
+                                                        </div>
 
-                                                <div x-show="showResults && (results.length > 0 || (searchText.length >= 2 && !loading))" x-cloak
-                                                     @click.outside="showResults = false"
-                                                     class="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                                    <template x-for="(supply, i) in results" :key="supply.id">
                                                         <button type="button"
-                                                                @click="selectSupply(supply)"
-                                                                @mouseenter="highlightedIndex = i"
-                                                                :class="highlightedIndex === i ? 'bg-teal-50 text-teal-800' : 'text-gray-700'"
-                                                                class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 last:border-0">
-                                                            <span class="font-mono text-xs text-gray-400" x-text="supply.code"></span>
-                                                            <span x-text="supply.name"></span>
-                                                            <template x-if="supply.brand">
-                                                                <span class="text-xs text-gray-400" x-text="'— ' + supply.brand"></span>
-                                                            </template>
+                                                                x-show="searchText.length >= 2 && !loading"
+                                                                @click="openCreateModal()"
+                                                                class="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2 border-t border-gray-200">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                                            </svg>
+                                                            <span>Crear insumo "<span x-text="searchText" class="font-medium"></span>"</span>
                                                         </button>
-                                                    </template>
-
-                                                    <div x-show="results.length === 0 && searchText.length >= 2 && !loading"
-                                                         class="px-3 py-2 text-sm text-gray-400">
-                                                        No se encontraron insumos.
                                                     </div>
-
-                                                    <button type="button"
-                                                            x-show="searchText.length >= 2 && !loading"
-                                                            @click="openCreateModal()"
-                                                            class="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2 border-t border-gray-200">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                                                        </svg>
-                                                        <span>Crear insumo "<span x-text="searchText" class="font-medium"></span>"</span>
-                                                    </button>
+                                                </div>
+                                                <div x-show="item.supply_id" x-cloak class="flex items-center min-h-[2.25rem]">
+                                                    <span class="inline-flex items-center gap-2 rounded-md bg-teal-50 border border-teal-100 px-2.5 py-1.5 text-sm max-w-full">
+                                                        <span class="font-mono text-xs text-teal-800 shrink-0" x-text="item._supply_code"></span>
+                                                        <span class="text-gray-800 truncate" x-text="item._supply_label || item._supply_name"></span>
+                                                        <button type="button" @click="unlinkSupply()" class="shrink-0 text-gray-400 hover:text-red-600 text-lg leading-none px-0.5" title="Cambiar insumo">&times;</button>
+                                                    </span>
                                                 </div>
                                             </div>
                                         </template>
@@ -200,6 +200,7 @@
                                                x-model.number="item.quantity_received"
                                                min="1" step="1" required
                                                :id="'item-qty-' + index"
+                                               @keydown.enter.prevent="addFreeItemFromRowEnter()"
                                                class="w-24 rounded border-gray-300 text-sm text-center focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
                                     <td class="px-3 py-2">
@@ -220,7 +221,7 @@
                                     </td>
                                     <td class="px-3 py-2">
                                         <input type="text" :name="'items[' + index + '][notes]'" x-model="item.notes"
-                                               @keydown.enter.prevent
+                                               @keydown.enter.prevent="addFreeItemFromRowEnter()"
                                                placeholder="—"
                                                class="w-full rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
@@ -319,17 +320,17 @@
 
     @php
         $existingItemsJson = $deliveryNote->items->map(function ($item) {
-            $brand = $item->supply->brand ?? '';
-            $name = $item->supply->name ?? '';
+            $brand = $item->supply?->brand ?? '';
+            $name = $item->supply?->name ?? '';
             return [
                 'supply_id' => $item->supply_id,
-                'supply_name' => $item->supply->name ?? 'Insumo eliminado',
+                'supply_name' => $item->supply?->name ?? 'Insumo eliminado',
                 '_supply_name' => $name,
                 '_supply_brand' => $brand,
                 '_supply_label' => $brand ? "{$name} — {$brand}" : $name,
-                '_supply_code' => $item->supply->code ?? '',
-                '_tracks_lot' => $item->supply->tracks_lot ?? false,
-                'unit' => $item->supply->unit ?? '',
+                '_supply_code' => $item->supply?->code ?? '',
+                '_tracks_lot' => $item->supply?->tracks_lot === true,
+                'unit' => $item->supply?->unit ?? '',
                 'ordered_qty' => $item->purchaseOrderItem?->quantity,
                 'pending_qty' => $item->purchaseOrderItem?->pending_quantity,
                 'purchase_order_item_id' => $item->purchase_order_item_id,
@@ -355,7 +356,7 @@
                             'quantity_received' => $item->pending_quantity,
                             'lot_number' => '',
                             'expiration_date' => '',
-                            '_tracks_lot' => $item->supply->tracks_lot,
+                            '_tracks_lot' => $item->supply->tracks_lot === true,
                             'notes' => '',
                             'from_po' => true,
                         ];
@@ -418,7 +419,11 @@
                     item.supply_id = '';
                     item._supply_code = '';
                     item._supply_name = '';
+                    item._supply_label = '';
                     this.searchText = '';
+                    this.showResults = false;
+                    this.results = [];
+                    this.highlightedIndex = -1;
                 },
 
                 highlightNext() {
@@ -430,13 +435,18 @@
                 },
 
                 selectHighlighted() {
-                    if (this.highlightedIndex >= 0 && this.highlightedIndex < this.results.length) {
-                        this.selectSupply(this.results[this.highlightedIndex]);
+                    if (!this.showResults || this.results.length === 0) {
+                        return;
                     }
+                    let idx = this.highlightedIndex;
+                    if (idx < 0 || idx >= this.results.length) {
+                        idx = 0;
+                    }
+                    this.selectSupply(this.results[idx]);
                 },
 
                 onTab(event) {
-                    if (this.showResults && this.highlightedIndex >= 0) {
+                    if (this.showResults && this.results.length > 0) {
                         event.preventDefault();
                         this.selectHighlighted();
                     } else {
@@ -497,6 +507,17 @@
                         expiration_date: '',
                         notes: '',
                         from_po: false,
+                    });
+                },
+
+                addFreeItemFromRowEnter() {
+                    this.addFreeItem();
+                    this.$nextTick(() => {
+                        const newIndex = this.items.length - 1;
+                        const el = document.getElementById(`item-supply-${newIndex}`);
+                        if (el) {
+                            el.focus();
+                        }
                     });
                 },
 
