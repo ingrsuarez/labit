@@ -396,6 +396,11 @@ Route::middleware([
     Route::middleware('can:contabilidad.section')->group(function () {
         Route::get('accounting', [App\Http\Controllers\AccountingSectionController::class, 'index'])
             ->name('accounting.section');
+        Route::resource('accounting/journal', App\Http\Controllers\JournalEntryController::class)
+            ->names('accounting.journal')
+            ->except(['show']);
+        Route::get('accounting/ledger', [App\Http\Controllers\AccountingLedgerController::class, 'index'])
+            ->name('accounting.ledger');
         Route::resource('accounting/accounts', App\Http\Controllers\AccountingAccountController::class)
             ->names('accounting.accounts');
         Route::resource('accounting/bank-accounts', App\Http\Controllers\BankAccountController::class)

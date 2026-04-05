@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-05 (develop: **v1.35.3** + v1.36.1 + v1.35.2; master sin release nuevo)
+> Última actualización: 2026-04-05 (develop: **v3.4.0** + **v1.38.0** + **v1.35.3** + v1.36.1 + v1.35.2; master sin release nuevo)
 
 ---
 
@@ -9,32 +9,31 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v3.3.0 / … / v1.38.0 / **v1.36.1** / **v1.35.3** / **v1.35.2** |
-| **Última en master** | 2026-04-05 — tag **v1.38.0** (develop incluye **v1.35.3**, **v1.36.1**, **v1.35.2**) |
-| **Última completada** | v1.35.3 — Movimientos stock: selector de lotes en salidas |
+| **Versión actual** | **v3.4.0** / v3.3.0 / … / v1.38.0 / **v1.36.1** / **v1.35.3** / **v1.35.2** |
+| **Última en master** | 2026-04-05 — tag **v1.38.0** (develop incluye **v3.4.0**, **v1.35.3**, **v1.36.1**, **v1.35.2**) |
+| **Última completada** | v3.4.0 — Libro Diario, Libro Mayor y asientos manuales |
 | **En proceso** | — |
-| **Próxima** | v3.4.0 — Libro diario / Libro mayor |
-| **Pendientes en cola** | 1 |
-| **Completadas** | 81 |
+| **Próxima** | — |
+| **Pendientes en cola** | 0 |
+| **Completadas** | 82 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (1)
+### Pendientes (0)
 
-| Versión | Nombre |
-|---|---|
-| v3.4.0 | Libro diario / Libro mayor |
+_Sin prompts pendientes._
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (81)
+### Completados (82)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v3.4.0 | Libro Diario, Libro Mayor y asientos manuales | 2026-04-05 | v3.4.0 |
 | v1.35.3 | Movimientos stock: selector de lotes | 2026-04-05 | v1.35.3 |
 | v1.36.1 | FC compra: editar y reasignar empresa | 2026-04-05 | v1.36.1 |
 | v1.35.2 | Movimientos stock: cantidad entera | 2026-04-05 | v1.35.2 |

@@ -6,7 +6,7 @@
     </div>
 
     @if(!empty($section['stats']))
-    <div class="grid grid-cols-2 sm:grid-cols-{{ count($section['stats']) }} gap-4 mb-8">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         @foreach($section['stats'] as $stat)
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4">
             <p class="text-2xl font-bold text-gray-800">{{ number_format($stat['value']) }}</p>

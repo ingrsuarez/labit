@@ -58,6 +58,22 @@
 
 ---
 
+## [v3.4.0] — 2026-04-05 — Libro Diario, Libro Mayor y asientos manuales
+
+### Agregado
+- `JournalEntryController`: listado con filtros (fechas, tipo automático/manual, búsqueda, número de asiento), alta/edición/baja de asientos **manuales** con partida doble; `sourcePresentation()` para enlaces al documento origen
+- `AccountingLedgerController`: Libro Mayor por cuenta imputable con saldo inicial del período, movimientos del mes, saldo acumulado y enlace al Libro Diario por número/fecha
+- Rutas `accounting.journal.*` (resource sin `show`) y `accounting.ledger`
+- Vistas Blade: `accounting/journal` (índice con líneas expandibles, crear/editar con Alpine.js) y `accounting/ledger/index`
+- Permisos `contabilidad.entries.edit`, `contabilidad.entries.delete`, `contabilidad.ledger.index` en `RolesAndPermissionsSeeder` (rol contador)
+- Dashboard contable: tarjetas activas Libro Diario / Libro Mayor; estadísticas de asientos del mes y automáticos vs manuales (empresa activa)
+- Tests `JournalAndLedgerTest`
+
+### Notas
+- Tras desplegar: `php artisan db:seed --class=RolesAndPermissionsSeeder` (y `php artisan permission:cache-reset` si aplica)
+
+---
+
 ## [v3.3.0] — 2026-04-04 — Asientos automáticos desde transacciones
 
 ### Agregado
