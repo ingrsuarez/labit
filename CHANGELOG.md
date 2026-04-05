@@ -5,6 +5,20 @@
 
 ---
 
+## [v1.36.0] — 2026-04-05 — Múltiples remitos en factura de compra
+
+### Agregado
+- Tabla pivote `delivery_note_purchase_invoice` y migración que copia vínculos desde `purchase_invoices.delivery_note_id`
+- Relación many-to-many en `PurchaseInvoice` y `DeliveryNote`; compatibilidad con `delivery_note_id` (primer remito)
+- Endpoint `GET purchase-invoices/available-delivery-notes` y validación de remitos libres / proveedor / empresa
+- Formularios crear/editar FC con varios remitos (chips, líneas por remito); vistas índice y detalle actualizadas
+- Tests en `PurchaseInvoiceMultipleDeliveryNotesTest`
+
+### Modificado
+- Con remitos vinculados, los ítems de la FC fuerzan `updates_stock` en falso para evitar doble impacto de stock
+
+---
+
 ## [v3.3.0] — 2026-04-04 — Asientos automáticos desde transacciones
 
 ### Agregado
