@@ -181,11 +181,12 @@ class SupplyController extends Controller
         $supplies = Supply::active()
             ->where(function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('brand', 'like', "%{$search}%");
             })
             ->orderBy('name')
             ->limit(15)
-            ->get(['id', 'code', 'name', 'unit', 'stock', 'last_price', 'tracks_lot']);
+            ->get(['id', 'code', 'name', 'brand', 'unit', 'stock', 'last_price', 'tracks_lot']);
 
         return response()->json($supplies);
     }

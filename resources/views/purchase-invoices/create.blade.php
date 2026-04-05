@@ -48,7 +48,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('purchase-invoices.store') }}">
+        <form method="POST" action="{{ route('purchase-invoices.store') }}" @keydown.enter="if ($event.target.tagName === 'INPUT') $event.preventDefault()">
             @csrf
 
             @if($deliveryNote)
@@ -57,6 +57,7 @@
             @if($purchaseOrder)
                 <input type="hidden" name="purchase_order_id" value="{{ $purchaseOrder->id }}">
             @endif
+            <input type="hidden" name="delivery_note_id" x-bind:value="delivery_note_id || ''" x-show="false">
 
             <input type="hidden" name="cae" :value="qrData?.codAut || ''">
             <input type="hidden" name="cuit_emisor" :value="qrData?.cuit || ''">
@@ -125,19 +126,23 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Punto de Venta</label>
-                        <input type="text" name="point_of_sale" value="{{ old('point_of_sale') }}"
-                               placeholder="Ej: 00001"
+                        <input type="text" name="point_of_sale" x-model="point_of_sale"
+                               @blur="padPointOfSale(); checkDuplicate()"
+                               maxlength="5"
+                               placeholder="00000"
                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">N° Factura <span class="text-red-500">*</span></label>
-                        <input type="text" name="invoice_number" value="{{ old('invoice_number') }}" required
-                               placeholder="Ej: 00012345"
+                        <input type="text" name="invoice_number" x-model="invoice_number"
+                               @blur="padInvoiceNumber(); checkDuplicate()"
+                               maxlength="8" required
+                               placeholder="00000000"
                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor <span class="text-red-500">*</span></label>
-                        <select name="supplier_id" required class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                        <select name="supplier_id" x-model="supplier_id" @change="checkDuplicate(); onSupplierChange()" required class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                             <option value="">Seleccionar...</option>
                             @foreach($suppliers as $sup)
                                 <option value="{{ $sup->id }}" {{ old('supplier_id', $selectedSupplierId ?? $deliveryNote?->supplier_id ?? $purchaseOrder?->supplier_id) == $sup->id ? 'selected' : '' }}>{{ $sup->name }}</option>
@@ -146,12 +151,13 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Fecha Emisión <span class="text-red-500">*</span></label>
-                        <input type="date" name="issue_date" value="{{ old('issue_date', date('Y-m-d')) }}" required
+                        <input type="date" name="issue_date" x-model="issue_date"
+                               @change="autoCalcDueDate()" required
                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Fecha Vencimiento</label>
-                        <input type="date" name="due_date" value="{{ old('due_date') }}"
+                        <input type="date" name="due_date" x-model="due_date"
                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
                     <div>
@@ -169,8 +175,50 @@
                         <textarea name="notes" rows="2" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500"
                                   placeholder="Observaciones opcionales">{{ old('notes') }}</textarea>
                     </div>
+                    <div x-show="duplicateWarning" x-cloak
+                         class="lg:col-span-4 md:col-span-2 flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <span>Ya existe una factura de este proveedor con el mismo Punto de Venta y N° de Factura.</span>
+                    </div>
                 </div>
             </div>
+
+            {{-- Remito asociado --}}
+            @unless($deliveryNote)
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5" x-show="!{{ $deliveryNote ? 'true' : 'false' }}">
+                <h3 class="text-sm font-semibold text-gray-700 mb-4">Remito asociado <span class="text-gray-400 font-normal">(opcional)</span></h3>
+                <div class="flex items-start gap-4">
+                    <div class="flex-1" x-show="!delivery_note_id">
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Seleccionar remito</label>
+                        <select x-model="selectedDeliveryNoteId"
+                                @change="onDeliveryNoteChange()"
+                                :disabled="!supplier_id"
+                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                            <option value="" x-text="supplier_id ? 'Sin remito' : 'Seleccioná un proveedor primero'"></option>
+                            <template x-for="note in availableDeliveryNotes" :key="note.id">
+                                <option :value="note.id" x-text="`${note.remito_number} — ${note.date}`"></option>
+                            </template>
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">Al seleccionar un remito, sus ítems se importan automáticamente.</p>
+                    </div>
+                    <template x-if="delivery_note_id">
+                        <div class="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+                            <svg class="w-5 h-5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/>
+                            </svg>
+                            <div>
+                                <p class="text-sm font-medium text-blue-800" x-text="'Remito: ' + selectedDeliveryNoteNumber"></p>
+                                <p class="text-xs text-blue-500">El stock fue actualizado por este remito.</p>
+                            </div>
+                            <button type="button" @click="removeDeliveryNote()"
+                                    class="ml-4 text-blue-400 hover:text-blue-600 text-xs underline">
+                                Quitar remito
+                            </button>
+                        </div>
+                    </template>
+                </div>
+            </div>
+            @endunless
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
                 <div class="flex items-center justify-between mb-4">
@@ -194,6 +242,7 @@
                                 <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Tasa IVA</th>
                                 <th class="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">IVA</th>
                                 <th class="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Total</th>
+                                <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-16">Stock</th>
                                 <th class="px-3 py-2 w-10"></th>
                             </tr>
                         </thead>
@@ -208,6 +257,7 @@
                                         <input type="hidden" :name="'items[' + index + '][iva_rate]'" :value="item.iva_rate">
                                         <input type="hidden" :name="'items[' + index + '][lot_number]'" :value="item.lot_number || ''">
                                         <input type="hidden" :name="'items[' + index + '][expiration_date]'" :value="item.expiration_date || ''">
+                                        <input type="hidden" :name="'items[' + index + '][updates_stock]'" :value="item.updates_stock ? '1' : '0'">
 
                                         <div class="flex items-start gap-2">
                                             <div class="flex-1 min-w-0 relative">
@@ -227,9 +277,10 @@
                                                            class="flex-1 min-w-0 rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
 
                                                     <span x-show="item.supply_id" x-cloak
-                                                          class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200 whitespace-nowrap">
-                                                        <span x-text="item._supply_code || 'INS'"></span>
-                                                        <button type="button" @click="unlinkSupply()" class="ml-1 text-teal-400 hover:text-teal-600">&times;</button>
+                                                          class="shrink-0 inline-flex items-center gap-2 mt-0.5">
+                                                        <span class="text-xs text-teal-700 font-mono" x-text="item._supply_code"></span>
+                                                        <span class="text-xs text-gray-500" x-text="item._supply_label || item.description"></span>
+                                                        <button type="button" @click="unlinkSupply()" class="text-xs text-gray-400 hover:text-red-500">&times;</button>
                                                     </span>
                                                 </div>
 
@@ -244,6 +295,9 @@
                                                                 class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 last:border-0">
                                                             <span class="font-mono text-xs text-gray-400" x-text="supply.code"></span>
                                                             <span x-text="supply.name"></span>
+                                                            <template x-if="supply.brand">
+                                                                <span class="text-xs text-gray-400" x-text="'— ' + supply.brand"></span>
+                                                            </template>
                                                         </button>
                                                     </template>
 
@@ -266,6 +320,7 @@
                                             <template x-if="item.supply_id && getSupplyTracksLot(item.supply_id)">
                                                 <div class="flex gap-2 shrink-0">
                                                     <input type="text" x-model="item.lot_number" placeholder="Lote"
+                                                           @keydown.enter.prevent
                                                            class="w-28 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
                                                     <input type="date" x-model="item.expiration_date"
                                                            class="w-36 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
@@ -274,7 +329,7 @@
                                         </div>
                                     </td>
                                     <td class="px-3 py-2">
-                                        <input type="number" x-model.number="item.quantity" min="0.01" step="0.01" required
+                                        <input type="number" x-model.number="item.quantity" min="1" step="1" required
                                                :id="'item-qty-' + index"
                                                class="w-24 rounded border-gray-300 text-sm text-center focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
@@ -299,6 +354,22 @@
                                         <span x-text="'$' + formatMoney(itemTotal(item))"></span>
                                     </td>
                                     <td class="px-3 py-2 text-center">
+                                        <template x-if="!delivery_note_id">
+                                            <input type="checkbox"
+                                                   x-model="item.updates_stock"
+                                                   class="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                                                   title="Marcar si este ítem actualiza el stock al guardar">
+                                        </template>
+                                        <template x-if="delivery_note_id">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200"
+                                                  title="Stock actualizado por el remito asociado">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/>
+                                                </svg>
+                                            </span>
+                                        </template>
+                                    </td>
+                                    <td class="px-3 py-2 text-center">
                                         <button type="button" @click="removeItem(index)" class="text-red-400 hover:text-red-600">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -310,37 +381,37 @@
                         </tbody>
                         <tfoot class="bg-gray-50">
                             <tr>
-                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Subtotal (Neto Gravado)</td>
+                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Subtotal (Neto Gravado)</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(subtotal)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="iva105 > 0">
-                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 10,5%</td>
+                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 10,5%</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(iva105)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="iva21 > 0">
-                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 21%</td>
+                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 21%</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(iva21)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="iva27 > 0">
-                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 27%</td>
+                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 27%</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(iva27)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="percepciones > 0">
-                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Percepciones</td>
+                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Percepciones</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(percepciones)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="otrosImpuestos > 0">
-                                <td colspan="5" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Otros Impuestos</td>
+                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Otros Impuestos</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(otrosImpuestos)"></td>
                                 <td></td>
                             </tr>
                             <tr class="border-t-2 border-gray-300">
-                                <td colspan="5" class="px-3 py-3 text-right text-sm font-bold text-gray-800">TOTAL</td>
+                                <td colspan="6" class="px-3 py-3 text-right text-sm font-bold text-gray-800">TOTAL</td>
                                 <td class="px-3 py-3 text-right text-base font-bold text-gray-900" x-text="'$' + formatMoney(grandTotal)"></td>
                                 <td></td>
                             </tr>
@@ -471,10 +542,15 @@
                 },
 
                 selectSupply(supply) {
+                    const label = supply.brand
+                        ? `${supply.name} — ${supply.brand}`
+                        : supply.name;
+
                     item.supply_id = supply.id;
-                    item.description = supply.name;
+                    item.description = label;
                     item._supply_code = supply.code;
-                    this.searchText = supply.name;
+                    item._supply_label = label;
+                    this.searchText = label;
                     this.showResults = false;
 
                     const formEl = this.$root.closest('[x-data="invoiceForm()"]');
@@ -541,8 +617,8 @@
                 },
 
                 init() {
-                    if (item.supply_id && item.description) {
-                        this.searchText = item.description;
+                    if (item.supply_id && (item._supply_label || item.description)) {
+                        this.searchText = item._supply_label || item.description;
                     }
                 }
             }
@@ -556,6 +632,116 @@
                 percepciones: {{ old('percepciones', 0) }},
                 otrosImpuestos: {{ old('otros_impuestos', 0) }},
                 supplies: @json(\App\Models\Supply::active()->orderBy('name')->get()->map(function ($s) { return ['id' => $s->id, 'name' => $s->code . ' - ' . $s->name, 'tracks_lot' => $s->tracks_lot]; })),
+
+                point_of_sale: '{{ old('point_of_sale') }}',
+                invoice_number: '{{ old('invoice_number') }}',
+                supplier_id: '{{ old('supplier_id', $selectedSupplierId ?? $deliveryNote?->supplier_id ?? $purchaseOrder?->supplier_id ?? '') }}',
+                issue_date: '{{ old('issue_date', date('Y-m-d')) }}',
+                due_date: '{{ old('due_date') }}',
+                editId: null,
+                duplicateWarning: false,
+
+                delivery_note_id: {{ $deliveryNote ? $deliveryNote->id : 'null' }},
+                selectedDeliveryNoteId: '',
+                selectedDeliveryNoteNumber: '{{ $deliveryNote?->remito_number ?? '' }}',
+                availableDeliveryNotes: [],
+                loadingDeliveryNotes: false,
+
+                async onSupplierChange() {
+                    this.delivery_note_id = null;
+                    this.selectedDeliveryNoteId = '';
+                    this.selectedDeliveryNoteNumber = '';
+                    this.availableDeliveryNotes = [];
+                    if (!this.supplier_id) return;
+
+                    this.loadingDeliveryNotes = true;
+                    try {
+                        const resp = await fetch(`{{ route('delivery-notes.by-supplier') }}?supplier_id=${this.supplier_id}`);
+                        this.availableDeliveryNotes = await resp.json();
+                    } catch (e) {
+                        this.availableDeliveryNotes = [];
+                    } finally {
+                        this.loadingDeliveryNotes = false;
+                    }
+                },
+
+                async onDeliveryNoteChange() {
+                    if (!this.selectedDeliveryNoteId) {
+                        this.delivery_note_id = null;
+                        this.selectedDeliveryNoteNumber = '';
+                        return;
+                    }
+
+                    if (this.items.length > 0 && !confirm('Al asociar el remito se van a reemplazar los ítems actuales. ¿Continuás?')) {
+                        this.selectedDeliveryNoteId = '';
+                        return;
+                    }
+
+                    try {
+                        const resp = await fetch(`/delivery-notes/${this.selectedDeliveryNoteId}/items`);
+                        const data = await resp.json();
+
+                        this.delivery_note_id = data.delivery_note.id;
+                        this.selectedDeliveryNoteNumber = data.delivery_note.number;
+
+                        this.items = data.items.map(item => ({
+                            ...item,
+                            iva_rate: '21',
+                            updates_stock: false,
+                        }));
+                    } catch (e) {
+                        alert('Error al cargar los ítems del remito. Intentá de nuevo.');
+                        this.selectedDeliveryNoteId = '';
+                    }
+                },
+
+                removeDeliveryNote() {
+                    if (this.items.length > 0 && !confirm('Al quitar el remito, los ítems quedan pero el stock se actualizará al guardar. ¿Continuás?')) return;
+                    this.delivery_note_id = null;
+                    this.selectedDeliveryNoteId = '';
+                    this.selectedDeliveryNoteNumber = '';
+                    this.items = this.items.map(item => ({ ...item, updates_stock: true }));
+                },
+
+                padPointOfSale() {
+                    if (this.point_of_sale) {
+                        this.point_of_sale = String(parseInt(this.point_of_sale) || 0).padStart(5, '0');
+                    }
+                },
+
+                padInvoiceNumber() {
+                    if (this.invoice_number) {
+                        this.invoice_number = String(parseInt(this.invoice_number) || 0).padStart(8, '0');
+                    }
+                },
+
+                async checkDuplicate() {
+                    if (!this.supplier_id || !this.point_of_sale || !this.invoice_number) {
+                        this.duplicateWarning = false;
+                        return;
+                    }
+                    try {
+                        const params = new URLSearchParams({
+                            supplier_id: this.supplier_id,
+                            point_of_sale: this.point_of_sale,
+                            invoice_number: this.invoice_number,
+                            exclude_id: this.editId || '',
+                        });
+                        const resp = await fetch(`{{ route('purchase-invoices.check-duplicate') }}?${params}`);
+                        const data = await resp.json();
+                        this.duplicateWarning = data.duplicate;
+                    } catch (e) {
+                        this.duplicateWarning = false;
+                    }
+                },
+
+                autoCalcDueDate() {
+                    if (this.issue_date && !this.due_date) {
+                        const issue = new Date(this.issue_date + 'T12:00:00');
+                        issue.setDate(issue.getDate() + 30);
+                        this.due_date = issue.toISOString().split('T')[0];
+                    }
+                },
 
                 // QR Scanner
                 scanResult: null,
@@ -612,9 +798,9 @@
                         if (el) { el.value = val; el.dispatchEvent(new Event('input', {bubbles:true})); el.dispatchEvent(new Event('change', {bubbles:true})); }
                     };
                     setVal('voucher_type', r.voucherType);
-                    setVal('point_of_sale', r.ptoVta);
-                    setVal('invoice_number', r.nroCmp);
-                    if (r.fecha) setVal('issue_date', r.fecha);
+                    this.point_of_sale = r.ptoVta;
+                    this.invoice_number = r.nroCmp;
+                    if (r.fecha) { this.issue_date = r.fecha; this.autoCalcDueDate(); }
                     this.lookupSupplierByCuit(r.cuit);
                 },
 
@@ -636,7 +822,7 @@
                 newSupply: { name: '', supply_category_id: '', unit: 'unidad', brand: '', min_stock: 0, tracks_lot: false },
 
                 addItem() {
-                    this.items.push({ description: '', supply_id: '', quantity: 1, unit_price: 0, iva_rate: '21', lot_number: '', expiration_date: '' });
+                    this.items.push({ description: '', supply_id: '', quantity: 1, unit_price: 0, iva_rate: '21', lot_number: '', expiration_date: '', updates_stock: !this.delivery_note_id });
                 },
 
                 removeItem(index) {

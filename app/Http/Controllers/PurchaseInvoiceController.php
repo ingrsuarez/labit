@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\DeliveryNote;
+use App\Models\JournalEntry;
 use App\Models\PurchaseInvoice;
 use App\Models\PurchaseOrder;
 use App\Models\StockMovement;
 use App\Models\Supplier;
+use App\Services\AccountingEntryService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PurchaseInvoiceController extends Controller
 {
@@ -15,7 +18,7 @@ class PurchaseInvoiceController extends Controller
     {
         $this->authorize('purchase-invoices.index');
 
-        $query = PurchaseInvoice::with(['supplier', 'creator'])
+        $query = PurchaseInvoice::with(['supplier', 'creator', 'deliveryNote'])
             ->where('company_id', active_company_id())
             ->orderByDesc('created_at');
 
@@ -42,6 +45,25 @@ class PurchaseInvoiceController extends Controller
             ->sum('balance');
 
         return view('purchase-invoices.index', compact('invoices', 'total_balance'));
+    }
+
+    public function checkDuplicate(Request $request)
+    {
+        $request->validate([
+            'supplier_id' => 'required|integer',
+            'point_of_sale' => 'required|string',
+            'invoice_number' => 'required|string',
+            'exclude_id' => 'nullable|integer',
+        ]);
+
+        $exists = PurchaseInvoice::where('company_id', active_company_id())
+            ->where('supplier_id', $request->supplier_id)
+            ->where('point_of_sale', $request->point_of_sale)
+            ->where('invoice_number', $request->invoice_number)
+            ->when($request->exclude_id, fn ($q) => $q->where('id', '!=', $request->exclude_id))
+            ->exists();
+
+        return response()->json(['duplicate' => $exists]);
     }
 
     public function create(Request $request)
@@ -94,11 +116,12 @@ class PurchaseInvoiceController extends Controller
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string',
             'items.*.supply_id' => 'nullable|exists:supplies,id',
-            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.iva_rate' => 'required|in:0,10.5,21,27',
             'items.*.lot_number' => 'nullable|string|max:50',
             'items.*.expiration_date' => 'nullable|date',
+            'items.*.updates_stock' => 'nullable|boolean',
         ], [
             'invoice_number.required' => 'El número de factura es obligatorio.',
             'voucher_type.required' => 'El tipo de comprobante es obligatorio.',
@@ -116,7 +139,7 @@ class PurchaseInvoiceController extends Controller
             'items.min' => 'Debe agregar al menos un ítem.',
             'items.*.description.required' => 'La descripción del ítem es obligatoria.',
             'items.*.quantity.required' => 'La cantidad es obligatoria.',
-            'items.*.quantity.min' => 'La cantidad debe ser mayor a 0.',
+            'items.*.quantity.min' => 'La cantidad debe ser al menos 1.',
             'items.*.unit_price.required' => 'El precio unitario es obligatorio.',
             'items.*.unit_price.min' => 'El precio unitario no puede ser negativo.',
             'items.*.iva_rate.required' => 'La alícuota de IVA es obligatoria.',
@@ -158,41 +181,49 @@ class PurchaseInvoiceController extends Controller
                 'total' => $total,
                 'lot_number' => $itemData['lot_number'] ?? null,
                 'expiration_date' => $itemData['expiration_date'] ?? null,
+                'updates_stock' => filter_var($itemData['updates_stock'] ?? true, FILTER_VALIDATE_BOOLEAN),
             ]);
         }
 
         $invoice->recalculate();
 
-        if (! $invoice->delivery_note_id) {
-            foreach ($invoice->items()->whereNotNull('supply_id')->get() as $item) {
-                $supply = $item->supply;
-                if (! $supply) {
-                    continue;
-                }
-
-                $previousStock = $supply->stock;
-                $newStock = $previousStock + $item->quantity;
-
-                StockMovement::create([
-                    'supply_id' => $supply->id,
-                    'type' => 'entrada',
-                    'quantity' => $item->quantity,
-                    'previous_stock' => $previousStock,
-                    'new_stock' => $newStock,
-                    'reason' => 'compra',
-                    'reference_type' => PurchaseInvoice::class,
-                    'reference_id' => $invoice->id,
-                    'lot_number' => $item->lot_number,
-                    'expiration_date' => $item->expiration_date,
-                    'notes' => "Factura de compra {$invoice->full_number}",
-                    'user_id' => auth()->id(),
-                ]);
-
-                $supply->update([
-                    'stock' => $newStock,
-                    'last_price' => $item->unit_price,
-                ]);
+        foreach ($invoice->items()->whereNotNull('supply_id')->where('updates_stock', true)->get() as $item) {
+            $supply = $item->supply;
+            if (! $supply) {
+                continue;
             }
+
+            $previousStock = $supply->stock;
+            $newStock = $previousStock + $item->quantity;
+
+            StockMovement::create([
+                'supply_id' => $supply->id,
+                'type' => 'entrada',
+                'quantity' => $item->quantity,
+                'previous_stock' => $previousStock,
+                'new_stock' => $newStock,
+                'reason' => 'compra',
+                'reference_type' => PurchaseInvoice::class,
+                'reference_id' => $invoice->id,
+                'lot_number' => $item->lot_number,
+                'expiration_date' => $item->expiration_date,
+                'notes' => "Factura de compra {$invoice->full_number}",
+                'user_id' => auth()->id(),
+            ]);
+
+            $supply->update([
+                'stock' => $newStock,
+                'last_price' => $item->unit_price,
+            ]);
+        }
+
+        try {
+            $invoice->refresh()->load('items.supply', 'supplier');
+            if (! JournalEntry::where('source_type', PurchaseInvoice::class)->where('source_id', $invoice->id)->exists()) {
+                (new AccountingEntryService)->fromPurchaseInvoice($invoice);
+            }
+        } catch (\Throwable $e) {
+            Log::error('Error generando asiento para factura compra #'.$invoice->id.': '.$e->getMessage());
         }
 
         return redirect()->route('purchase-invoices.show', $invoice)
@@ -225,6 +256,7 @@ class PurchaseInvoiceController extends Controller
         }
 
         $purchaseInvoice->load('items.supply');
+        $purchaseInvoice->load('deliveryNote');
         $suppliers = Supplier::active()->orderBy('name')->get();
 
         return view('purchase-invoices.edit', [
@@ -262,11 +294,12 @@ class PurchaseInvoiceController extends Controller
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string',
             'items.*.supply_id' => 'nullable|exists:supplies,id',
-            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.iva_rate' => 'required|in:0,10.5,21,27',
             'items.*.lot_number' => 'nullable|string|max:50',
             'items.*.expiration_date' => 'nullable|date',
+            'items.*.updates_stock' => 'nullable|boolean',
         ], [
             'invoice_number.required' => 'El número de factura es obligatorio.',
             'voucher_type.required' => 'El tipo de comprobante es obligatorio.',
@@ -284,7 +317,7 @@ class PurchaseInvoiceController extends Controller
             'items.min' => 'Debe agregar al menos un ítem.',
             'items.*.description.required' => 'La descripción del ítem es obligatoria.',
             'items.*.quantity.required' => 'La cantidad es obligatoria.',
-            'items.*.quantity.min' => 'La cantidad debe ser mayor a 0.',
+            'items.*.quantity.min' => 'La cantidad debe ser al menos 1.',
             'items.*.unit_price.required' => 'El precio unitario es obligatorio.',
             'items.*.unit_price.min' => 'El precio unitario no puede ser negativo.',
             'items.*.iva_rate.required' => 'La alícuota de IVA es obligatoria.',
@@ -324,6 +357,7 @@ class PurchaseInvoiceController extends Controller
                 'total' => $total,
                 'lot_number' => $itemData['lot_number'] ?? null,
                 'expiration_date' => $itemData['expiration_date'] ?? null,
+                'updates_stock' => filter_var($itemData['updates_stock'] ?? true, FILTER_VALIDATE_BOOLEAN),
             ]);
         }
 
@@ -346,20 +380,19 @@ class PurchaseInvoiceController extends Controller
 
         $fullNumber = $purchaseInvoice->full_number;
 
-        if (! $purchaseInvoice->delivery_note_id) {
-            $movements = StockMovement::where('reference_type', PurchaseInvoice::class)
-                ->where('reference_id', $purchaseInvoice->id)
-                ->get();
+        $movements = StockMovement::where('reference_type', PurchaseInvoice::class)
+            ->where('reference_id', $purchaseInvoice->id)
+            ->get();
 
-            foreach ($movements as $movement) {
-                $supply = $movement->supply;
-                if ($supply) {
-                    $supply->decrement('stock', $movement->quantity);
-                }
-                $movement->delete();
+        foreach ($movements as $movement) {
+            $supply = $movement->supply;
+            if ($supply) {
+                $supply->decrement('stock', $movement->quantity);
             }
+            $movement->delete();
         }
 
+        JournalEntry::deleteForSource($purchaseInvoice);
         $purchaseInvoice->delete();
 
         return redirect()->route('purchase-invoices.index')

@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\CreditNote;
 use App\Models\CreditNoteItem;
+use App\Models\JournalEntry;
 use App\Models\SalesInvoice;
+use App\Services\AccountingEntryService;
 use App\Services\AfipService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,7 +25,7 @@ class CreditNoteController extends Controller
             $s = $request->search;
             $query->where(function ($q) use ($s) {
                 $q->where('credit_note_number', 'like', "%{$s}%")
-                  ->orWhereHas('customer', fn ($c) => $c->where('name', 'like', "%{$s}%"));
+                    ->orWhereHas('customer', fn ($c) => $c->where('name', 'like', "%{$s}%"));
             });
         }
 
@@ -110,7 +112,7 @@ class CreditNoteController extends Controller
             $creditNote->recalculate();
 
             if ($isElectronic) {
-                $afip = new AfipService();
+                $afip = new AfipService;
                 $afipResponse = $afip->createCreditNote($creditNote);
 
                 $creditNote->update([
@@ -137,16 +139,19 @@ class CreditNoteController extends Controller
                                 ? $observations['Obs']
                                 : [$observations['Obs']];
                             foreach ($obsList as $ob) {
-                                $obs .= ($ob['Msg'] ?? '') . ' ';
+                                $obs .= ($ob['Msg'] ?? '').' ';
                             }
                         }
                     }
+
                     return redirect()->route('credit-notes.show', $creditNote)
-                        ->with('error', 'AFIP rechazó la nota de crédito. ' . trim($obs));
+                        ->with('error', 'AFIP rechazó la nota de crédito. '.trim($obs));
                 }
             }
 
             DB::commit();
+
+            $this->recordCreditNoteJournalEntry($creditNote);
 
             return redirect()->route('credit-notes.show', $creditNote)
                 ->with('success', 'Nota de crédito creada exitosamente.');
@@ -154,8 +159,9 @@ class CreditNoteController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Credit note creation failed', ['error' => $e->getMessage()]);
+
             return back()->withInput()
-                ->with('error', 'Error al crear la nota de crédito: ' . $e->getMessage());
+                ->with('error', 'Error al crear la nota de crédito: '.$e->getMessage());
         }
     }
 
@@ -163,6 +169,7 @@ class CreditNoteController extends Controller
     {
         abort_if($creditNote->company_id !== active_company_id(), 403);
         $creditNote->load(['items', 'customer', 'pointOfSale', 'salesInvoice', 'creator']);
+
         return view('credit-notes.show', compact('creditNote'));
     }
 
@@ -173,7 +180,9 @@ class CreditNoteController extends Controller
             return back()->with('error', 'No se puede eliminar una nota de crédito autorizada o confirmada.');
         }
 
+        JournalEntry::deleteForSource($creditNote);
         $creditNote->delete();
+
         return redirect()->route('credit-notes.index')
             ->with('success', 'Nota de crédito eliminada.');
     }
@@ -188,7 +197,7 @@ class CreditNoteController extends Controller
         $creditNote->load(['pointOfSale', 'customer', 'items', 'salesInvoice.pointOfSale']);
 
         try {
-            $afip = new AfipService();
+            $afip = new AfipService;
             $afipResponse = $afip->createCreditNote($creditNote);
 
             $creditNote->update([
@@ -205,13 +214,15 @@ class CreditNoteController extends Controller
                     'credit_note_number' => $number,
                     'status' => 'confirmada',
                 ]);
-                return back()->with('success', 'Nota de crédito autorizada por AFIP. CAE: ' . $afipResponse['cae']);
+                $this->recordCreditNoteJournalEntry($creditNote->fresh(['customer', 'pointOfSale', 'items']));
+
+                return back()->with('success', 'Nota de crédito autorizada por AFIP. CAE: '.$afipResponse['cae']);
             }
 
             return back()->with('error', 'AFIP rechazó la nota de crédito.');
 
         } catch (\Exception $e) {
-            return back()->with('error', 'Error al conectar con AFIP: ' . $e->getMessage());
+            return back()->with('error', 'Error al conectar con AFIP: '.$e->getMessage());
         }
     }
 
@@ -223,6 +234,22 @@ class CreditNoteController extends Controller
             ->max('credit_note_number');
 
         $next = $lastNumber ? intval($lastNumber) + 1 : 1;
+
         return str_pad($next, 8, '0', STR_PAD_LEFT);
+    }
+
+    protected function recordCreditNoteJournalEntry(CreditNote $creditNote): void
+    {
+        try {
+            if ($creditNote->is_electronic && $creditNote->status !== 'confirmada') {
+                return;
+            }
+            if (JournalEntry::where('source_type', CreditNote::class)->where('source_id', $creditNote->id)->exists()) {
+                return;
+            }
+            (new AccountingEntryService)->fromCreditNote($creditNote);
+        } catch (\Throwable $e) {
+            Log::error('Error generando asiento para NC #'.$creditNote->id.': '.$e->getMessage());
+        }
     }
 }

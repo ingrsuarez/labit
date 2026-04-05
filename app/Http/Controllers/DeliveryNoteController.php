@@ -6,16 +6,60 @@ use App\Models\DeliveryNote;
 use App\Models\PurchaseOrder;
 use App\Models\StockMovement;
 use App\Models\Supplier;
+use App\Services\DeliveryNoteStockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class DeliveryNoteController extends Controller
 {
+    public function bySupplier(Request $request)
+    {
+        $request->validate(['supplier_id' => 'required|integer']);
+
+        $notes = DeliveryNote::where('company_id', active_company_id())
+            ->where('supplier_id', $request->supplier_id)
+            ->orderByDesc('date')
+            ->limit(50)
+            ->get(['id', 'remito_number', 'date', 'supplier_id']);
+
+        return response()->json($notes);
+    }
+
+    public function getItems(DeliveryNote $deliveryNote)
+    {
+        abort_if($deliveryNote->company_id !== active_company_id(), 403);
+
+        $items = $deliveryNote->items()->with('supply:id,code,name,brand,tracks_lot')->get();
+
+        return response()->json([
+            'delivery_note' => [
+                'id' => $deliveryNote->id,
+                'number' => $deliveryNote->remito_number,
+                'date' => $deliveryNote->date?->format('Y-m-d'),
+            ],
+            'items' => $items->map(fn ($item) => [
+                'supply_id' => $item->supply_id,
+                '_supply_name' => $item->supply?->name ?? '',
+                '_supply_code' => $item->supply?->code ?? '',
+                '_supply_brand' => $item->supply?->brand ?? '',
+                '_supply_label' => $item->supply ? ($item->supply->brand ? "{$item->supply->name} — {$item->supply->brand}" : $item->supply->name) : '',
+                '_tracks_lot' => $item->supply?->tracks_lot ?? false,
+                'quantity' => (int) $item->quantity_received,
+                'lot_number' => $item->lot_number ?? '',
+                'expiration_date' => $item->expiration_date?->format('Y-m-d') ?? '',
+                'unit_price' => 0,
+                'iva_rate' => '21',
+                'updates_stock' => false,
+                'description' => $item->supply ? ($item->supply->brand ? "{$item->supply->name} — {$item->supply->brand}" : $item->supply->name) : '',
+            ]),
+        ]);
+    }
+
     public function index(Request $request)
     {
         $this->authorize('delivery-notes.index');
 
-        $query = DeliveryNote::with(['supplier', 'purchaseOrder', 'receiver'])
+        $query = DeliveryNote::with(['supplier', 'purchaseOrder', 'receiver', 'purchaseInvoices:id,delivery_note_id'])
             ->where('company_id', active_company_id())
             ->orderByDesc('created_at');
 
@@ -78,9 +122,11 @@ class DeliveryNoteController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.supply_id' => 'required|exists:supplies,id',
-            'items.*.quantity_received' => 'required|numeric|min:0.01',
+            'items.*.quantity_received' => 'required|integer|min:1',
             'items.*.purchase_order_item_id' => 'nullable|exists:purchase_order_items,id',
             'items.*.notes' => 'nullable|string|max:255',
+            'items.*.lot_number' => 'nullable|string|max:100',
+            'items.*.expiration_date' => 'nullable|date',
         ], [
             'remito_number.required' => 'El número de remito es obligatorio.',
             'supplier_id.required' => 'Debe seleccionar un proveedor.',
@@ -89,8 +135,19 @@ class DeliveryNoteController extends Controller
             'items.min' => 'Debe agregar al menos un ítem.',
             'items.*.supply_id.required' => 'Debe seleccionar un insumo.',
             'items.*.quantity_received.required' => 'La cantidad recibida es obligatoria.',
-            'items.*.quantity_received.min' => 'La cantidad recibida debe ser mayor a 0.',
+            'items.*.quantity_received.min' => 'La cantidad recibida debe ser al menos 1.',
         ]);
+
+        $duplicate = DeliveryNote::where('company_id', active_company_id())
+            ->where('remito_number', $validated['remito_number'])
+            ->where('supplier_id', $validated['supplier_id'])
+            ->exists();
+
+        if ($duplicate) {
+            return back()->withInput()->withErrors([
+                'remito_number' => 'Ya existe un remito con este número para el mismo proveedor.',
+            ]);
+        }
 
         $deliveryNote = DeliveryNote::create([
             'remito_number' => $validated['remito_number'],
@@ -108,6 +165,8 @@ class DeliveryNoteController extends Controller
                 'supply_id' => $itemData['supply_id'],
                 'quantity_received' => $itemData['quantity_received'],
                 'purchase_order_item_id' => $itemData['purchase_order_item_id'] ?? null,
+                'lot_number' => $itemData['lot_number'] ?? null,
+                'expiration_date' => $itemData['expiration_date'] ?? null,
                 'notes' => $itemData['notes'] ?? null,
             ]);
         }
@@ -133,9 +192,9 @@ class DeliveryNoteController extends Controller
 
         $this->authorize('delivery-notes.edit');
 
-        if ($deliveryNote->status !== 'pendiente') {
+        if ($deliveryNote->hasPurchaseInvoice()) {
             return redirect()->route('delivery-notes.show', $deliveryNote)
-                ->with('error', 'Solo se pueden editar remitos en estado pendiente.');
+                ->with('warning', 'Este remito tiene una factura de compra asociada y no puede editarse.');
         }
 
         $deliveryNote->load(['items.supply', 'items.purchaseOrderItem']);
@@ -169,9 +228,8 @@ class DeliveryNoteController extends Controller
 
         $this->authorize('delivery-notes.edit');
 
-        if ($deliveryNote->status !== 'pendiente') {
-            return redirect()->route('delivery-notes.show', $deliveryNote)
-                ->with('error', 'Solo se pueden editar remitos en estado pendiente.');
+        if ($deliveryNote->hasPurchaseInvoice()) {
+            abort(403, 'Remito con factura asociada no puede editarse.');
         }
 
         $validated = $request->validate([
@@ -182,9 +240,11 @@ class DeliveryNoteController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.supply_id' => 'required|exists:supplies,id',
-            'items.*.quantity_received' => 'required|numeric|min:0.01',
+            'items.*.quantity_received' => 'required|integer|min:1',
             'items.*.purchase_order_item_id' => 'nullable|exists:purchase_order_items,id',
             'items.*.notes' => 'nullable|string|max:255',
+            'items.*.lot_number' => 'nullable|string|max:100',
+            'items.*.expiration_date' => 'nullable|date',
         ], [
             'remito_number.required' => 'El número de remito es obligatorio.',
             'supplier_id.required' => 'Debe seleccionar un proveedor.',
@@ -193,8 +253,10 @@ class DeliveryNoteController extends Controller
             'items.min' => 'Debe agregar al menos un ítem.',
             'items.*.supply_id.required' => 'Debe seleccionar un insumo.',
             'items.*.quantity_received.required' => 'La cantidad recibida es obligatoria.',
-            'items.*.quantity_received.min' => 'La cantidad recibida debe ser mayor a 0.',
+            'items.*.quantity_received.min' => 'La cantidad recibida debe ser al menos 1.',
         ]);
+
+        $wasAccepted = $deliveryNote->status === 'aceptado';
 
         $deliveryNote->update([
             'remito_number' => $validated['remito_number'],
@@ -211,12 +273,18 @@ class DeliveryNoteController extends Controller
                 'supply_id' => $itemData['supply_id'],
                 'quantity_received' => $itemData['quantity_received'],
                 'purchase_order_item_id' => $itemData['purchase_order_item_id'] ?? null,
+                'lot_number' => $itemData['lot_number'] ?? null,
+                'expiration_date' => $itemData['expiration_date'] ?? null,
                 'notes' => $itemData['notes'] ?? null,
             ]);
         }
 
+        if ($wasAccepted) {
+            app(DeliveryNoteStockService::class)->syncStockAfterUpdate($deliveryNote);
+        }
+
         return redirect()->route('delivery-notes.show', $deliveryNote)
-            ->with('success', 'Remito actualizado correctamente.');
+            ->with('success', 'Remito actualizado y stock sincronizado correctamente.');
     }
 
     public function destroy(DeliveryNote $deliveryNote)
@@ -225,16 +293,25 @@ class DeliveryNoteController extends Controller
 
         $this->authorize('delivery-notes.delete');
 
-        if ($deliveryNote->status !== 'pendiente') {
-            return redirect()->route('delivery-notes.show', $deliveryNote)
-                ->with('error', 'Solo se pueden eliminar remitos en estado pendiente.');
+        if ($deliveryNote->hasPurchaseInvoice()) {
+            return back()->with('error',
+                'No se puede eliminar el remito porque tiene una factura de compra asociada.');
         }
 
         $number = $deliveryNote->remito_number;
-        $deliveryNote->delete();
+        $wasAccepted = $deliveryNote->status === 'aceptado';
+
+        DB::transaction(function () use ($deliveryNote, $wasAccepted) {
+            if ($wasAccepted) {
+                app(DeliveryNoteStockService::class)->reverseStockForDeletion($deliveryNote);
+            }
+
+            $deliveryNote->items()->delete();
+            $deliveryNote->delete();
+        });
 
         return redirect()->route('delivery-notes.index')
-            ->with('success', "Remito {$number} eliminado.");
+            ->with('success', "Remito {$number} eliminado".($wasAccepted ? ' y stock revertido' : '').' correctamente.');
     }
 
     public function accept(Request $request, DeliveryNote $deliveryNote)
@@ -275,8 +352,8 @@ class DeliveryNoteController extends Controller
                 $lotNumber = null;
                 $expirationDate = null;
                 if ($supply->tracks_lot) {
-                    $lotNumber = $request->input("items.{$item->id}.lot_number");
-                    $expirationDate = $request->input("items.{$item->id}.expiration_date");
+                    $lotNumber = $request->input("items.{$item->id}.lot_number", $item->lot_number);
+                    $expirationDate = $request->input("items.{$item->id}.expiration_date", $item->expiration_date?->format('Y-m-d'));
                 }
 
                 StockMovement::create([

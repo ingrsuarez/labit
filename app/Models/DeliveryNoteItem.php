@@ -11,10 +11,13 @@ class DeliveryNoteItem extends Model
 
     protected $fillable = [
         'delivery_note_id', 'supply_id', 'purchase_order_item_id',
-        'quantity_received', 'notes',
+        'quantity_received', 'lot_number', 'expiration_date', 'notes',
     ];
 
-    protected $casts = ['quantity_received' => 'decimal:2'];
+    protected $casts = [
+        'quantity_received' => 'decimal:2',
+        'expiration_date' => 'date',
+    ];
 
     public function deliveryNote() { return $this->belongsTo(DeliveryNote::class); }
     public function supply() { return $this->belongsTo(Supply::class); }

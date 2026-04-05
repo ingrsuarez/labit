@@ -130,7 +130,38 @@
                                         {{ $note->receiver->name ?? '-' }}
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-right text-sm">
-                                        <a href="{{ route('delivery-notes.show', $note) }}" class="text-gray-500 hover:text-zinc-700">Ver</a>
+                                        @php $hasInvoice = $note->relationLoaded('purchaseInvoices') ? $note->purchaseInvoices->isNotEmpty() : $note->hasPurchaseInvoice(); @endphp
+                                        <div class="flex items-center justify-end gap-2">
+                                            <a href="{{ route('delivery-notes.show', $note) }}" class="text-gray-500 hover:text-zinc-700">Ver</a>
+
+                                            @if(!$hasInvoice)
+                                                <a href="{{ route('delivery-notes.edit', $note) }}"
+                                                   class="inline-flex items-center px-2 py-1 text-xs font-medium text-zinc-700 bg-zinc-100 hover:bg-zinc-200 rounded">
+                                                    Editar
+                                                </a>
+                                            @else
+                                                <span class="inline-flex items-center px-2 py-1 text-xs text-gray-300 bg-gray-50 rounded cursor-not-allowed"
+                                                      title="Remito con factura de compra asociada">
+                                                    Editar
+                                                </span>
+                                            @endif
+
+                                            @if(!$hasInvoice)
+                                                <form action="{{ route('delivery-notes.destroy', $note) }}" method="POST"
+                                                      onsubmit="return confirm('¿Eliminar remito {{ $note->remito_number }}? Se revertirá el stock asociado si el remito fue aceptado.')">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit"
+                                                            class="inline-flex items-center px-2 py-1 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded">
+                                                        Eliminar
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <span class="inline-flex items-center px-2 py-1 text-xs text-gray-300 bg-gray-50 rounded cursor-not-allowed"
+                                                      title="No se puede eliminar: tiene factura de compra asociada">
+                                                    Eliminar
+                                                </span>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach

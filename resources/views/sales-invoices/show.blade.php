@@ -273,6 +273,8 @@
             </div>
         </div>
 
+        <x-journal-entry-widget :source="$invoice" />
+
         @if($invoice->collectionReceiptItems->count() > 0)
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
                 <div class="px-4 py-3 border-b border-gray-200">

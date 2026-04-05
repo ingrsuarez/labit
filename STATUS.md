@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-01 (v3.2.0 completada)
+> Última actualización: 2026-04-04 (v3.3.0 completada)
 
 ---
 
@@ -9,29 +9,38 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v3.2.0 / v3.1.0 / v3.0.0 / v2.7.0 / v1.32.1 |
-| **Última completada** | v3.2.0 — Conciliación Bancaria: Motor de Matcheo |
+| **Versión actual** | v3.3.0 / v3.2.0 / v3.1.0 / v3.0.0 / v2.7.0 / v1.35.0 |
+| **Última completada** | v3.3.0 — Asientos automáticos desde transacciones |
 | **En proceso** | — |
-| **Próxima** | — (sin prompts pendientes) |
-| **Pendientes en cola** | 0 |
-| **Completadas** | 67 |
+| **Próxima** | v3.4.0 — Libro diario / Libro mayor |
+| **Pendientes en cola** | 1 |
+| **Completadas** | 74 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (0)
+### Pendientes (1)
 
-_Sin prompts pendientes._
+| Versión | Nombre |
+|---|---|
+| v3.4.0 | Libro diario / Libro mayor |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (67)
+### Completados (74)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v3.3.0 | Asientos automáticos desde transacciones | 2026-04-04 | v3.3.0 |
+| v1.35.0 | Cuenta corriente de proveedores | 2026-04-04 | v1.35.0 |
+| v1.32.4 | Editar y eliminar remitos con sincronización de stock | 2026-04-04 | v1.32.4 |
+| v1.34.0 | Asociación de remitos y control de stock en facturas de compra | 2026-04-04 | v1.34.0 |
+| v1.32.3 | Marca en búsqueda y display de insumos | 2026-04-04 | v1.32.3 |
+| v1.33.0 | UX y validaciones en formulario de factura de compra | 2026-04-04 | v1.33.0 |
+| v1.32.2 | Fix buscador inteligente de items en remitos | 2026-04-04 | v1.32.2 |
 | v3.2.0 | Conciliación Bancaria: Motor de Matcheo | 2026-04-01 | v3.2.0 |
 | v3.1.0 | Conciliación Bancaria: Cuentas e Importación | 2026-04-01 | v3.1.0 |
 | v3.0.0 | Infraestructura contable base | 2026-03-31 | v3.0.0 |
@@ -126,6 +135,9 @@ v1.0.0 (completada)
 │   └── v1.28.0 — Lector QR facturas de compra (completada)
 │       └── v1.28.1 — Fix QR scanner captura nativa (completada)
 ├── v1.32.0 — Buscador inteligente de insumos en facturas de compra (completada)
+│   └── v1.32.2 — Fix buscador inteligente de items en remitos (completada)
+│       └── v1.33.0 — UX y validaciones factura de compra (completada)
+│           └── v1.34.0 — Asociación remitos y control stock FC (completada)
 ├── v1.29.0 — Libro IVA digital AFIP RG 4597 (completada)
 ├── v1.30.0 — Sedes laboratorio y procedencia protocolos (completada)
 ├── v1.5.3 — Seeder jerarquía padre-hijo prácticas (completada)
@@ -150,6 +162,7 @@ v1.0.0 (completada)
 ├── v3.0.0 — Infraestructura contable base (completada)
 │   └── v3.1.0 — Conciliación Bancaria: Cuentas e Importación (completada)
 │       └── v3.2.0 — Conciliación Bancaria: Motor de Matcheo (completada)
+│           └── v3.3.0 — Asientos automáticos desde transacciones (completada)
 ```
 
 ---
@@ -183,7 +196,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-Ejecutar AgenteProgramador para v3.2.0 (Motor de Matcheo):
+Ejecutar AgenteProgramador para v3.4.0 (Libro diario / Libro mayor):
 → `Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo completo.`
 
 ---

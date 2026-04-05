@@ -3,15 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Admission;
-use App\Models\InvoiceProtocol;
-use App\Models\SalesInvoice;
-use App\Models\SalesInvoiceItem;
 use App\Models\Customer;
-use App\Models\Quote;
+use App\Models\InvoiceProtocol;
+use App\Models\JournalEntry;
 use App\Models\PointOfSale;
+use App\Models\Quote;
+use App\Models\SalesInvoice;
 use App\Models\VetAdmission;
+use App\Services\AccountingEntryService;
 use App\Services\AfipService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use PDF;
 
 class SalesInvoiceController extends Controller
@@ -28,7 +30,7 @@ class SalesInvoiceController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('invoice_number', 'like', "%{$search}%")
-                  ->orWhereHas('customer', fn($cq) => $cq->where('name', 'like', "%{$search}%"));
+                    ->orWhereHas('customer', fn ($cq) => $cq->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -155,7 +157,7 @@ class SalesInvoiceController extends Controller
 
         $invoiceNumberRules = $isElectronic
             ? 'nullable|string'
-            : 'required|string|unique:sales_invoices,invoice_number,NULL,id,voucher_type,' . $request->voucher_type . ',point_of_sale_id,' . $request->point_of_sale_id;
+            : 'required|string|unique:sales_invoices,invoice_number,NULL,id,voucher_type,'.$request->voucher_type.',point_of_sale_id,'.$request->point_of_sale_id;
 
         $validated = $request->validate([
             'invoice_number' => $invoiceNumberRules,
@@ -262,7 +264,7 @@ class SalesInvoiceController extends Controller
             $invoice->load(['pointOfSale', 'customer', 'items']);
 
             try {
-                $afip = new AfipService();
+                $afip = new AfipService;
                 $result = $afip->createVoucher($invoice);
 
                 if ($result['result'] === 'A' || $result['result'] === 'O') {
@@ -276,8 +278,10 @@ class SalesInvoiceController extends Controller
                     ]);
 
                     $msg = $result['result'] === 'A'
-                        ? 'Factura electrónica ' . $invoice->fresh()->full_number . ' autorizada por AFIP. CAE: ' . $result['cae']
-                        : 'Factura electrónica autorizada con observaciones. CAE: ' . $result['cae'];
+                        ? 'Factura electrónica '.$invoice->fresh()->full_number.' autorizada por AFIP. CAE: '.$result['cae']
+                        : 'Factura electrónica autorizada con observaciones. CAE: '.$result['cae'];
+
+                    $this->recordSalesInvoiceJournalEntry($invoice->fresh(['customer', 'pointOfSale', 'items']));
 
                     return redirect()->route('sales-invoices.show', $invoice)->with('success', $msg);
                 }
@@ -290,7 +294,7 @@ class SalesInvoiceController extends Controller
                 $errorMsg = 'AFIP rechazó la factura.';
                 if (! empty($result['observations'])) {
                     $obs = collect($result['observations'])->flatten()->implode(' | ');
-                    $errorMsg .= ' Observaciones: ' . $obs;
+                    $errorMsg .= ' Observaciones: '.$obs;
                 }
 
                 return redirect()->route('sales-invoices.show', $invoice)->with('error', $errorMsg);
@@ -302,12 +306,14 @@ class SalesInvoiceController extends Controller
                 ]);
 
                 return redirect()->route('sales-invoices.show', $invoice)
-                    ->with('error', 'Error al comunicarse con AFIP: ' . $e->getMessage());
+                    ->with('error', 'Error al comunicarse con AFIP: '.$e->getMessage());
             }
         }
 
+        $this->recordSalesInvoiceJournalEntry($invoice->fresh(['customer', 'pointOfSale', 'items']));
+
         return redirect()->route('sales-invoices.show', $invoice)
-            ->with('success', 'Factura ' . $invoice->full_number . ' creada correctamente.');
+            ->with('success', 'Factura '.$invoice->full_number.' creada correctamente.');
     }
 
     public function show(SalesInvoice $salesInvoice)
@@ -363,7 +369,7 @@ class SalesInvoiceController extends Controller
         }
 
         $validated = $request->validate([
-            'invoice_number' => 'required|string|unique:sales_invoices,invoice_number,' . $salesInvoice->id . ',id,voucher_type,' . $request->voucher_type . ',point_of_sale_id,' . $request->point_of_sale_id,
+            'invoice_number' => 'required|string|unique:sales_invoices,invoice_number,'.$salesInvoice->id.',id,voucher_type,'.$request->voucher_type.',point_of_sale_id,'.$request->point_of_sale_id,
             'voucher_type' => 'required|in:A,B,C',
             'point_of_sale_id' => 'required|exists:points_of_sale,id',
             'customer_id' => 'required|exists:customers,id',
@@ -453,6 +459,7 @@ class SalesInvoiceController extends Controller
         }
 
         $fullNumber = $salesInvoice->full_number;
+        JournalEntry::deleteForSource($salesInvoice);
         $salesInvoice->delete();
 
         return redirect()->route('sales-invoices.index')
@@ -472,7 +479,7 @@ class SalesInvoiceController extends Controller
 
         if ($pos->is_electronic) {
             try {
-                $afip = new AfipService();
+                $afip = new AfipService;
                 $voucherTypeId = AfipService::getVoucherTypeId($request->voucher_type);
                 $last = $afip->getLastVoucher($pos->afip_pos_number, $voucherTypeId);
 
@@ -516,7 +523,7 @@ class SalesInvoiceController extends Controller
         $salesInvoice->load(['pointOfSale', 'customer', 'items']);
 
         try {
-            $afip = new AfipService();
+            $afip = new AfipService;
             $result = $afip->createVoucher($salesInvoice);
 
             if ($result['result'] === 'A' || $result['result'] === 'O') {
@@ -529,8 +536,10 @@ class SalesInvoiceController extends Controller
                     'invoice_number' => str_pad($result['voucher_number'], 8, '0', STR_PAD_LEFT),
                 ]);
 
+                $this->recordSalesInvoiceJournalEntry($salesInvoice->fresh(['customer', 'pointOfSale', 'items']));
+
                 return redirect()->route('sales-invoices.show', $salesInvoice)
-                    ->with('success', 'Factura autorizada por AFIP. CAE: ' . $result['cae']);
+                    ->with('success', 'Factura autorizada por AFIP. CAE: '.$result['cae']);
             }
 
             $salesInvoice->update([
@@ -548,7 +557,7 @@ class SalesInvoiceController extends Controller
             ]);
 
             return redirect()->route('sales-invoices.show', $salesInvoice)
-                ->with('error', 'Error al comunicarse con AFIP: ' . $e->getMessage());
+                ->with('error', 'Error al comunicarse con AFIP: '.$e->getMessage());
         }
     }
 
@@ -569,19 +578,23 @@ class SalesInvoiceController extends Controller
             $afipCodes = ['A' => '01', 'B' => '06', 'C' => '11'];
 
             $barcode = $cuit
-                . str_pad($afipCodes[$salesInvoice->voucher_type] ?? '00', 3, '0', STR_PAD_LEFT)
-                . str_pad($pos ? $pos->afip_pos_number : '1', 5, '0', STR_PAD_LEFT)
-                . $salesInvoice->cae
-                . ($salesInvoice->cae_expiration ? $salesInvoice->cae_expiration->format('Ymd') : '');
-            $sumOdd = 0; $sumEven = 0;
+                .str_pad($afipCodes[$salesInvoice->voucher_type] ?? '00', 3, '0', STR_PAD_LEFT)
+                .str_pad($pos ? $pos->afip_pos_number : '1', 5, '0', STR_PAD_LEFT)
+                .$salesInvoice->cae
+                .($salesInvoice->cae_expiration ? $salesInvoice->cae_expiration->format('Ymd') : '');
+            $sumOdd = 0;
+            $sumEven = 0;
             for ($i = 0; $i < strlen($barcode); $i++) {
-                if (($i + 1) % 2 === 0) { $sumEven += intval($barcode[$i]); }
-                else { $sumOdd += intval($barcode[$i]); }
+                if (($i + 1) % 2 === 0) {
+                    $sumEven += intval($barcode[$i]);
+                } else {
+                    $sumOdd += intval($barcode[$i]);
+                }
             }
-            $barcodeComplete = $barcode . ((10 - (($sumOdd + $sumEven * 3) % 10)) % 10);
+            $barcodeComplete = $barcode.((10 - (($sumOdd + $sumEven * 3) % 10)) % 10);
 
             $customer = $salesInvoice->customer;
-            $netAmount = $salesInvoice->items->sum(fn($i) => $i->quantity * $i->unit_price);
+            $netAmount = $salesInvoice->items->sum(fn ($i) => $i->quantity * $i->unit_price);
             $totalIva = $salesInvoice->items->sum('iva_amount');
 
             $qrJson = json_encode([
@@ -599,14 +612,14 @@ class SalesInvoiceController extends Controller
                 'tipoCodAut' => 'E',
                 'codAut' => (int) $salesInvoice->cae,
             ]);
-            $qrUrl = 'https://www.afip.gob.ar/fe/qr/?p=' . base64_encode($qrJson);
+            $qrUrl = 'https://www.afip.gob.ar/fe/qr/?p='.base64_encode($qrJson);
 
             $renderer = new \BaconQrCode\Renderer\ImageRenderer(
                 new \BaconQrCode\Renderer\RendererStyle\RendererStyle(200),
-                new \BaconQrCode\Renderer\Image\SvgImageBackEnd()
+                new \BaconQrCode\Renderer\Image\SvgImageBackEnd
             );
             $qrSvg = (new \BaconQrCode\Writer($renderer))->writeString($qrUrl);
-            $qrDataUri = 'data:image/svg+xml;base64,' . base64_encode($qrSvg);
+            $qrDataUri = 'data:image/svg+xml;base64,'.base64_encode($qrSvg);
         }
 
         $hasFooter = $salesInvoice->cae && $qrDataUri;
@@ -624,10 +637,22 @@ class SalesInvoiceController extends Controller
             'format' => 'A4',
         ]);
 
-        $filename = 'Factura_' . $salesInvoice->voucher_type . '_'
-            . ($salesInvoice->pointOfSale ? $salesInvoice->pointOfSale->code : '00000')
-            . '-' . $salesInvoice->invoice_number . '.pdf';
+        $filename = 'Factura_'.$salesInvoice->voucher_type.'_'
+            .($salesInvoice->pointOfSale ? $salesInvoice->pointOfSale->code : '00000')
+            .'-'.$salesInvoice->invoice_number.'.pdf';
 
         return $pdf->download($filename);
+    }
+
+    protected function recordSalesInvoiceJournalEntry(SalesInvoice $invoice): void
+    {
+        try {
+            if (JournalEntry::where('source_type', SalesInvoice::class)->where('source_id', $invoice->id)->exists()) {
+                return;
+            }
+            (new AccountingEntryService)->fromSalesInvoice($invoice);
+        } catch (\Throwable $e) {
+            Log::error('Error generando asiento para FC venta #'.$invoice->id.': '.$e->getMessage());
+        }
     }
 }

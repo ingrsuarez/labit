@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\JournalEntry;
 use App\Models\PaymentOrder;
 use App\Models\PurchaseInvoice;
 use App\Models\Supplier;
+use App\Services\AccountingEntryService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PaymentOrderController extends Controller
 {
@@ -234,6 +237,14 @@ class PaymentOrderController extends Controller
         $paymentOrder->status = 'pagada';
         $paymentOrder->approved_by = auth()->id();
         $paymentOrder->save();
+
+        try {
+            if (! JournalEntry::where('source_type', PaymentOrder::class)->where('source_id', $paymentOrder->id)->exists()) {
+                (new AccountingEntryService)->fromPaymentOrder($paymentOrder->load('supplier'));
+            }
+        } catch (\Throwable $e) {
+            Log::error('Error generando asiento para OP #'.$paymentOrder->id.': '.$e->getMessage());
+        }
 
         return back()->with('success', 'Orden de pago '.$paymentOrder->number.' confirmada y pagada.');
     }

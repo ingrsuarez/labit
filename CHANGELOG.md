@@ -5,6 +5,91 @@
 
 ---
 
+## [v3.3.0] — 2026-04-04 — Asientos automáticos desde transacciones
+
+### Agregado
+- `AccountingEntryService` con generación de asientos (`is_automatic = true`) desde factura de venta, nota de crédito, recibo de cobro, factura de compra y orden de pago; validación de cuentas del plan y balance debe/haber; resolución de cuenta de caja/banco según medio de pago
+- `JournalEntry::deleteForSource()` para eliminar asientos vinculados al borrar el documento fuente (líneas en cascada por FK)
+- Componente Blade `journal-entry-widget` y uso en vistas `show` de facturas de venta, notas de crédito, recibos de cobro, facturas de compra y órdenes de pago
+
+### Modificado
+- `SalesInvoiceController`: registro de asiento tras emisión (electrónica autorizada o no electrónica) y reintento AFIP; borrado de asiento en `destroy`
+- `CreditNoteController`: registro tras `store` / AFIP con anti-duplicado; regla electrónica solo si `status === confirmada`; borrado en `destroy` y tras reintento exitoso
+- `CollectionReceiptController`: asiento al **confirmar** el recibo (no en borrador); borrado de asiento en `destroy`
+- `PurchaseInvoiceController`: asiento tras alta con ítems y stock; borrado en `destroy`
+- `PaymentOrderController`: asiento al pasar la OP a estado **`pagada`** en `confirm()`
+
+### Notas
+- Si falta una cuenta contable requerida, no se crea el asiento y se registra advertencia en el log; la operación comercial sigue igual
+- Recibos de cobro y órdenes de pago generan asiento en el momento en que el documento pasa a estado definitivo (confirmado / pagado), coherente con el flujo de borrador del proyecto
+
+---
+
+## [v1.35.0] — 2026-04-04 — Cuenta corriente de proveedores
+
+### Agregado
+- `SupplierStatementController` con métodos `index()` (HTML), `pdf()` (descarga mPDF) y privados `buildStatementData()` y `calculateOpenBalance()`
+- Vista `suppliers/statement.blade.php`: formulario de filtros, encabezado de proveedor, tabla con columnas Fecha/Comprobante/Detalle/Debe/Haber/Saldo
+- Vista `suppliers/statement-pdf.blade.php`: PDF con estilos inline para mPDF, encabezado empresa/proveedor/período, misma tabla
+- Saldo inicial (movimientos previos al período) calculado automáticamente
+- Saldo acumulado por fila con criterio contable de cuenta de pasivo (Haber - Debe)
+- Badge **AC** (Acreedor) / **AD** (Deudor) en cada fila de saldo y en el saldo final
+- Botón "Descargar PDF" visible solo cuando hay proveedor seleccionado
+- Link "Cta. Cte. Proveedores" en sidebar de compras con ícono de gráfico
+- Rutas `GET /suppliers/statement` y `GET /suppliers/statement/pdf` dentro del grupo `can:compras.section`
+
+### Notas
+- Movimientos incluidos: facturas de compra (Haber) y órdenes de pago con `status='pagada'` (Debe)
+- Adaptado a campos reales del proyecto: `Supplier.tax_id` (no `cuit`), `PaymentOrder.status='pagada'` (no `'confirmed'`)
+- PDF sin Tailwind — solo HTML con estilos inline para compatibilidad con mPDF
+- Leyenda en pie de tabla: AC = Saldo Acreedor, AD = Saldo Deudor
+
+---
+
+## [v1.32.4] — 2026-04-04 — Editar y eliminar remitos con sincronización de stock
+
+### Agregado
+- Relaciones `purchaseInvoices()` (HasMany) y `hasPurchaseInvoice()` en modelo `DeliveryNote`
+- `DeliveryNoteStockService` con métodos `reverseStockForDeletion()` y `syncStockAfterUpdate()`
+- Botones "Editar" y "Eliminar" en listado de remitos, condicionados por existencia de FC asociada
+- Botones deshabilitados con tooltip explicativo cuando el remito tiene FC asociada
+- Banner informativo en vista `show` cuando el remito tiene FC asociada
+- Flash `warning` en vista `show` para mensajes de redirección desde `edit()`
+
+### Modificado
+- `DeliveryNoteController::edit()`: reemplaza restricción de status por verificación de FC asociada
+- `DeliveryNoteController::update()`: agrega guard de FC + sincronización de stock si remito aceptado
+- `DeliveryNoteController::destroy()`: agrega guard de FC + reversión de stock si remito aceptado, envuelto en `DB::transaction()`
+- `DeliveryNoteController::index()`: eager loading de `purchaseInvoices:id,delivery_note_id` para evitar N+1
+
+### Notas
+- Editar/eliminar solo permitido si el remito no tiene factura de compra asociada
+- Si el remito está en estado `aceptado` (tiene movimientos de stock): al eliminar se revierte el stock; al editar se recrea
+- Si el remito está en estado `pendiente`: la operación procede sin tocar movimientos de stock
+- `StockMovement` usa `reference_type`/`reference_id` (polimórfico) con tipo `'entrada'` y razón `'compra'`
+
+---
+
+## [v1.32.2] — 2026-04-04 — Fix buscador inteligente de items en remitos
+
+### Corregido
+- Reemplazar `<select>` simple de insumos en remitos (create/edit) por combobox con búsqueda inteligente (patrón v1.32.0)
+- Fix `overflow-x-auto` que recortaba el dropdown de búsqueda al abrir
+
+### Agregado
+- Búsqueda con debounce 300ms vía endpoint `supplies.search` (reutilizado, sin duplicación)
+- Badge del insumo vinculado con código y botón desvincular (&times;)
+- Tab flow: al seleccionar insumo el foco salta a "Cant. Recibida"
+- Navegación por teclado (flechas, Enter, Escape, Tab) en el dropdown
+- Pre-llenado correcto de `_supply_name` y `_supply_code` al editar remitos existentes
+- Modal "Crear Insumo Nuevo" con stock 0 (el stock se actualiza al aceptar el remito)
+
+### Notas
+- El endpoint `supplies.search` ya existía de v1.32.0, no se crearon rutas nuevas
+- El modal de crear insumo es análogo al de facturas de compra, adaptado para el contexto de remitos
+
+---
+
 ## [v1.19.1] — 2026-03-29 — Fix deselección de padre en determinaciones
 
 ### Corregido

@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-01
+> Última actualización: 2026-04-04 (v3.3.0 completada)
 
 ---
 
@@ -75,6 +75,9 @@
 | v1.32.0 | Buscador inteligente de insumos en facturas de compra | 2026-03-31 | Combobox autocompletado, reemplaza select+input, Tab flow |
 | v1.32.1 | Fix layout ítems factura de compra | 2026-03-31 | Badge inline, lote/fecha horizontal, fix create y edit |
 | v1.28.1 | Fix QR scanner captura nativa | 2026-03-31 | Reemplazar cámara navegador por capture=environment |
+| v1.32.4 | Editar y eliminar remitos con sincronización de stock | 2026-04-04 | Editar/eliminar solo sin FC; revertir/sincronizar stock |
+| v1.35.0 | Cuenta corriente de proveedores | 2026-04-04 | SupplierStatementController, HTML+PDF, saldo acumulado |
+| v3.3.0 | Asientos automáticos desde transacciones | 2026-04-04 | AccountingEntryService, hooks FV/NC/RC/FC/OP, widget en vistas show |
 
 ---
 
@@ -89,15 +92,13 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v3.1.0 | Conciliación Bancaria: Cuentas e Importación | medio día | v3.0.0 | `pendientes/v3.1.0-conciliacion-bancaria-import.md` |
-| v3.2.0 | Conciliación Bancaria: Motor de Matcheo | medio día | v3.1.0 | `pendientes/v3.2.0-conciliacion-bancaria-matcheo.md` |
+| v3.4.0 | Libro Diario y Libro Mayor | medio día | v3.3.0 | `pendientes/v3.4.0-libro-diario-libro-mayor.md` |
 
 ---
 
 ## Áreas candidatas (sin planificar)
 
-- **Asientos automáticos desde transacciones**: generación de asientos desde facturas/cobros/pagos
-- **Libro Diario y Libro Mayor**: interfaces de consulta contable
+- **Libro Diario y Libro Mayor**: interfaces de consulta contable (siguiente: v3.4.0)
 - **Tesorería**: saldos en tiempo real por cuenta
 - **Lector QR facturas de compra**: ~~escaneo de QR de facturas recibidas para autocompletar datos~~ → completado en v1.28.0
 - **UI/UX**: auditoría visual, migración de componentes, design system
@@ -110,12 +111,13 @@
 ## Progreso general
 
 ```
-Completadas:  65 versiones (v1.0.0 → v1.32.1, v2.0.0 → v2.7.0, v3.0.0)
-Planificadas: 2
+Completadas:  70 versiones (v1.0.0 → v1.35.0, v2.0.0 → v2.7.0, v3.0.0 → v3.3.0)
+Planificadas: 1
 En proceso:   0
-Próxima:      v3.1.0 — Conciliación Bancaria: Cuentas e Importación
+Próxima:      v3.4.0 — Libro Diario y Libro Mayor
 ```
 
 ---
 
 > Este documento se actualiza al finalizar cada versión o sesión de planificación.
+
