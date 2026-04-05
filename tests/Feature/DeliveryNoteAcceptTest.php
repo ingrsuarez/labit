@@ -10,6 +10,7 @@ use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Models\Supply;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
@@ -183,5 +184,59 @@ class DeliveryNoteAcceptTest extends TestCase
         $response->assertOk();
         $response->assertSee('Controla lote', false);
         $response->assertSee('Sin lote', false);
+    }
+
+    public function test_accept_sets_movement_occurred_at_from_stock_received_at(): void
+    {
+        [$user, $company, , $note, $itemNoLot, $itemWithLot, $supplyNoLot, $supplyWithLot] = $this->createPendingNoteWithTwoSupplies();
+        $note->update(['date' => '2026-03-10']);
+        $note->refresh();
+
+        $this->actingAs($user)
+            ->withSession(['active_company_id' => $company->id])
+            ->post(route('delivery-notes.accept', $note), [
+                'stock_received_at' => '2026-03-15',
+                'items' => [
+                    $itemWithLot->id => [
+                        'lot_number' => 'LOT-001',
+                        'expiration_date' => '2030-06-15',
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('delivery-notes.show', $note));
+
+        $movement = StockMovement::query()
+            ->where('supply_id', $supplyNoLot->id)
+            ->where('reference_id', $note->id)
+            ->first();
+        $this->assertNotNull($movement);
+        $this->assertTrue($movement->occurred_at->isSameDay(Carbon::parse('2026-03-15')));
+        $this->assertSame('2026-03-15', $note->fresh()->stock_received_at->format('Y-m-d'));
+    }
+
+    public function test_accept_defaults_occurred_at_to_delivery_note_date_when_stock_received_at_omitted(): void
+    {
+        [$user, $company, , $note, , $itemWithLot, $supplyNoLot, $supplyWithLot] = $this->createPendingNoteWithTwoSupplies();
+        $note->update(['date' => '2026-02-01']);
+        $note->refresh();
+
+        $this->actingAs($user)
+            ->withSession(['active_company_id' => $company->id])
+            ->post(route('delivery-notes.accept', $note), [
+                'items' => [
+                    $itemWithLot->id => [
+                        'lot_number' => 'LOT-001',
+                        'expiration_date' => '2030-06-15',
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('delivery-notes.show', $note));
+
+        $movement = StockMovement::query()
+            ->where('supply_id', $supplyNoLot->id)
+            ->where('reference_id', $note->id)
+            ->first();
+        $this->assertNotNull($movement);
+        $this->assertTrue($movement->occurred_at->isSameDay(Carbon::parse('2026-02-01')));
     }
 }

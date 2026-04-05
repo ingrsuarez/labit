@@ -23,6 +23,7 @@ class StockMovement extends Model
         'reference_id',
         'notes',
         'user_id',
+        'occurred_at',
     ];
 
     protected $casts = [
@@ -30,6 +31,7 @@ class StockMovement extends Model
         'previous_stock' => 'decimal:2',
         'new_stock' => 'decimal:2',
         'expiration_date' => 'date',
+        'occurred_at' => 'datetime',
     ];
 
     public function supply()

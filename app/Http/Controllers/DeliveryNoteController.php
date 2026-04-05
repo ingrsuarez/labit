@@ -8,6 +8,7 @@ use App\Models\Supplier;
 use App\Services\DeliveryNoteStockService;
 use App\Services\LabBranchResolver;
 use App\Services\SupplyStockService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -319,6 +320,7 @@ class DeliveryNoteController extends Controller
             ],
             'purchase_order_id' => 'nullable|exists:purchase_orders,id',
             'date' => 'required|date',
+            'stock_received_at' => 'nullable|date',
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.supply_id' => 'required|exists:supplies,id',
@@ -361,14 +363,18 @@ class DeliveryNoteController extends Controller
 
         $wasAccepted = $deliveryNote->status === 'aceptado';
 
-        $deliveryNote->update([
+        $updatePayload = [
             'remito_number' => $remitoNumber,
             'supplier_id' => $validated['supplier_id'],
             'purchase_order_id' => $validated['purchase_order_id'] ?? null,
             'lab_branch_id' => $validated['lab_branch_id'],
             'date' => $validated['date'],
             'notes' => $validated['notes'] ?? null,
-        ]);
+        ];
+        if ($wasAccepted) {
+            $updatePayload['stock_received_at'] = $validated['stock_received_at'] ?? null;
+        }
+        $deliveryNote->update($updatePayload);
 
         $deliveryNote->items()->delete();
 
@@ -453,6 +459,15 @@ class DeliveryNoteController extends Controller
             $request->validate($rules, $messages);
         }
 
+        $request->validate([
+            'stock_received_at' => 'nullable|date',
+        ]);
+
+        $receivedYmd = $request->filled('stock_received_at')
+            ? $request->input('stock_received_at')
+            : $deliveryNote->date->format('Y-m-d');
+        $occurredAt = Carbon::parse($receivedYmd, config('app.timezone'))->setTime(12, 0, 0);
+
         try {
             $branch = LabBranchResolver::requireDocumentBranch($deliveryNote->lab_branch_id);
         } catch (ValidationException $e) {
@@ -481,6 +496,7 @@ class DeliveryNoteController extends Controller
                     'reference_type' => DeliveryNote::class,
                     'reference_id' => $deliveryNote->id,
                     'user_id' => auth()->id(),
+                    'occurred_at' => $occurredAt,
                 ]);
 
                 $updateData = [];
@@ -510,7 +526,10 @@ class DeliveryNoteController extends Controller
                 }
             }
 
-            $deliveryNote->update(['status' => 'aceptado']);
+            $deliveryNote->update([
+                'status' => 'aceptado',
+                'stock_received_at' => $receivedYmd,
+            ]);
 
             DB::commit();
         } catch (\Illuminate\Validation\ValidationException $e) {

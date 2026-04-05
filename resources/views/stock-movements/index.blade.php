@@ -99,7 +99,7 @@
                                 @endphp
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                                        {{ $mov->created_at->format('d/m/Y H:i') }}
+                                        {{ ($mov->occurred_at ?? $mov->created_at)->format('d/m/Y H:i') }}
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm">
                                         <a href="{{ route('supplies.show', $mov->supply_id) }}" class="text-zinc-700 hover:text-zinc-900 font-medium">
