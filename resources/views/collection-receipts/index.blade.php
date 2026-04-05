@@ -104,11 +104,21 @@
                                     ];
                                     $paymentMethodLabels = [
                                         'transferencia' => 'Transferencia',
-                                        'cheque' => 'Cheque',
+                                        'cheque' => 'Cheque / e-cheq',
                                         'efectivo' => 'Efectivo',
                                         'tarjeta' => 'Tarjeta',
                                         'deposito' => 'Depósito',
                                     ];
+                                    $payLabel = '-';
+                                    if ($receipt->relationLoaded('payments') && $receipt->payments->isNotEmpty()) {
+                                        if ($receipt->payments->count() === 1) {
+                                            $payLabel = $receipt->payments->first()->line_type_label;
+                                        } else {
+                                            $payLabel = 'Varios ('.$receipt->payments->count().')';
+                                        }
+                                    } elseif ($receipt->payment_method) {
+                                        $payLabel = $paymentMethodLabels[$receipt->payment_method] ?? $receipt->payment_method;
+                                    }
                                 @endphp
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3 whitespace-nowrap">
@@ -118,7 +128,7 @@
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{{ $receipt->customer->name }}</td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $receipt->date->format('d/m/Y') }}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $paymentMethodLabels[$receipt->payment_method] ?? '-' }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $payLabel }}</td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-800 text-right">${{ number_format($receipt->total, 2, ',', '.') }}</td>
                                     <td class="px-4 py-3 whitespace-nowrap text-center">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$receipt->status] ?? 'bg-gray-100 text-gray-700' }}">
