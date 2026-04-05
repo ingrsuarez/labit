@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-05 (v1.37.0 completada)
+> Última actualización: 2026-04-05 (v1.38.0 completada)
 
 ---
 
@@ -9,32 +9,36 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | v3.3.0 / v3.2.0 / v3.1.0 / v3.0.0 / v2.7.0 / v1.37.0 |
-| **Última completada** | v1.37.0 — Stock por sede: modelo, migraciones y movimientos |
+| **Versión actual** | v3.3.0 / v3.2.0 / v3.1.0 / v3.0.0 / v2.7.0 / v1.38.0 |
+| **Última completada** | v1.38.0 — Stock por sede: compras, remitos, FC y vistas |
 | **En proceso** | — |
-| **Próxima** | v1.38.0 — Stock por sede: compras y vistas |
-| **Pendientes en cola** | 2 |
-| **Completadas** | 77 |
+| **Próxima** | HOTFIX migraciones pivot + `lab_branch_id`; en cola también v1.35.2, v1.35.3, v1.36.1, v3.4.0 |
+| **Pendientes en cola** | 5 (incl. 1 hotfix) |
+| **Completadas** | 78 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (2)
+### Pendientes (5)
 
 | Versión | Nombre |
 |---|---|
-| v1.38.0 | Stock por sede: compras y vistas |
+| HOTFIX | Migraciones: pivot FC–remitos + `lab_branch_id` |
+| v1.35.2 | Movimientos stock: cantidad entera |
+| v1.35.3 | Movimientos stock: selector de lotes |
+| v1.36.1 | FC compra: editar y reasignar empresa |
 | v3.4.0 | Libro diario / Libro mayor |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (77)
+### Completados (78)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.38.0 | Stock por sede: compras, remitos, FC y vistas | 2026-04-05 | v1.38.0 |
 | v1.37.0 | Stock por sede: modelo, migraciones y movimientos | 2026-04-05 | v1.37.0 |
 | v1.36.0 | Múltiples remitos en factura de compra | 2026-04-05 | v1.36.0 |
 | v1.35.1 | Remito: lote/vencimiento solo si insumo `tracks_lot` | 2026-04-05 | v1.35.1 |
@@ -144,6 +148,7 @@ v1.0.0 (completada)
 │           └── v1.34.0 — Asociación remitos y control stock FC (completada)
 │               └── v1.36.0 — Múltiples remitos en factura de compra (completada)
 │                   └── v1.37.0 — Stock por sede: modelo y movimientos (completada)
+│                       └── v1.38.0 — Stock por sede: compras y vistas (completada)
 ├── v1.29.0 — Libro IVA digital AFIP RG 4597 (completada)
 ├── v1.30.0 — Sedes laboratorio y procedencia protocolos (completada)
 ├── v1.5.3 — Seeder jerarquía padre-hijo prácticas (completada)
@@ -202,7 +207,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-Ejecutar AgenteProgramador para v1.38.0 (Stock por sede: compras y vistas):
+Ejecutar AgenteProgramador para el siguiente prompt disponible (p. ej. HOTFIX migraciones o **v1.35.2** si aplica el orden `v*` del workflow):
 → `Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo completo.`
 
 ---
