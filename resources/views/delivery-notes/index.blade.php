@@ -3,16 +3,19 @@
          x-data="{
              search: '{{ request('search') }}',
              status: '{{ request('status') }}',
+             lab_branch_id: '{{ request('lab_branch_id') }}',
              loading: false,
              init() {
                  this.$watch('search', () => this.fetchResults());
                  this.$watch('status', () => this.fetchResults());
+                 this.$watch('lab_branch_id', () => this.fetchResults());
              },
              fetchResults() {
                  this.loading = true;
                  const params = new URLSearchParams();
                  if (this.search) params.set('search', this.search);
                  if (this.status) params.set('status', this.status);
+                 if (this.lab_branch_id) params.set('lab_branch_id', this.lab_branch_id);
                  const url = '{{ route('delivery-notes.index') }}' + (params.toString() ? '?' + params.toString() : '');
 
                  fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
@@ -67,7 +70,15 @@
                         <option value="con_diferencias">Con Diferencias</option>
                     </select>
                 </div>
-                <button x-show="search || status" @click="search = ''; status = ''" type="button"
+                <div class="w-full md:w-52">
+                    <select x-model="lab_branch_id" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                        <option value="">Todas las sedes</option>
+                        @foreach($branches as $br)
+                            <option value="{{ $br->id }}">{{ $br->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <button x-show="search || status || lab_branch_id" @click="search = ''; status = ''; lab_branch_id = ''" type="button"
                         class="px-4 py-2 text-gray-500 hover:text-gray-700 text-sm font-medium transition-colors">Limpiar</button>
             </div>
         </div>
@@ -93,6 +104,7 @@
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">N° Remito</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Proveedor</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Sede</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Orden de Compra</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Fecha</th>
                                 <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
@@ -108,6 +120,9 @@
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
                                         {{ $note->supplier->name ?? '-' }}
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                                        {{ $note->labBranch->name ?? '—' }}
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm">
                                         @if($note->purchaseOrder)

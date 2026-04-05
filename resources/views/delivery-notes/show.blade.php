@@ -70,6 +70,10 @@
                         <dd class="text-sm font-medium text-gray-800">{{ $deliveryNote->date->format('d/m/Y') }}</dd>
                     </div>
                     <div class="flex justify-between">
+                        <dt class="text-sm text-gray-500">Sede / depósito</dt>
+                        <dd class="text-sm font-medium text-gray-800">{{ $deliveryNote->labBranch->name ?? '—' }}</dd>
+                    </div>
+                    <div class="flex justify-between">
                         <dt class="text-sm text-gray-500">Estado</dt>
                         <dd>
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $deliveryNote->status_color }}-100 text-{{ $deliveryNote->status_color }}-700">
