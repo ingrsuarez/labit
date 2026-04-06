@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-05 (v1.39.0 completada en develop; planificación v1.39.1)
+> Última actualización: 2026-04-05 (v1.39.1 completada; planificación v1.39.2)
 
 ---
 
@@ -83,6 +83,7 @@
 | v1.38.0 | Stock por sede: compras, remitos, FC y vistas | 2026-04-05 | `lab_branch_id` en OC/remitos/FC/movimientos; vistas insumos por sede; tests |
 | v1.38.2 | Hotfix ParseError recibo de cobro create | 2026-04-05 | JSON de facturas por cliente en `CollectionReceiptController@create`; `company_id` en query; Blade sin `@json` anidado con arrow functions |
 | v1.39.0 | Recibos de cobro: múltiples medios y e-cheq (cartera) | 2026-04-05 | Tabla `collection_receipt_payments`; UI create/edit/show; `fromCollectionReceipt` multiparte; migración legado; tests |
+| v1.39.1 | OP a proveedor con e-cheqs en cartera (endoso) | 2026-04-05 | `payment_order_id` en líneas e-cheq; reserva en borrador OP; UI cartera; `fromPaymentOrder` multiparte; tests |
 
 ---
 
@@ -97,7 +98,7 @@
 
 | Versión | Nombre | Estimación | Dependencias | Prompt |
 |---|---|---|---|---|
-| v1.39.1 | Pago a proveedor con e-cheqs en cartera (OP) | medio día–1 día | v1.39.0 | `pendientes/v1.39.1-pago-proveedor-echeq-cartera.md` |
+| v1.39.2 | Recibo de cobro: cobro parcial (UX + validación saldo) | 2h–medio día | v1.39.0 | `pendientes/v1.39.2-recibo-cobro-parcial-ux.md` |
 
 > Nota: Los prompts v1.35.2, v1.35.3, v1.36.1 y v3.4.0 figuran en `agent-bootstrap/prompts/completados/`; se retiraron de esta tabla para evitar duplicar el estado.
 
@@ -106,7 +107,7 @@
 ## Áreas candidatas (sin planificar)
 
 - **Libro Diario y Libro Mayor**: interfaces de consulta contable (v3.4.0 completada en prompts; verificar cierre en CHANGELOG si aplica)
-- **Tesorería**: saldos en tiempo real por cuenta; endoso e-cheq en OP (**v1.39.1**)
+- **Tesorería**: saldos en tiempo real por cuenta; ~~endoso e-cheq en OP~~ → v1.39.1
 - **Lector QR facturas de compra**: ~~escaneo de QR de facturas recibidas para autocompletar datos~~ → completado en v1.28.0
 - **UI/UX**: auditoría visual, migración de componentes, design system
 - **Testing**: suite de tests automatizados, cobertura mínima
@@ -119,9 +120,9 @@
 
 ```
 Completadas:  79 (tabla en STATUS.md; última v1.38.2)
-Planificadas: 2 (v1.39.0 → v1.39.1; antes de implementar UI leer `DISEÑO_v1.39.*` del Agente Designer)
+Planificadas: 3 (v1.39.1 OP e-cheq; v1.39.2 cobro parcial en RC)
 En proceso:   0
-Próxima:      v1.39.0 — Cobro multimodal; luego v1.39.1 — OP con e-cheq desde cartera
+Próxima:      v1.39.1 — OP con e-cheq desde cartera; v1.39.2 — UX cobro parcial recibos de venta
 Release master: 2026-04-05 — alineado con develop (v1.38.0, hotfix migraciones pivot)
 ```
 
