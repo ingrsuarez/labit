@@ -23,7 +23,7 @@
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">Datos Generales</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Cliente <span class="text-red-500">*</span></label>
                         <select name="customer_id" x-model="customerId" @change="onCustomerChange()" required
@@ -37,23 +37,6 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Fecha <span class="text-red-500">*</span></label>
                         <input type="date" name="date" value="{{ old('date', date('Y-m-d')) }}" required
-                               class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Método de Pago</label>
-                        <select name="payment_method" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
-                            <option value="">Seleccionar...</option>
-                            <option value="transferencia" {{ old('payment_method') === 'transferencia' ? 'selected' : '' }}>Transferencia</option>
-                            <option value="cheque" {{ old('payment_method') === 'cheque' ? 'selected' : '' }}>Cheque</option>
-                            <option value="efectivo" {{ old('payment_method') === 'efectivo' ? 'selected' : '' }}>Efectivo</option>
-                            <option value="tarjeta" {{ old('payment_method') === 'tarjeta' ? 'selected' : '' }}>Tarjeta</option>
-                            <option value="deposito" {{ old('payment_method') === 'deposito' ? 'selected' : '' }}>Depósito</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Referencia de Pago</label>
-                        <input type="text" name="payment_reference" value="{{ old('payment_reference') }}"
-                               placeholder="N° transferencia, cheque, etc."
                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
                     <div class="md:col-span-2">
@@ -92,7 +75,7 @@
                             <template x-for="(inv, index) in invoices" :key="inv.id">
                                 <tr class="hover:bg-gray-50" :class="{ 'bg-zinc-50': inv.selected }">
                                     <td class="px-3 py-2 text-center">
-                                        <input type="checkbox" x-model="inv.selected" @change="onToggle(index)"
+                                        <input type="checkbox" x-model="inv.selected" @change="onToggleInvoice(index)"
                                                class="rounded border-gray-300 text-zinc-600 focus:ring-zinc-500">
                                     </td>
                                     <td class="px-3 py-2 text-sm font-medium text-gray-800" x-text="inv.full_number"></td>
@@ -118,15 +101,100 @@
                 </div>
             </div>
 
-            <template x-for="(inv, index) in selectedInvoices" :key="'hidden-' + inv.id">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800">Valores recibidos</h2>
+                    <button type="button" @click="addPaymentLine()"
+                            class="inline-flex items-center px-3 py-2 bg-gray-100 text-gray-800 text-sm font-medium rounded-lg hover:bg-gray-200">
+                        + Agregar medio
+                    </button>
+                </div>
+                <p class="text-sm text-gray-500 mb-4">La suma de los medios debe igualar el total a cobrar. El e-cheq ingresa solo a cartera (sin endoso en esta pantalla).</p>
+
+                <div class="space-y-4">
+                    <template x-for="(line, pi) in paymentLines" :key="pi">
+                        <div class="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
+                            <div class="flex justify-between items-start gap-2 mb-3">
+                                <div class="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Tipo</label>
+                                        <select x-model="line.line_type" @change="onPaymentTypeChange(pi)"
+                                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                            <option value="efectivo">Efectivo</option>
+                                            <option value="transferencia">Transferencia</option>
+                                            <option value="echeq">E-cheq</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Importe <span class="text-red-500">*</span></label>
+                                        <input type="number" x-model.number="line.amount" min="0.01" step="0.01"
+                                               class="w-full rounded-lg border-gray-300 text-sm text-right focus:border-zinc-500 focus:ring-zinc-500">
+                                    </div>
+                                    <div x-show="line.line_type === 'transferencia'" x-cloak class="md:col-span-2">
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Cuenta bancaria <span class="text-red-500">*</span></label>
+                                        <select x-model="line.bank_account_id"
+                                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                            <option value="">Seleccionar...</option>
+                                            @foreach($bankAccounts as $ba)
+                                                <option value="{{ $ba->id }}">{{ $ba->display_name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <template x-if="line.line_type === 'echeq'">
+                                        <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-600 mb-1">Número <span class="text-red-500">*</span></label>
+                                                <input type="text" x-model="line.cheque_number" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-600 mb-1">Banco <span class="text-red-500">*</span></label>
+                                                <input type="text" x-model="line.bank_name" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-600 mb-1">Vencimiento <span class="text-red-500">*</span></label>
+                                                <input type="date" x-model="line.due_date" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                                <button type="button" @click="removePaymentLine(pi)" x-show="paymentLines.length > 1"
+                                        class="text-sm text-red-600 hover:text-red-800 whitespace-nowrap mt-6">Quitar</button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="mt-4 flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 text-sm">
+                    <span class="text-gray-600">Total medios: <strong x-text="'$' + formatMoney(totalPayments)"></strong></span>
+                    <span class="text-gray-400 hidden sm:inline">|</span>
+                    <span class="text-gray-600">Total facturas: <strong x-text="'$' + formatMoney(totalCollection)"></strong></span>
+                </div>
+                <p x-show="!paymentsMatchTotal && selectedInvoices.length > 0" x-cloak class="mt-2 text-sm text-red-600 font-medium">
+                    Los importes no coinciden. Ajustá las líneas o los montos a cobrar.
+                </p>
+            </div>
+
+            <template x-for="(inv, index) in selectedInvoices" :key="'hidden-inv-' + inv.id">
                 <div>
                     <input type="hidden" :name="'invoices[' + index + '][sales_invoice_id]'" :value="inv.id">
                     <input type="hidden" :name="'invoices[' + index + '][amount]'" :value="inv.amount">
                 </div>
             </template>
 
+            <template x-for="(line, index) in paymentLines" :key="'hidden-pay-' + index">
+                <div>
+                    <input type="hidden" :name="'payments[' + index + '][line_type]'" :value="line.line_type">
+                    <input type="hidden" :name="'payments[' + index + '][amount]'" :value="line.amount">
+                    <input type="hidden" :name="'payments[' + index + '][bank_account_id]'" :value="line.line_type === 'transferencia' ? line.bank_account_id : ''">
+                    <input type="hidden" :name="'payments[' + index + '][cheque_number]'" :value="line.line_type === 'echeq' ? line.cheque_number : ''">
+                    <input type="hidden" :name="'payments[' + index + '][bank_name]'" :value="line.line_type === 'echeq' ? line.bank_name : ''">
+                    <input type="hidden" :name="'payments[' + index + '][due_date]'" :value="line.line_type === 'echeq' ? line.due_date : ''">
+                </div>
+            </template>
+
             <div class="flex justify-end">
-                <button type="submit" :disabled="selectedInvoices.length === 0"
+                <button type="submit"
+                        :disabled="selectedInvoices.length === 0 || !paymentsMatchTotal"
                         class="px-6 py-3 bg-zinc-700 text-white font-semibold rounded-lg hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm shadow-sm">
                     Guardar Recibo de Cobro
                 </button>
@@ -136,48 +204,33 @@
 
     <script>
         function collectionForm() {
-            const invoicesByCustomer = @json(
-                $customers->mapWithKeys(fn($c) => [
-                    $c->id => \App\Models\SalesInvoice::where('customer_id', $c->id)
-                        ->whereIn('status', ['pendiente', 'parcialmente_cobrada'])
-                        ->orderByDesc('issue_date')
-                        ->get()
-                        ->map(fn($inv) => [
-                            'id' => $inv->id,
-                            'full_number' => $inv->full_number,
-                            'issue_date' => $inv->issue_date->format('d/m/Y'),
-                            'total' => (float) $inv->total,
-                            'amount_collected' => (float) $inv->amount_collected,
-                            'balance' => (float) $inv->balance,
-                            'selected' => false,
-                            'amount' => (float) $inv->balance,
-                        ])
-                ])
-            );
+            const invoicesByCustomer = @json($invoicesByCustomer);
 
-            @if($selectedCustomer && $pendingInvoices->count() > 0)
-                const preloaded = @json($pendingInvoices->map(fn($inv) => [
-                    'id' => $inv->id,
-                    'full_number' => $inv->full_number,
-                    'issue_date' => $inv->issue_date->format('d/m/Y'),
-                    'total' => (float) $inv->total,
-                    'amount_collected' => (float) $inv->amount_collected,
-                    'balance' => (float) $inv->balance,
-                    'selected' => false,
-                    'amount' => (float) $inv->balance,
-                ]));
+            @if($selectedCustomer && $preloadedInvoiceRows)
+                const preloaded = @json($preloadedInvoiceRows);
                 if ('{{ $selectedCustomer->id }}' in invoicesByCustomer) {
                     invoicesByCustomer['{{ $selectedCustomer->id }}'] = preloaded;
                 }
             @endif
 
+            const emptyPaymentLine = () => ({
+                line_type: 'efectivo',
+                amount: 0,
+                bank_account_id: '',
+                cheque_number: '',
+                bank_name: '',
+                due_date: '',
+            });
+
             return {
                 customerId: '{{ old('customer_id', $selectedCustomer?->id ?? '') }}',
                 invoices: [],
+                paymentLines: [emptyPaymentLine()],
                 init() {
                     if (this.customerId) {
                         this.invoices = JSON.parse(JSON.stringify(invoicesByCustomer[this.customerId] || []));
                     }
+                    this.$watch('totalCollection', () => this.syncDefaultPaymentAmount());
                 },
                 onCustomerChange() {
                     if (this.customerId && invoicesByCustomer[this.customerId]) {
@@ -185,10 +238,36 @@
                     } else {
                         this.invoices = [];
                     }
+                    this.syncDefaultPaymentAmount();
                 },
-                onToggle(index) {
+                onToggleInvoice(index) {
                     if (!this.invoices[index].selected) {
                         this.invoices[index].amount = this.invoices[index].balance;
+                    }
+                    this.syncDefaultPaymentAmount();
+                },
+                addPaymentLine() {
+                    const line = emptyPaymentLine();
+                    const rest = Math.max(0, this.totalCollection - this.totalPayments);
+                    line.amount = rest > 0 ? rest : 0;
+                    this.paymentLines.push(line);
+                },
+                removePaymentLine(index) {
+                    if (this.paymentLines.length <= 1) return;
+                    this.paymentLines.splice(index, 1);
+                },
+                onPaymentTypeChange(index) {
+                    const line = this.paymentLines[index];
+                    if (line.line_type !== 'transferencia') line.bank_account_id = '';
+                    if (line.line_type !== 'echeq') {
+                        line.cheque_number = '';
+                        line.bank_name = '';
+                        line.due_date = '';
+                    }
+                },
+                syncDefaultPaymentAmount() {
+                    if (this.paymentLines.length === 1 && this.paymentLines[0].line_type === 'efectivo') {
+                        this.paymentLines[0].amount = this.totalCollection;
                     }
                 },
                 get selectedInvoices() {
@@ -197,10 +276,17 @@
                 get totalCollection() {
                     return this.selectedInvoices.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
                 },
+                get totalPayments() {
+                    return this.paymentLines.reduce((sum, line) => sum + parseFloat(line.amount || 0), 0);
+                },
+                get paymentsMatchTotal() {
+                    if (this.selectedInvoices.length === 0) return false;
+                    return Math.abs(this.totalCollection - this.totalPayments) < 0.02;
+                },
                 formatMoney(val) {
                     return new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2 }).format(val);
                 }
-            }
+            };
         }
     </script>
 </x-admin-layout>

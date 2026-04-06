@@ -172,30 +172,61 @@ class AccountingEntryService
 
     public function fromCollectionReceipt(CollectionReceipt $receipt): ?JournalEntry
     {
-        $receipt->loadMissing('customer');
+        $receipt->loadMissing(['customer', 'payments.bankAccount.accountingAccount']);
         $companyId = (int) ($receipt->company_id ?? active_company_id());
-        $method = $receipt->payment_method ?? 'efectivo';
-        $bankAccountCode = $this->resolveBankAccountCode($method, null);
+        $total = round((float) $receipt->total, 2);
+
+        $debitLines = [];
+
+        if ($receipt->payments->isEmpty()) {
+            $method = $receipt->payment_method ?? 'efectivo';
+            $bankAccountCode = $this->resolveBankAccountCode($method, null);
+            $debitLines[] = [
+                'account_code' => $bankAccountCode,
+                'debit' => $total,
+                'credit' => 0,
+                'description' => 'Cobro RC '.$receipt->number.' — '.($receipt->customer->name ?? ''),
+            ];
+        } else {
+            foreach ($receipt->payments as $payment) {
+                $amt = round((float) $payment->amount, 2);
+                if ($amt <= 0) {
+                    continue;
+                }
+                $code = match ($payment->line_type) {
+                    'efectivo' => '1.1.01',
+                    'transferencia' => $this->resolveBankAccountCode('transferencia', $payment->bank_account_id ? (int) $payment->bank_account_id : null),
+                    'echeq' => $this->resolveBankAccountCode('cheque', null),
+                    default => '1.1.01',
+                };
+                $desc = match ($payment->line_type) {
+                    'efectivo' => 'Efectivo — RC '.$receipt->number,
+                    'transferencia' => 'Transferencia — RC '.$receipt->number,
+                    'echeq' => 'E-cheq '.($payment->cheque_number ?? '').' — RC '.$receipt->number,
+                    default => 'Cobro RC '.$receipt->number,
+                };
+                $debitLines[] = [
+                    'account_code' => $code,
+                    'debit' => $amt,
+                    'credit' => 0,
+                    'description' => $desc,
+                ];
+            }
+        }
+
+        $debitLines[] = [
+            'account_code' => '1.1.04',
+            'debit' => 0,
+            'credit' => $total,
+            'description' => 'Cancelación deuda RC '.$receipt->number,
+        ];
 
         return $this->createEntry(
             $companyId,
             Carbon::parse($receipt->date),
             'Cobro — RC '.$receipt->number,
             $receipt,
-            [
-                [
-                    'account_code' => $bankAccountCode,
-                    'debit' => round((float) $receipt->total, 2),
-                    'credit' => 0,
-                    'description' => 'Cobro RC '.$receipt->number.' — '.($receipt->customer->name ?? ''),
-                ],
-                [
-                    'account_code' => '1.1.04',
-                    'debit' => 0,
-                    'credit' => round((float) $receipt->total, 2),
-                    'description' => 'Cancelación deuda RC '.$receipt->number,
-                ],
-            ]
+            $debitLines
         );
     }
 
@@ -265,31 +296,53 @@ class AccountingEntryService
 
     public function fromPaymentOrder(PaymentOrder $paymentOrder): ?JournalEntry
     {
-        $paymentOrder->loadMissing('supplier');
-        $bankAccountCode = $this->resolveBankAccountCode(
-            $paymentOrder->payment_method ?? 'efectivo',
-            null
-        );
+        $paymentOrder->loadMissing(['supplier', 'portfolioEcheqPayments']);
+        $companyId = (int) $paymentOrder->company_id;
+        $total = round((float) $paymentOrder->total, 2);
+
+        $debitLine = [
+            'account_code' => '2.1.01',
+            'debit' => $total,
+            'credit' => 0,
+            'description' => 'Cancelación deuda '.($paymentOrder->supplier->name ?? ''),
+        ];
+
+        $creditLines = [];
+        if ($paymentOrder->portfolioEcheqPayments->isNotEmpty()) {
+            $portfolioAccountCode = $this->resolveBankAccountCode('cheque', null);
+            foreach ($paymentOrder->portfolioEcheqPayments as $pay) {
+                $amt = round((float) $pay->amount, 2);
+                if ($amt <= 0) {
+                    continue;
+                }
+                $creditLines[] = [
+                    'account_code' => $portfolioAccountCode,
+                    'debit' => 0,
+                    'credit' => $amt,
+                    'description' => 'Endoso e-cheq '.($pay->cheque_number ?? '').' — OP '.$paymentOrder->number,
+                ];
+            }
+        } else {
+            $bankAccountCode = $this->resolveBankAccountCode(
+                $paymentOrder->payment_method ?? 'efectivo',
+                null
+            );
+            $creditLines[] = [
+                'account_code' => $bankAccountCode,
+                'debit' => 0,
+                'credit' => $total,
+                'description' => 'OP '.$paymentOrder->number.' — '.($paymentOrder->supplier->name ?? ''),
+            ];
+        }
+
+        $lines = array_merge([$debitLine], $creditLines);
 
         return $this->createEntry(
-            (int) $paymentOrder->company_id,
+            $companyId,
             Carbon::parse($paymentOrder->date),
             'Pago OP '.$paymentOrder->number,
             $paymentOrder,
-            [
-                [
-                    'account_code' => '2.1.01',
-                    'debit' => round((float) $paymentOrder->total, 2),
-                    'credit' => 0,
-                    'description' => 'Cancelación deuda '.($paymentOrder->supplier->name ?? ''),
-                ],
-                [
-                    'account_code' => $bankAccountCode,
-                    'debit' => 0,
-                    'credit' => round((float) $paymentOrder->total, 2),
-                    'description' => 'OP '.$paymentOrder->number.' — '.($paymentOrder->supplier->name ?? ''),
-                ],
-            ]
+            $lines
         );
     }
 

@@ -21,11 +21,35 @@ class CollectionReceipt extends Model
         'date' => 'date', 'total' => 'decimal:2',
     ];
 
-    public function customer() { return $this->belongsTo(Customer::class); }
-    public function company() { return $this->belongsTo(Company::class); }
-    public function creator() { return $this->belongsTo(User::class, 'created_by'); }
-    public function confirmer() { return $this->belongsTo(User::class, 'confirmed_by'); }
-    public function items() { return $this->hasMany(CollectionReceiptItem::class); }
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function confirmer()
+    {
+        return $this->belongsTo(User::class, 'confirmed_by');
+    }
+
+    public function items()
+    {
+        return $this->hasMany(CollectionReceiptItem::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(CollectionReceiptPayment::class)->orderBy('sort_order')->orderBy('id');
+    }
 
     public function reconciledMovements(): MorphMany
     {
@@ -63,6 +87,7 @@ class CollectionReceipt extends Model
         $year = date('Y');
         $last = static::where('number', 'like', "RC-{$year}-%")->orderByDesc('number')->first();
         $nextNumber = $last ? ((int) substr($last->number, -5)) + 1 : 1;
-        return sprintf("RC-%s-%05d", $year, $nextNumber);
+
+        return sprintf('RC-%s-%05d', $year, $nextNumber);
     }
 }

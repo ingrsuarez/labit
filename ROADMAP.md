@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-05 (release master: v1.38.0 + hotfix migración pivot)
+> Última actualización: 2026-04-05 (v1.39.1 en develop; cola prompts vacía; release master en curso)
 
 ---
 
@@ -81,6 +81,9 @@
 | v1.36.0 | Múltiples remitos en factura de compra | 2026-04-05 | Tabla pivote `delivery_note_purchase_invoice`, formularios create/edit FC, tests |
 | v1.37.0 | Stock por sede: modelo, migración y movimientos | 2026-04-05 | `supply_lab_branch_stock`, `LabBranchResolver`, `SupplyStockService`, backfill |
 | v1.38.0 | Stock por sede: compras, remitos, FC y vistas | 2026-04-05 | `lab_branch_id` en OC/remitos/FC/movimientos; vistas insumos por sede; tests |
+| v1.38.2 | Hotfix ParseError recibo de cobro create | 2026-04-05 | JSON de facturas por cliente en `CollectionReceiptController@create`; `company_id` en query; Blade sin `@json` anidado con arrow functions |
+| v1.39.0 | Recibos de cobro: múltiples medios y e-cheq (cartera) | 2026-04-05 | Tabla `collection_receipt_payments`; UI create/edit/show; `fromCollectionReceipt` multiparte; migración legado; tests |
+| v1.39.1 | OP a proveedor con e-cheqs en cartera (endoso) | 2026-04-05 | `payment_order_id` en líneas e-cheq; reserva en borrador OP; UI cartera; `fromPaymentOrder` multiparte; tests |
 
 ---
 
@@ -93,21 +96,19 @@
 
 ## Planificado
 
-| Versión | Nombre | Estimación | Dependencias | Prompt |
-|---|---|---|---|---|
-| v1.35.2 | Movimientos stock: cantidad entera | — | — | `pendientes/v1.35.2-movimientos-stock-cantidad-entera.md` |
-| v1.35.3 | Movimientos stock: selector de lotes | — | — | `pendientes/v1.35.3-movimientos-stock-selector-lotes.md` |
-| v1.36.1 | FC compra: editar y reasignar empresa | — | — | `pendientes/v1.36.1-fc-compra-edit-reasignar-empresa.md` |
-| v3.4.0 | Libro Diario y Libro Mayor | medio día | v3.3.0 | `pendientes/v3.4.0-libro-diario-libro-mayor.md` |
+_Sin versiones en tabla (la cola de prompts en `pendientes/` está vacía; nuevas entradas vía Agente PM.)_
+
+> Nota: Los prompts v1.35.2, v1.35.3, v1.36.1 y v3.4.0 figuran en `agent-bootstrap/prompts/completados/`; se retiraron de esta tabla para evitar duplicar el estado.
 
 ---
 
 ## Áreas candidatas (sin planificar)
 
-- **Libro Diario y Libro Mayor**: interfaces de consulta contable (siguiente: v3.4.0)
-- **Tesorería**: saldos en tiempo real por cuenta
+- **Libro Diario y Libro Mayor**: interfaces de consulta contable (v3.4.0 completada en prompts; verificar cierre en CHANGELOG si aplica)
+- **Tesorería**: saldos en tiempo real por cuenta; ~~endoso e-cheq en OP~~ → v1.39.1
 - **Lector QR facturas de compra**: ~~escaneo de QR de facturas recibidas para autocompletar datos~~ → completado en v1.28.0
 - **UI/UX**: auditoría visual, migración de componentes, design system
+- **Recibos de cobro**: cobro parcial — UX y validación de saldo (candidato futuro; sin prompt en cola)
 - **Testing**: suite de tests automatizados, cobertura mínima
 - **DevOps**: CI/CD, ambientes de staging, deploy automatizado
 - **Seguridad**: 2FA, protección adicional (auditoría base cubierta por v2.5.0/v2.7.0, acceso por rol por v2.4.0)
@@ -117,11 +118,10 @@
 ## Progreso general
 
 ```
-Completadas:  78 (tabla en STATUS.md; última v1.38.0)
-Planificadas: 4
+Completadas:  ver STATUS.md (última v1.39.1 en develop)
+Planificadas: —
 En proceso:   0
-Próxima:      v1.35.2 → v1.35.3 → v1.36.1 → v3.4.0
-Release master: 2026-04-05 — alineado con develop (v1.38.0, hotfix migraciones pivot)
+Release master: pendiente de alinear con develop (v1.39.0, v1.39.1) en esta sesión
 ```
 
 ---

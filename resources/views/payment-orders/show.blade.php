@@ -62,14 +62,21 @@
                         <dt class="text-sm text-gray-500">Fecha</dt>
                         <dd class="text-sm font-medium text-gray-800">{{ $paymentOrder->date->format('d/m/Y') }}</dd>
                     </div>
-                    <div class="flex justify-between">
-                        <dt class="text-sm text-gray-500">Método de Pago</dt>
-                        <dd class="text-sm font-medium text-gray-800">{{ $paymentMethodLabels[$paymentOrder->payment_method] ?? '-' }}</dd>
-                    </div>
-                    <div class="flex justify-between">
-                        <dt class="text-sm text-gray-500">Referencia de Pago</dt>
-                        <dd class="text-sm font-medium text-gray-800">{{ $paymentOrder->payment_reference ?? '-' }}</dd>
-                    </div>
+                    @if($paymentOrder->portfolioEcheqPayments->isNotEmpty())
+                        <div class="flex justify-between">
+                            <dt class="text-sm text-gray-500">Liquidación</dt>
+                            <dd class="text-sm font-medium text-gray-800">E-cheqs en cartera (endoso)</dd>
+                        </div>
+                    @else
+                        <div class="flex justify-between">
+                            <dt class="text-sm text-gray-500">Método de Pago</dt>
+                            <dd class="text-sm font-medium text-gray-800">{{ $paymentMethodLabels[$paymentOrder->payment_method] ?? '-' }}</dd>
+                        </div>
+                        <div class="flex justify-between">
+                            <dt class="text-sm text-gray-500">Referencia de Pago</dt>
+                            <dd class="text-sm font-medium text-gray-800">{{ $paymentOrder->payment_reference ?? '-' }}</dd>
+                        </div>
+                    @endif
                 </dl>
             </div>
 
@@ -97,6 +104,38 @@
                 </dl>
             </div>
         </div>
+
+        @if($paymentOrder->portfolioEcheqPayments->isNotEmpty())
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+                <div class="px-4 py-3 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-800">E-cheqs entregados (cartera)</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Recibo cobro</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">N° e-cheq</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Banco</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Vencimiento</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Importe</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @foreach($paymentOrder->portfolioEcheqPayments as $pe)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3 text-sm font-medium text-gray-800">{{ $pe->collectionReceipt?->number ?? '—' }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-800">{{ $pe->cheque_number }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">{{ $pe->bank_name }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-500">{{ $pe->due_date?->format('d/m/Y') }}</td>
+                                    <td class="px-4 py-3 text-sm text-right font-medium text-gray-800">${{ number_format($pe->amount, 2, ',', '.') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endif
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
             <div class="px-4 py-3 border-b border-gray-200">
