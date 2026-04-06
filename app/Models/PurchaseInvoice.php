@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\DB;
 
 class PurchaseInvoice extends Model
 {
@@ -85,8 +86,12 @@ class PurchaseInvoice extends Model
 
     public function recalculate(): void
     {
-        $this->subtotal = $this->items()->sum('total');
-        $ivaByRate = $this->items()->selectRaw('iva_rate, SUM(iva_amount) as total_iva')->groupBy('iva_rate')->pluck('total_iva', 'iva_rate');
+        // Subtotal = neto gravado. `items.total` ya incluye IVA por línea (misma convención que ventas).
+        $this->subtotal = round((float) $this->items()->reorder()->sum(DB::raw('quantity * unit_price')), 2);
+        $ivaByRate = $this->items()->reorder()
+            ->selectRaw('iva_rate, SUM(iva_amount) as total_iva')
+            ->groupBy('iva_rate')
+            ->pluck('total_iva', 'iva_rate');
         $this->iva_21 = $ivaByRate[21.00] ?? $ivaByRate['21.00'] ?? 0;
         $this->iva_10_5 = $ivaByRate[10.50] ?? $ivaByRate['10.50'] ?? 0;
         $this->iva_27 = $ivaByRate[27.00] ?? $ivaByRate['27.00'] ?? 0;
