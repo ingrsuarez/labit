@@ -8,6 +8,7 @@
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
         "carlos-meneses/laravel-mpdf": "*",
+        "doctrine/dbal": "4.0",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^11.2",
         "laravel/jetstream": "^5.0",

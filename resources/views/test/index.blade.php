@@ -255,7 +255,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">NBU</label>
-                            <input type="number" name="nbu" value="{{ old('nbu') }}"
+                            <input type="number" name="nbu" value="{{ old('nbu') }}" step="0.1" min="0"
                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                         </div>
                         <div>
@@ -403,7 +403,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">NBU</label>
-                            <input type="number" name="nbu" id="edit-nbu"
+                            <input type="number" name="nbu" id="edit-nbu" step="0.1" min="0"
                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                         </div>
                         <div>

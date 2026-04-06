@@ -76,11 +76,13 @@ class NomencladorVeterinarioSeeder extends Seeder
 
             if ($test) {
                 $categories = $test->categories ?? [];
+                $payload = ['nbu' => $nbu];
                 if (! in_array('veterinario', $categories)) {
                     $categories[] = 'veterinario';
-                    $test->update(['categories' => $categories]);
+                    $payload['categories'] = $categories;
                     $categoriesUpdated++;
                 }
+                $test->update($payload);
             } else {
                 $test = Test::create([
                     'code' => $codigo,
@@ -137,17 +139,31 @@ class NomencladorVeterinarioSeeder extends Seeder
 
     private function parseNbu($value): float
     {
+        if ($value === null || $value === '') {
+            return 0.0;
+        }
+
         if (is_numeric($value)) {
             return (float) $value;
         }
 
         if (is_string($value)) {
-            $clean = str_replace('.', '', $value);
-            $clean = str_replace(',', '.', $clean);
+            $v = trim($value);
+            if ($v === '') {
+                return 0.0;
+            }
+            if (str_contains($v, ',') && preg_match('/,\d{1,4}$/', $v)) {
+                $clean = str_replace('.', '', $v);
 
-            return (float) $clean;
+                return (float) str_replace(',', '.', $clean);
+            }
+            if (str_contains($v, ',')) {
+                return (float) str_replace(',', '.', $v);
+            }
+
+            return (float) $v;
         }
 
-        return 0;
+        return 0.0;
     }
 }

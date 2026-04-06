@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-05 (release **develop → master**; tags **v1.39.0**, **v1.39.1**)
+> Última actualización: 2026-04-06 (planificación **v1.40.0** retenciones en cobranzas)
 
 ---
 
@@ -13,17 +13,19 @@
 | **Última en master** | 2026-04-05 — `release: develop -> master` (**v1.39.0**, **v1.39.1**, **v1.38.2**, **v3.4.0**, …); tags en remoto |
 | **Última completada** | v1.39.1 — OP a proveedor con e-cheqs desde cartera (endoso) |
 | **En proceso** | — |
-| **Próxima** | Planificar nuevas versiones (cola de prompts vacía) |
-| **Pendientes en cola** | 0 |
+| **Próxima** | v1.40.0 — Retenciones sufridas en recibos de cobro (contabilidad + IVA) |
+| **Pendientes en cola** | 1 |
 | **Completadas** | 85 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (0)
+### Pendientes (1)
 
-_Sin prompts pendientes._
+| Versión | Archivo |
+|---|---|
+| v1.40.0 | `agent-bootstrap/prompts/pendientes/v1.40.0-recibos-retenciones-cobranzas.md` |
 
 ### En proceso (0)
 
