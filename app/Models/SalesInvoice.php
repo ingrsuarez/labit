@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class SalesInvoice extends Model
 {
@@ -39,7 +40,8 @@ class SalesInvoice extends Model
 
     public function recalculate(): void
     {
-        $this->subtotal = $this->items()->sum('total');
+        // Subtotal = neto gravado (qty × precio unitario). `items.total` ya incluye IVA por línea.
+        $this->subtotal = round((float) $this->items()->reorder()->sum(DB::raw('quantity * unit_price')), 2);
         $ivaByRate = $this->items()->reorder()
             ->selectRaw('iva_rate, SUM(iva_amount) as total_iva')
             ->groupBy('iva_rate')
