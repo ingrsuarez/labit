@@ -109,6 +109,12 @@
                                         'cheque' => 'Cheque',
                                         'efectivo' => 'Efectivo',
                                     ];
+                                    $methodLabel = '-';
+                                    if ($order->relationLoaded('portfolioEcheqPayments') && $order->portfolioEcheqPayments->isNotEmpty()) {
+                                        $methodLabel = 'E-cheq cartera ('.$order->portfolioEcheqPayments->count().')';
+                                    } elseif ($order->payment_method) {
+                                        $methodLabel = $paymentMethodLabels[$order->payment_method] ?? $order->payment_method;
+                                    }
                                 @endphp
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3 whitespace-nowrap">
@@ -118,7 +124,7 @@
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{{ $order->supplier->name }}</td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $order->date->format('d/m/Y') }}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $paymentMethodLabels[$order->payment_method] ?? '-' }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $methodLabel }}</td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-800 text-right">${{ number_format($order->total, 2, ',', '.') }}</td>
                                     <td class="px-4 py-3 whitespace-nowrap text-center">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$order->status] ?? 'bg-gray-100 text-gray-700' }}">

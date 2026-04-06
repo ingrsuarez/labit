@@ -39,7 +39,20 @@
                         <input type="date" name="date" value="{{ old('date', date('Y-m-d')) }}" required
                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
-                    <div>
+                    <div class="md:col-span-2 lg:col-span-3 space-y-2">
+                        <span class="block text-sm font-medium text-gray-700">Forma de liquidación</span>
+                        <div class="flex flex-wrap gap-4">
+                            <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                                <input type="radio" name="payment_mode" value="legacy" x-model="paymentMode" class="rounded-full border-gray-300 text-zinc-600 focus:ring-zinc-500">
+                                Transferencia / cheque / efectivo
+                            </label>
+                            <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                                <input type="radio" name="payment_mode" value="portfolio_echeq" x-model="paymentMode" class="rounded-full border-gray-300 text-zinc-600 focus:ring-zinc-500">
+                                E-cheqs en cartera (endoso)
+                            </label>
+                        </div>
+                    </div>
+                    <div x-show="paymentMode === 'legacy'" x-cloak>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Método de Pago</label>
                         <select name="payment_method" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                             <option value="">Seleccionar...</option>
@@ -48,7 +61,7 @@
                             <option value="efectivo" {{ old('payment_method') === 'efectivo' ? 'selected' : '' }}>Efectivo</option>
                         </select>
                     </div>
-                    <div>
+                    <div x-show="paymentMode === 'legacy'" x-cloak>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Referencia de Pago</label>
                         <input type="text" name="payment_reference" value="{{ old('payment_reference') }}"
                                placeholder="N° transferencia, cheque, etc."
@@ -60,6 +73,48 @@
                                   placeholder="Observaciones opcionales">{{ old('notes') }}</textarea>
                     </div>
                 </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5" x-show="paymentMode === 'portfolio_echeq'" x-cloak>
+                <h2 class="text-lg font-semibold text-gray-800 mb-2">E-cheqs disponibles en cartera</h2>
+                <p class="text-sm text-gray-500 mb-4">Solo aparecen e-cheq de recibos de cobro confirmados y aún no asignados a otra orden. La suma debe igualar el total a pagar.</p>
+                <div x-show="portfolioRows.length === 0" class="text-center py-6 text-gray-400 text-sm">No hay e-cheqs en cartera para esta empresa.</div>
+                <div x-show="portfolioRows.length > 0" class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-3 py-2 w-10"></th>
+                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Recibo</th>
+                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">N° e-cheq</th>
+                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Banco</th>
+                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Venc.</th>
+                                <th class="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">Importe</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <template x-for="row in portfolioRows" :key="row.id">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-3 py-2 text-center">
+                                        <input type="checkbox" :value="row.id" x-model="selectedPortfolioIds" class="rounded border-gray-300 text-zinc-600 focus:ring-zinc-500">
+                                    </td>
+                                    <td class="px-3 py-2 text-sm text-gray-800" x-text="row.rc_number"></td>
+                                    <td class="px-3 py-2 text-sm text-gray-800" x-text="row.cheque_number"></td>
+                                    <td class="px-3 py-2 text-sm text-gray-600" x-text="row.bank_name"></td>
+                                    <td class="px-3 py-2 text-sm text-gray-500" x-text="row.due_date"></td>
+                                    <td class="px-3 py-2 text-sm text-right font-medium text-gray-800" x-text="'$' + formatMoney(row.amount)"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-3 flex flex-wrap justify-end gap-3 text-sm text-gray-600">
+                    <span>Total seleccionado e-cheqs: <strong class="text-gray-900" x-text="'$' + formatMoney(portfolioSelectedTotal)"></strong></span>
+                    <span class="hidden sm:inline">|</span>
+                    <span>Total facturas: <strong class="text-gray-900" x-text="'$' + formatMoney(totalPayment)"></strong></span>
+                </div>
+                <p x-show="paymentMode === 'portfolio_echeq' && selectedInvoices.length > 0 && !portfolioTotalsMatch" class="mt-2 text-sm text-red-600 font-medium">
+                    Los importes no coinciden: ajustá la selección de facturas o de e-cheqs.
+                </p>
             </div>
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
@@ -123,8 +178,12 @@
                 </div>
             </template>
 
+            <template x-for="pid in selectedPortfolioIds" :key="'pe-' + pid">
+                <input type="hidden" name="portfolio_echeq_ids[]" :value="pid">
+            </template>
+
             <div class="flex justify-end">
-                <button type="submit" :disabled="selectedInvoices.length === 0"
+                <button type="submit" :disabled="selectedInvoices.length === 0 || !formReady"
                         class="px-6 py-3 bg-zinc-700 text-white font-semibold rounded-lg hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm shadow-sm">
                     Guardar Orden de Pago
                 </button>
@@ -162,6 +221,7 @@
     <script>
         function paymentForm() {
             const invoicesBySupplier = @json($invoicesBySupplierJson);
+            const portfolioRows = @json($portfolioEcheqsJson);
 
             @if($selectedSupplier && $pendingInvoices->count() > 0)
                 const preloaded = @json($preloadedInvoicesJson);
@@ -172,6 +232,9 @@
 
             return {
                 supplierId: '{{ old('supplier_id', $selectedSupplier?->id ?? '') }}',
+                paymentMode: '{{ old('payment_mode', 'legacy') }}',
+                portfolioRows,
+                selectedPortfolioIds: [],
                 invoices: [],
                 init() {
                     if (this.supplierId) {
@@ -195,6 +258,19 @@
                 },
                 get totalPayment() {
                     return this.selectedInvoices.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
+                },
+                get portfolioSelectedTotal() {
+                    const set = new Set(this.selectedPortfolioIds.map(Number));
+                    return this.portfolioRows
+                        .filter(r => set.has(Number(r.id)))
+                        .reduce((s, r) => s + parseFloat(r.amount || 0), 0);
+                },
+                get portfolioTotalsMatch() {
+                    return Math.abs(this.portfolioSelectedTotal - this.totalPayment) < 0.02;
+                },
+                get formReady() {
+                    if (this.paymentMode === 'legacy') return true;
+                    return this.selectedPortfolioIds.length > 0 && this.portfolioTotalsMatch;
                 },
                 formatMoney(val) {
                     return new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2 }).format(val);

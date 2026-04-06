@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class PaymentOrder extends Model
@@ -45,6 +44,16 @@ class PaymentOrder extends Model
     public function items()
     {
         return $this->hasMany(PaymentOrderItem::class);
+    }
+
+    /**
+     * Líneas de cobro (e-cheq) de cartera vinculadas a esta OP (borrador reserva o pagada).
+     */
+    public function portfolioEcheqPayments()
+    {
+        return $this->hasMany(CollectionReceiptPayment::class, 'payment_order_id')
+            ->where('line_type', 'echeq')
+            ->orderBy('id');
     }
 
     public function reconciledMovements(): MorphMany
