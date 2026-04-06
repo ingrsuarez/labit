@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-05 (ajuste cola prompts; release develop→master pendiente en el mismo push)
+> Última actualización: 2026-04-05 (release **develop → master**; tags **v1.39.0**, **v1.39.1**)
 
 ---
 
@@ -9,8 +9,8 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.39.1** (develop) / **v1.39.0** / **v3.4.0** / … |
-| **Última en master** | 2026-04-05 — `release: develop -> master` (**v3.4.0**, **v1.35.3**, **v1.36.1**, **v1.35.2**); tags en remoto |
+| **Versión actual** | **v1.39.1** (develop y master alineados) |
+| **Última en master** | 2026-04-05 — `release: develop -> master` (**v1.39.0**, **v1.39.1**, **v1.38.2**, **v3.4.0**, …); tags en remoto |
 | **Última completada** | v1.39.1 — OP a proveedor con e-cheqs desde cartera (endoso) |
 | **En proceso** | — |
 | **Próxima** | Planificar nuevas versiones (cola de prompts vacía) |
