@@ -102,7 +102,9 @@ class NomencladoresExcelSeeder extends Seeder
 
             $test = Test::where('code', $codigo)->first();
 
-            if (! $test) {
+            if ($test) {
+                $test->update(['nbu' => $nbu]);
+            } else {
                 $test = Test::create([
                     'code' => $codigo,
                     'name' => $nombreDet ?: "Test {$codigo}",
@@ -162,17 +164,32 @@ class NomencladoresExcelSeeder extends Seeder
 
     private function parseNbu($value): float
     {
+        if ($value === null || $value === '') {
+            return 0.0;
+        }
+
         if (is_numeric($value)) {
             return (float) $value;
         }
 
         if (is_string($value)) {
-            $clean = str_replace('.', '', $value);
-            $clean = str_replace(',', '.', $clean);
+            $v = trim($value);
+            if ($v === '') {
+                return 0.0;
+            }
+            // AR: miles con punto y decimal con coma (ej. 1.234,5)
+            if (str_contains($v, ',') && preg_match('/,\d{1,4}$/', $v)) {
+                $clean = str_replace('.', '', $v);
 
-            return (float) $clean;
+                return (float) str_replace(',', '.', $clean);
+            }
+            if (str_contains($v, ',')) {
+                return (float) str_replace(',', '.', $v);
+            }
+
+            return (float) $v;
         }
 
-        return 0;
+        return 0.0;
     }
 }
