@@ -296,31 +296,53 @@ class AccountingEntryService
 
     public function fromPaymentOrder(PaymentOrder $paymentOrder): ?JournalEntry
     {
-        $paymentOrder->loadMissing('supplier');
-        $bankAccountCode = $this->resolveBankAccountCode(
-            $paymentOrder->payment_method ?? 'efectivo',
-            null
-        );
+        $paymentOrder->loadMissing(['supplier', 'portfolioEcheqPayments']);
+        $companyId = (int) $paymentOrder->company_id;
+        $total = round((float) $paymentOrder->total, 2);
+
+        $debitLine = [
+            'account_code' => '2.1.01',
+            'debit' => $total,
+            'credit' => 0,
+            'description' => 'Cancelación deuda '.($paymentOrder->supplier->name ?? ''),
+        ];
+
+        $creditLines = [];
+        if ($paymentOrder->portfolioEcheqPayments->isNotEmpty()) {
+            $portfolioAccountCode = $this->resolveBankAccountCode('cheque', null);
+            foreach ($paymentOrder->portfolioEcheqPayments as $pay) {
+                $amt = round((float) $pay->amount, 2);
+                if ($amt <= 0) {
+                    continue;
+                }
+                $creditLines[] = [
+                    'account_code' => $portfolioAccountCode,
+                    'debit' => 0,
+                    'credit' => $amt,
+                    'description' => 'Endoso e-cheq '.($pay->cheque_number ?? '').' — OP '.$paymentOrder->number,
+                ];
+            }
+        } else {
+            $bankAccountCode = $this->resolveBankAccountCode(
+                $paymentOrder->payment_method ?? 'efectivo',
+                null
+            );
+            $creditLines[] = [
+                'account_code' => $bankAccountCode,
+                'debit' => 0,
+                'credit' => $total,
+                'description' => 'OP '.$paymentOrder->number.' — '.($paymentOrder->supplier->name ?? ''),
+            ];
+        }
+
+        $lines = array_merge([$debitLine], $creditLines);
 
         return $this->createEntry(
-            (int) $paymentOrder->company_id,
+            $companyId,
             Carbon::parse($paymentOrder->date),
             'Pago OP '.$paymentOrder->number,
             $paymentOrder,
-            [
-                [
-                    'account_code' => '2.1.01',
-                    'debit' => round((float) $paymentOrder->total, 2),
-                    'credit' => 0,
-                    'description' => 'Cancelación deuda '.($paymentOrder->supplier->name ?? ''),
-                ],
-                [
-                    'account_code' => $bankAccountCode,
-                    'debit' => 0,
-                    'credit' => round((float) $paymentOrder->total, 2),
-                    'description' => 'OP '.$paymentOrder->number.' — '.($paymentOrder->supplier->name ?? ''),
-                ],
-            ]
+            $lines
         );
     }
 
