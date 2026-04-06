@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-06 (planificado **v1.40.0** retenciones en cobranzas)
+> Última actualización: 2026-04-06 (**v1.40.0** retenciones en cobranzas implementada)
 
 ---
 
@@ -84,6 +84,7 @@
 | v1.38.2 | Hotfix ParseError recibo de cobro create | 2026-04-05 | JSON de facturas por cliente en `CollectionReceiptController@create`; `company_id` en query; Blade sin `@json` anidado con arrow functions |
 | v1.39.0 | Recibos de cobro: múltiples medios y e-cheq (cartera) | 2026-04-05 | Tabla `collection_receipt_payments`; UI create/edit/show; `fromCollectionReceipt` multiparte; migración legado; tests |
 | v1.39.1 | OP a proveedor con e-cheqs en cartera (endoso) | 2026-04-05 | `payment_order_id` en líneas e-cheq; reserva en borrador OP; UI cartera; `fromPaymentOrder` multiparte; tests |
+| v1.40.0 | Recibos de cobro: retenciones sufridas (GA, IVA, SUSS, IIBB) | 2026-04-06 | `collection_receipt_withholdings`; UI create/edit/show; `fromCollectionReceipt` + cuentas 1.1.05–08; Libro IVA preview retenciones IVA; tests |
 
 ---
 
@@ -96,9 +97,7 @@
 
 ## Planificado
 
-| Versión | Nombre | Prompt | Notas |
-|---|---|---|---|
-| v1.40.0 | Recibos de cobro: retenciones sufridas (Ganancias, IVA, SUSS, IIBB) + contabilidad + IVA | `pendientes/v1.40.0-recibos-retenciones-cobranzas.md` | UI: `DISEÑO_v1.40.0-recibos-retenciones-cobranzas.md`. Cuadratura medios + retenciones; asientos; IVA |
+_Sin versiones en tabla (la cola de prompts en `pendientes/` está vacía; nuevas entradas vía Agente PM.)_
 
 > Nota: Los prompts v1.35.2, v1.35.3, v1.36.1 y v3.4.0 figuran en `agent-bootstrap/prompts/completados/`; se retiraron de esta tabla para evitar duplicar el estado.
 
@@ -110,7 +109,7 @@
 - **Tesorería**: saldos en tiempo real por cuenta; ~~endoso e-cheq en OP~~ → v1.39.1
 - **Lector QR facturas de compra**: ~~escaneo de QR de facturas recibidas para autocompletar datos~~ → completado en v1.28.0
 - **UI/UX**: auditoría visual, migración de componentes, design system
-- **Recibos de cobro**: ~~retenciones sufridas en cobranzas~~ → **v1.40.0** (planificado); cobro parcial — UX y validación de saldo (candidato futuro)
+- **Recibos de cobro**: ~~retenciones sufridas en cobranzas~~ → **v1.40.0**; cobro parcial — UX y validación de saldo (candidato futuro)
 - **Testing**: suite de tests automatizados, cobertura mínima
 - **DevOps**: CI/CD, ambientes de staging, deploy automatizado
 - **Seguridad**: 2FA, protección adicional (auditoría base cubierta por v2.5.0/v2.7.0, acceso por rol por v2.4.0)
@@ -120,8 +119,8 @@
 ## Progreso general
 
 ```
-Completadas:  ver STATUS.md (última v1.39.1; develop y master alineados)
-Planificadas: v1.40.0 (retenciones cobranzas)
+Completadas:  ver STATUS.md (última v1.40.0)
+Planificadas: —
 En proceso:   0
 Release master: 2026-04-05 — merge develop → master (v1.39.0, v1.39.1)
 ```

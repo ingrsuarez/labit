@@ -8,6 +8,12 @@ use App\Models\SalesInvoice;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Generación de archivos TXT Libro IVA Digital (RG 4597).
+ *
+ * Nota: las retenciones de IVA sufridas en cobranzas (RC confirmados) no se incluyen en estos TXT;
+ * ver resumen en Libro IVA → preview del período.
+ */
 class LibroIvaService
 {
     const VOUCHER_TYPES_VENTAS = [
@@ -17,28 +23,31 @@ class LibroIvaService
     ];
 
     const DOC_CUIT = '80';
+
     const DOC_DNI = '96';
+
     const DOC_SIN_IDENTIFICAR = '99';
 
     const ALICUOTAS = [
-        '0'    => '0003',
+        '0' => '0003',
         '10.5' => '0004',
-        '21'   => '0005',
-        '27'   => '0006',
-        '5'    => '0008',
-        '2.5'  => '0009',
+        '21' => '0005',
+        '27' => '0006',
+        '5' => '0008',
+        '2.5' => '0009',
     ];
 
     const MONEDA_PESOS = 'PES';
+
     const TIPO_CAMBIO_DEFAULT = '0001000000';
 
     public function generate(int $companyId, int $year, int $month): array
     {
         return [
-            'LIBRO_IVA_DIGITAL_VENTAS_CBTE'      => $this->generateVentasCabecera($companyId, $year, $month),
-            'LIBRO_IVA_DIGITAL_VENTAS_ALICUOTAS'  => $this->generateVentasAlicuotas($companyId, $year, $month),
-            'LIBRO_IVA_DIGITAL_COMPRAS_CBTE'      => $this->generateComprasCabecera($companyId, $year, $month),
-            'LIBRO_IVA_DIGITAL_COMPRAS_ALICUOTAS'  => $this->generateComprasAlicuotas($companyId, $year, $month),
+            'LIBRO_IVA_DIGITAL_VENTAS_CBTE' => $this->generateVentasCabecera($companyId, $year, $month),
+            'LIBRO_IVA_DIGITAL_VENTAS_ALICUOTAS' => $this->generateVentasAlicuotas($companyId, $year, $month),
+            'LIBRO_IVA_DIGITAL_COMPRAS_CBTE' => $this->generateComprasCabecera($companyId, $year, $month),
+            'LIBRO_IVA_DIGITAL_COMPRAS_ALICUOTAS' => $this->generateComprasAlicuotas($companyId, $year, $month),
         ];
     }
 
@@ -401,8 +410,8 @@ class LibroIvaService
 
         if (empty($alicuotas)) {
             $alicuotas[] = [
-                'neto'   => (float) ($doc->subtotal ?? $doc->total ?? 0),
-                'iva'    => 0,
+                'neto' => (float) ($doc->subtotal ?? $doc->total ?? 0),
+                'iva' => 0,
                 'codigo' => self::ALICUOTAS['0'],
             ];
         }

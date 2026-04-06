@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-06 (planificación **v1.40.0** retenciones en cobranzas)
+> Última actualización: 2026-04-06 (**v1.40.0** retenciones en cobranzas completada)
 
 ---
 
@@ -9,32 +9,31 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.39.1** (develop y master alineados) |
+| **Versión actual** | **v1.40.0** (develop; merge a master pendiente de release) |
 | **Última en master** | 2026-04-05 — `release: develop -> master` (**v1.39.0**, **v1.39.1**, **v1.38.2**, **v3.4.0**, …); tags en remoto |
-| **Última completada** | v1.39.1 — OP a proveedor con e-cheqs desde cartera (endoso) |
+| **Última completada** | v1.40.0 — Retenciones sufridas en recibos de cobro (contabilidad + IVA) |
 | **En proceso** | — |
-| **Próxima** | v1.40.0 — Retenciones sufridas en recibos de cobro (contabilidad + IVA) |
-| **Pendientes en cola** | 1 |
-| **Completadas** | 85 |
+| **Próxima** | Planificar nuevas versiones (cola de prompts vacía) |
+| **Pendientes en cola** | 0 |
+| **Completadas** | 86 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (1)
+### Pendientes (0)
 
-| Versión | Archivo |
-|---|---|
-| v1.40.0 | `agent-bootstrap/prompts/pendientes/v1.40.0-recibos-retenciones-cobranzas.md` |
+_Sin prompts pendientes._
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (85)
+### Completados (86)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.40.0 | Retenciones sufridas en recibos de cobro | 2026-04-06 | v1.40.0 |
 | v1.39.1 | OP a proveedor con e-cheqs desde cartera | 2026-04-05 | v1.39.1 |
 | v1.39.0 | Recibos de cobro: múltiples medios y e-cheq (cartera) | 2026-04-05 | v1.39.0 |
 | v1.38.2 | Hotfix ParseError recibo de cobro create | 2026-04-05 | v1.38.2 |

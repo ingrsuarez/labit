@@ -50,6 +50,15 @@
                 </div>
             </div>
 
+            <div class="bg-white rounded-xl shadow-sm border border-amber-200 p-5 mb-6">
+                <h3 class="text-sm font-semibold text-amber-900 uppercase tracking-wider mb-2">Retenciones IVA sufridas en cobranzas</h3>
+                <p class="text-xs text-amber-800/80 mb-3">Suma de certificados de retención IVA registrados en recibos de cobro <strong>confirmados</strong> con fecha en este período (no incluido en los TXT de Libro IVA Digital).</p>
+                <div class="flex flex-wrap items-baseline gap-4">
+                    <p class="text-2xl font-bold text-amber-900">${{ number_format($retencionesIvaCobranzas, 2, ',', '.') }}</p>
+                    <span class="text-sm text-amber-800">{{ $retencionesIvaCobranzasCount }} {{ $retencionesIvaCobranzasCount === 1 ? 'línea' : 'líneas' }}</span>
+                </div>
+            </div>
+
             {{-- Saldo técnico --}}
             @php
                 $saldo = $debitoFiscal - $creditoFiscal;

@@ -109,7 +109,7 @@
                         + Agregar medio
                     </button>
                 </div>
-                <p class="text-sm text-gray-500 mb-4">La suma de los medios debe igualar el total a cobrar. El e-cheq ingresa solo a cartera (sin endoso en esta pantalla).</p>
+                <p class="text-sm text-gray-500 mb-4">Medios líquidos (efectivo, transferencia, e-cheq). La suma de medios <strong>más</strong> las retenciones debe igualar el total a cobrar. El e-cheq ingresa solo a cartera (sin endoso en esta pantalla).</p>
 
                 <div class="space-y-4">
                     <template x-for="(line, pi) in paymentLines" :key="pi">
@@ -164,14 +164,80 @@
                     </template>
                 </div>
 
-                <div class="mt-4 flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 text-sm">
+                <div class="mt-4 flex flex-col lg:flex-row lg:flex-wrap lg:justify-end lg:items-center gap-2 text-sm">
                     <span class="text-gray-600">Total medios: <strong x-text="'$' + formatMoney(totalPayments)"></strong></span>
-                    <span class="text-gray-400 hidden sm:inline">|</span>
+                    <span class="text-gray-400 hidden lg:inline">|</span>
+                    <span class="text-gray-600">Total retenciones: <strong x-text="'$' + formatMoney(totalWithholdings)"></strong></span>
+                    <span class="text-gray-400 hidden lg:inline">|</span>
+                    <span class="text-gray-600">Suma medios + retenciones: <strong x-text="'$' + formatMoney(totalLiquidAndWithholdings)"></strong></span>
+                    <span class="text-gray-400 hidden lg:inline">|</span>
                     <span class="text-gray-600">Total facturas: <strong x-text="'$' + formatMoney(totalCollection)"></strong></span>
                 </div>
-                <p x-show="!paymentsMatchTotal && selectedInvoices.length > 0" x-cloak class="mt-2 text-sm text-red-600 font-medium">
-                    Los importes no coinciden. Ajustá las líneas o los montos a cobrar.
+                <p x-show="!receiptTotalsMatch && selectedInvoices.length > 0" x-cloak class="mt-2 text-sm text-red-600 font-medium">
+                    Los importes no coinciden. Ajustá medios, retenciones o montos a cobrar.
                 </p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800">Retenciones sufridas</h2>
+                        <p class="text-sm text-gray-500 mt-1">Importes retenidos por el cliente según certificado. Se suman al total del recibo junto con los medios de pago.</p>
+                    </div>
+                    <button type="button" @click="addWithholdingLine()"
+                            class="inline-flex items-center px-3 py-2 bg-gray-100 text-gray-800 text-sm font-medium rounded-lg hover:bg-gray-200">
+                        + Agregar retención
+                    </button>
+                </div>
+                <p x-show="withholdingLines.length === 0" class="text-sm text-gray-400 mb-3">No hay retenciones cargadas. Usá + Agregar retención si el cliente te practicó retenciones.</p>
+                <div class="space-y-4">
+                    <template x-for="(wh, wi) in withholdingLines" :key="'wh-' + wi">
+                        <div class="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
+                            <div class="flex justify-between items-start gap-2">
+                                <div class="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Tipo <span class="text-red-500">*</span></label>
+                                        <select x-model="wh.withholding_type" @change="syncDefaultPaymentAmount()"
+                                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                            <option value="ganancias">Ganancias</option>
+                                            <option value="iva">IVA</option>
+                                            <option value="suss_931">SUSS (Ley 19.640 / 931)</option>
+                                            <option value="iibb">IIBB</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Nº doc.</label>
+                                        <input type="text" x-model="wh.document_number" placeholder="8669249"
+                                               class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Régimen de retención <span class="text-red-500">*</span></label>
+                                        <input type="text" x-model="wh.regime" placeholder="Locación de obras y servicios"
+                                               class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                    </div>
+                                    <div class="md:col-span-2 lg:col-span-1">
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Jurisdicción</label>
+                                        <p x-show="wh.withholding_type === 'iibb'" class="text-xs text-amber-700 mb-1"><i class="bi bi-info-circle"></i> Requerida para IIBB</p>
+                                        <input type="text" x-model="wh.jurisdiction"
+                                               class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Nº certificado <span class="text-red-500">*</span></label>
+                                        <input type="text" x-model="wh.certificate_number"
+                                               class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Monto retenido <span class="text-red-500">*</span></label>
+                                        <input type="number" x-model.number="wh.amount" min="0.01" step="0.01" @input="syncDefaultPaymentAmount()"
+                                               class="w-full rounded-lg border-gray-300 text-sm text-right focus:border-zinc-500 focus:ring-zinc-500">
+                                    </div>
+                                </div>
+                                <button type="button" @click="removeWithholdingLine(wi)"
+                                        class="text-sm text-red-600 hover:text-red-800 whitespace-nowrap mt-6">Quitar</button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
             </div>
 
             <template x-for="(inv, index) in selectedInvoices" :key="'hidden-inv-' + inv.id">
@@ -192,9 +258,20 @@
                 </div>
             </template>
 
+            <template x-for="(wh, index) in withholdingLines" :key="'hidden-wh-' + index">
+                <div>
+                    <input type="hidden" :name="'withholdings[' + index + '][withholding_type]'" :value="wh.withholding_type">
+                    <input type="hidden" :name="'withholdings[' + index + '][document_number]'" :value="wh.document_number">
+                    <input type="hidden" :name="'withholdings[' + index + '][regime]'" :value="wh.regime">
+                    <input type="hidden" :name="'withholdings[' + index + '][jurisdiction]'" :value="wh.jurisdiction">
+                    <input type="hidden" :name="'withholdings[' + index + '][certificate_number]'" :value="wh.certificate_number">
+                    <input type="hidden" :name="'withholdings[' + index + '][amount]'" :value="wh.amount">
+                </div>
+            </template>
+
             <div class="flex justify-end">
                 <button type="submit"
-                        :disabled="selectedInvoices.length === 0 || !paymentsMatchTotal"
+                        :disabled="selectedInvoices.length === 0 || !receiptTotalsMatch"
                         class="px-6 py-3 bg-zinc-700 text-white font-semibold rounded-lg hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm shadow-sm">
                     Guardar Recibo de Cobro
                 </button>
@@ -222,15 +299,26 @@
                 due_date: '',
             });
 
+            const emptyWithholdingLine = () => ({
+                withholding_type: 'ganancias',
+                document_number: '',
+                regime: '',
+                jurisdiction: '',
+                certificate_number: '',
+                amount: 0,
+            });
+
             return {
                 customerId: '{{ old('customer_id', $selectedCustomer?->id ?? '') }}',
                 invoices: [],
                 paymentLines: [emptyPaymentLine()],
+                withholdingLines: [],
                 init() {
                     if (this.customerId) {
                         this.invoices = JSON.parse(JSON.stringify(invoicesByCustomer[this.customerId] || []));
                     }
                     this.$watch('totalCollection', () => this.syncDefaultPaymentAmount());
+                    this.$watch('withholdingLines', () => this.syncDefaultPaymentAmount(), { deep: true });
                 },
                 onCustomerChange() {
                     if (this.customerId && invoicesByCustomer[this.customerId]) {
@@ -248,9 +336,18 @@
                 },
                 addPaymentLine() {
                     const line = emptyPaymentLine();
-                    const rest = Math.max(0, this.totalCollection - this.totalPayments);
+                    const currentPay = this.totalPayments;
+                    const rest = Math.max(0, this.totalCollection - this.totalWithholdings - currentPay);
                     line.amount = rest > 0 ? rest : 0;
                     this.paymentLines.push(line);
+                },
+                addWithholdingLine() {
+                    this.withholdingLines.push(emptyWithholdingLine());
+                    this.syncDefaultPaymentAmount();
+                },
+                removeWithholdingLine(index) {
+                    this.withholdingLines.splice(index, 1);
+                    this.syncDefaultPaymentAmount();
                 },
                 removePaymentLine(index) {
                     if (this.paymentLines.length <= 1) return;
@@ -267,7 +364,7 @@
                 },
                 syncDefaultPaymentAmount() {
                     if (this.paymentLines.length === 1 && this.paymentLines[0].line_type === 'efectivo') {
-                        this.paymentLines[0].amount = this.totalCollection;
+                        this.paymentLines[0].amount = Math.max(0, this.totalCollection - this.totalWithholdings);
                     }
                 },
                 get selectedInvoices() {
@@ -279,9 +376,15 @@
                 get totalPayments() {
                     return this.paymentLines.reduce((sum, line) => sum + parseFloat(line.amount || 0), 0);
                 },
-                get paymentsMatchTotal() {
+                get totalWithholdings() {
+                    return this.withholdingLines.reduce((sum, wh) => sum + parseFloat(wh.amount || 0), 0);
+                },
+                get totalLiquidAndWithholdings() {
+                    return this.totalPayments + this.totalWithholdings;
+                },
+                get receiptTotalsMatch() {
                     if (this.selectedInvoices.length === 0) return false;
-                    return Math.abs(this.totalCollection - this.totalPayments) < 0.02;
+                    return Math.abs(this.totalCollection - this.totalLiquidAndWithholdings) < 0.02;
                 },
                 formatMoney(val) {
                     return new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2 }).format(val);

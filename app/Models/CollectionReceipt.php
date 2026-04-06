@@ -51,6 +51,11 @@ class CollectionReceipt extends Model
         return $this->hasMany(CollectionReceiptPayment::class)->orderBy('sort_order')->orderBy('id');
     }
 
+    public function withholdings()
+    {
+        return $this->hasMany(CollectionReceiptWithholding::class)->orderBy('sort_order')->orderBy('id');
+    }
+
     public function reconciledMovements(): MorphMany
     {
         return $this->morphMany(BankMovement::class, 'reconciled', 'reconciled_type', 'reconciled_id');

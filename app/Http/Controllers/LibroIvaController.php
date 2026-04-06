@@ -6,6 +6,7 @@ use App\Models\CreditNote;
 use App\Models\PurchaseInvoice;
 use App\Models\SalesInvoice;
 use App\Services\LibroIvaService;
+use App\Services\WithheldIvaSummaryService;
 use Illuminate\Http\Request;
 
 class LibroIvaController extends Controller
@@ -21,7 +22,7 @@ class LibroIvaController extends Controller
     {
         $this->authorize('ventas.section');
         $request->validate([
-            'year'  => 'required|integer|min:2020|max:2030',
+            'year' => 'required|integer|min:2020|max:2030',
             'month' => 'required|integer|min:1|max:12',
         ]);
 
@@ -70,12 +71,17 @@ class LibroIvaController extends Controller
             ->selectRaw('COALESCE(SUM(iva_21), 0) + COALESCE(SUM(iva_10_5), 0) + COALESCE(SUM(iva_27), 0) as total_iva')
             ->value('total_iva') ?? 0;
 
+        $ivaSummary = new WithheldIvaSummaryService;
+        $retencionesIvaCobranzas = $ivaSummary->totalForPeriod($companyId, $year, $month);
+        $retencionesIvaCobranzasCount = $ivaSummary->countForPeriod($companyId, $year, $month);
+
         $company = active_company();
 
         return view('libro-iva.preview', compact(
             'year', 'month', 'ventasCount', 'ncCount', 'comprasCount',
             'ventasTotal', 'ncTotal', 'comprasTotal',
-            'debitoFiscal', 'creditoFiscal', 'company'
+            'debitoFiscal', 'creditoFiscal', 'company',
+            'retencionesIvaCobranzas', 'retencionesIvaCobranzasCount'
         ));
     }
 
@@ -83,17 +89,17 @@ class LibroIvaController extends Controller
     {
         $this->authorize('ventas.section');
         $request->validate([
-            'year'  => 'required|integer',
+            'year' => 'required|integer',
             'month' => 'required|integer|min:1|max:12',
         ]);
 
-        $service = new LibroIvaService();
+        $service = new LibroIvaService;
         $files = $service->generate(active_company_id(), (int) $request->year, (int) $request->month);
 
         $periodo = $request->year.str_pad($request->month, 2, '0', STR_PAD_LEFT);
 
         $zipPath = tempnam(sys_get_temp_dir(), 'libro_iva_').'.zip';
-        $zip = new \ZipArchive();
+        $zip = new \ZipArchive;
         $zip->open($zipPath, \ZipArchive::CREATE);
 
         foreach ($files as $name => $content) {

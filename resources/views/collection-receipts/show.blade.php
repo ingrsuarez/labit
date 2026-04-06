@@ -137,6 +137,46 @@
             </div>
         @endif
 
+        @if($collectionReceipt->withholdings->isNotEmpty())
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+                <div class="px-4 py-3 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-800">Retenciones sufridas</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tipo</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nº doc.</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Régimen</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Jurisdicción</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nº certif.</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @foreach($collectionReceipt->withholdings as $wh)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3 text-sm font-medium text-gray-800">{{ \App\Models\CollectionReceiptWithholding::typeLabel($wh->withholding_type) }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">{{ $wh->document_number ?: '—' }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">{{ $wh->regime }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">{{ $wh->jurisdiction ?: '—' }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">{{ $wh->certificate_number }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-800 text-right">${{ number_format($wh->amount, 2, ',', '.') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot class="bg-gray-50">
+                            <tr>
+                                <td colspan="5" class="px-4 py-3 text-right text-sm font-bold text-gray-800">Total retenciones</td>
+                                <td class="px-4 py-3 text-right text-sm font-bold text-gray-900">${{ number_format($collectionReceipt->withholdings->sum('amount'), 2, ',', '.') }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        @endif
+
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
             <div class="px-4 py-3 border-b border-gray-200">
                 <h2 class="text-lg font-semibold text-gray-800">Facturas Incluidas</h2>

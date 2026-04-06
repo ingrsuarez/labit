@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\AccountingAccount;
 use App\Models\BankAccount;
 use App\Models\CollectionReceipt;
+use App\Models\CollectionReceiptWithholding;
 use App\Models\CreditNote;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryLine;
@@ -170,9 +171,25 @@ class AccountingEntryService
         );
     }
 
+    /**
+     * Plan de cuentas sugerido para retenciones sufridas en cobro (activo / crédito a recuperar).
+     * Ajustar códigos según plan real del laboratorio; centralizado para un solo punto de edición.
+     */
+    public static function withholdingAccountCode(string $withholdingType): string
+    {
+        return match ($withholdingType) {
+            CollectionReceiptWithholding::TYPE_GANANCIAS => '1.1.05',
+            CollectionReceiptWithholding::TYPE_IVA => '1.1.06',
+            CollectionReceiptWithholding::TYPE_SUSS_931 => '1.1.07',
+            CollectionReceiptWithholding::TYPE_IIBB => '1.1.08',
+            default => '1.1.05',
+        };
+    }
+
     public function fromCollectionReceipt(CollectionReceipt $receipt): ?JournalEntry
     {
-        $receipt->loadMissing(['customer', 'payments.bankAccount.accountingAccount']);
+        // Medios líquidos + retenciones = total RC; crédito único a clientes por el total.
+        $receipt->loadMissing(['customer', 'payments.bankAccount.accountingAccount', 'withholdings']);
         $companyId = (int) ($receipt->company_id ?? active_company_id());
         $total = round((float) $receipt->total, 2);
 
@@ -212,6 +229,20 @@ class AccountingEntryService
                     'description' => $desc,
                 ];
             }
+        }
+
+        foreach ($receipt->withholdings as $wh) {
+            $amt = round((float) $wh->amount, 2);
+            if ($amt <= 0) {
+                continue;
+            }
+            $acc = self::withholdingAccountCode($wh->withholding_type);
+            $debitLines[] = [
+                'account_code' => $acc,
+                'debit' => $amt,
+                'credit' => 0,
+                'description' => 'Ret. '.CollectionReceiptWithholding::typeLabel($wh->withholding_type).' cert. '.($wh->certificate_number ?? '').' — RC '.$receipt->number,
+            ];
         }
 
         $debitLines[] = [

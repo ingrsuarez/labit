@@ -99,8 +99,13 @@ class CollectionReceiptController extends Controller
             }
 
             $collectionReceipt->recalculate();
-            $this->assertPaymentsMatchTotal($validated['payments'], (float) $collectionReceipt->total);
+            $this->assertReceiptTotalsMatch(
+                $validated['payments'],
+                $validated['withholdings'],
+                (float) $collectionReceipt->total
+            );
             $this->replacePayments($collectionReceipt, $validated['payments']);
+            $this->replaceWithholdings($collectionReceipt, $validated['withholdings']);
             $this->syncLegacyPaymentHeader($collectionReceipt);
 
             DB::commit();
@@ -122,7 +127,7 @@ class CollectionReceiptController extends Controller
 
         abort_if($collectionReceipt->company_id !== active_company_id(), 403);
 
-        $collectionReceipt->load(['customer', 'creator', 'confirmer', 'items.invoice.customer', 'payments.bankAccount']);
+        $collectionReceipt->load(['customer', 'creator', 'confirmer', 'items.invoice.customer', 'payments.bankAccount', 'withholdings']);
 
         return view('collection-receipts.show', compact('collectionReceipt'));
     }
@@ -138,7 +143,7 @@ class CollectionReceiptController extends Controller
                 ->with('error', 'Solo se pueden editar recibos de cobro en estado borrador.');
         }
 
-        $collectionReceipt->load(['items.invoice', 'payments']);
+        $collectionReceipt->load(['items.invoice', 'payments', 'withholdings']);
         $customers = Customer::where('status', 'activo')->orderBy('name')->get();
 
         $existingInvoiceIds = $collectionReceipt->items->pluck('sales_invoice_id')->toArray();
@@ -161,6 +166,15 @@ class CollectionReceiptController extends Controller
             'due_date' => $p->due_date?->format('Y-m-d') ?? '',
         ])->values()->all();
 
+        $initialWithholdingLines = $collectionReceipt->withholdings->map(fn ($w) => [
+            'withholding_type' => $w->withholding_type,
+            'document_number' => $w->document_number ?? '',
+            'regime' => $w->regime,
+            'jurisdiction' => $w->jurisdiction ?? '',
+            'certificate_number' => $w->certificate_number,
+            'amount' => (float) $w->amount,
+        ])->values()->all();
+
         $bankAccounts = BankAccount::query()
             ->where('company_id', active_company_id())
             ->active()
@@ -174,6 +188,7 @@ class CollectionReceiptController extends Controller
             'customers',
             'pendingInvoices',
             'initialPaymentLines',
+            'initialWithholdingLines',
             'bankAccounts'
         ));
     }
@@ -209,8 +224,13 @@ class CollectionReceiptController extends Controller
             }
 
             $collectionReceipt->recalculate();
-            $this->assertPaymentsMatchTotal($validated['payments'], (float) $collectionReceipt->total);
+            $this->assertReceiptTotalsMatch(
+                $validated['payments'],
+                $validated['withholdings'],
+                (float) $collectionReceipt->total
+            );
             $this->replacePayments($collectionReceipt, $validated['payments']);
+            $this->replaceWithholdings($collectionReceipt, $validated['withholdings']);
             $this->syncLegacyPaymentHeader($collectionReceipt);
 
             DB::commit();
@@ -255,11 +275,12 @@ class CollectionReceiptController extends Controller
             return back()->with('error', 'Solo se pueden confirmar recibos en estado borrador.');
         }
 
-        $collectionReceipt->load('payments');
+        $collectionReceipt->load(['payments', 'withholdings']);
         $sumPay = round((float) $collectionReceipt->payments->sum('amount'), 2);
+        $sumWh = round((float) $collectionReceipt->withholdings->sum('amount'), 2);
         $total = round((float) $collectionReceipt->total, 2);
-        if (abs($sumPay - $total) > 0.01) {
-            return back()->with('error', 'Los medios de pago no coinciden con el total del recibo. Editá el borrador antes de confirmar.');
+        if (abs($sumPay + $sumWh - $total) > 0.01) {
+            return back()->with('error', 'La suma de medios de pago y retenciones no coincide con el total del recibo. Editá el borrador antes de confirmar.');
         }
 
         DB::beginTransaction();
@@ -287,7 +308,7 @@ class CollectionReceiptController extends Controller
             $collectionReceipt->refresh();
             if (! JournalEntry::where('source_type', CollectionReceipt::class)->where('source_id', $collectionReceipt->id)->exists()) {
                 (new AccountingEntryService)->fromCollectionReceipt(
-                    $collectionReceipt->load(['customer', 'payments.bankAccount.accountingAccount'])
+                    $collectionReceipt->load(['customer', 'payments.bankAccount.accountingAccount', 'withholdings'])
                 );
             }
         } catch (\Throwable $e) {
@@ -360,6 +381,12 @@ class CollectionReceiptController extends Controller
         }
         $request->merge(['payments' => $payments]);
 
+        $withholdings = $request->input('withholdings', []);
+        if (! is_array($withholdings)) {
+            $withholdings = [];
+        }
+        $request->merge(['withholdings' => array_values($withholdings)]);
+
         $base = $request->validate([
             'customer_id' => 'required|exists:customers,id',
             'date' => 'required|date',
@@ -374,6 +401,13 @@ class CollectionReceiptController extends Controller
             'payments.*.cheque_number' => 'nullable|string|max:191',
             'payments.*.bank_name' => 'nullable|string|max:191',
             'payments.*.due_date' => 'nullable|date',
+            'withholdings' => 'nullable|array',
+            'withholdings.*.withholding_type' => 'required|in:ganancias,iva,suss_931,iibb',
+            'withholdings.*.document_number' => 'nullable|string|max:191',
+            'withholdings.*.regime' => 'required|string|max:255',
+            'withholdings.*.jurisdiction' => 'nullable|string|max:191',
+            'withholdings.*.certificate_number' => 'required|string|max:191',
+            'withholdings.*.amount' => 'required|numeric|min:0.01',
         ], [
             'customer_id.required' => 'Debe seleccionar un cliente.',
             'date.required' => 'La fecha es obligatoria.',
@@ -384,7 +418,22 @@ class CollectionReceiptController extends Controller
             'invoices.*.amount.min' => 'El monto debe ser mayor a 0.',
             'payments.required' => 'Debe indicar al menos un medio de pago.',
             'payments.min' => 'Debe indicar al menos un medio de pago.',
+            'withholdings.*.withholding_type.required' => 'Indicá el tipo de retención.',
+            'withholdings.*.regime.required' => 'Indicá el régimen de retención.',
+            'withholdings.*.certificate_number.required' => 'Indicá el número de certificado.',
+            'withholdings.*.amount.required' => 'Indicá el monto retenido.',
+            'withholdings.*.amount.min' => 'El monto retenido debe ser mayor a 0.',
         ]);
+
+        $base['withholdings'] = $base['withholdings'] ?? [];
+
+        foreach ($base['withholdings'] as $i => $w) {
+            if (($w['withholding_type'] ?? '') === 'iibb' && empty(trim((string) ($w['jurisdiction'] ?? '')))) {
+                throw ValidationException::withMessages([
+                    "withholdings.{$i}.jurisdiction" => 'La jurisdicción es obligatoria para retenciones IIBB.',
+                ]);
+            }
+        }
 
         foreach ($base['payments'] as $i => $p) {
             if ($p['line_type'] === 'transferencia') {
@@ -414,14 +463,17 @@ class CollectionReceiptController extends Controller
 
     /**
      * @param  array<int, array<string, mixed>>  $payments
+     * @param  array<int, array<string, mixed>>  $withholdings
      */
-    private function assertPaymentsMatchTotal(array $payments, float $total): void
+    private function assertReceiptTotalsMatch(array $payments, array $withholdings, float $total): void
     {
-        $sum = round(array_sum(array_map(fn ($p) => (float) $p['amount'], $payments)), 2);
+        $sumPay = round(array_sum(array_map(fn ($p) => (float) $p['amount'], $payments)), 2);
+        $sumWh = round(array_sum(array_map(fn ($w) => (float) $w['amount'], $withholdings)), 2);
+        $sum = round($sumPay + $sumWh, 2);
         $total = round($total, 2);
         if (abs($sum - $total) > 0.01) {
             throw ValidationException::withMessages([
-                'payments' => 'La suma de los medios de pago ($'.number_format($sum, 2, ',', '.').') debe igualar el total del recibo ($'.number_format($total, 2, ',', '.').').',
+                'payments' => 'Medios ($'.number_format($sumPay, 2, ',', '.').') + retenciones ($'.number_format($sumWh, 2, ',', '.').') = $'.number_format($sum, 2, ',', '.').' debe igualar el total del recibo ($'.number_format($total, 2, ',', '.').').',
             ]);
         }
     }
@@ -440,6 +492,25 @@ class CollectionReceiptController extends Controller
                 'cheque_number' => $p['line_type'] === 'echeq' ? $p['cheque_number'] : null,
                 'bank_name' => $p['line_type'] === 'echeq' ? $p['bank_name'] : null,
                 'due_date' => $p['line_type'] === 'echeq' ? $p['due_date'] : null,
+                'sort_order' => $idx,
+            ]);
+        }
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $withholdings
+     */
+    private function replaceWithholdings(CollectionReceipt $collectionReceipt, array $withholdings): void
+    {
+        $collectionReceipt->withholdings()->delete();
+        foreach ($withholdings as $idx => $w) {
+            $collectionReceipt->withholdings()->create([
+                'withholding_type' => $w['withholding_type'],
+                'document_number' => $w['document_number'] ?? null,
+                'regime' => $w['regime'],
+                'jurisdiction' => ! empty(trim((string) ($w['jurisdiction'] ?? ''))) ? $w['jurisdiction'] : null,
+                'certificate_number' => $w['certificate_number'],
+                'amount' => $w['amount'],
                 'sort_order' => $idx,
             ]);
         }
