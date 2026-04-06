@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-05 (v1.39.1 en develop; cola prompts vacía; release master en curso)
+> Última actualización: 2026-04-05 (v1.39.0 + v1.39.1 en **master**; cola prompts vacía)
 
 ---
 
@@ -118,10 +118,10 @@ _Sin versiones en tabla (la cola de prompts en `pendientes/` está vacía; nueva
 ## Progreso general
 
 ```
-Completadas:  ver STATUS.md (última v1.39.1 en develop)
+Completadas:  ver STATUS.md (última v1.39.1; develop y master alineados)
 Planificadas: —
 En proceso:   0
-Release master: pendiente de alinear con develop (v1.39.0, v1.39.1) en esta sesión
+Release master: 2026-04-05 — merge develop → master (v1.39.0, v1.39.1)
 ```
 
 ---
