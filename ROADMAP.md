@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-05 (v1.39.1 completada; planificación v1.39.2)
+> Última actualización: 2026-04-05 (v1.39.1 en develop; cola prompts vacía; release master en curso)
 
 ---
 
@@ -96,9 +96,7 @@
 
 ## Planificado
 
-| Versión | Nombre | Estimación | Dependencias | Prompt |
-|---|---|---|---|---|
-| v1.39.2 | Recibo de cobro: cobro parcial (UX + validación saldo) | 2h–medio día | v1.39.0 | `pendientes/v1.39.2-recibo-cobro-parcial-ux.md` |
+_Sin versiones en tabla (la cola de prompts en `pendientes/` está vacía; nuevas entradas vía Agente PM.)_
 
 > Nota: Los prompts v1.35.2, v1.35.3, v1.36.1 y v3.4.0 figuran en `agent-bootstrap/prompts/completados/`; se retiraron de esta tabla para evitar duplicar el estado.
 
@@ -110,6 +108,7 @@
 - **Tesorería**: saldos en tiempo real por cuenta; ~~endoso e-cheq en OP~~ → v1.39.1
 - **Lector QR facturas de compra**: ~~escaneo de QR de facturas recibidas para autocompletar datos~~ → completado en v1.28.0
 - **UI/UX**: auditoría visual, migración de componentes, design system
+- **Recibos de cobro**: cobro parcial — UX y validación de saldo (candidato futuro; sin prompt en cola)
 - **Testing**: suite de tests automatizados, cobertura mínima
 - **DevOps**: CI/CD, ambientes de staging, deploy automatizado
 - **Seguridad**: 2FA, protección adicional (auditoría base cubierta por v2.5.0/v2.7.0, acceso por rol por v2.4.0)
@@ -119,11 +118,10 @@
 ## Progreso general
 
 ```
-Completadas:  79 (tabla en STATUS.md; última v1.38.2)
-Planificadas: 3 (v1.39.1 OP e-cheq; v1.39.2 cobro parcial en RC)
+Completadas:  ver STATUS.md (última v1.39.1 en develop)
+Planificadas: —
 En proceso:   0
-Próxima:      v1.39.1 — OP con e-cheq desde cartera; v1.39.2 — UX cobro parcial recibos de venta
-Release master: 2026-04-05 — alineado con develop (v1.38.0, hotfix migraciones pivot)
+Release master: pendiente de alinear con develop (v1.39.0, v1.39.1) en esta sesión
 ```
 
 ---

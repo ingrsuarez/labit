@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-05 (develop — **v1.39.1** merge; master sin release nuevo)
+> Última actualización: 2026-04-05 (ajuste cola prompts; release develop→master pendiente en el mismo push)
 
 ---
 
@@ -13,19 +13,17 @@
 | **Última en master** | 2026-04-05 — `release: develop -> master` (**v3.4.0**, **v1.35.3**, **v1.36.1**, **v1.35.2**); tags en remoto |
 | **Última completada** | v1.39.1 — OP a proveedor con e-cheqs desde cartera (endoso) |
 | **En proceso** | — |
-| **Próxima** | v1.39.2 — Recibo de cobro: cobro parcial (UX + validación saldo) |
-| **Pendientes en cola** | 1 |
+| **Próxima** | Planificar nuevas versiones (cola de prompts vacía) |
+| **Pendientes en cola** | 0 |
 | **Completadas** | 85 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (1)
+### Pendientes (0)
 
-| Archivo | Versión |
-|---|---|
-| `v1.39.2-recibo-cobro-parcial-ux.md` | v1.39.2 |
+_Sin prompts pendientes._
 
 ### En proceso (0)
 
