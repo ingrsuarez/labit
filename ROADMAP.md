@@ -101,7 +101,9 @@
 
 ## Planificado
 
-_Sin versiones en tabla (la cola de prompts en `pendientes/` está vacía; nuevas entradas vía Agente PM.)_
+| Versión | Nombre | Notas |
+|---|---|---|
+| v1.42.1 | Orden determinaciones vet admission show | Alinear tabla carga/validación con PDF (`sort_order` + jerarquía); prompt en `pendientes/v1.42.1-orden-determinaciones-vet-admission-show.md` |
 
 > Nota: Los prompts v1.35.2, v1.35.3, v1.36.1 y v3.4.0 figuran en `agent-bootstrap/prompts/completados/`; se retiraron de esta tabla para evitar duplicar el estado.
 
@@ -124,9 +126,9 @@ _Sin versiones en tabla (la cola de prompts en `pendientes/` está vacía; nueva
 
 ```
 Completadas:  ver STATUS.md (última v1.42.0)
-Planificadas: —
+Planificadas: v1.42.1 (orden vet show)
 En proceso:   0
-Release master: 2026-04-05 — merge develop → master (v1.39.0, v1.39.1)
+Release master: 2026-04-07 — merge develop → master (v1.42.0)
 ```
 
 ---

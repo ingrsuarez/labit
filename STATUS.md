@@ -9,8 +9,8 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.42.0** (develop; merge a master pendiente de release) |
-| **Última en master** | 2026-04-05 — `release: develop -> master` (**v1.39.0**, **v1.39.1**, **v1.38.2**, **v3.4.0**, …); tags en remoto |
+| **Versión actual** | **v1.42.0** (develop alineado con último release) |
+| **Última en master** | 2026-04-07 — `release: develop -> master` (**v1.42.0**); tags en remoto |
 | **Última completada** | v1.42.0 — Catálogo de servicios de compra, vínculo en facturas de compra y estadísticas |
 | **En proceso** | — |
 | **Próxima** | Planificar nuevas versiones (cola de prompts vacía) |
