@@ -170,6 +170,7 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Descripción</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Servicio (catálogo)</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Insumo</th>
                             <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Cantidad</th>
                             <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Precio Unit.</th>
@@ -182,6 +183,17 @@
                         @foreach($invoice->items as $item)
                             <tr class="hover:bg-gray-50">
                                 <td class="px-4 py-3 text-sm text-gray-800 font-medium">{{ $item->description }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-600">
+                                    @if($item->purchaseService)
+                                        <span class="text-xs font-mono text-gray-400">{{ $item->purchaseService->code ?? '—' }}</span>
+                                        <span class="block text-gray-800">{{ $item->purchaseService->name }}</span>
+                                        @if($item->purchaseService->category)
+                                            <span class="text-xs text-teal-700">{{ $item->purchaseService->category->name }}</span>
+                                        @endif
+                                    @else
+                                        —
+                                    @endif
+                                </td>
                                 <td class="px-4 py-3 text-sm text-gray-600">
                                     @if($item->supply)
                                         <span class="font-mono text-gray-400 text-xs">{{ $item->supply->code }}</span>

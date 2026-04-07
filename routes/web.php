@@ -341,6 +341,12 @@ Route::middleware([
         // SUPPLY CATEGORIES (Categorías de Insumos)
         Route::resource('supply-categories', App\Http\Controllers\SupplyCategoryController::class)->except(['show']);
 
+        // SERVICIOS DE COMPRA (derivaciones, alquileres, etc.)
+        Route::get('purchase-services/statistics', [App\Http\Controllers\PurchaseServiceStatisticsController::class, 'index'])
+            ->name('purchase-services.statistics');
+        Route::resource('purchase-service-categories', App\Http\Controllers\PurchaseServiceCategoryController::class)->except(['show']);
+        Route::resource('purchase-services', App\Http\Controllers\PurchaseServiceController::class)->except(['show']);
+
         // SUPPLIES (Insumos)
         Route::get('supplies/search', [App\Http\Controllers\SupplyController::class, 'search'])->name('supplies.search');
         Route::get('supplies/{supply}/available-lots', [App\Http\Controllers\SupplyController::class, 'availableLots'])
