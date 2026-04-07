@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-07 (**v1.42.0** servicios de compra en FC + estadísticas)
+> Última actualización: 2026-04-06 (**v1.42.1** orden determinaciones protocolo veterinario)
 
 ---
 
@@ -89,6 +89,7 @@
 | v1.41.1 | Hotfix Libro IVA al cambiar de empresa | 2026-04-07 | `switchCompany` no hace GET a `libro-iva/preview|download`; flash en índice Libro IVA |
 | v1.41.2 | Recibos de cobro: logo en PDF + PDF en listado | 2026-04-07 | `logo_ipac.png` en cabecera PDF; botón PDF por fila en `index` |
 | v1.42.0 | Servicios de compra: catálogo, FC y estadísticas | 2026-04-07 | Categorías/servicios por empresa; `purchase_service_id` en ítems FC; reporte por categoría/servicio; permisos en seeder |
+| v1.42.1 | Orden determinaciones vet: show + PDF unificado | 2026-04-06 | `VetAdmissionTestDisplayOrder`, jerarquía + `sort_order`; vista carga/validación alineada al informe |
 
 ---
 
@@ -101,9 +102,7 @@
 
 ## Planificado
 
-| Versión | Nombre | Notas |
-|---|---|---|
-| v1.42.1 | Orden determinaciones vet admission show | Alinear tabla carga/validación con PDF (`sort_order` + jerarquía); prompt en `pendientes/v1.42.1-orden-determinaciones-vet-admission-show.md` |
+_Sin versiones en tabla (la cola de prompts en `pendientes/` está vacía; nuevas entradas vía Agente PM.)_
 
 > Nota: Los prompts v1.35.2, v1.35.3, v1.36.1 y v3.4.0 figuran en `agent-bootstrap/prompts/completados/`; se retiraron de esta tabla para evitar duplicar el estado.
 
@@ -125,8 +124,8 @@
 ## Progreso general
 
 ```
-Completadas:  ver STATUS.md (última v1.42.0)
-Planificadas: v1.42.1 (orden vet show)
+Completadas:  ver STATUS.md (última v1.42.1)
+Planificadas: —
 En proceso:   0
 Release master: 2026-04-07 — merge develop → master (v1.42.0)
 ```

@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-07 (**v1.42.0** servicios de compra en FC)
+> Última actualización: 2026-04-06 (**v1.42.1** orden determinaciones protocolo veterinario)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.42.0** (develop alineado con último release) |
+| **Versión actual** | **v1.42.1** (implementación local; merge a develop según flujo Git) |
 | **Última en master** | 2026-04-07 — `release: develop -> master` (**v1.42.0**); tags en remoto |
-| **Última completada** | v1.42.0 — Catálogo de servicios de compra, vínculo en facturas de compra y estadísticas |
+| **Última completada** | v1.42.1 — Orden de determinaciones en protocolo veterinario (show + PDF) |
 | **En proceso** | — |
 | **Próxima** | Planificar nuevas versiones (cola de prompts vacía) |
 | **Pendientes en cola** | 0 |
-| **Completadas** | 89 |
+| **Completadas** | 90 |
 
 ---
 
@@ -29,10 +29,11 @@ _Sin prompts pendientes._
 
 _Sin prompts en ejecución._
 
-### Completados (89)
+### Completados (90)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.42.1 | Orden determinaciones vet (show + PDF) | 2026-04-06 | v1.42.1 |
 | v1.42.0 | Servicios de compra en FC + estadísticas | 2026-04-07 | v1.42.0 |
 | v1.41.2 | Logo en PDF recibo + PDF en listado | 2026-04-07 | v1.41.2 |
 | v1.41.0 | PDF de recibo de cobro para cliente | 2026-04-06 | v1.41.0 |

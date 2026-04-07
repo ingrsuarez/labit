@@ -153,18 +153,21 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
-                            @foreach($vetAdmission->vetTests->sortBy('test.code') as $idx => $vt)
+                            @foreach($vetAdmission->getVetTestsOrderedForDisplay() as $idx => $entry)
                                 @php
-                                    $isChild = $vt->test->parentTests && $vt->test->parentTests->count() > 0;
+                                    $vt = $entry['vt'];
+                                    $level = $entry['level'];
+                                    $isTreeChild = $entry['isChild'];
+                                    $isParentHeader = $entry['isParent'] && ! $entry['isSubParent'];
                                     $disabled = $vt->is_validated;
                                 @endphp
-                                <tr class="{{ $isChild ? 'bg-gray-50/50' : '' }} {{ $vt->is_validated ? 'bg-green-50/40' : '' }}">
+                                <tr class="{{ $isTreeChild ? 'bg-gray-50/50' : '' }} {{ $vt->is_validated ? 'bg-green-50/40' : '' }}">
                                     <td class="px-4 py-2">
-                                        <div class="flex items-center">
-                                            @if($isChild)<span class="text-gray-300 mr-2">↳</span>@endif
-                                            <div>
+                                        <div class="flex items-start" style="padding-left: {{ $level * 16 }}px">
+                                            @if($isTreeChild)<span class="text-gray-300 mr-2 shrink-0">↳</span>@endif
+                                            <div class="min-w-0">
                                                 <span class="text-xs font-mono text-gray-400">{{ $vt->test->code }}</span>
-                                                <span class="text-sm font-medium text-gray-900 ml-1">{{ $vt->test->name }}</span>
+                                                <span class="text-sm {{ $isParentHeader ? 'font-semibold text-gray-900' : 'font-medium text-gray-900' }} ml-1">{{ $vt->test->name }}</span>
                                             </div>
                                         </div>
                                     </td>

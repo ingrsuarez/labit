@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use App\Support\VetAdmissionTestDisplayOrder;
 use App\Traits\Auditable;
 use App\Traits\GeneratesProtocolNumber;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 class VetAdmission extends Model
 {
-    use Auditable, HasFactory, GeneratesProtocolNumber;
+    use Auditable, GeneratesProtocolNumber, HasFactory;
 
     protected $fillable = [
         'protocol_number', 'date', 'customer_id', 'veterinarian_id',
@@ -46,6 +48,16 @@ class VetAdmission extends Model
     public function vetTests()
     {
         return $this->hasMany(VetAdmissionTest::class);
+    }
+
+    /**
+     * Determinaciones en orden de informe (jerarquía + sort_order), todas las filas.
+     *
+     * @return Collection<int, array{vt: VetAdmissionTest, level: int, isParent: bool, isSubParent: bool, isChild: bool}>
+     */
+    public function getVetTestsOrderedForDisplay(): Collection
+    {
+        return VetAdmissionTestDisplayOrder::orderedEntries($this, false);
     }
 
     public function creator()
