@@ -8,7 +8,10 @@
         body { font-family: Arial, sans-serif; font-size: 10px; line-height: 1.4; color: #333; padding: 12px 16px; }
 
         .company-block { margin-bottom: 12px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
-        .company-logo { max-height: 45px; margin-bottom: 8px; display: block; }
+        .header-table { width: 100%; border-collapse: collapse; }
+        .header-cell-left { width: 50%; vertical-align: top; padding-right: 10px; }
+        .header-cell-right { width: 50%; vertical-align: top; text-align: right; }
+        .company-logo { max-height: 45px; display: block; }
         .company-name { font-size: 14px; font-weight: bold; margin-bottom: 4px; }
         .company-detail { font-size: 9px; color: #555; line-height: 1.5; }
 
@@ -54,26 +57,34 @@
 @endphp
 
     <div class="company-block">
-        @if(file_exists(public_path('images/logo_ipac.png')))
-            <img src="{{ public_path('images/logo_ipac.png') }}" class="company-logo" alt="IPAC">
-        @endif
-        @if($company)
-            <div class="company-name">{{ $company->name }}</div>
-            <div class="company-detail">
-                @if($company->cuit)
-                    CUIT: {{ $company->cuit }}<br>
-                @endif
-                @if($company->address || $company->city || $company->state)
-                    {{ trim(implode(' — ', array_filter([$company->address, $company->city, $company->state]))) }}<br>
-                @endif
-                @if($company->phone)
-                    Tel: {{ $company->phone }}
-                    @if($company->email) — {{ $company->email }} @endif
-                @elseif($company->email)
-                    {{ $company->email }}
-                @endif
-            </div>
-        @endif
+        <table class="header-table" cellspacing="0" cellpadding="0">
+            <tr>
+                <td class="header-cell-left">
+                    @if(file_exists(public_path('images/logo_ipac.png')))
+                        <img src="{{ public_path('images/logo_ipac.png') }}" class="company-logo" alt="IPAC">
+                    @endif
+                </td>
+                <td class="header-cell-right">
+                    @if($company)
+                        <div class="company-name">{{ $company->name }}</div>
+                        <div class="company-detail">
+                            @if($company->cuit)
+                                CUIT: {{ $company->cuit }}<br>
+                            @endif
+                            @if($company->address || $company->city || $company->state)
+                                {{ trim(implode(' — ', array_filter([$company->address, $company->city, $company->state]))) }}<br>
+                            @endif
+                            @if($company->phone)
+                                Tel: {{ $company->phone }}
+                                @if($company->email) — {{ $company->email }} @endif
+                            @elseif($company->email)
+                                {{ $company->email }}
+                            @endif
+                        </div>
+                    @endif
+                </td>
+            </tr>
+        </table>
     </div>
 
     <div class="doc-title">RECIBO DE COBRO</div>
