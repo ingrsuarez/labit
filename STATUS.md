@@ -9,7 +9,7 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.42.1** (implementación local; merge a develop según flujo Git) |
+| **Versión actual** | **v1.42.1** (develop; master sigue en **v1.42.0** hasta próximo release) |
 | **Última en master** | 2026-04-07 — `release: develop -> master` (**v1.42.0**); tags en remoto |
 | **Última completada** | v1.42.1 — Orden de determinaciones en protocolo veterinario (show + PDF) |
 | **En proceso** | — |
