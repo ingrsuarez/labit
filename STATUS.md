@@ -9,8 +9,8 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.42.1** (develop; master sigue en **v1.42.0** hasta próximo release) |
-| **Última en master** | 2026-04-07 — `release: develop -> master` (**v1.42.0**); tags en remoto |
+| **Versión actual** | **v1.42.1** (develop y **master** alineados) |
+| **Última en master** | 2026-04-06 — `release: develop -> master` (**v1.42.1**); tags en remoto |
 | **Última completada** | v1.42.1 — Orden de determinaciones en protocolo veterinario (show + PDF) |
 | **En proceso** | — |
 | **Próxima** | Planificar nuevas versiones (cola de prompts vacía) |

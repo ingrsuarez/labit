@@ -127,7 +127,7 @@ _Sin versiones en tabla (la cola de prompts en `pendientes/` está vacía; nueva
 Completadas:  ver STATUS.md (última v1.42.1)
 Planificadas: —
 En proceso:   0
-Release master: 2026-04-07 — merge develop → master (v1.42.0)
+Release master: 2026-04-06 — merge develop → master (v1.42.1)
 ```
 
 ---
