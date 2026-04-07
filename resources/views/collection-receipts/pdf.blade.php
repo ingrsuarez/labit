@@ -17,8 +17,9 @@
         .meta-label { color: #666; display: inline-block; min-width: 100px; }
         .status-badge { display: inline-block; padding: 2px 8px; border: 1px solid #333; font-weight: bold; font-size: 9px; margin-left: 6px; }
 
-        .client-box { width: 100%; border: 1px solid #999; margin-top: 8px; padding: 8px 12px; margin-bottom: 12px; }
-        .client-box td { padding: 2px 0; font-size: 10px; }
+        /* DomPDF: el padding en <table> es poco fiable; el espacio interior va en las celdas */
+        .client-box { width: 100%; border-collapse: collapse; border: 1px solid #999; margin-top: 8px; margin-bottom: 12px; }
+        .client-box td { padding: 10px 14px; font-size: 10px; vertical-align: top; }
         .client-label { color: #666; width: 120px; }
         .client-value { font-weight: bold; }
 
@@ -83,7 +84,7 @@
         <span class="meta-label">Estado</span>{{ $collectionReceipt->status_label }}
     </div>
 
-    <table class="client-box" cellpadding="0" cellspacing="0" width="100%">
+    <table class="client-box" cellspacing="0" cellpadding="0" width="100%">
         <tr>
             <td class="client-label">Cliente</td>
             <td class="client-value">{{ $customer->name }}</td>
