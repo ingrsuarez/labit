@@ -7,6 +7,7 @@ use App\Models\DeliveryNote;
 use App\Models\JournalEntry;
 use App\Models\PurchaseInvoice;
 use App\Models\PurchaseOrder;
+use App\Models\PurchaseService;
 use App\Models\Supplier;
 use App\Services\AccountingEntryService;
 use App\Services\LabBranchResolver;
@@ -155,6 +156,7 @@ class PurchaseInvoiceController extends Controller
             'purchaseOrder' => $purchaseOrder,
             'selectedSupplierId' => $request->supplier_id,
             'branches' => $branches,
+            'purchaseServiceCatalog' => PurchaseService::catalogGroupsForCompany(active_company_id()),
         ]);
     }
 
@@ -187,6 +189,7 @@ class PurchaseInvoiceController extends Controller
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string',
             'items.*.supply_id' => 'nullable|exists:supplies,id',
+            'items.*.purchase_service_id' => 'nullable|integer|exists:purchase_services,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.iva_rate' => 'required|in:0,10.5,21,27',
@@ -218,6 +221,8 @@ class PurchaseInvoiceController extends Controller
             'items.*.iva_rate.required' => 'La alícuota de IVA es obligatoria.',
             'items.*.iva_rate.in' => 'La alícuota de IVA no es válida.',
         ]);
+
+        $this->assertItemsPurchaseServicesBelongToCompany($validated['items'], active_company_id());
 
         $deliveryNoteIds = $this->resolveDeliveryNoteIds($request);
         $this->validateDeliveryNotesForInvoice($deliveryNoteIds, (int) $validated['supplier_id'], null);
@@ -255,20 +260,26 @@ class PurchaseInvoiceController extends Controller
             $ivaAmount = round($itemData['quantity'] * $itemData['unit_price'] * $itemData['iva_rate'] / 100, 2);
             $total = $itemData['quantity'] * $itemData['unit_price'] + $ivaAmount;
 
-            $updatesStock = $hasLinkedDeliveryNotes
+            $purchaseServiceId = ! empty($itemData['purchase_service_id']) ? (int) $itemData['purchase_service_id'] : null;
+            $supplyId = $purchaseServiceId ? null : ($itemData['supply_id'] ?? null);
+
+            $updatesStock = $purchaseServiceId
                 ? false
-                : filter_var($itemData['updates_stock'] ?? true, FILTER_VALIDATE_BOOLEAN);
+                : ($hasLinkedDeliveryNotes
+                    ? false
+                    : filter_var($itemData['updates_stock'] ?? true, FILTER_VALIDATE_BOOLEAN));
 
             $invoice->items()->create([
                 'description' => $itemData['description'],
-                'supply_id' => $itemData['supply_id'] ?? null,
+                'supply_id' => $supplyId,
+                'purchase_service_id' => $purchaseServiceId,
                 'quantity' => $itemData['quantity'],
                 'unit_price' => $itemData['unit_price'],
                 'iva_rate' => $itemData['iva_rate'],
                 'iva_amount' => $ivaAmount,
                 'total' => $total,
-                'lot_number' => $itemData['lot_number'] ?? null,
-                'expiration_date' => $itemData['expiration_date'] ?? null,
+                'lot_number' => $purchaseServiceId ? null : ($itemData['lot_number'] ?? null),
+                'expiration_date' => $purchaseServiceId ? null : ($itemData['expiration_date'] ?? null),
                 'updates_stock' => $updatesStock,
             ]);
         }
@@ -323,7 +334,7 @@ class PurchaseInvoiceController extends Controller
 
         $purchaseInvoice->load([
             'supplier', 'deliveryNotes', 'purchaseOrder', 'creator',
-            'items.supply', 'paymentOrderItems.paymentOrder',
+            'items.supply', 'items.purchaseService.category', 'paymentOrderItems.paymentOrder',
         ]);
 
         return view('purchase-invoices.show', ['invoice' => $purchaseInvoice]);
@@ -350,6 +361,7 @@ class PurchaseInvoiceController extends Controller
             'suppliers' => $suppliers,
             'branches' => $branches,
             'companies' => $companies,
+            'purchaseServiceCatalog' => PurchaseService::catalogGroupsForCompany((int) $purchaseInvoice->company_id),
         ]);
     }
 
@@ -402,6 +414,7 @@ class PurchaseInvoiceController extends Controller
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string',
             'items.*.supply_id' => 'nullable|exists:supplies,id',
+            'items.*.purchase_service_id' => 'nullable|integer|exists:purchase_services,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.iva_rate' => 'required|in:0,10.5,21,27',
@@ -434,6 +447,8 @@ class PurchaseInvoiceController extends Controller
             'items.*.iva_rate.in' => 'La alícuota de IVA no es válida.',
             'company_id.required' => 'Debés indicar la empresa del comprobante.',
         ]);
+
+        $this->assertItemsPurchaseServicesBelongToCompany($validated['items'], (int) $validated['company_id']);
 
         $deliveryNoteIds = $this->resolveDeliveryNoteIds($request);
         $this->validateDeliveryNotesForInvoice($deliveryNoteIds, (int) $validated['supplier_id'], $purchaseInvoice->id, $remitosCompanyId);
@@ -470,20 +485,26 @@ class PurchaseInvoiceController extends Controller
             $ivaAmount = round($itemData['quantity'] * $itemData['unit_price'] * $itemData['iva_rate'] / 100, 2);
             $total = $itemData['quantity'] * $itemData['unit_price'] + $ivaAmount;
 
-            $updatesStock = $hasLinkedDeliveryNotes
+            $purchaseServiceId = ! empty($itemData['purchase_service_id']) ? (int) $itemData['purchase_service_id'] : null;
+            $supplyId = $purchaseServiceId ? null : ($itemData['supply_id'] ?? null);
+
+            $updatesStock = $purchaseServiceId
                 ? false
-                : filter_var($itemData['updates_stock'] ?? true, FILTER_VALIDATE_BOOLEAN);
+                : ($hasLinkedDeliveryNotes
+                    ? false
+                    : filter_var($itemData['updates_stock'] ?? true, FILTER_VALIDATE_BOOLEAN));
 
             $purchaseInvoice->items()->create([
                 'description' => $itemData['description'],
-                'supply_id' => $itemData['supply_id'] ?? null,
+                'supply_id' => $supplyId,
+                'purchase_service_id' => $purchaseServiceId,
                 'quantity' => $itemData['quantity'],
                 'unit_price' => $itemData['unit_price'],
                 'iva_rate' => $itemData['iva_rate'],
                 'iva_amount' => $ivaAmount,
                 'total' => $total,
-                'lot_number' => $itemData['lot_number'] ?? null,
-                'expiration_date' => $itemData['expiration_date'] ?? null,
+                'lot_number' => $purchaseServiceId ? null : ($itemData['lot_number'] ?? null),
+                'expiration_date' => $purchaseServiceId ? null : ($itemData['expiration_date'] ?? null),
                 'updates_stock' => $updatesStock,
             ]);
         }
@@ -648,5 +669,24 @@ class PurchaseInvoiceController extends Controller
             auth()->user()->companies->contains('id', (int) $purchaseInvoice->company_id),
             403
         );
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     */
+    protected function assertItemsPurchaseServicesBelongToCompany(array $items, int $companyId): void
+    {
+        foreach ($items as $idx => $itemData) {
+            $sid = $itemData['purchase_service_id'] ?? null;
+            if ($sid === null || $sid === '') {
+                continue;
+            }
+            $ok = PurchaseService::where('id', (int) $sid)->where('company_id', $companyId)->exists();
+            if (! $ok) {
+                throw ValidationException::withMessages([
+                    "items.$idx.purchase_service_id" => 'El servicio de compra no pertenece a la empresa del comprobante o no existe.',
+                ]);
+            }
+        }
     }
 }
