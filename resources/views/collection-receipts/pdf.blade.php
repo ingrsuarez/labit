@@ -8,6 +8,7 @@
         body { font-family: Arial, sans-serif; font-size: 10px; line-height: 1.4; color: #333; padding: 12px 16px; }
 
         .company-block { margin-bottom: 12px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        .company-logo { max-height: 45px; margin-bottom: 8px; display: block; }
         .company-name { font-size: 14px; font-weight: bold; margin-bottom: 4px; }
         .company-detail { font-size: 9px; color: #555; line-height: 1.5; }
 
@@ -51,8 +52,11 @@
     ];
 @endphp
 
-    @if($company)
-        <div class="company-block">
+    <div class="company-block">
+        @if(file_exists(public_path('images/logo_ipac.png')))
+            <img src="{{ public_path('images/logo_ipac.png') }}" class="company-logo" alt="IPAC">
+        @endif
+        @if($company)
             <div class="company-name">{{ $company->name }}</div>
             <div class="company-detail">
                 @if($company->cuit)
@@ -68,8 +72,8 @@
                     {{ $company->email }}
                 @endif
             </div>
-        </div>
-    @endif
+        @endif
+    </div>
 
     <div class="doc-title">RECIBO DE COBRO</div>
 

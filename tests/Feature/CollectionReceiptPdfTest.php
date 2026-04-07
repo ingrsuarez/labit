@@ -154,4 +154,31 @@ class CollectionReceiptPdfTest extends TestCase
             ->get(route('collection-receipts.pdf', $rc))
             ->assertForbidden();
     }
+
+    public function test_index_incluye_enlace_pdf_por_recibo(): void
+    {
+        [$user, $company, $customer, $invoice, $bank] = $this->seedContext();
+
+        $this->actingAs($user)
+            ->withSession(['active_company_id' => $company->id])
+            ->post(route('collection-receipts.store'), [
+                'customer_id' => $customer->id,
+                'date' => now()->toDateString(),
+                'invoices' => [
+                    ['sales_invoice_id' => $invoice->id, 'amount' => 50],
+                ],
+                'payments' => [
+                    ['line_type' => 'transferencia', 'amount' => 50, 'bank_account_id' => $bank->id],
+                ],
+            ])
+            ->assertRedirect();
+
+        $rc = CollectionReceipt::query()->firstOrFail();
+
+        $this->actingAs($user)
+            ->withSession(['active_company_id' => $company->id])
+            ->get(route('collection-receipts.index'))
+            ->assertOk()
+            ->assertSee('collection-receipts/'.$rc->getKey().'/pdf', false);
+    }
 }
