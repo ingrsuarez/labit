@@ -100,6 +100,14 @@ class CompanyController extends Controller
 
         session(['active_company_id' => (int) $request->company_id]);
 
+        $path = rtrim((string) (parse_url(url()->previous(), PHP_URL_PATH) ?? ''), '/') ?: '/';
+
+        // Pantallas cargadas solo vía POST dejan la URL en rutas que no aceptan GET (p. ej. libro IVA preview).
+        if (str_ends_with($path, '/libro-iva/preview') || str_ends_with($path, '/libro-iva/download')) {
+            return redirect()->route('libro-iva.index')
+                ->with('success', 'Empresa actualizada. Volvé a generar el resumen del Libro IVA para la nueva empresa.');
+        }
+
         return redirect()->back();
     }
 

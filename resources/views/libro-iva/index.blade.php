@@ -1,5 +1,8 @@
 <x-admin-layout>
     <div class="p-4 md:p-6">
+        @if(session('success'))
+            <div class="max-w-2xl mx-auto mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">{{ session('success') }}</div>
+        @endif
         <div class="max-w-2xl mx-auto">
             <div class="mb-6">
                 <h1 class="text-2xl font-bold text-gray-900">Libro IVA Digital</h1>

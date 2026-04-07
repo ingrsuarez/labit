@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-06 (**v1.41.0** PDF recibo de cobro completado)
+> Última actualización: 2026-04-07 (**v1.41.1** hotfix Libro IVA + cambio de empresa)
 
 ---
 
@@ -86,6 +86,7 @@
 | v1.39.1 | OP a proveedor con e-cheqs en cartera (endoso) | 2026-04-05 | `payment_order_id` en líneas e-cheq; reserva en borrador OP; UI cartera; `fromPaymentOrder` multiparte; tests |
 | v1.40.0 | Recibos de cobro: retenciones sufridas (GA, IVA, SUSS, IIBB) | 2026-04-06 | `collection_receipt_withholdings`; UI create/edit/show; `fromCollectionReceipt` + cuentas 1.1.05–08; Libro IVA preview retenciones IVA; tests |
 | v1.41.0 | Recibos de cobro: PDF para cliente | 2026-04-06 | Ruta `collection-receipts.pdf`, DomPDF, plantilla A4, botón en show; tests |
+| v1.41.1 | Hotfix Libro IVA al cambiar de empresa | 2026-04-07 | `switchCompany` no hace GET a `libro-iva/preview|download`; flash en índice Libro IVA |
 
 ---
 
