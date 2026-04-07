@@ -5,6 +5,20 @@
 
 ---
 
+## [v1.42.0] — 2026-04-07 — Servicios de compra: catálogo, facturas y estadísticas
+
+### Agregado
+- Modelos y migración: `purchase_service_categories`, `purchase_services` (por empresa), `purchase_invoice_items.purchase_service_id`
+- CRUD categorías y servicios de compra; permisos `purchase-service-categories.*` y `purchase-services.*` en `RolesAndPermissionsSeeder`
+- Factura de compra: selector de servicio por categoría en alta/edición; columna en vista detalle; validación de pertenencia a la empresa del comprobante; sin impacto en stock cuando el ítem usa servicio catalogado
+- Ruta `purchase-services/statistics`: totales por categoría y por servicio (FC no anuladas, rango de fechas, empresa activa)
+- Enlaces en hub Compras y resaltado de sidebar
+
+### Notas
+- Tras desplegar: `php artisan migrate` y, si aplica, `php artisan db:seed --class=RolesAndPermissionsSeeder` + `php artisan permission:cache-reset`
+
+---
+
 ## [v1.35.3] — 2026-04-05 — Selector de lotes en salidas manuales de stock
 
 ### Agregado
