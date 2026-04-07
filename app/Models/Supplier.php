@@ -64,8 +64,13 @@ class Supplier extends Model
 
     public static function generateCode(): string
     {
-        $last = static::orderByDesc('id')->first();
-        $nextNumber = $last ? ((int) substr($last->code, 4)) + 1 : 1;
-        return sprintf('PROV-%05d', $nextNumber);
+        // "PROV-" ocupa 5 caracteres; el índice 4 es el guión — substr(4) rompía el entero y siempre devolvía PROV-00001.
+        $max = static::query()
+            ->where('code', 'like', 'PROV-%')
+            ->pluck('code')
+            ->map(fn (string $code) => (int) substr($code, 5))
+            ->max();
+
+        return sprintf('PROV-%05d', ($max ?? 0) + 1);
     }
 }
