@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-07 (**v1.41.2** logo PDF recibo + PDF en listado)
+> Última actualización: 2026-04-07 (**v1.42.0** servicios de compra en FC)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.41.2** (develop; merge a master pendiente de release) |
+| **Versión actual** | **v1.42.0** (develop; merge a master pendiente de release) |
 | **Última en master** | 2026-04-05 — `release: develop -> master` (**v1.39.0**, **v1.39.1**, **v1.38.2**, **v3.4.0**, …); tags en remoto |
-| **Última completada** | v1.41.2 — Logo IPAC en PDF de recibo de cobro y acceso PDF en listado |
+| **Última completada** | v1.42.0 — Catálogo de servicios de compra, vínculo en facturas de compra y estadísticas |
 | **En proceso** | — |
 | **Próxima** | Planificar nuevas versiones (cola de prompts vacía) |
 | **Pendientes en cola** | 0 |
-| **Completadas** | 88 |
+| **Completadas** | 89 |
 
 ---
 
@@ -29,10 +29,11 @@ _Sin prompts pendientes._
 
 _Sin prompts en ejecución._
 
-### Completados (88)
+### Completados (89)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.42.0 | Servicios de compra en FC + estadísticas | 2026-04-07 | v1.42.0 |
 | v1.41.2 | Logo en PDF recibo + PDF en listado | 2026-04-07 | v1.41.2 |
 | v1.41.0 | PDF de recibo de cobro para cliente | 2026-04-06 | v1.41.0 |
 | v1.40.0 | Retenciones sufridas en recibos de cobro | 2026-04-06 | v1.40.0 |

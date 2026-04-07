@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-07 (**v1.41.2** logo IPAC en PDF recibo + PDF en listado)
+> Última actualización: 2026-04-07 (**v1.42.0** servicios de compra en FC + estadísticas)
 
 ---
 
@@ -88,6 +88,7 @@
 | v1.41.0 | Recibos de cobro: PDF para cliente | 2026-04-06 | Ruta `collection-receipts.pdf`, DomPDF, plantilla A4, botón en show; tests |
 | v1.41.1 | Hotfix Libro IVA al cambiar de empresa | 2026-04-07 | `switchCompany` no hace GET a `libro-iva/preview|download`; flash en índice Libro IVA |
 | v1.41.2 | Recibos de cobro: logo en PDF + PDF en listado | 2026-04-07 | `logo_ipac.png` en cabecera PDF; botón PDF por fila en `index` |
+| v1.42.0 | Servicios de compra: catálogo, FC y estadísticas | 2026-04-07 | Categorías/servicios por empresa; `purchase_service_id` en ítems FC; reporte por categoría/servicio; permisos en seeder |
 
 ---
 
@@ -122,7 +123,7 @@ _Sin versiones en tabla (la cola de prompts en `pendientes/` está vacía; nueva
 ## Progreso general
 
 ```
-Completadas:  ver STATUS.md (última v1.41.2)
+Completadas:  ver STATUS.md (última v1.42.0)
 Planificadas: —
 En proceso:   0
 Release master: 2026-04-05 — merge develop → master (v1.39.0, v1.39.1)

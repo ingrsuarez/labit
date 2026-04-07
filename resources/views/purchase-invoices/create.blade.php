@@ -237,6 +237,7 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
+                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-52">Servicio</th>
                                 <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Descripción / Insumo</th>
                                 <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">Cantidad</th>
                                 <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Precio Unit.</th>
@@ -250,6 +251,22 @@
                         <tbody class="divide-y divide-gray-200">
                             <template x-for="(item, index) in items" :key="index">
                                 <tr class="hover:bg-gray-50">
+                                    <td class="px-3 py-2 align-top w-52">
+                                        <input type="hidden" :name="'items[' + index + '][purchase_service_id]'" :value="item.purchase_service_id || ''">
+                                        <select @change="selectPurchaseService(item, index, $event.target.value)"
+                                                class="w-full rounded-lg border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
+                                            <option value="">— Ninguno —</option>
+                                            <template x-for="g in purchaseServiceGroups" :key="g.id === null ? 'uncat' : g.id">
+                                                <optgroup :label="g.name">
+                                                    <template x-for="s in g.services" :key="s.id">
+                                                        <option :value="s.id"
+                                                                :selected="String(item.purchase_service_id || '') === String(s.id)"
+                                                                x-text="(s.code ? s.code + ' · ' : '') + s.name"></option>
+                                                    </template>
+                                                </optgroup>
+                                            </template>
+                                        </select>
+                                    </td>
                                     <td class="px-3 py-2" x-data="supplySearch(item, index)">
                                         <input type="hidden" :name="'items[' + index + '][description]'" :value="item.description">
                                         <input type="hidden" :name="'items[' + index + '][supply_id]'" :value="item.supply_id || ''">
@@ -384,37 +401,37 @@
                         </tbody>
                         <tfoot class="bg-gray-50">
                             <tr>
-                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Subtotal (Neto Gravado)</td>
+                                <td colspan="7" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Subtotal (Neto Gravado)</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(subtotal)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="iva105 > 0">
-                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 10,5%</td>
+                                <td colspan="7" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 10,5%</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(iva105)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="iva21 > 0">
-                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 21%</td>
+                                <td colspan="7" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 21%</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(iva21)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="iva27 > 0">
-                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 27%</td>
+                                <td colspan="7" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 27%</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(iva27)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="percepciones > 0">
-                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Percepciones</td>
+                                <td colspan="7" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Percepciones</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(percepciones)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="otrosImpuestos > 0">
-                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Otros Impuestos</td>
+                                <td colspan="7" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Otros Impuestos</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(otrosImpuestos)"></td>
                                 <td></td>
                             </tr>
                             <tr class="border-t-2 border-gray-300">
-                                <td colspan="6" class="px-3 py-3 text-right text-sm font-bold text-gray-800">TOTAL</td>
+                                <td colspan="7" class="px-3 py-3 text-right text-sm font-bold text-gray-800">TOTAL</td>
                                 <td class="px-3 py-3 text-right text-base font-bold text-gray-900" x-text="'$' + formatMoney(grandTotal)"></td>
                                 <td></td>
                             </tr>
@@ -508,6 +525,7 @@
                 return [
                     'description' => $i->supply ? $i->supply->name : ('Ítem remito - Cant: ' . $i->quantity_received),
                     'supply_id' => $i->supply_id,
+                    'purchase_service_id' => '',
                     'quantity' => floatval($i->quantity_received),
                     'unit_price' => $i->supply ? floatval($i->supply->last_price ?? 0) : 0,
                     'iva_rate' => '21',
@@ -549,6 +567,7 @@
                         ? `${supply.name} — ${supply.brand}`
                         : supply.name;
 
+                    item.purchase_service_id = '';
                     item.supply_id = supply.id;
                     item.description = label;
                     item._supply_code = supply.code;
@@ -636,6 +655,7 @@
                 items: deliveryNoteItems.length > 0 ? [...deliveryNoteItems.map(i => ({...i, lot_number: '', expiration_date: '', _supply_code: '', updates_stock: false}))] : [],
                 percepciones: {{ old('percepciones', 0) }},
                 otrosImpuestos: {{ old('otros_impuestos', 0) }},
+                purchaseServiceGroups: @json($purchaseServiceCatalog ?? []),
                 supplies: @json(\App\Models\Supply::active()->orderBy('name')->get()->map(function ($s) { return ['id' => $s->id, 'name' => $s->code . ' - ' . $s->name, 'tracks_lot' => $s->tracks_lot]; })),
 
                 point_of_sale: '{{ old('point_of_sale') }}',
@@ -722,6 +742,7 @@
 
                         const newRows = data.items.map(item => ({
                             ...item,
+                            purchase_service_id: item.purchase_service_id || '',
                             iva_rate: '21',
                             updates_stock: false,
                         }));
@@ -857,7 +878,41 @@
                 newSupply: { name: '', supply_category_id: '', unit: 'unidad', brand: '', min_stock: 0, tracks_lot: false },
 
                 addItem() {
-                    this.items.push({ description: '', supply_id: '', quantity: 1, unit_price: 0, iva_rate: '21', lot_number: '', expiration_date: '', updates_stock: !this.hasLinkedDeliveryNotes() });
+                    this.items.push({ description: '', supply_id: '', purchase_service_id: '', quantity: 1, unit_price: 0, iva_rate: '21', lot_number: '', expiration_date: '', updates_stock: !this.hasLinkedDeliveryNotes() });
+                },
+
+                selectPurchaseService(item, index, value) {
+                    const id = value ? String(value) : '';
+                    item.purchase_service_id = id;
+                    if (! id) {
+                        return;
+                    }
+                    let svc = null;
+                    for (const g of this.purchaseServiceGroups) {
+                        const found = g.services.find(s => String(s.id) === id);
+                        if (found) {
+                            svc = found;
+                            break;
+                        }
+                    }
+                    if (! svc) {
+                        return;
+                    }
+                    item.supply_id = '';
+                    item._supply_code = '';
+                    item._supply_label = '';
+                    item.lot_number = '';
+                    item.expiration_date = '';
+                    item.updates_stock = false;
+                    const label = svc.code ? `${svc.code} — ${svc.name}` : svc.name;
+                    item.description = label;
+                    this.$nextTick(() => {
+                        const input = document.querySelector(`#item-desc-${index}`);
+                        if (input) {
+                            input.value = label;
+                            input.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                    });
                 },
 
                 removeItem(index) {

@@ -10,7 +10,7 @@ class PurchaseInvoiceItem extends Model
     use HasFactory;
 
     protected $fillable = [
-        'purchase_invoice_id', 'supply_id', 'description',
+        'purchase_invoice_id', 'supply_id', 'purchase_service_id', 'description',
         'quantity', 'unit_price', 'iva_rate', 'iva_amount', 'total',
         'lot_number', 'expiration_date', 'updates_stock',
     ];
@@ -22,6 +22,18 @@ class PurchaseInvoiceItem extends Model
         'updates_stock' => 'boolean',
     ];
 
-    public function invoice() { return $this->belongsTo(PurchaseInvoice::class, 'purchase_invoice_id'); }
-    public function supply() { return $this->belongsTo(Supply::class); }
+    public function invoice()
+    {
+        return $this->belongsTo(PurchaseInvoice::class, 'purchase_invoice_id');
+    }
+
+    public function supply()
+    {
+        return $this->belongsTo(Supply::class);
+    }
+
+    public function purchaseService()
+    {
+        return $this->belongsTo(PurchaseService::class, 'purchase_service_id');
+    }
 }
