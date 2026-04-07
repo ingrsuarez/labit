@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-06 (**v1.40.0** retenciones en cobranzas completada)
+> Última actualización: 2026-04-06 (**v1.41.0** PDF recibo de cobro completada)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.40.0** (develop; merge a master pendiente de release) |
+| **Versión actual** | **v1.41.0** (develop; merge a master pendiente de release) |
 | **Última en master** | 2026-04-05 — `release: develop -> master` (**v1.39.0**, **v1.39.1**, **v1.38.2**, **v3.4.0**, …); tags en remoto |
-| **Última completada** | v1.40.0 — Retenciones sufridas en recibos de cobro (contabilidad + IVA) |
+| **Última completada** | v1.41.0 — PDF de recibo de cobro para envío al cliente |
 | **En proceso** | — |
 | **Próxima** | Planificar nuevas versiones (cola de prompts vacía) |
 | **Pendientes en cola** | 0 |
-| **Completadas** | 86 |
+| **Completadas** | 87 |
 
 ---
 
@@ -29,10 +29,11 @@ _Sin prompts pendientes._
 
 _Sin prompts en ejecución._
 
-### Completados (86)
+### Completados (87)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.41.0 | PDF de recibo de cobro para cliente | 2026-04-06 | v1.41.0 |
 | v1.40.0 | Retenciones sufridas en recibos de cobro | 2026-04-06 | v1.40.0 |
 | v1.39.1 | OP a proveedor con e-cheqs desde cartera | 2026-04-05 | v1.39.1 |
 | v1.39.0 | Recibos de cobro: múltiples medios y e-cheq (cartera) | 2026-04-05 | v1.39.0 |

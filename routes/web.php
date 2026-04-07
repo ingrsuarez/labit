@@ -450,6 +450,7 @@ Route::middleware([
             ->name('afip.test');
 
         // COLLECTION RECEIPTS (Recibos de Cobro)
+        Route::get('collection-receipts/{collection_receipt}/pdf', [App\Http\Controllers\CollectionReceiptController::class, 'pdf'])->name('collection-receipts.pdf');
         Route::resource('collection-receipts', App\Http\Controllers\CollectionReceiptController::class);
         Route::post('collection-receipts/{collection_receipt}/confirm', [App\Http\Controllers\CollectionReceiptController::class, 'confirm'])->name('collection-receipts.confirm');
 
