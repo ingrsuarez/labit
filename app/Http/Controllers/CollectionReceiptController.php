@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\JournalEntry;
 use App\Models\SalesInvoice;
 use App\Services\AccountingEntryService;
+use Barryvdh\DomPDF\Facade\Pdf as DomPdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -130,6 +131,30 @@ class CollectionReceiptController extends Controller
         $collectionReceipt->load(['customer', 'creator', 'confirmer', 'items.invoice.customer', 'payments.bankAccount', 'withholdings']);
 
         return view('collection-receipts.show', compact('collectionReceipt'));
+    }
+
+    public function pdf(CollectionReceipt $collectionReceipt)
+    {
+        $this->authorize('collection-receipts.index');
+
+        abort_if($collectionReceipt->company_id !== active_company_id(), 403);
+
+        $collectionReceipt->load([
+            'customer',
+            'company',
+            'creator',
+            'confirmer',
+            'items.invoice',
+            'payments.bankAccount',
+            'withholdings',
+        ]);
+
+        $pdf = DomPdf::loadView('collection-receipts.pdf', compact('collectionReceipt'));
+        $pdf->setPaper('A4', 'portrait');
+
+        $safeNumber = preg_replace('/[^\w\-.]+/u', '_', $collectionReceipt->number) ?: 'recibo';
+
+        return $pdf->download('ReciboCobro_'.$safeNumber.'.pdf');
     }
 
     public function edit(CollectionReceipt $collectionReceipt)
