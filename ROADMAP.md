@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-06 (**v1.40.0** retenciones en cobranzas implementada)
+> Última actualización: 2026-04-06 (**v1.41.0** PDF recibo de cobro completado)
 
 ---
 
@@ -85,6 +85,7 @@
 | v1.39.0 | Recibos de cobro: múltiples medios y e-cheq (cartera) | 2026-04-05 | Tabla `collection_receipt_payments`; UI create/edit/show; `fromCollectionReceipt` multiparte; migración legado; tests |
 | v1.39.1 | OP a proveedor con e-cheqs en cartera (endoso) | 2026-04-05 | `payment_order_id` en líneas e-cheq; reserva en borrador OP; UI cartera; `fromPaymentOrder` multiparte; tests |
 | v1.40.0 | Recibos de cobro: retenciones sufridas (GA, IVA, SUSS, IIBB) | 2026-04-06 | `collection_receipt_withholdings`; UI create/edit/show; `fromCollectionReceipt` + cuentas 1.1.05–08; Libro IVA preview retenciones IVA; tests |
+| v1.41.0 | Recibos de cobro: PDF para cliente | 2026-04-06 | Ruta `collection-receipts.pdf`, DomPDF, plantilla A4, botón en show; tests |
 
 ---
 
@@ -109,7 +110,7 @@ _Sin versiones en tabla (la cola de prompts en `pendientes/` está vacía; nueva
 - **Tesorería**: saldos en tiempo real por cuenta; ~~endoso e-cheq en OP~~ → v1.39.1
 - **Lector QR facturas de compra**: ~~escaneo de QR de facturas recibidas para autocompletar datos~~ → completado en v1.28.0
 - **UI/UX**: auditoría visual, migración de componentes, design system
-- **Recibos de cobro**: ~~retenciones sufridas en cobranzas~~ → **v1.40.0**; cobro parcial — UX y validación de saldo (candidato futuro)
+- **Recibos de cobro**: ~~retenciones sufridas en cobranzas~~ → **v1.40.0**; ~~PDF para cliente~~ → **v1.41.0**; cobro parcial — UX y validación de saldo (candidato futuro)
 - **Testing**: suite de tests automatizados, cobertura mínima
 - **DevOps**: CI/CD, ambientes de staging, deploy automatizado
 - **Seguridad**: 2FA, protección adicional (auditoría base cubierta por v2.5.0/v2.7.0, acceso por rol por v2.4.0)
@@ -119,7 +120,7 @@ _Sin versiones en tabla (la cola de prompts en `pendientes/` está vacía; nueva
 ## Progreso general
 
 ```
-Completadas:  ver STATUS.md (última v1.40.0)
+Completadas:  ver STATUS.md (última v1.41.0)
 Planificadas: —
 En proceso:   0
 Release master: 2026-04-05 — merge develop → master (v1.39.0, v1.39.1)
