@@ -262,7 +262,8 @@ class VetAdmissionController extends Controller
     public function validateAll(VetAdmission $vetAdmission)
     {
         $count = 0;
-        foreach ($vetAdmission->vetTests as $vat) {
+        foreach (\App\Support\VetAdmissionTestDisplayOrder::orderedEntries($vetAdmission, false) as $entry) {
+            $vat = $entry['vt'];
             if ($vat->hasResult() && ! $vat->is_validated) {
                 $vat->update([
                     'is_validated' => true,
