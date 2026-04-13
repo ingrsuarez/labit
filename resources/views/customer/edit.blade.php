@@ -356,6 +356,15 @@
                         </div>
                         <p class="text-xs text-gray-400 mt-1">Seleccionar uno o más tipos</p>
                     </div>
+
+                    <div class="md:col-span-2 lg:col-span-3" x-show="hasVetType" x-cloak>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Valor NBU veterinario ($ por 1 NBU)</label>
+                        <input type="number" name="veterinary_nbu_value" step="0.01" min="0"
+                               value="{{ old('veterinary_nbu_value', $customer->veterinary_nbu_value) }}"
+                               class="w-full max-w-xs rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500"
+                               placeholder="Ej: 1500,00">
+                        <p class="text-xs text-gray-500 mt-1">Precio de práctica en protocolo veterinario = este valor × NBU de la determinación.</p>
+                    </div>
                 </div>
             </div>
 

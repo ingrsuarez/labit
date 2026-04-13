@@ -67,6 +67,7 @@ class CustomerController extends Controller
             'afip_verified_at' => 'nullable|date',
             'type' => 'nullable|array',
             'type.*' => 'in:obra_social,aguas,veterinario,clinico,particular,laborales',
+            'veterinary_nbu_value' => 'nullable|numeric|min:0',
         ]);
 
         $validated['status'] = 'activo';
@@ -113,6 +114,7 @@ class CustomerController extends Controller
             'afip_verified_at' => 'nullable|date',
             'type' => 'nullable|array',
             'type.*' => 'in:obra_social,aguas,veterinario,clinico,particular,laborales',
+            'veterinary_nbu_value' => 'nullable|numeric|min:0',
         ]);
 
         $validated['type'] = $validated['type'] ?? $customer->type;

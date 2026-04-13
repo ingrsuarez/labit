@@ -90,6 +90,13 @@
         unlockIva() {
             this.ivaLocked = false;
             this.ivaManuallyUnlocked = true;
+        },
+
+        hasVetType: {{ in_array('veterinario', old('type', [])) ? 'true' : 'false' }},
+
+        syncVetType() {
+            const boxes = document.querySelectorAll('input[name=\'type[]\']');
+            this.hasVetType = [...boxes].some(cb => cb.value === 'veterinario' && cb.checked);
         }
     }">
         <!-- Header -->
@@ -307,6 +314,7 @@
                             @foreach(['obra_social' => 'Obra Social', 'aguas' => 'Aguas y Alimentos', 'veterinario' => 'Veterinario', 'clinico' => 'Clínico', 'particular' => 'Particular', 'laborales' => 'Laborales'] as $key => $label)
                                 <label class="flex items-center gap-2">
                                     <input type="checkbox" name="type[]" value="{{ $key }}"
+                                           @change="syncVetType()"
                                            class="rounded border-gray-300 text-zinc-600 focus:ring-zinc-500"
                                            {{ in_array($key, old('type', ['aguas'])) ? 'checked' : '' }}>
                                     <span class="text-sm text-gray-700">{{ $label }}</span>
@@ -314,6 +322,15 @@
                             @endforeach
                         </div>
                         <p class="text-xs text-gray-400 mt-1">Seleccionar uno o más tipos</p>
+                    </div>
+
+                    <div class="md:col-span-2 lg:col-span-3" x-show="hasVetType" x-cloak>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Valor NBU veterinario ($ por 1 NBU)</label>
+                        <input type="number" name="veterinary_nbu_value" step="0.01" min="0"
+                               value="{{ old('veterinary_nbu_value') }}"
+                               class="w-full max-w-xs rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500"
+                               placeholder="Ej: 1500,00">
+                        <p class="text-xs text-gray-500 mt-1">En protocolos veterinarios, el precio de cada práctica = este valor × NBU de la determinación (nomenclador).</p>
                     </div>
 
                     <div class="md:col-span-2 lg:col-span-3" x-show="false" x-cloak>

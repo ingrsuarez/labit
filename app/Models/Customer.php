@@ -23,6 +23,7 @@ class Customer extends Model
         'status',
         'type',
         'discount_percent',
+        'veterinary_nbu_value',
         'afip_activity',
         'cuit_status',
         'afip_verified_at',
@@ -30,6 +31,7 @@ class Customer extends Model
 
     protected $casts = [
         'discount_percent' => 'decimal:2',
+        'veterinary_nbu_value' => 'decimal:2',
         'afip_verified_at' => 'datetime',
         'type' => 'array',
     ];
@@ -63,6 +65,14 @@ class Customer extends Model
     public function isVeterinary(): bool
     {
         return $this->hasType('veterinario');
+    }
+
+    /**
+     * Valor monetario de 1 NBU para convenio veterinario (ARS).
+     */
+    public function veterinaryNbuRate(): float
+    {
+        return (float) ($this->veterinary_nbu_value ?? 0);
     }
 
     public function veterinarians()

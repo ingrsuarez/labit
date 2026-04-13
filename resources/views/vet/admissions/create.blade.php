@@ -33,13 +33,19 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Veterinaria *</label>
-                            <select name="customer_id" x-model="customerId" @change="loadVeterinarians()" required
+                            <select name="customer_id" x-model="customerId" @change="onCustomerChange()" required
                                     class="w-full border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500">
                                 <option value="">Seleccionar veterinaria...</option>
                                 @foreach($customers as $c)
                                     <option value="{{ $c->id }}" {{ old('customer_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
                                 @endforeach
                             </select>
+                            <p class="mt-1 text-xs text-gray-500" x-show="customerId && customerNbuRate() > 0" x-cloak>
+                                Valor NBU de esta veterinaria: <span class="font-medium text-amber-700" x-text="'$' + customerNbuRate().toLocaleString('es-AR', { minimumFractionDigits: 2 })"></span>
+                            </p>
+                            <p class="mt-1 text-xs text-amber-700" x-show="customerId && customerNbuRate() === 0" x-cloak>
+                                Configurá el valor NBU en Clientes → editar esta veterinaria.
+                            </p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Veterinario Derivante</label>
@@ -121,13 +127,16 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Agregar determinación</label>
                             <input type="text" x-model="testSearch" x-ref="testSearchInput"
                                    @input="searchTests()"
+                                   :disabled="!customerId"
                                    @focus="showTestDropdown = true"
                                    @keydown.enter.prevent="selectFirstTest()"
                                    @keydown.escape="showTestDropdown = false; testSearch = ''"
-                                   placeholder="Buscar por código o nombre... (Enter para agregar)"
-                                   class="w-full border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500">
+                                   :placeholder="customerId ? 'Buscar por código o nombre... (Enter para agregar)' : 'Primero elegí la veterinaria...'"
+                                   class="w-full border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed">
 
                             {{-- Dropdown de sugerencias --}}
+                            <p x-show="searchError" x-cloak class="mt-1 text-sm text-red-600" x-text="searchError"></p>
+
                             <div x-show="showTestDropdown && filteredTests.length > 0"
                                  @click.away="showTestDropdown = false"
                                  class="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -223,15 +232,38 @@
             return {
                 customerId: '{{ old("customer_id", "") }}',
                 veterinarianId: '{{ old("veterinarian_id", "") }}',
+                customerNbuValues: @json($customerNbuValues ?? []),
                 veterinarians: [],
                 testSearch: '',
                 filteredTests: [],
                 showTestDropdown: false,
                 testsData: [],
                 totalPrice: 0,
+                searchError: '',
+
+                customerNbuRate() {
+                    const id = this.customerId;
+                    if (!id) return 0;
+                    const v = this.customerNbuValues[id];
+                    return parseFloat(v) || 0;
+                },
 
                 init() {
                     if (this.customerId) this.loadVeterinarians();
+                },
+
+                onCustomerChange() {
+                    this.loadVeterinarians();
+                    this.recalculateTestPrices();
+                },
+
+                recalculateTestPrices() {
+                    const rate = this.customerNbuRate();
+                    this.testsData = this.testsData.map((t) => ({
+                        ...t,
+                        price: Math.round(rate * (parseFloat(t.nbu) || 0) * 100) / 100,
+                    }));
+                    this.totalPrice = this.testsData.reduce((sum, t) => sum + t.price, 0);
                 },
 
                 async loadVeterinarians() {
@@ -245,17 +277,30 @@
                 },
 
                 async searchTests() {
+                    this.searchError = '';
+                    if (!this.customerId) {
+                        this.filteredTests = [];
+                        return;
+                    }
                     if (this.testSearch.length < 2) {
                         this.filteredTests = [];
                         return;
                     }
                     try {
-                        const response = await fetch(`./search-tests?q=${encodeURIComponent(this.testSearch)}`);
-                        const tests = await response.json();
+                        const url = `./search-tests?q=${encodeURIComponent(this.testSearch)}&customer_id=${encodeURIComponent(this.customerId)}`;
+                        const response = await fetch(url);
+                        const data = await response.json();
+                        if (!response.ok) {
+                            this.filteredTests = [];
+                            this.searchError = data.error || 'No se pudo buscar.';
+                            return;
+                        }
+                        const tests = Array.isArray(data) ? data : [];
                         this.filteredTests = tests.filter(t => !this.testsData.find(td => td.test_id === t.id));
                         this.showTestDropdown = true;
                     } catch (error) {
                         console.error('Error buscando tests:', error);
+                        this.searchError = 'Error de red al buscar.';
                     }
                 },
 
@@ -277,7 +322,8 @@
                         test_id: test.id,
                         code: test.code,
                         name: test.name,
-                        price: parseFloat(test.price || 0),
+                        nbu: parseFloat(test.nbu) || 0,
+                        price: parseFloat(test.price) || 0,
                     });
 
                     this.testSearch = '';
