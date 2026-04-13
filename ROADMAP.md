@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-06 (**v1.42.1** orden determinaciones protocolo veterinario)
+> Última actualización: 2026-04-12 (**v1.44.0** nomenclador veterinario en hub)
 
 ---
 
@@ -90,6 +90,8 @@
 | v1.41.2 | Recibos de cobro: logo en PDF + PDF en listado | 2026-04-07 | `logo_ipac.png` en cabecera PDF; botón PDF por fila en `index` |
 | v1.42.0 | Servicios de compra: catálogo, FC y estadísticas | 2026-04-07 | Categorías/servicios por empresa; `purchase_service_id` en ítems FC; reporte por categoría/servicio; permisos en seeder |
 | v1.42.1 | Orden determinaciones vet: show + PDF unificado | 2026-04-06 | `VetAdmissionTestDisplayOrder`, jerarquía + `sort_order`; vista carga/validación alineada al informe |
+| v1.43.0 | Precios protocolo veterinario: NBU veterinaria × NBU práctica | 2026-04-12 | `customers.veterinary_nbu_value`; `searchTests` + `store` server-side; UI clientes y alta vet; tests Feature |
+| v1.44.0 | Nomenclador veterinario (hub + listado filtrado) | 2026-04-12 | Ruta `lab/veterinario/nomenclador`; `TestController::indexVeterinary`; reusa `test/index`; redirección `_context=vet_nomenclator` |
 
 ---
 
@@ -124,10 +126,10 @@ _Sin versiones en tabla (la cola de prompts en `pendientes/` está vacía; nueva
 ## Progreso general
 
 ```
-Completadas:  ver STATUS.md (última v1.42.1)
+Completadas:  ver STATUS.md (última v1.44.0 en develop)
 Planificadas: —
 En proceso:   0
-Release master: 2026-04-06 — merge develop → master (v1.42.1)
+Release master: 2026-04-06 — merge develop → master (v1.42.1); develop incluye v1.44.0
 ```
 
 ---

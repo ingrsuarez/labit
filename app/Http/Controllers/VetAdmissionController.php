@@ -89,8 +89,11 @@ class VetAdmissionController extends Controller
         $customers = Customer::whereJsonContains('type', 'veterinario')->orderBy('name')->get();
         $species = Species::where('is_active', true)->orderBy('name')->get();
         $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
+        $customerNbuValues = $customers->mapWithKeys(fn (Customer $c) => [
+            $c->id => (float) $c->veterinaryNbuRate(),
+        ])->all();
 
-        return view('vet.admissions.create', compact('customers', 'species', 'branches'));
+        return view('vet.admissions.create', compact('customers', 'species', 'branches', 'customerNbuValues'));
     }
 
     public function searchTests(Request $request)
@@ -100,6 +103,18 @@ class VetAdmissionController extends Controller
             return response()->json([]);
         }
 
+        $customerId = $request->integer('customer_id');
+        if ($customerId <= 0) {
+            return response()->json(['error' => 'Seleccioná primero la veterinaria.'], 422);
+        }
+
+        $customer = Customer::find($customerId);
+        if (! $customer || ! $customer->isVeterinary()) {
+            return response()->json(['error' => 'Cliente veterinario no válido.'], 422);
+        }
+
+        $rate = $customer->veterinaryNbuRate();
+
         $tests = Test::where(function ($q) use ($query) {
             $q->where('code', 'like', "%{$query}%")
                 ->orWhere('name', 'like', "%{$query}%");
@@ -107,9 +122,19 @@ class VetAdmissionController extends Controller
             ->whereJsonContains('categories', 'veterinario')
             ->whereDoesntHave('parentTests')
             ->limit(20)
-            ->get(['id', 'code', 'name', 'price']);
+            ->get(['id', 'code', 'name', 'nbu']);
 
-        return response()->json($tests);
+        return response()->json($tests->map(function (Test $test) use ($rate) {
+            $nbu = (float) ($test->nbu ?? 0);
+
+            return [
+                'id' => $test->id,
+                'code' => $test->code,
+                'name' => $test->name,
+                'nbu' => $nbu,
+                'price' => self::veterinaryPriceFromNbu($rate, $nbu),
+            ];
+        }));
     }
 
     public function store(Request $request)
@@ -128,7 +153,7 @@ class VetAdmissionController extends Controller
             'observations' => 'nullable|string',
             'tests' => 'required|array|min:1',
             'tests.*.test_id' => 'required|exists:tests,id',
-            'tests.*.price' => 'required|numeric|min:0',
+            'tests.*.price' => 'nullable|numeric|min:0',
             'lab_branch_id' => 'nullable|exists:lab_branches,id',
         ]);
 
@@ -149,11 +174,21 @@ class VetAdmissionController extends Controller
             'lab_branch_id' => $request->lab_branch_id,
         ]);
 
+        $customer = Customer::findOrFail($request->customer_id);
+        if (! $customer->isVeterinary()) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['customer_id' => 'El cliente debe ser una veterinaria.']);
+        }
+
+        $rate = $customer->veterinaryNbuRate();
+
         $totalPrice = 0;
 
         foreach ($request->tests as $testData) {
             $test = Test::find($testData['test_id']);
-            $price = $testData['price'];
+            $nbu = (float) ($test->nbu ?? 0);
+            $price = self::veterinaryPriceFromNbu($rate, $nbu);
             $totalPrice += $price;
 
             VetAdmissionTest::create([
@@ -410,5 +445,13 @@ class VetAdmissionController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * Precio de una práctica veterinaria: valor NBU de la veterinaria × NBU de la determinación.
+     */
+    public static function veterinaryPriceFromNbu(float $veterinaryNbuRate, float $testNbuUnits): float
+    {
+        return round($veterinaryNbuRate * $testNbuUnits, 2);
     }
 }
