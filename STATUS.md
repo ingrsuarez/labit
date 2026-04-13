@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-12 (**v1.43.0** precios veterinaria NBU × NBU práctica)
+> Última actualización: 2026-04-12 (**v1.44.0** nomenclador veterinario en hub)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.43.0** en **develop** (master en **v1.42.1** hasta próximo release) |
+| **Versión actual** | **v1.44.0** en **develop** (master en **v1.42.1** hasta próximo release) |
 | **Última en master** | 2026-04-06 — `release: develop -> master` (**v1.42.1**); tags en remoto |
-| **Última completada** | v1.43.0 — Precios protocolo veterinario: NBU veterinaria × NBU determinación |
+| **Última completada** | v1.44.0 — Nomenclador veterinario (hub + listado filtrado) |
 | **En proceso** | — |
 | **Próxima** | Planificar nuevas versiones (cola de prompts vacía) |
 | **Pendientes en cola** | 0 |
-| **Completadas** | 91 |
+| **Completadas** | 92 |
 
 ---
 
@@ -33,6 +33,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.44.0 | Nomenclador veterinario (hub lab vet) | 2026-04-12 | v1.44.0 |
 | v1.43.0 | Precios vet: NBU veterinaria × NBU práctica | 2026-04-12 | v1.43.0 |
 | v1.42.1 | Orden determinaciones vet (show + PDF) | 2026-04-06 | v1.42.1 |
 | v1.42.0 | Servicios de compra en FC + estadísticas | 2026-04-07 | v1.42.0 |
@@ -207,7 +208,7 @@ v1.0.0 (completada)
 | `ROADMAP.md` | Actualizado |
 | `BLUEPRINT.md` | Actualizado (DD-004 stock por sede, 2026-04-05) |
 | `STATUS.md` | Actualizado (este archivo) |
-| `CHANGELOG.md` | Actualizado (v1.43.0, 2026-04-12) |
+| `CHANGELOG.md` | Actualizado (v1.44.0, 2026-04-12) |
 | `RESUMEN_INSTITUCIONAL.md` | Completo |
 | `agent-bootstrap/PHASES.md` | Creado |
 

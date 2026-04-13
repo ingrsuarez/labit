@@ -5,6 +5,17 @@
 
 ---
 
+## [v1.44.0] — 2026-04-12 — Nomenclador veterinario (hub Laboratorio Veterinario)
+
+### Agregado
+- Entrada **Nomenclador veterinario** en el hub `/lab/veterinario` y ruta `lab/veterinario/nomenclador` (`lab.section`)
+- `TestController::indexVeterinary`: listado solo determinaciones con categoría **veterinario** y sin padres en pivote (`whereDoesntHave('parentTests')`), alineado al buscador de protocolos vet
+- Reutiliza `resources/views/test/index.blade.php`: búsqueda AJAX, NBU, modales crear/editar, enlaces a **Valores de referencia** (`tests.reference-values.index`)
+- `_context=vet_nomenclator` en crear/editar/eliminar para volver al nomenclador vet; sidebar resalta **Lab. Veterinario** en esa ruta
+- Test Feature `VeterinaryNomenclatorTest`
+
+---
+
 ## [v1.43.0] — 2026-04-12 — Precios protocolo veterinario: NBU veterinaria × NBU práctica
 
 ### Agregado
