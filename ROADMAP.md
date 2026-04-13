@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-12 (**v1.44.0** nomenclador veterinario en hub)
+> Última actualización: 2026-04-13 (**v1.45.0** eliminar cliente sin protocolos/facturación)
 
 ---
 
@@ -92,6 +92,7 @@
 | v1.42.1 | Orden determinaciones vet: show + PDF unificado | 2026-04-06 | `VetAdmissionTestDisplayOrder`, jerarquía + `sort_order`; vista carga/validación alineada al informe |
 | v1.43.0 | Precios protocolo veterinario: NBU veterinaria × NBU práctica | 2026-04-12 | `customers.veterinary_nbu_value`; `searchTests` + `store` server-side; UI clientes y alta vet; tests Feature |
 | v1.44.0 | Nomenclador veterinario (hub + listado filtrado) | 2026-04-12 | Ruta `lab/veterinario/nomenclador`; `TestController::indexVeterinary`; reusa `test/index`; redirección `_context=vet_nomenclator` |
+| v1.45.0 | Eliminar cliente: protocolos y facturación | 2026-04-13 | `CustomerController::destroy` agrupa bloqueos; botón eliminar + `CustomerDestroyTest` |
 
 ---
 
@@ -126,10 +127,10 @@ _Sin versiones en tabla (la cola de prompts en `pendientes/` está vacía; nueva
 ## Progreso general
 
 ```
-Completadas:  ver STATUS.md (última v1.44.0 en develop)
+Completadas:  ver STATUS.md (última v1.45.0 en develop)
 Planificadas: —
 En proceso:   0
-Release master: 2026-04-06 — merge develop → master (v1.42.1); develop incluye v1.44.0
+Release master: ver tags; develop incluye v1.45.0
 ```
 
 ---

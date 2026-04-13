@@ -474,6 +474,7 @@ Route::middleware([
         Route::post('customer', [App\Http\Controllers\CustomerController::class, 'store'])->name('customer.store');
         Route::get('customer/{customer}/edit', [App\Http\Controllers\CustomerController::class, 'edit'])->name('customer.edit');
         Route::put('customer/{customer}', [App\Http\Controllers\CustomerController::class, 'update'])->name('customer.update');
+        Route::delete('customer/{customer}', [App\Http\Controllers\CustomerController::class, 'destroy'])->name('customer.destroy');
 
         // Veterinarios anidados en customer
         Route::get('customer/{customer}/veterinarians', [App\Http\Controllers\VeterinarianController::class, 'index'])->name('customer.veterinarians.index');
