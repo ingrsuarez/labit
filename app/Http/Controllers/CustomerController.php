@@ -2,9 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CollectionReceipt;
+use App\Models\CreditNote;
 use App\Models\Customer;
+use App\Models\SalesInvoice;
+use App\Models\Sample;
+use App\Models\VetAdmission;
 use App\Services\AfipService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
@@ -127,6 +133,40 @@ class CustomerController extends Controller
 
         return redirect()->route('customer.index')
             ->with('success', 'Cliente actualizado correctamente.');
+    }
+
+    /**
+     * Elimina un cliente solo si no tiene protocolos ni facturación vinculados.
+     *
+     * Protocolos: muestras (aguas/alimentos) y protocolos veterinarios.
+     * Facturación: facturas de venta, recibos de cobro y notas de crédito.
+     */
+    public function destroy(Customer $customer)
+    {
+        $hasProtocols = Sample::where('customer_id', $customer->id)->exists()
+            || VetAdmission::where('customer_id', $customer->id)->exists();
+
+        $hasBilling = SalesInvoice::where('customer_id', $customer->id)->exists()
+            || CollectionReceipt::where('customer_id', $customer->id)->exists()
+            || CreditNote::where('customer_id', $customer->id)->exists();
+
+        $reasons = [];
+        if ($hasProtocols) {
+            $reasons[] = 'protocolos cargados (muestras de aguas/alimentos o protocolos veterinarios)';
+        }
+        if ($hasBilling) {
+            $reasons[] = 'facturación registrada (facturas de venta, recibos de cobro o notas de crédito)';
+        }
+
+        if ($reasons !== []) {
+            return redirect()->route('customer.edit', $customer)
+                ->with('error', 'No se puede eliminar este cliente porque tiene '.implode(' y ', $reasons).'.');
+        }
+
+        DB::transaction(fn () => $customer->delete());
+
+        return redirect()->route('customer.index')
+            ->with('success', 'Cliente eliminado correctamente.');
     }
 
     public function consultarCuit(string $cuit)

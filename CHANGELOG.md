@@ -5,6 +5,17 @@
 
 ---
 
+## [v1.45.0] — 2026-04-13 — Eliminar cliente: reglas protocolos y facturación
+
+### Cambiado
+- `CustomerController::destroy`: bloqueo explícito solo por **protocolos** (muestras aguas/alimentos + `VetAdmission`) y **facturación** (facturas de venta, recibos de cobro, notas de crédito); mensajes de error agrupados en esos conceptos
+- Texto de ayuda en `customer/edit` alineado a las mismas reglas
+
+### Agregado
+- Tests Feature `CustomerDestroyTest` (borrado OK, bloqueo por vet, muestra y factura)
+
+---
+
 ## [v1.44.0] — 2026-04-12 — Nomenclador veterinario (hub Laboratorio Veterinario)
 
 ### Agregado
