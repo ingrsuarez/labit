@@ -5,6 +5,21 @@
 
 ---
 
+## [v1.43.0] — 2026-04-12 — Precios protocolo veterinario: NBU veterinaria × NBU práctica
+
+### Agregado
+- Columna `customers.veterinary_nbu_value` (valor en $ de 1 NBU para clientes tipo veterinario)
+- Formularios de cliente (crear/editar): campo visible cuando el tipo incluye **Veterinario**
+- `VetAdmissionController::searchTests`: requiere `customer_id`; precio = `veterinary_nbu_value × tests.nbu` (redondeo 2 decimales)
+- `VetAdmissionController::store`: recalcula precios en servidor con la misma fórmula
+- Vista `vet/admissions/create`: búsqueda de prácticas solo con veterinaria elegida; muestra valor NBU; recalcula filas al cambiar veterinaria
+- Tests Feature `VetAdmissionNbuPricingTest`
+
+### Notas
+- Tras desplegar: `php artisan migrate`
+
+---
+
 ## [v1.42.0] — 2026-04-07 — Servicios de compra: catálogo, facturas y estadísticas
 
 ### Agregado

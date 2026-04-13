@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-06 (**v1.42.1** orden determinaciones protocolo veterinario)
+> Última actualización: 2026-04-12 (**v1.43.0** precios veterinaria NBU × NBU práctica)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.42.1** (develop y **master** alineados) |
+| **Versión actual** | **v1.43.0** en **develop** (master en **v1.42.1** hasta próximo release) |
 | **Última en master** | 2026-04-06 — `release: develop -> master` (**v1.42.1**); tags en remoto |
-| **Última completada** | v1.42.1 — Orden de determinaciones en protocolo veterinario (show + PDF) |
+| **Última completada** | v1.43.0 — Precios protocolo veterinario: NBU veterinaria × NBU determinación |
 | **En proceso** | — |
 | **Próxima** | Planificar nuevas versiones (cola de prompts vacía) |
 | **Pendientes en cola** | 0 |
-| **Completadas** | 90 |
+| **Completadas** | 91 |
 
 ---
 
@@ -33,6 +33,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.43.0 | Precios vet: NBU veterinaria × NBU práctica | 2026-04-12 | v1.43.0 |
 | v1.42.1 | Orden determinaciones vet (show + PDF) | 2026-04-06 | v1.42.1 |
 | v1.42.0 | Servicios de compra en FC + estadísticas | 2026-04-07 | v1.42.0 |
 | v1.41.2 | Logo en PDF recibo + PDF en listado | 2026-04-07 | v1.41.2 |
@@ -206,7 +207,7 @@ v1.0.0 (completada)
 | `ROADMAP.md` | Actualizado |
 | `BLUEPRINT.md` | Actualizado (DD-004 stock por sede, 2026-04-05) |
 | `STATUS.md` | Actualizado (este archivo) |
-| `CHANGELOG.md` | Actualizado (v1.38.0 + hotfix migración, 2026-04-05) |
+| `CHANGELOG.md` | Actualizado (v1.43.0, 2026-04-12) |
 | `RESUMEN_INSTITUCIONAL.md` | Completo |
 | `agent-bootstrap/PHASES.md` | Creado |
 
@@ -214,8 +215,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-Ejecutar AgenteProgramador para **v3.4.0** (libro diario / libro mayor) — único pendiente en cola `v*`:
-→ `Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo completo.`
+Cola `pendientes/` vacía: planificar con Agente PM o añadir un prompt en `agent-bootstrap/prompts/pendientes/`. Para ejecutar el programador: `Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo completo.`
 
 ---
 
