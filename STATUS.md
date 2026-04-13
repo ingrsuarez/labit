@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-12 (**v1.44.0** nomenclador veterinario en hub)
+> Última actualización: 2026-04-13 (**v1.45.0** eliminar cliente sin protocolos/facturación)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.44.0** en **develop** (master en **v1.42.1** hasta próximo release) |
-| **Última en master** | 2026-04-06 — `release: develop -> master` (**v1.42.1**); tags en remoto |
-| **Última completada** | v1.44.0 — Nomenclador veterinario (hub + listado filtrado) |
+| **Versión actual** | **v1.45.0** en **develop** (master según último release del usuario) |
+| **Última en master** | Ver tags en remoto |
+| **Última completada** | v1.45.0 — Eliminar cliente: solo bloqueo por protocolos o facturación |
 | **En proceso** | — |
 | **Próxima** | Planificar nuevas versiones (cola de prompts vacía) |
 | **Pendientes en cola** | 0 |
-| **Completadas** | 92 |
+| **Completadas** | 93 |
 
 ---
 
@@ -29,10 +29,11 @@ _Sin prompts pendientes._
 
 _Sin prompts en ejecución._
 
-### Completados (90)
+### Completados (91)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.45.0 | Eliminar cliente: protocolos y facturación | 2026-04-13 | v1.45.0 |
 | v1.44.0 | Nomenclador veterinario (hub lab vet) | 2026-04-12 | v1.44.0 |
 | v1.43.0 | Precios vet: NBU veterinaria × NBU práctica | 2026-04-12 | v1.43.0 |
 | v1.42.1 | Orden determinaciones vet (show + PDF) | 2026-04-06 | v1.42.1 |
