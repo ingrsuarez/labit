@@ -3,10 +3,44 @@
 namespace App\Http\Controllers;
 
 use App\Models\Test;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class TestController extends Controller
 {
+    /**
+     * Nomenclador veterinario: solo prácticas raíz con categoría veterinario.
+     */
+    public function indexVeterinary(Request $request)
+    {
+        $query = Test::with(['referenceValues', 'parentTests', 'speciesReferences'])
+            ->whereJsonContains('categories', 'veterinario')
+            ->whereDoesntHave('parentTests')
+            ->orderBy('code');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%");
+            });
+        }
+
+        $tests = $query->paginate(20);
+
+        $materials = \App\Models\Material::active()->orderBy('name')->get();
+
+        $parents = Test::whereJsonContains('categories', 'veterinario')
+            ->whereDoesntHave('parentTests')
+            ->orderBy('name')
+            ->get();
+
+        $vetNomenclator = true;
+        $testsFetchUrl = route('lab.veterinario.nomenclador');
+
+        return view('test.index', compact('tests', 'parents', 'materials', 'vetNomenclator', 'testsFetchUrl'));
+    }
+
     /**
      * Muestra el listado de determinaciones
      */
@@ -30,7 +64,9 @@ class TestController extends Controller
         // Tests que pueden ser padres (no tienen padres asignados - tabla pivote vacía)
         $parents = Test::orderBy('name')->get();
 
-        return view('test.index', compact('tests', 'parents', 'materials'));
+        $testsFetchUrl = route('tests.index');
+
+        return view('test.index', compact('tests', 'parents', 'materials', 'testsFetchUrl'));
     }
 
     /**
@@ -73,6 +109,7 @@ class TestController extends Controller
             'categories' => 'nullable|array',
             'categories.*' => 'string|in:clinico,aguas_alimentos,veterinario',
             'sort_order' => 'nullable|integer|min:0',
+            '_context' => 'nullable|string|in:vet_nomenclator',
         ], [
             'code.required' => 'El código es obligatorio.',
             'code.unique' => 'Este código ya está en uso. Por favor, elija otro.',
@@ -116,9 +153,11 @@ class TestController extends Controller
             $test->parentTests()->sync($validated['parent_ids']);
         }
 
-        // Redirigir mostrando la nueva determinación (buscar por su código)
-        return redirect()->route('tests.index', ['search' => $test->code])
-            ->with('success', 'Determinación "'.strtoupper($test->code).'" creada correctamente.');
+        return $this->redirectAfterTestMutation(
+            $request,
+            ['search' => $test->code],
+            'Determinación "'.strtoupper($test->code).'" creada correctamente.'
+        );
     }
 
     /**
@@ -161,6 +200,7 @@ class TestController extends Controller
             'categories' => 'nullable|array',
             'categories.*' => 'string|in:clinico,aguas_alimentos,veterinario',
             'sort_order' => 'nullable|integer|min:0',
+            '_context' => 'nullable|string|in:vet_nomenclator',
         ], [
             'code.required' => 'El código es obligatorio.',
             'code.unique' => 'Este código ya está en uso. Por favor, elija otro.',
@@ -202,25 +242,37 @@ class TestController extends Controller
         $parentIds = $validated['parent_ids'] ?? [];
         $test->parentTests()->sync($parentIds);
 
-        return redirect()->route('tests.index')
-            ->with('success', 'Determinación actualizada correctamente.');
+        return $this->redirectAfterTestMutation(
+            $request,
+            [],
+            'Determinación actualizada correctamente.',
+            'success'
+        );
     }
 
     /**
      * Elimina una determinación
      */
-    public function destroy(Test $test)
+    public function destroy(Request $request, Test $test)
     {
         // Verificar si tiene determinaciones asociadas a muestras
         if ($test->sampleDeterminations()->exists()) {
-            return redirect()->route('tests.index')
-                ->with('error', 'No se puede eliminar, tiene muestras asociadas.');
+            return $this->redirectAfterTestMutation(
+                $request,
+                [],
+                'No se puede eliminar, tiene muestras asociadas.',
+                'error'
+            );
         }
 
         $test->delete();
 
-        return redirect()->route('tests.index')
-            ->with('success', 'Determinación eliminada correctamente.');
+        return $this->redirectAfterTestMutation(
+            $request,
+            [],
+            'Determinación eliminada correctamente.',
+            'success'
+        );
     }
 
     /**
@@ -244,5 +296,21 @@ class TestController extends Controller
 
         return redirect()->back()
             ->with('success', 'Determinación configurada correctamente.');
+    }
+
+    /**
+     * @param  'success'|'error'  $flashType
+     */
+    private function redirectAfterTestMutation(Request $request, array $query, string $message, string $flashType = 'success'): RedirectResponse
+    {
+        if ($request->input('_context') === 'vet_nomenclator' || $request->query('_context') === 'vet_nomenclator') {
+            return redirect()->route('lab.veterinario.nomenclador', $query)->with($flashType, $message);
+        }
+
+        if ($flashType === 'error') {
+            return redirect()->route('tests.index', $query)->with('error', $message);
+        }
+
+        return redirect()->route('tests.index', $query)->with('success', $message);
     }
 }

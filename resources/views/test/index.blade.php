@@ -10,7 +10,7 @@
                  this.loading = true;
                  const params = new URLSearchParams();
                  if (this.search) params.set('search', this.search);
-                 const url = '{{ route('tests.index') }}' + (params.toString() ? '?' + params.toString() : '');
+                 const url = '{{ $testsFetchUrl }}' + (params.toString() ? '?' + params.toString() : '');
 
                  fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                      .then(r => r.text())
@@ -28,17 +28,30 @@
              }
          }">
         <!-- Header -->
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">Determinaciones</h1>
-                <p class="text-gray-600 mt-1">Gestión de análisis y determinaciones del laboratorio</p>
+                @if($vetNomenclator ?? false)
+                    <a href="{{ route('lab.section.veterinario') }}" class="inline-flex items-center text-sm text-amber-700 hover:text-amber-900 mb-2">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        Volver a Laboratorio Veterinario
+                    </a>
+                    <h1 class="text-2xl font-bold text-amber-900">Nomenclador veterinario</h1>
+                    <p class="text-gray-600 mt-1">Prácticas raíz con categoría veterinaria: NBU, precio y valores de referencia por especie.</p>
+                @else
+                    <h1 class="text-2xl font-bold text-gray-800">Determinaciones</h1>
+                    <p class="text-gray-600 mt-1">Gestión de análisis y determinaciones del laboratorio</p>
+                @endif
             </div>
             <button type="button" onclick="document.getElementById('modal-create').classList.remove('hidden')"
-                    class="mt-4 md:mt-0 inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
+                    class="mt-4 md:mt-0 inline-flex items-center px-4 py-2 {{ ($vetNomenclator ?? false) ? 'bg-amber-600 hover:bg-amber-700' : 'bg-teal-600 hover:bg-teal-700' }} text-white rounded-lg transition-colors">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
-                Nueva Determinación
+                @if($vetNomenclator ?? false)
+                    Nueva práctica veterinaria
+                @else
+                    Nueva Determinación
+                @endif
             </button>
         </div>
 
@@ -155,7 +168,7 @@
                                         class="text-indigo-600 hover:text-indigo-900">
                                     Editar
                                 </button>
-                                <form action="{{ route('tests.destroy', $test) }}" method="POST" class="inline"
+                                <form action="{{ route('tests.destroy', $test) }}{{ ($vetNomenclator ?? false) ? '?_context=vet_nomenclator' : '' }}" method="POST" class="inline"
                                       onsubmit="return confirm('¿Eliminar esta determinación?')">
                                     @csrf
                                     @method('DELETE')
@@ -190,8 +203,11 @@
         <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <form action="{{ route('test.store') }}" method="POST">
                 @csrf
+                @if($vetNomenclator ?? false)
+                    <input type="hidden" name="_context" value="vet_nomenclator">
+                @endif
                 <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-800">Nueva Determinación</h3>
+                    <h3 class="text-lg font-semibold text-gray-800">{{ ($vetNomenclator ?? false) ? 'Nueva práctica veterinaria' : 'Nueva Determinación' }}</h3>
                 </div>
                 
                 <div class="px-6 py-4">
@@ -280,27 +296,34 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Categorías</label>
-                            <div class="flex flex-wrap gap-4 mt-1">
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="categories[]" value="clinico" {{ in_array('clinico', old('categories', ['clinico'])) ? 'checked' : '' }}
-                                           class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
-                                    <span class="ml-2 text-sm text-gray-700">Clínico</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="categories[]" value="aguas_alimentos" {{ in_array('aguas_alimentos', old('categories', [])) ? 'checked' : '' }}
-                                           class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
-                                    <span class="ml-2 text-sm text-gray-700">Aguas y Alimentos</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="categories[]" value="veterinario" {{ in_array('veterinario', old('categories', [])) ? 'checked' : '' }}
-                                           class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
-                                    <span class="ml-2 text-sm text-gray-700">Veterinario</span>
-                                </label>
+                        @if($vetNomenclator ?? false)
+                            <div class="md:col-span-2">
+                                <input type="hidden" name="categories[]" value="veterinario">
+                                <p class="text-sm text-gray-600">Esta práctica quedará solo en el <strong>módulo veterinario</strong> (categoría veterinario).</p>
                             </div>
-                            <p class="text-xs text-gray-500 mt-1">Determina en qué módulos aparece esta determinación</p>
-                        </div>
+                        @else
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Categorías</label>
+                                <div class="flex flex-wrap gap-4 mt-1">
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" name="categories[]" value="clinico" {{ in_array('clinico', old('categories', ['clinico'])) ? 'checked' : '' }}
+                                               class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                        <span class="ml-2 text-sm text-gray-700">Clínico</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" name="categories[]" value="aguas_alimentos" {{ in_array('aguas_alimentos', old('categories', [])) ? 'checked' : '' }}
+                                               class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                        <span class="ml-2 text-sm text-gray-700">Aguas y Alimentos</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" name="categories[]" value="veterinario" {{ in_array('veterinario', old('categories', [])) ? 'checked' : '' }}
+                                               class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                        <span class="ml-2 text-sm text-gray-700">Veterinario</span>
+                                    </label>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Determina en qué módulos aparece esta determinación</p>
+                            </div>
+                        @endif
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Análisis Padres</label>
                             <p class="text-xs text-gray-500 mb-2">Puede seleccionar múltiples padres. Dejar vacío si esta determinación es un padre.</p>
@@ -352,8 +375,11 @@
             <form id="form-edit" method="POST">
                 @csrf
                 @method('PUT')
+                @if($vetNomenclator ?? false)
+                    <input type="hidden" name="_context" value="vet_nomenclator">
+                @endif
                 <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-800">Editar Determinación</h3>
+                    <h3 class="text-lg font-semibold text-gray-800">{{ ($vetNomenclator ?? false) ? 'Editar práctica veterinaria' : 'Editar Determinación' }}</h3>
                     <p id="edit-parent-info" class="text-sm text-teal-600 mt-1 hidden"></p>
                 </div>
                 
@@ -428,27 +454,34 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Categorías</label>
-                            <div class="flex flex-wrap gap-4 mt-1">
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="categories[]" value="clinico" id="edit-cat-clinico"
-                                           class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
-                                    <span class="ml-2 text-sm text-gray-700">Clínico</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="categories[]" value="aguas_alimentos" id="edit-cat-aguas"
-                                           class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
-                                    <span class="ml-2 text-sm text-gray-700">Aguas y Alimentos</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="categories[]" value="veterinario" id="edit-cat-veterinario"
-                                           class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
-                                    <span class="ml-2 text-sm text-gray-700">Veterinario</span>
-                                </label>
+                        @if($vetNomenclator ?? false)
+                            <div class="md:col-span-2">
+                                <input type="hidden" name="categories[]" value="veterinario">
+                                <p class="text-sm text-gray-600">Categoría: <strong>veterinario</strong> (fija en este nomenclador).</p>
                             </div>
-                            <p class="text-xs text-gray-500 mt-1">Determina en qué módulos aparece esta determinación</p>
-                        </div>
+                        @else
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Categorías</label>
+                                <div class="flex flex-wrap gap-4 mt-1">
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" name="categories[]" value="clinico" id="edit-cat-clinico"
+                                               class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                        <span class="ml-2 text-sm text-gray-700">Clínico</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" name="categories[]" value="aguas_alimentos" id="edit-cat-aguas"
+                                               class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                        <span class="ml-2 text-sm text-gray-700">Aguas y Alimentos</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" name="categories[]" value="veterinario" id="edit-cat-veterinario"
+                                               class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                        <span class="ml-2 text-sm text-gray-700">Veterinario</span>
+                                    </label>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Determina en qué módulos aparece esta determinación</p>
+                            </div>
+                        @endif
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Análisis Padres</label>
                             <p class="text-xs text-gray-500 mb-2">Puede seleccionar múltiples padres. Dejar vacío si esta determinación es un padre.</p>
@@ -492,6 +525,8 @@
     </div>
 
     <script>
+        const testsUpdateBase = @json(rtrim(url('/tests'), '/'));
+
         // Función para filtrar opciones del selector de padres
         function filterParentOptions(searchInputId, containerId) {
             const searchInput = document.getElementById(searchInputId);
@@ -532,7 +567,7 @@
         }
 
         function openEditModal(id, code, name, unit, method, low, high, decimals, nbu, instructions, material, parentIds, price, categories, otherReference, sortOrder) {
-            document.getElementById('form-edit').action = '/tests/' + id;
+            document.getElementById('form-edit').action = testsUpdateBase + '/' + id;
             document.getElementById('edit-code').value = code;
             document.getElementById('edit-name').value = name;
             document.getElementById('edit-unit').value = unit || '';
@@ -547,11 +582,14 @@
             document.getElementById('edit-material').value = material || '';
             document.getElementById('edit-sort_order').value = sortOrder || 0;
 
-            // Setear categorías
+            // Setear categorías (solo si existen los checkboxes — no en nomenclador veterinario)
             categories = categories || ['clinico'];
-            document.getElementById('edit-cat-clinico').checked = categories.includes('clinico');
-            document.getElementById('edit-cat-aguas').checked = categories.includes('aguas_alimentos');
-            document.getElementById('edit-cat-veterinario').checked = categories.includes('veterinario');
+            const ec = document.getElementById('edit-cat-clinico');
+            if (ec) {
+                ec.checked = categories.includes('clinico');
+                document.getElementById('edit-cat-aguas').checked = categories.includes('aguas_alimentos');
+                document.getElementById('edit-cat-veterinario').checked = categories.includes('veterinario');
+            }
             
             // Limpiar el buscador de padres
             clearParentSearch('edit-parent-search', 'edit-parent-ids-container');

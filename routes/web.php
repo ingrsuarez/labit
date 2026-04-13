@@ -232,6 +232,9 @@ Route::middleware([
         Route::put('species/{species}', [App\Http\Controllers\SpeciesController::class, 'update'])->name('species.update');
         Route::delete('species/{species}', [App\Http\Controllers\SpeciesController::class, 'destroy'])->name('species.destroy');
 
+        Route::get('lab/veterinario/nomenclador', [App\Http\Controllers\TestController::class, 'indexVeterinary'])
+            ->name('lab.veterinario.nomenclador');
+
     }); // fin lab.section
 
     // =============================================
