@@ -100,6 +100,7 @@ class SupplierStatementController extends Controller
             ->where('company_id', $companyId)
             ->where('status', 'pagada')
             ->whereBetween('date', [$dateFromCarbon, $dateToCarbon])
+            ->with('paymentLines')
             ->orderBy('date')
             ->orderBy('id')
             ->get(['id', 'date', 'total', 'number', 'payment_method']);
@@ -124,7 +125,7 @@ class SupplierStatementController extends Controller
                 'date' => Carbon::parse($pay->date),
                 'type' => 'payment',
                 'reference' => "OP #{$pay->number}",
-                'detail' => 'Orden de pago — '.ucfirst(str_replace('_', ' ', $pay->payment_method ?? '')),
+                'detail' => 'Orden de pago — '.$pay->paymentMethodsLabel(),
                 'debe' => (float) $pay->total,
                 'haber' => 0,
                 'sort_key' => $pay->date.'_'.str_pad($pay->id, 10, '0', STR_PAD_LEFT),

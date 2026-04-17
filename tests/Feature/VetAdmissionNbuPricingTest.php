@@ -84,4 +84,16 @@ class VetAdmissionNbuPricingTest extends TestCase
 
         $response->assertStatus(422);
     }
+
+    public function test_create_alta_protocolo_vet_expone_ruta_absoluta_de_busqueda_y_ayuda(): void
+    {
+        $user = User::factory()->create();
+        $user->givePermissionTo('lab.section');
+
+        $response = $this->actingAs($user)->get(route('vet.admissions.create'));
+
+        $response->assertOk();
+        $response->assertSee(parse_url(route('vet.admissions.searchTests'), PHP_URL_PATH) ?? '', false);
+        $response->assertSee('nomenclador veterinario', false);
+    }
 }

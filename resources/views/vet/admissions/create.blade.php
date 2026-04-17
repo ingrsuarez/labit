@@ -116,6 +116,9 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                         Determinaciones
                     </h2>
+                    <p class="mb-4 text-sm text-gray-600">
+                        Para buscar y agregar prácticas del <strong>nomenclador veterinario</strong>, primero elegí la <strong>veterinaria</strong> en la sección superior. Luego escribí acá el código o nombre (mínimo 2 caracteres).
+                    </p>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
@@ -127,12 +130,11 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Agregar determinación</label>
                             <input type="text" x-model="testSearch" x-ref="testSearchInput"
                                    @input="searchTests()"
-                                   :disabled="!customerId"
-                                   @focus="showTestDropdown = true"
+                                   @focus="onTestSearchFocus()"
                                    @keydown.enter.prevent="selectFirstTest()"
                                    @keydown.escape="showTestDropdown = false; testSearch = ''"
-                                   :placeholder="customerId ? 'Buscar por código o nombre... (Enter para agregar)' : 'Primero elegí la veterinaria...'"
-                                   class="w-full border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 disabled:cursor-not-allowed">
+                                   placeholder="Buscar por código o nombre... (Enter para agregar)"
+                                   class="w-full border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500">
 
                             {{-- Dropdown de sugerencias --}}
                             <p x-show="searchError" x-cloak class="mt-1 text-sm text-red-600" x-text="searchError"></p>
@@ -233,6 +235,7 @@
                 customerId: '{{ old("customer_id", "") }}',
                 veterinarianId: '{{ old("veterinarian_id", "") }}',
                 customerNbuValues: @json($customerNbuValues ?? []),
+                searchTestsUrl: @json(route('vet.admissions.searchTests')),
                 veterinarians: [],
                 testSearch: '',
                 filteredTests: [],
@@ -253,8 +256,21 @@
                 },
 
                 onCustomerChange() {
+                    this.searchError = '';
                     this.loadVeterinarians();
                     this.recalculateTestPrices();
+                },
+
+                onTestSearchFocus() {
+                    if (!this.customerId) {
+                        this.searchError = 'Elegí primero la veterinaria para buscar prácticas.';
+                        this.showTestDropdown = false;
+                        return;
+                    }
+                    this.searchError = '';
+                    if (this.filteredTests.length > 0) {
+                        this.showTestDropdown = true;
+                    }
                 },
 
                 recalculateTestPrices() {
@@ -277,17 +293,23 @@
                 },
 
                 async searchTests() {
-                    this.searchError = '';
                     if (!this.customerId) {
                         this.filteredTests = [];
+                        this.showTestDropdown = false;
+                        if (this.testSearch.length >= 2) {
+                            this.searchError = 'Elegí primero la veterinaria para buscar prácticas.';
+                        } else {
+                            this.searchError = '';
+                        }
                         return;
                     }
+                    this.searchError = '';
                     if (this.testSearch.length < 2) {
                         this.filteredTests = [];
                         return;
                     }
                     try {
-                        const url = `./search-tests?q=${encodeURIComponent(this.testSearch)}&customer_id=${encodeURIComponent(this.customerId)}`;
+                        const url = `${this.searchTestsUrl}?q=${encodeURIComponent(this.testSearch)}&customer_id=${encodeURIComponent(this.customerId)}`;
                         const response = await fetch(url);
                         const data = await response.json();
                         if (!response.ok) {
