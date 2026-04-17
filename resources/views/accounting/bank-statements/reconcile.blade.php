@@ -197,7 +197,7 @@ $pendingCategories = $movements->where('reconciliation_status', 'pending')
                                 <span class="text-sm font-medium text-gray-800">{{ $po->number }}</span>
                                 <span class="text-xs text-gray-500">{{ $po->date->format('d/m/Y') }}</span>
                             </div>
-                            <p class="text-xs text-gray-500 truncate mt-0.5">{{ $po->supplier?->name }} · {{ $po->payment_method }}</p>
+                            <p class="text-xs text-gray-500 truncate mt-0.5">{{ $po->supplier?->name }} · {{ $po->paymentMethodsLabel() }}</p>
                         </div>
                         <div class="flex items-center gap-2 shrink-0 ml-2">
                             <span class="text-sm font-mono text-red-600">$ {{ number_format($po->total, 2, ',', '.') }}</span>

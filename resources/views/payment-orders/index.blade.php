@@ -104,17 +104,7 @@
                                         'pagada' => 'bg-green-100 text-green-700',
                                         'anulada' => 'bg-red-100 text-red-700',
                                     ];
-                                    $paymentMethodLabels = [
-                                        'transferencia' => 'Transferencia',
-                                        'cheque' => 'Cheque',
-                                        'efectivo' => 'Efectivo',
-                                    ];
-                                    $methodLabel = '-';
-                                    if ($order->relationLoaded('portfolioEcheqPayments') && $order->portfolioEcheqPayments->isNotEmpty()) {
-                                        $methodLabel = 'E-cheq cartera ('.$order->portfolioEcheqPayments->count().')';
-                                    } elseif ($order->payment_method) {
-                                        $methodLabel = $paymentMethodLabels[$order->payment_method] ?? $order->payment_method;
-                                    }
+                                    $methodLabel = $order->paymentMethodsLabel();
                                 @endphp
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3 whitespace-nowrap">

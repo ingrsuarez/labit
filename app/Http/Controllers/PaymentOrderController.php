@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BankAccount;
 use App\Models\CollectionReceiptPayment;
 use App\Models\JournalEntry;
 use App\Models\PaymentOrder;
+use App\Models\PaymentOrderPaymentLine;
 use App\Models\PurchaseInvoice;
 use App\Models\Supplier;
 use App\Services\AccountingEntryService;
@@ -19,7 +21,7 @@ class PaymentOrderController extends Controller
     {
         $this->authorize('payment-orders.index');
 
-        $query = PaymentOrder::with(['supplier', 'creator', 'approver', 'portfolioEcheqPayments'])
+        $query = PaymentOrder::with(['supplier', 'creator', 'approver', 'portfolioEcheqPayments', 'paymentLines'])
             ->where('company_id', active_company_id())
             ->orderByDesc('created_at');
 
@@ -67,14 +69,20 @@ class PaymentOrderController extends Controller
                 ->get()
         );
 
-        return view('payment-orders.create', compact('suppliers', 'selectedSupplier', 'pendingInvoices', 'portfolioEcheqsJson'));
+        $bankAccounts = BankAccount::active()
+            ->where('company_id', active_company_id())
+            ->orderBy('bank_name')
+            ->orderBy('account_number')
+            ->get();
+
+        return view('payment-orders.create', compact('suppliers', 'selectedSupplier', 'pendingInvoices', 'portfolioEcheqsJson', 'bankAccounts'));
     }
 
     public function store(Request $request)
     {
         $this->authorize('payment-orders.create');
 
-        $validated = $this->validatePaymentOrderRequest($request);
+        $validated = $this->validatePaymentOrderRequest($request, null);
 
         DB::beginTransaction();
         try {
@@ -83,8 +91,9 @@ class PaymentOrderController extends Controller
                 'company_id' => active_company_id(),
                 'supplier_id' => $validated['supplier_id'],
                 'date' => $validated['date'],
-                'payment_method' => $validated['payment_mode'] === 'portfolio_echeq' ? null : ($validated['payment_method'] ?? null),
-                'payment_reference' => $validated['payment_mode'] === 'portfolio_echeq' ? null : ($validated['payment_reference'] ?? null),
+                'payment_method' => null,
+                'payment_reference' => null,
+                'cheque_due_date' => null,
                 'notes' => $validated['notes'] ?? null,
                 'status' => 'borrador',
                 'created_by' => auth()->id(),
@@ -99,13 +108,7 @@ class PaymentOrderController extends Controller
 
             $paymentOrder->recalculate();
 
-            if ($validated['payment_mode'] === 'portfolio_echeq') {
-                $this->attachPortfolioEcheqs($paymentOrder, $validated['portfolio_echeq_ids']);
-                $paymentOrder->update([
-                    'payment_method' => 'cheque',
-                    'payment_reference' => 'E-cheq cartera',
-                ]);
-            }
+            $this->syncPaymentLines($paymentOrder, $validated['payments']);
 
             DB::commit();
         } catch (ValidationException $e) {
@@ -126,7 +129,12 @@ class PaymentOrderController extends Controller
 
         $this->authorize('payment-orders.index');
 
-        $paymentOrder->load(['supplier', 'creator', 'approver', 'items.invoice.supplier', 'portfolioEcheqPayments.collectionReceipt']);
+        $paymentOrder->load([
+            'supplier', 'creator', 'approver', 'items.invoice.supplier',
+            'portfolioEcheqPayments.collectionReceipt',
+            'paymentLines.bankAccount',
+            'paymentLines.collectionReceiptPayment.collectionReceipt',
+        ]);
 
         return view('payment-orders.show', compact('paymentOrder'));
     }
@@ -142,7 +150,7 @@ class PaymentOrderController extends Controller
                 ->with('error', 'Solo se pueden editar órdenes de pago en estado borrador.');
         }
 
-        $paymentOrder->load(['items.invoice', 'portfolioEcheqPayments']);
+        $paymentOrder->load(['items.invoice', 'portfolioEcheqPayments', 'paymentLines']);
         $suppliers = Supplier::active()->orderBy('name')->get();
 
         $existingInvoiceIds = $paymentOrder->items->pluck('purchase_invoice_id')->toArray();
@@ -165,14 +173,19 @@ class PaymentOrderController extends Controller
             ->get();
         $merged = $linked->merge($available)->unique('id')->sortBy(fn ($p) => [$p->due_date?->timestamp ?? 0, $p->id])->values();
         $portfolioEcheqsJson = $this->portfolioEcheqsPayloadForUi($merged);
-        $initialPortfolioIds = $linked->pluck('id')->all();
+
+        $bankAccounts = BankAccount::active()
+            ->where('company_id', $companyId)
+            ->orderBy('bank_name')
+            ->orderBy('account_number')
+            ->get();
 
         return view('payment-orders.edit', compact(
             'paymentOrder',
             'suppliers',
             'pendingInvoices',
             'portfolioEcheqsJson',
-            'initialPortfolioIds'
+            'bankAccounts'
         ));
     }
 
@@ -187,15 +200,13 @@ class PaymentOrderController extends Controller
                 ->with('error', 'Solo se pueden editar órdenes de pago en estado borrador.');
         }
 
-        $validated = $this->validatePaymentOrderRequest($request);
+        $validated = $this->validatePaymentOrderRequest($request, $paymentOrder->id);
 
         DB::beginTransaction();
         try {
             $paymentOrder->update([
                 'supplier_id' => $validated['supplier_id'],
                 'date' => $validated['date'],
-                'payment_method' => $validated['payment_mode'] === 'portfolio_echeq' ? null : ($validated['payment_method'] ?? null),
-                'payment_reference' => $validated['payment_mode'] === 'portfolio_echeq' ? null : ($validated['payment_reference'] ?? null),
                 'notes' => $validated['notes'] ?? null,
             ]);
 
@@ -210,15 +221,7 @@ class PaymentOrderController extends Controller
 
             $paymentOrder->recalculate();
 
-            if ($validated['payment_mode'] === 'portfolio_echeq') {
-                $this->attachPortfolioEcheqs($paymentOrder, $validated['portfolio_echeq_ids']);
-                $paymentOrder->update([
-                    'payment_method' => 'cheque',
-                    'payment_reference' => 'E-cheq cartera',
-                ]);
-            } else {
-                $this->releasePortfolioEcheqs($paymentOrder);
-            }
+            $this->syncPaymentLines($paymentOrder, $validated['payments']);
 
             DB::commit();
         } catch (ValidationException $e) {
@@ -262,19 +265,21 @@ class PaymentOrderController extends Controller
             return back()->with('error', 'Solo se pueden confirmar órdenes en estado borrador o aprobada.');
         }
 
-        $paymentOrder->load(['items.invoice', 'portfolioEcheqPayments']);
-        $usePortfolio = $paymentOrder->portfolioEcheqPayments->isNotEmpty();
+        $paymentOrder->load(['items.invoice', 'portfolioEcheqPayments', 'paymentLines']);
 
-        if ($usePortfolio) {
-            $sum = round((float) $paymentOrder->portfolioEcheqPayments->sum('amount'), 2);
-            $total = round((float) $paymentOrder->total, 2);
-            if (abs($sum - $total) > 0.01) {
-                return back()->with('error', 'Los e-cheqs seleccionados no coinciden con el total de la orden. Editá el borrador.');
-            }
-            foreach ($paymentOrder->portfolioEcheqPayments as $line) {
-                if ((int) $line->payment_order_id !== (int) $paymentOrder->id) {
-                    return back()->with('error', 'Hay líneas de e-cheq inconsistentes con esta orden.');
-                }
+        $total = round((float) $paymentOrder->total, 2);
+        $sumLines = round((float) $paymentOrder->paymentLines->sum('amount'), 2);
+        if ($paymentOrder->paymentLines->isEmpty()) {
+            return back()->with('error', 'La orden no tiene medios de pago definidos. Editá el borrador.');
+        }
+        if (abs($sumLines - $total) > 0.01) {
+            return back()->with('error', 'La suma de los medios de pago no coincide con el total de la orden.');
+        }
+
+        foreach ($paymentOrder->paymentLines->where('kind', 'portfolio_echeq') as $line) {
+            $crp = CollectionReceiptPayment::find($line->collection_receipt_payment_id);
+            if (! $crp || (int) $crp->payment_order_id !== (int) $paymentOrder->id) {
+                return back()->with('error', 'Hay líneas de e-cheq inconsistentes con esta orden.');
             }
         }
 
@@ -302,7 +307,7 @@ class PaymentOrderController extends Controller
             $paymentOrder->refresh();
             if (! JournalEntry::where('source_type', PaymentOrder::class)->where('source_id', $paymentOrder->id)->exists()) {
                 (new AccountingEntryService)->fromPaymentOrder(
-                    $paymentOrder->load(['supplier', 'portfolioEcheqPayments'])
+                    $paymentOrder->load(['supplier', 'portfolioEcheqPayments', 'paymentLines.bankAccount'])
                 );
             }
         } catch (\Throwable $e) {
@@ -312,16 +317,22 @@ class PaymentOrderController extends Controller
         return back()->with('success', 'Orden de pago '.$paymentOrder->number.' confirmada y pagada.');
     }
 
-    private function validatePaymentOrderRequest(Request $request): array
+    private function validatePaymentOrderRequest(Request $request, ?int $editingPaymentOrderId): array
     {
         $validated = $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
             'date' => 'required|date',
-            'payment_mode' => 'required|in:legacy,portfolio_echeq',
             'notes' => 'nullable|string',
             'invoices' => 'required|array|min:1',
             'invoices.*.purchase_invoice_id' => 'required|exists:purchase_invoices,id',
             'invoices.*.amount' => 'required|numeric|min:0.01',
+            'payments' => 'required|array|min:1',
+            'payments.*.kind' => 'required|in:transferencia,cheque,efectivo,portfolio_echeq',
+            'payments.*.amount' => 'nullable|numeric|min:0.01',
+            'payments.*.bank_account_id' => 'nullable|integer|exists:bank_accounts,id',
+            'payments.*.portfolio_echeq_id' => 'nullable|integer|exists:collection_receipt_payments,id',
+            'payments.*.payment_reference' => 'nullable|string|max:255',
+            'payments.*.cheque_due_date' => 'nullable|date',
         ], [
             'supplier_id.required' => 'Debe seleccionar un proveedor.',
             'date.required' => 'La fecha es obligatoria.',
@@ -330,33 +341,215 @@ class PaymentOrderController extends Controller
             'invoices.*.purchase_invoice_id.required' => 'Debe seleccionar una factura.',
             'invoices.*.amount.required' => 'El monto es obligatorio.',
             'invoices.*.amount.min' => 'El monto debe ser mayor a 0.',
+            'payments.required' => 'Debe indicar al menos un medio de pago.',
+            'payments.min' => 'Debe indicar al menos un medio de pago.',
         ]);
 
-        if ($validated['payment_mode'] === 'legacy') {
-            $extra = $request->validate([
-                'payment_method' => 'nullable|in:transferencia,cheque,efectivo',
-                'payment_reference' => 'nullable|string|max:255',
-            ]);
-            $validated['portfolio_echeq_ids'] = [];
-        } else {
-            $extra = $request->validate([
-                'portfolio_echeq_ids' => 'required|array|min:1',
-                'portfolio_echeq_ids.*' => 'integer|exists:collection_receipt_payments,id',
-            ], [
-                'portfolio_echeq_ids.required' => 'Seleccioná al menos un e-cheq en cartera.',
-                'portfolio_echeq_ids.min' => 'Seleccioná al menos un e-cheq en cartera.',
-            ]);
-            $validated['portfolio_echeq_ids'] = $extra['portfolio_echeq_ids'];
-            $validated['payment_method'] = null;
-            $validated['payment_reference'] = null;
-        }
-
-        if ($validated['payment_mode'] === 'legacy') {
-            $validated['payment_method'] = $extra['payment_method'] ?? null;
-            $validated['payment_reference'] = $extra['payment_reference'] ?? null;
-        }
+        $orderTotal = round((float) collect($validated['invoices'])->sum('amount'), 2);
+        $validated['payments'] = $this->normalizePaymentLinesPayload(
+            $validated['payments'],
+            $orderTotal,
+            (int) active_company_id(),
+            $editingPaymentOrderId
+        );
 
         return $validated;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $rows
+     * @return list<array{kind: string, amount: float, bank_account_id: ?int, collection_receipt_payment_id: ?int, payment_reference: ?string, cheque_due_date: ?string}>
+     */
+    private function normalizePaymentLinesPayload(array $rows, float $orderTotal, int $companyId, ?int $editingPaymentOrderId): array
+    {
+        $orderTotal = round($orderTotal, 2);
+        $normalized = [];
+        $sort = 0;
+        $usedPortfolioIds = [];
+
+        foreach ($rows as $i => $row) {
+            $prefix = "payments.{$i}";
+            $kind = $row['kind'];
+
+            if ($kind === 'portfolio_echeq') {
+                $pid = isset($row['portfolio_echeq_id']) ? (int) $row['portfolio_echeq_id'] : 0;
+                if ($pid <= 0) {
+                    throw ValidationException::withMessages([
+                        $prefix.'.portfolio_echeq_id' => 'Seleccioná un e-cheq de cartera para esta línea.',
+                    ]);
+                }
+
+                $crp = CollectionReceiptPayment::query()
+                    ->where('id', $pid)
+                    ->where('line_type', 'echeq')
+                    ->with('collectionReceipt')
+                    ->first();
+
+                if (! $crp) {
+                    throw ValidationException::withMessages([
+                        $prefix.'.portfolio_echeq_id' => 'El e-cheq indicado no es válido.',
+                    ]);
+                }
+
+                $rc = $crp->collectionReceipt;
+                if (! $rc || (int) $rc->company_id !== $companyId || $rc->status !== 'confirmado') {
+                    throw ValidationException::withMessages([
+                        $prefix.'.portfolio_echeq_id' => 'Solo se pueden usar e-cheq de recibos confirmados de la empresa activa.',
+                    ]);
+                }
+
+                $poId = $crp->payment_order_id;
+                if ($poId !== null && (int) $poId !== (int) ($editingPaymentOrderId ?? 0)) {
+                    throw ValidationException::withMessages([
+                        $prefix.'.portfolio_echeq_id' => 'Uno de los e-cheqs ya está reservado en otra orden de pago.',
+                    ]);
+                }
+
+                if (isset($usedPortfolioIds[$pid])) {
+                    throw ValidationException::withMessages([
+                        $prefix.'.portfolio_echeq_id' => 'No podés repetir el mismo e-cheq en dos líneas.',
+                    ]);
+                }
+                $usedPortfolioIds[$pid] = true;
+
+                $amt = round((float) $crp->amount, 2);
+                $normalized[] = [
+                    'kind' => 'portfolio_echeq',
+                    'amount' => $amt,
+                    'bank_account_id' => null,
+                    'collection_receipt_payment_id' => $crp->id,
+                    'payment_reference' => null,
+                    'cheque_due_date' => null,
+                    'sort_order' => $sort++,
+                ];
+
+                continue;
+            }
+
+            $amt = round((float) ($row['amount'] ?? 0), 2);
+            if ($amt <= 0) {
+                throw ValidationException::withMessages([
+                    $prefix.'.amount' => 'El monto debe ser mayor a 0.',
+                ]);
+            }
+
+            $bankAccountId = isset($row['bank_account_id']) && $row['bank_account_id'] !== '' && $row['bank_account_id'] !== null
+                ? (int) $row['bank_account_id']
+                : null;
+
+            if ($kind === 'transferencia') {
+                if (! $bankAccountId) {
+                    throw ValidationException::withMessages([
+                        $prefix.'.bank_account_id' => 'Seleccioná la cuenta bancaria de origen para la transferencia.',
+                    ]);
+                }
+            }
+
+            if ($bankAccountId) {
+                $exists = BankAccount::query()
+                    ->where('id', $bankAccountId)
+                    ->where('company_id', $companyId)
+                    ->where('is_active', true)
+                    ->exists();
+                if (! $exists) {
+                    throw ValidationException::withMessages([
+                        $prefix.'.bank_account_id' => 'La cuenta bancaria no pertenece a la empresa activa o está inactiva.',
+                    ]);
+                }
+            }
+
+            $normalized[] = [
+                'kind' => $kind,
+                'amount' => $amt,
+                'bank_account_id' => $bankAccountId,
+                'collection_receipt_payment_id' => null,
+                'payment_reference' => $row['payment_reference'] ?? null,
+                'cheque_due_date' => $row['cheque_due_date'] ?? null,
+                'sort_order' => $sort++,
+            ];
+        }
+
+        $sum = round((float) collect($normalized)->sum('amount'), 2);
+        if (abs($sum - $orderTotal) > 0.01) {
+            throw ValidationException::withMessages([
+                'payments' => 'La suma de los medios de pago ($'.number_format($sum, 2, ',', '.').') debe igualar el total de facturas ($'.number_format($orderTotal, 2, ',', '.').').',
+            ]);
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $lines
+     */
+    private function syncPaymentLines(PaymentOrder $paymentOrder, array $lines): void
+    {
+        $this->releasePortfolioEcheqs($paymentOrder);
+        $paymentOrder->paymentLines()->delete();
+
+        foreach ($lines as $line) {
+            PaymentOrderPaymentLine::query()->create([
+                'payment_order_id' => $paymentOrder->id,
+                'sort_order' => (int) ($line['sort_order'] ?? 0),
+                'kind' => $line['kind'],
+                'amount' => $line['amount'],
+                'bank_account_id' => $line['bank_account_id'] ?? null,
+                'collection_receipt_payment_id' => $line['collection_receipt_payment_id'] ?? null,
+                'payment_reference' => $line['payment_reference'] ?? null,
+                'cheque_due_date' => $line['cheque_due_date'] ?? null,
+            ]);
+        }
+
+        $portfolioIds = collect($lines)
+            ->filter(fn ($l) => ($l['kind'] ?? '') === 'portfolio_echeq' && ! empty($l['collection_receipt_payment_id']))
+            ->pluck('collection_receipt_payment_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        if ($portfolioIds !== []) {
+            $this->attachPortfolioEcheqs($paymentOrder, $portfolioIds);
+        }
+
+        $this->refreshPaymentOrderSummaryFields($paymentOrder);
+    }
+
+    private function refreshPaymentOrderSummaryFields(PaymentOrder $paymentOrder): void
+    {
+        $paymentOrder->load('paymentLines');
+        $lines = $paymentOrder->paymentLines;
+
+        if ($lines->isEmpty()) {
+            return;
+        }
+
+        $onlyPortfolio = $lines->every(fn ($l) => $l->kind === 'portfolio_echeq');
+        if ($onlyPortfolio) {
+            $paymentOrder->forceFill([
+                'payment_method' => 'cheque',
+                'payment_reference' => 'E-cheq cartera',
+                'cheque_due_date' => null,
+            ])->save();
+
+            return;
+        }
+
+        $nonPortfolio = $lines->filter(fn ($l) => $l->kind !== 'portfolio_echeq')->values();
+        if ($nonPortfolio->count() === 1 && $lines->count() === 1) {
+            $l = $nonPortfolio->first();
+            $paymentOrder->forceFill([
+                'payment_method' => $l->kind,
+                'payment_reference' => $l->payment_reference,
+                'cheque_due_date' => $l->cheque_due_date,
+            ])->save();
+
+            return;
+        }
+
+        $paymentOrder->forceFill([
+            'payment_method' => null,
+            'payment_reference' => null,
+            'cheque_due_date' => null,
+        ])->save();
     }
 
     /**
@@ -386,7 +579,6 @@ class PaymentOrderController extends Controller
     private function attachPortfolioEcheqs(PaymentOrder $paymentOrder, array $ids): void
     {
         $companyId = (int) $paymentOrder->company_id;
-        $this->releasePortfolioEcheqs($paymentOrder);
 
         $ids = array_values(array_unique(array_map('intval', $ids)));
         $lines = CollectionReceiptPayment::query()
@@ -397,7 +589,7 @@ class PaymentOrderController extends Controller
 
         if ($lines->count() !== count($ids)) {
             throw ValidationException::withMessages([
-                'portfolio_echeq_ids' => 'Uno o más e-cheqs no son válidos.',
+                'payments' => 'Uno o más e-cheqs no son válidos.',
             ]);
         }
 
@@ -405,21 +597,24 @@ class PaymentOrderController extends Controller
             $rc = $line->collectionReceipt;
             if (! $rc || (int) $rc->company_id !== $companyId || $rc->status !== 'confirmado') {
                 throw ValidationException::withMessages([
-                    'portfolio_echeq_ids' => 'Solo se pueden usar e-cheq de recibos confirmados de la empresa activa.',
+                    'payments' => 'Solo se pueden usar e-cheq de recibos confirmados de la empresa activa.',
                 ]);
             }
-            if ($line->payment_order_id !== null) {
+            if ($line->payment_order_id !== null && (int) $line->payment_order_id !== (int) $paymentOrder->id) {
                 throw ValidationException::withMessages([
-                    'portfolio_echeq_ids' => 'Uno de los e-cheqs ya está reservado en otra orden de pago.',
+                    'payments' => 'Uno de los e-cheqs ya está reservado en otra orden de pago.',
                 ]);
             }
         }
 
         $sum = round((float) $lines->sum('amount'), 2);
-        $total = round((float) $paymentOrder->total, 2);
-        if (abs($sum - $total) > 0.01) {
+        $expectedPortfolio = round((float) PaymentOrderPaymentLine::query()
+            ->where('payment_order_id', $paymentOrder->id)
+            ->where('kind', 'portfolio_echeq')
+            ->sum('amount'), 2);
+        if (abs($sum - $expectedPortfolio) > 0.01) {
             throw ValidationException::withMessages([
-                'portfolio_echeq_ids' => 'La suma de los e-cheqs ($'.number_format($sum, 2, ',', '.').') debe igualar el total de la orden ($'.number_format($total, 2, ',', '.').').',
+                'payments' => 'La suma de los e-cheqs seleccionados no coincide con las líneas de cartera de la orden.',
             ]);
         }
 

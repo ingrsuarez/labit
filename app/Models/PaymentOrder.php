@@ -13,12 +13,12 @@ class PaymentOrder extends Model
 
     protected $fillable = [
         'number', 'company_id', 'supplier_id', 'date', 'total', 'status',
-        'payment_method', 'payment_reference', 'notes',
+        'payment_method', 'payment_reference', 'cheque_due_date', 'notes',
         'created_by', 'approved_by',
     ];
 
     protected $casts = [
-        'date' => 'date', 'total' => 'decimal:2',
+        'date' => 'date', 'total' => 'decimal:2', 'cheque_due_date' => 'date',
     ];
 
     public function company(): BelongsTo
@@ -54,6 +54,56 @@ class PaymentOrder extends Model
         return $this->hasMany(CollectionReceiptPayment::class, 'payment_order_id')
             ->where('line_type', 'echeq')
             ->orderBy('id');
+    }
+
+    /**
+     * Medios de liquidación de la orden (transferencia, cheque, efectivo, e-cheq cartera, etc.).
+     */
+    public function paymentLines()
+    {
+        return $this->hasMany(PaymentOrderPaymentLine::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    /**
+     * Etiqueta corta para listados (índice, conciliación).
+     */
+    public function paymentMethodsLabel(): string
+    {
+        $this->loadMissing('paymentLines');
+
+        if ($this->paymentLines->isEmpty()) {
+            if ($this->relationLoaded('portfolioEcheqPayments') ? $this->portfolioEcheqPayments->isNotEmpty() : $this->portfolioEcheqPayments()->exists()) {
+                $n = $this->relationLoaded('portfolioEcheqPayments')
+                    ? $this->portfolioEcheqPayments->count()
+                    : $this->portfolioEcheqPayments()->count();
+
+                return 'E-cheq cartera ('.$n.')';
+            }
+
+            return match ($this->payment_method) {
+                'transferencia' => 'Transferencia',
+                'cheque' => 'Cheque',
+                'efectivo' => 'Efectivo',
+                default => '—',
+            };
+        }
+
+        $onlyPortfolio = $this->paymentLines->every(fn ($l) => $l->kind === 'portfolio_echeq');
+        if ($onlyPortfolio) {
+            return 'E-cheq cartera ('.$this->paymentLines->count().')';
+        }
+
+        if ($this->paymentLines->count() > 1) {
+            return 'Varios medios ('.$this->paymentLines->count().')';
+        }
+
+        return match ($this->paymentLines->first()->kind) {
+            'transferencia' => 'Transferencia',
+            'cheque' => 'Cheque',
+            'efectivo' => 'Efectivo',
+            'portfolio_echeq' => 'E-cheq cartera',
+            default => $this->paymentLines->first()->kind,
+        };
     }
 
     public function reconciledMovements(): MorphMany
