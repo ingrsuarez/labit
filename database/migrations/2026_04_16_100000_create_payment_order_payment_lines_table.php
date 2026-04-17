@@ -9,6 +9,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Migración previa pudo crear la tabla y fallar al añadir FK (nombre > 64 chars): queda huérfana y el reintento choca con "already exists".
+        Schema::dropIfExists('payment_order_payment_lines');
+
         Schema::create('payment_order_payment_lines', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('payment_order_id');
@@ -36,6 +39,10 @@ return new class extends Migration
 
         $orders = DB::table('payment_orders')->orderBy('id')->get();
         foreach ($orders as $po) {
+            if (DB::table('payment_order_payment_lines')->where('payment_order_id', $po->id)->exists()) {
+                continue;
+            }
+
             $portfolioIds = DB::table('collection_receipt_payments')
                 ->where('payment_order_id', $po->id)
                 ->where('line_type', 'echeq')
