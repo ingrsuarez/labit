@@ -11,15 +11,23 @@ return new class extends Migration
     {
         Schema::create('payment_order_payment_lines', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('payment_order_id')->constrained('payment_orders')->cascadeOnDelete();
+            $table->unsignedBigInteger('payment_order_id');
             $table->unsignedSmallInteger('sort_order')->default(0);
             $table->string('kind', 32);
             $table->decimal('amount', 14, 2);
-            $table->foreignId('bank_account_id')->nullable()->constrained('bank_accounts')->nullOnDelete();
-            $table->foreignId('collection_receipt_payment_id')->nullable()->constrained('collection_receipt_payments')->nullOnDelete();
+            $table->unsignedBigInteger('bank_account_id')->nullable();
+            $table->unsignedBigInteger('collection_receipt_payment_id')->nullable();
             $table->string('payment_reference')->nullable();
             $table->date('cheque_due_date')->nullable();
             $table->timestamps();
+
+            // Nombres explícitos: el nombre auto de MySQL para collection_receipt_payment_id supera 64 caracteres.
+            $table->foreign('payment_order_id', 'fk_popl_payment_order')
+                ->references('id')->on('payment_orders')->cascadeOnDelete();
+            $table->foreign('bank_account_id', 'fk_popl_bank_account')
+                ->references('id')->on('bank_accounts')->nullOnDelete();
+            $table->foreign('collection_receipt_payment_id', 'fk_popl_cr_payment')
+                ->references('id')->on('collection_receipt_payments')->nullOnDelete();
         });
 
         if (! Schema::hasTable('payment_orders')) {
