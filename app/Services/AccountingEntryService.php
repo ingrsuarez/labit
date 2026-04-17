@@ -327,7 +327,7 @@ class AccountingEntryService
 
     public function fromPaymentOrder(PaymentOrder $paymentOrder): ?JournalEntry
     {
-        $paymentOrder->loadMissing(['supplier', 'portfolioEcheqPayments']);
+        $paymentOrder->loadMissing(['supplier', 'portfolioEcheqPayments', 'paymentLines.bankAccount']);
         $companyId = (int) $paymentOrder->company_id;
         $total = round((float) $paymentOrder->total, 2);
 
@@ -339,7 +339,33 @@ class AccountingEntryService
         ];
 
         $creditLines = [];
-        if ($paymentOrder->portfolioEcheqPayments->isNotEmpty()) {
+        if ($paymentOrder->paymentLines->isNotEmpty()) {
+            foreach ($paymentOrder->paymentLines as $payLine) {
+                $amt = round((float) $payLine->amount, 2);
+                if ($amt <= 0) {
+                    continue;
+                }
+                if ($payLine->kind === 'portfolio_echeq') {
+                    $portfolioAccountCode = $this->resolveBankAccountCode('cheque', null);
+                    $creditLines[] = [
+                        'account_code' => $portfolioAccountCode,
+                        'debit' => 0,
+                        'credit' => $amt,
+                        'description' => 'Endoso e-cheq cartera — OP '.$paymentOrder->number,
+                    ];
+                } else {
+                    $bankId = $payLine->bank_account_id ? (int) $payLine->bank_account_id : null;
+                    $bankAccountCode = $this->resolveBankAccountCode($payLine->kind, $bankId);
+                    $ref = $payLine->payment_reference ? ' — '.$payLine->payment_reference : '';
+                    $creditLines[] = [
+                        'account_code' => $bankAccountCode,
+                        'debit' => 0,
+                        'credit' => $amt,
+                        'description' => 'OP '.$paymentOrder->number.$ref.' — '.($paymentOrder->supplier->name ?? ''),
+                    ];
+                }
+            }
+        } elseif ($paymentOrder->portfolioEcheqPayments->isNotEmpty()) {
             $portfolioAccountCode = $this->resolveBankAccountCode('cheque', null);
             foreach ($paymentOrder->portfolioEcheqPayments as $pay) {
                 $amt = round((float) $pay->amount, 2);

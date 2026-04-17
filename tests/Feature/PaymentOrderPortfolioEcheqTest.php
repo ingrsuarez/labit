@@ -3,11 +3,13 @@
 namespace Tests\Feature;
 
 use App\Models\AccountingAccount;
+use App\Models\BankAccount;
 use App\Models\CollectionReceipt;
 use App\Models\CollectionReceiptPayment;
 use App\Models\Company;
 use App\Models\Customer;
 use App\Models\JournalEntry;
+use App\Models\JournalEntryLine;
 use App\Models\PaymentOrder;
 use App\Models\PurchaseInvoice;
 use App\Models\Supplier;
@@ -125,6 +127,14 @@ class PaymentOrderPortfolioEcheqTest extends TestCase
         return [$user, $company, $supplier, $invoice, $p1, $p2];
     }
 
+    private function portfolioPaymentsPayload(int $p1Id, int $p2Id): array
+    {
+        return [
+            ['kind' => 'portfolio_echeq', 'portfolio_echeq_id' => $p1Id],
+            ['kind' => 'portfolio_echeq', 'portfolio_echeq_id' => $p2Id],
+        ];
+    }
+
     public function test_store_op_portfolio_vincula_lineas(): void
     {
         [$user, $company, $supplier, $invoice, $p1, $p2] = $this->seedPortfolioAndInvoice();
@@ -134,11 +144,10 @@ class PaymentOrderPortfolioEcheqTest extends TestCase
             ->post(route('payment-orders.store'), [
                 'supplier_id' => $supplier->id,
                 'date' => now()->toDateString(),
-                'payment_mode' => 'portfolio_echeq',
                 'invoices' => [
                     ['purchase_invoice_id' => $invoice->id, 'amount' => 100],
                 ],
-                'portfolio_echeq_ids' => [$p1->id, $p2->id],
+                'payments' => $this->portfolioPaymentsPayload($p1->id, $p2->id),
             ])
             ->assertRedirect();
 
@@ -159,11 +168,10 @@ class PaymentOrderPortfolioEcheqTest extends TestCase
             ->post(route('payment-orders.store'), [
                 'supplier_id' => $supplier->id,
                 'date' => now()->toDateString(),
-                'payment_mode' => 'portfolio_echeq',
                 'invoices' => [
                     ['purchase_invoice_id' => $invoice->id, 'amount' => 100],
                 ],
-                'portfolio_echeq_ids' => [$p1->id, $p2->id],
+                'payments' => $this->portfolioPaymentsPayload($p1->id, $p2->id),
             ])
             ->assertRedirect();
 
@@ -187,13 +195,12 @@ class PaymentOrderPortfolioEcheqTest extends TestCase
             ->post(route('payment-orders.store'), [
                 'supplier_id' => $supplier->id,
                 'date' => now()->toDateString(),
-                'payment_mode' => 'portfolio_echeq',
                 'invoices' => [
                     ['purchase_invoice_id' => $invoice2->id, 'amount' => 100],
                 ],
-                'portfolio_echeq_ids' => [$p1->id, $p2->id],
+                'payments' => $this->portfolioPaymentsPayload($p1->id, $p2->id),
             ])
-            ->assertSessionHasErrors(['portfolio_echeq_ids']);
+            ->assertInvalid(['payments.0.portfolio_echeq_id']);
     }
 
     public function test_confirm_genera_asiento_multiples_creditos_cartera(): void
@@ -205,11 +212,10 @@ class PaymentOrderPortfolioEcheqTest extends TestCase
             ->post(route('payment-orders.store'), [
                 'supplier_id' => $supplier->id,
                 'date' => now()->toDateString(),
-                'payment_mode' => 'portfolio_echeq',
                 'invoices' => [
                     ['purchase_invoice_id' => $invoice->id, 'amount' => 100],
                 ],
-                'portfolio_echeq_ids' => [$p1->id, $p2->id],
+                'payments' => $this->portfolioPaymentsPayload($p1->id, $p2->id),
             ])
             ->assertRedirect();
 
@@ -241,14 +247,138 @@ class PaymentOrderPortfolioEcheqTest extends TestCase
             ->post(route('payment-orders.store'), [
                 'supplier_id' => $supplier->id,
                 'date' => now()->toDateString(),
-                'payment_mode' => 'portfolio_echeq',
                 'invoices' => [
                     ['purchase_invoice_id' => $invoice->id, 'amount' => 50],
                 ],
-                'portfolio_echeq_ids' => [$p1->id, $p2->id],
+                'payments' => $this->portfolioPaymentsPayload($p1->id, $p2->id),
             ])
-            ->assertSessionHasErrors(['portfolio_echeq_ids']);
+            ->assertInvalid(['payments']);
 
         $this->assertSame(0, PaymentOrder::query()->count());
+    }
+
+    public function test_mix_transferencia_y_echeq_genera_creditos_distintos(): void
+    {
+        AccountingAccount::query()->create([
+            'code' => '2.1.01', 'name' => 'Proveedores test', 'type' => 'pasivo', 'parent_id' => null, 'level' => 3, 'is_header' => false, 'is_active' => true,
+        ]);
+        AccountingAccount::query()->create([
+            'code' => '1.1.02', 'name' => 'Bancos genérico', 'type' => 'activo', 'parent_id' => null, 'level' => 3, 'is_header' => false, 'is_active' => true,
+        ]);
+        $accBancoX = AccountingAccount::query()->create([
+            'code' => '1.1.99', 'name' => 'Banco X vinculado', 'type' => 'activo', 'parent_id' => null, 'level' => 3, 'is_header' => false, 'is_active' => true,
+        ]);
+
+        $company = Company::query()->create([
+            'name' => 'Empresa MIX',
+            'cuit' => '20-66666666-6',
+            'tax_condition' => 'responsable_inscripto',
+        ]);
+
+        $user = User::factory()->create();
+        $user->givePermissionTo([
+            'compras.section',
+            'payment-orders.index',
+            'payment-orders.create',
+            'payment-orders.edit',
+            'payment-orders.delete',
+        ]);
+        $user->companies()->attach($company->id, ['is_default' => true]);
+
+        $customer = Customer::query()->create([
+            'name' => 'Cliente MIX',
+            'taxId' => '20-'.uniqid().'-1',
+            'status' => 'activo',
+        ]);
+
+        $rc = CollectionReceipt::query()->create([
+            'number' => 'RC-MIX-'.uniqid(),
+            'company_id' => $company->id,
+            'customer_id' => $customer->id,
+            'date' => now()->toDateString(),
+            'total' => 100,
+            'status' => 'confirmado',
+            'created_by' => $user->id,
+            'confirmed_by' => $user->id,
+        ]);
+
+        $pEch = CollectionReceiptPayment::query()->create([
+            'collection_receipt_id' => $rc->id,
+            'line_type' => 'echeq',
+            'amount' => 40,
+            'cheque_number' => 'ECH-M',
+            'bank_name' => 'Bank M',
+            'due_date' => now()->addMonth()->toDateString(),
+            'sort_order' => 0,
+        ]);
+
+        $supplier = Supplier::query()->create([
+            'code' => 'S-M'.substr(uniqid(), -4),
+            'name' => 'Proveedor MIX',
+            'tax_id' => '30-77777777-7',
+            'status' => 'activo',
+        ]);
+
+        $invoice = PurchaseInvoice::query()->create([
+            'company_id' => $company->id,
+            'invoice_number' => '0100',
+            'voucher_type' => 'A',
+            'supplier_id' => $supplier->id,
+            'issue_date' => now()->toDateString(),
+            'subtotal' => 100,
+            'iva_21' => 0,
+            'total' => 100,
+            'amount_paid' => 0,
+            'balance' => 100,
+            'status' => 'pendiente',
+            'created_by' => $user->id,
+        ]);
+
+        $bank = BankAccount::query()->create([
+            'company_id' => $company->id,
+            'bank_name' => 'Banco Test',
+            'account_number' => '123456',
+            'account_type' => 'cuenta_corriente',
+            'currency' => 'ARS',
+            'accounting_account_id' => $accBancoX->id,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['active_company_id' => $company->id])
+            ->post(route('payment-orders.store'), [
+                'supplier_id' => $supplier->id,
+                'date' => now()->toDateString(),
+                'invoices' => [
+                    ['purchase_invoice_id' => $invoice->id, 'amount' => 100],
+                ],
+                'payments' => [
+                    ['kind' => 'portfolio_echeq', 'portfolio_echeq_id' => $pEch->id],
+                    ['kind' => 'transferencia', 'amount' => 60, 'bank_account_id' => $bank->id, 'payment_reference' => 'TRF-001'],
+                ],
+            ])
+            ->assertRedirect();
+
+        $op = PaymentOrder::query()->first();
+        $this->assertNotNull($op);
+
+        $this->actingAs($user)
+            ->withSession(['active_company_id' => $company->id])
+            ->post(route('payment-orders.confirm', $op))
+            ->assertRedirect();
+
+        $entry = JournalEntry::query()
+            ->where('source_type', PaymentOrder::class)
+            ->where('source_id', $op->id)
+            ->first();
+        $this->assertNotNull($entry);
+
+        $codes = JournalEntryLine::query()->where('journal_entry_id', $entry->id)
+            ->join('accounting_accounts', 'accounting_accounts.id', '=', 'journal_entry_lines.accounting_account_id')
+            ->pluck('accounting_accounts.code')
+            ->all();
+
+        $this->assertContains('1.1.99', $codes);
+        $this->assertContains('1.1.02', $codes);
     }
 }

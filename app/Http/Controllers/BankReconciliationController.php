@@ -26,7 +26,7 @@ class BankReconciliationController extends Controller
         $paymentOrders = PaymentOrder::where('company_id', $companyId)
             ->whereIn('status', ['pagada', 'aprobada'])
             ->whereDoesntHave('reconciledMovements')
-            ->with('supplier')
+            ->with(['supplier', 'paymentLines', 'portfolioEcheqPayments'])
             ->orderByDesc('date')
             ->get();
 

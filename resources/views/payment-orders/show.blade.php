@@ -7,11 +7,6 @@
                 'pagada' => 'bg-green-100 text-green-700',
                 'anulada' => 'bg-red-100 text-red-700',
             ];
-            $paymentMethodLabels = [
-                'transferencia' => 'Transferencia',
-                'cheque' => 'Cheque',
-                'efectivo' => 'Efectivo',
-            ];
         @endphp
 
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
@@ -62,21 +57,10 @@
                         <dt class="text-sm text-gray-500">Fecha</dt>
                         <dd class="text-sm font-medium text-gray-800">{{ $paymentOrder->date->format('d/m/Y') }}</dd>
                     </div>
-                    @if($paymentOrder->portfolioEcheqPayments->isNotEmpty())
-                        <div class="flex justify-between">
-                            <dt class="text-sm text-gray-500">Liquidación</dt>
-                            <dd class="text-sm font-medium text-gray-800">E-cheqs en cartera (endoso)</dd>
-                        </div>
-                    @else
-                        <div class="flex justify-between">
-                            <dt class="text-sm text-gray-500">Método de Pago</dt>
-                            <dd class="text-sm font-medium text-gray-800">{{ $paymentMethodLabels[$paymentOrder->payment_method] ?? '-' }}</dd>
-                        </div>
-                        <div class="flex justify-between">
-                            <dt class="text-sm text-gray-500">Referencia de Pago</dt>
-                            <dd class="text-sm font-medium text-gray-800">{{ $paymentOrder->payment_reference ?? '-' }}</dd>
-                        </div>
-                    @endif
+                    <div class="flex justify-between">
+                        <dt class="text-sm text-gray-500">Resumen medios</dt>
+                        <dd class="text-sm font-medium text-gray-800">{{ $paymentOrder->paymentMethodsLabel() }}</dd>
+                    </div>
                 </dl>
             </div>
 
@@ -105,30 +89,47 @@
             </div>
         </div>
 
-        @if($paymentOrder->portfolioEcheqPayments->isNotEmpty())
+        @if($paymentOrder->paymentLines->isNotEmpty())
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
                 <div class="px-4 py-3 border-b border-gray-200">
-                    <h2 class="text-lg font-semibold text-gray-800">E-cheqs entregados (cartera)</h2>
+                    <h2 class="text-lg font-semibold text-gray-800">Medios de liquidación</h2>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Recibo cobro</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">N° e-cheq</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Banco</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Vencimiento</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Medio</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Cuenta / detalle</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Referencia</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Importe</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
-                            @foreach($paymentOrder->portfolioEcheqPayments as $pe)
+                            @foreach($paymentOrder->paymentLines as $line)
                                 <tr class="hover:bg-gray-50">
-                                    <td class="px-4 py-3 text-sm font-medium text-gray-800">{{ $pe->collectionReceipt?->number ?? '—' }}</td>
-                                    <td class="px-4 py-3 text-sm text-gray-800">{{ $pe->cheque_number }}</td>
-                                    <td class="px-4 py-3 text-sm text-gray-600">{{ $pe->bank_name }}</td>
-                                    <td class="px-4 py-3 text-sm text-gray-500">{{ $pe->due_date?->format('d/m/Y') }}</td>
-                                    <td class="px-4 py-3 text-sm text-right font-medium text-gray-800">${{ number_format($pe->amount, 2, ',', '.') }}</td>
+                                    <td class="px-4 py-3 text-sm font-medium text-gray-800">{{ $line->kind_label }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">
+                                        @if($line->kind === 'portfolio_echeq')
+                                            RC {{ $line->collectionReceiptPayment?->collectionReceipt?->number ?? '—' }}
+                                            — e-cheq {{ $line->collectionReceiptPayment?->cheque_number ?? '—' }}
+                                            ({{ $line->collectionReceiptPayment?->bank_name ?? '—' }})
+                                        @elseif($line->bankAccount)
+                                            {{ $line->bankAccount->display_name }}
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-500">
+                                        @if($line->kind === 'portfolio_echeq')
+                                            Venc. {{ $line->collectionReceiptPayment?->due_date?->format('d/m/Y') ?? '—' }}
+                                        @else
+                                            {{ $line->payment_reference ?? '—' }}
+                                            @if($line->cheque_due_date)
+                                                <span class="block text-xs text-gray-400">Venc. cheque {{ $line->cheque_due_date->format('d/m/Y') }}</span>
+                                            @endif
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-right font-medium text-gray-800">${{ number_format($line->amount, 2, ',', '.') }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
