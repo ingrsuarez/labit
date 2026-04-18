@@ -125,7 +125,7 @@ de internet).
 | v1.50.0 | Recepción HL7 ORU/OUL + bandeja de revisión humana en liscom | Pendiente ⚠️ otro repo | `interfases/agent-bootstrap/prompts/pendientes/v1.50.0-liscom-recepcion-resultados-bandeja.md` | **Se ejecuta en `c:\wamp64\www\interfases` (Django).** Modelos `ResultMessage` + `Result`, parser HL7 extendido, `ResultIntakeService` con idempotencia, 3 pantallas web con doc de diseño en `interfases/docs/design/v1.50.0-...`, comando `reprocess_result`. NO envía a labit (eso es v1.52.0). |
 | v1.51.0 | Endpoint POST `/api/v1/results/batch` con idempotencia + respeto a validación bioquímico | ✅ Completada (2026-04-18) | `completados/v1.51.0-api-ingesta-resultados-batch.md` | Tag `v1.51.0`. Modelos `ResultBatch`+`ResultIngestion`, `ApiResultIngestionService` con regla crítica `ALREADY_VALIDATED` (no sobrescribir si `is_validated=true`), lookup por prefijo `ProtocolType` enum (`C`/`A`/`V`), idempotencia doble (batch_id + hl7_control_id). 15 tests Feature verde. Doc en `docs/api/v1/results.md`. DD-007 en BLUEPRINT. |
 | v1.52.0 | Cliente outbound LISCOM → labit + cola persistente + dashboard | Pendiente ⚠️ otro repo | `interfases/agent-bootstrap/prompts/pendientes/v1.52.0-liscom-cliente-cola-outbound.md` | **Se ejecuta en `c:\wamp64\www\interfases` (Django).** Modelos `OutboundDispatch` + `OutboundAttempt`. Backoff exponencial corto (1m/5m/15m/1h/6h, max 5). Mapeo diferenciado de respuestas (`ALREADY_VALIDATED` → blocked terminal, `PROTOCOL_NOT_FOUND` → auto-sync + 1 reintento). Hook post-aprobación + cron de respaldo. Dashboard `/outbound/` con 4 pantallas (doc de diseño en `interfases/docs/design/v1.52.0-...`). Designer ya completado. Cierra la cadena de integración. |
-| v1.53.0 | Dashboard de monitoreo de la API en labit (ingesta de resultados) | Pendiente | `pendientes/v1.53.0-api-monitor-dashboard.md` | Pantalla admin `/admin/api-monitor/` para ver batches recibidos de LISCOM, mensajes con drill-down, banner destacado de rechazos `ALREADY_VALIDATED`, estado de salud de las sedes (healthy/idle/stale/inactive). Reusa layout admin (sin Designer). Polling Livewire 10s. Comando `api:cleanup` con retención configurable (`API_LOG_RETENTION_DAYS`, default 90). Solo lectura + link al CRUD de keys de v1.46.0. |
+| v1.53.0 | Dashboard de monitoreo de la API en labit (ingesta de resultados) | ✅ Completada (2026-04-18) | `completados/v1.53.0-api-monitor-dashboard.md` | Tag `v1.53.0`. Livewire 3 (`Dashboard`, `BatchesList`, `BatchDetail`, `IngestionsList`, `IngestionDetail`), `ApiMonitorService` (counters materializados), banner ALREADY_VALIDATED, salud de sedes, `api:cleanup` con retención configurable, 20 tests Feature verde. DD-008 en BLUEPRINT. Runbook en `docs/operations/api-monitor.md`. |
 
 **Tensión del barcode (RESUELTA, decisión PM 2026-04-18):** Se eligió **Opción B** —
 cambiar el formato del barcode en labit a `{protocol_number}^{material_abbreviation}`
@@ -155,10 +155,10 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 ## Progreso general
 
 ```
-Completadas:  ver STATUS.md (última v1.48.5 en develop)
-Planificadas: 5 (cadena LISCOM restante: v1.48.0★, v1.49.0★, v1.50.0★, v1.52.0★, v1.53.0)
+Completadas:  ver STATUS.md (última v1.53.0 en develop)
+Planificadas: 4 (cadena LISCOM restante en interfases: v1.48.0★, v1.49.0★, v1.50.0★, v1.52.0★)
 En proceso:   0
-Release master: ver tags; develop incluye v1.48.5
+Release master: ver tags; develop incluye v1.53.0
 ```
 
 ---
