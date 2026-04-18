@@ -59,4 +59,8 @@ Route::prefix('v1')->middleware('auth.api_key')->group(function () {
         ->whereIn('type', ['clinical', 'sample', 'vet'])
         ->whereNumber('id')
         ->name('api.v1.protocols.show');
+
+    // Ingesta de resultados desde LISCOM — v1.51.0
+    Route::post('results/batch', [\App\Http\Controllers\Api\V1\ResultIngestionController::class, 'batch'])
+        ->name('api.v1.results.batch');
 });

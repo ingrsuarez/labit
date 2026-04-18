@@ -2,7 +2,7 @@
 
 > Arquitectura técnica, estructura del proyecto y decisiones de diseño.
 > Fuente de verdad para el Agente CTO y cualquier agente que necesite contexto técnico.
-> Última actualización: 2026-04-18 (DD-006 protocolos API unificados con resource polimórfico y filtrado por sede)
+> Última actualización: 2026-04-18 (DD-007 ingesta de resultados: idempotencia doble + regla no-overwrite si validado)
 
 ---
 
@@ -165,6 +165,12 @@ Los permisos se gestionan con Spatie Laravel Permission y se asignan por secció
 - **Razón:** LISCOM y otros equipos HL7 escanean barcodes sin saber a priori el tipo de protocolo. Un endpoint unificado evita 3 integraciones paralelas y elimina lógica de routing en el cliente. El merge en PHP es aceptable hasta ~500 protocolos/día/sede; si la latencia p95 sube de 200ms se migra a vista SQL `protocols_unified` en hotfix v1.47.1. El filtro por sede ya está cubierto por la API key (DD-005), por lo que NO hace falta adicionalmente un filtro por empresa: cada empresa tiene sus propias sedes y la key de una sede no puede ver protocolos de otra. PII default `minimal` minimiza superficie de exposición legal/regulatoria; las integraciones que necesiten DNI deben justificarlo y promoverse a `standard` desde el admin.
 - **Consecuencia:** Cualquier nuevo modelo "tipo protocolo" debe agregarse al enum `App\Enums\ProtocolType`, exponer un `protocol_number` y `lab_branch_id`, definir su mapping en `ProtocolResource::buildPatientData()` y `getDeterminationsRelation()`, y registrar su prefijo en `protocolPrefix()`. La consistencia eventual (un test validado se refleja en la API en cuanto se persiste) hace innecesario un job de sync. El campo `test_code` queda nullable hasta que v1.49.0 implemente el mapeo a códigos HL7 externos. Cualquier extensión del barcode (formato `C2604180012^SUE` para identificar material) debe documentarse en v1.48.5 manteniendo este endpoint compatible.
 
+### DD-007: Ingesta de resultados — no-overwrite si validado, idempotencia doble
+
+- **Decisión:** Endpoint batch `POST /api/v1/results/batch`. La regla central es inmutable: si `is_validated = true` → rechazar con `ALREADY_VALIDATED`, sin excepciones. Idempotencia en dos niveles: `(api_client_id, external_batch_id)` para reintentos de batch y `(api_client_id, hl7_control_id)` para reintentos de mensaje. Modelos de auditoría `ResultBatch` + `ResultIngestion`. No hay endpoint individual. No hay auto-validación. Logging estructurado en canal `api`.
+- **Razón:** El flujo de validación del bioquímico es la operación de mayor valor en labit. Permitir que la API de LISCOM sobrescriba resultados ya validados introduciría regresiones silenciosas en datos clínicos. La idempotencia doble elimina la necesidad de que LISCOM implemente deduplicación: puede reintentar libremente. Los modelos `ResultBatch` + `ResultIngestion` persisten el estado para la UI de monitoreo (v1.53.0). Logging estructurado (canal `api`) provee trazabilidad de overwrites y rechazos sin necesidad de modificar `audit_logs` en esta versión.
+- **Consecuencia:** LISCOM (v1.52.0) debe leer los `reason` de la response para clasificar los ítems: `ALREADY_VALIDATED` → no reintentar; `PROTOCOL_NOT_FOUND` / `DETERMINATION_NOT_FOUND` → alerta; `duplicate` → ya procesado. El trait `Auditable` no está en los modelos de determinación; si se suma en el futuro, los overwrites quedarán doblemente trazados (log + audit_logs). Notificación al bioquímico sobre resultados nuevos pendientes de validar es tensión abierta (v1.51.1 o v1.53.0).
+
 ---
 
 ## Integraciones externas
@@ -173,6 +179,7 @@ Los permisos se gestionan con Spatie Laravel Permission y se asignan por secció
 |---|---|---|---|
 | Email (SMTP) | Envío de resultados y notificaciones | .env config | Resultados de muestras, circulares |
 | API pública v1 | Salida de datos a sistemas externos (LISCOM, etc.) | API key (`X-API-Key`) | Modelo `ApiClient`, middleware `auth.api_key`, una key por sede; ver DD-005 (auth) y DD-006 (protocolos unificados clinical/sample/vet). Doc completa: `docs/api/v1/protocols.md`. |
+| Ingesta de resultados v1 | Recepción de resultados de equipos HL7 desde LISCOM | API key (`X-API-Key`) | Modelos `ResultBatch` + `ResultIngestion`; ver DD-007. Doc: `docs/api/v1/results.md`. |
 
 ---
 

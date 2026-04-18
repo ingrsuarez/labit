@@ -5,6 +5,30 @@
 
 ---
 
+## [v1.51.0] — 2026-04-18 — Ingesta de resultados desde LISCOM (`POST /api/v1/results/batch`)
+
+### Agregado
+- **Endpoint `POST /api/v1/results/batch`** con autenticación API key (v1.46.0). Recibe resultados ya validados humanamente en LISCOM y los persiste contra `admission_tests`, `sample_determinations` y `vet_admission_tests`.
+- **`App\Models\ResultBatch`** — cabecera de cada request batch. Contadores por estado, `raw_request` (truncado a 64KB). Idempotencia por `(api_client_id, external_batch_id)`.
+- **`App\Models\ResultIngestion`** — detalle por mensaje (`hl7_control_id`). `items_summary` JSON con resultado de cada OBX. Idempotencia por `(api_client_id, hl7_control_id)`.
+- **`App\Services\Api\ApiResultIngestionService`** — servicio central con lógica de: lookup de protocolo por prefijo (`C`/`A`/`V`), verificación de sede, regla ALREADY_VALIDATED, overwrite con log, idempotencia doble.
+- **`App\Http\Requests\Api\IngestResultsBatchRequest`** — validación (UUID batch, max 500 ítems, `labit_test_id` existente en BD).
+- **`App\Http\Controllers\Api\V1\ResultIngestionController`** — thin controller.
+- **2 migraciones**: `result_batches` + `result_ingestions`.
+- **Tests Feature** `tests/Feature/Api/V1/ResultIngestionBatchTest.php` (15 casos: 3 tipos felices, overwrite, ALREADY_VALIDATED, 2 idempotencias, 4 errores, mixed batch).
+- **Doc API** `docs/api/v1/results.md`.
+
+### Regla crítica implementada
+Si `is_validated = true`, el ítem se rechaza con `ALREADY_VALIDATED`. El valor **nunca** se sobrescribe. Se devuelven `validated_at` + `validated_by_name` para que LISCOM lo marque y no reintente.
+
+### Notas técnicas
+- Prefijos de protocolo consistentes con `ProtocolType` enum de v1.47.0 (`C`/`A`/`V`, sin guión).
+- Los modelos de determinación no usan trait `Auditable` → se optó por logging estructurado en canal `api` (overwrite, ALREADY_VALIDATED). La trazabilidad explícita vía `audit_logs` es tensión abierta.
+- Endpoint individual `POST /api/v1/results` no implementado (fuera de scope).
+- Notificación al bioquímico cuando llegan resultados por API: fuera de scope, planificar en v1.51.1 o v1.53.0.
+
+---
+
 ## [v1.48.5] — 2026-04-18 — Formato extendido de barcode (preparación HL7)
 
 ### Cambiado
