@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-18 (Dev: completada v1.48.5 — formato extendido de barcode `{protocol_number}^{material_abbreviation}`)
+> Última actualización: 2026-04-18 (Dev: completada v1.51.0 — endpoint POST `/api/v1/results/batch` con idempotencia + ALREADY_VALIDATED)
 
 ---
 
@@ -9,26 +9,25 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.48.5** en **develop** (master según último release del usuario) |
+| **Versión actual** | **v1.51.0** en **develop** (master según último release del usuario) |
 | **Última en master** | Ver tags en remoto |
-| **Última completada** | v1.48.5 — formato extendido de barcode (`{protocol_number}^{material_abbreviation}`) |
+| **Última completada** | v1.51.0 — endpoint POST `/api/v1/results/batch` (idempotencia + ALREADY_VALIDATED) |
 | **En proceso** | — |
-| **Próxima** | v1.51.0 (endpoint POST `/api/v1/results/batch`) o v1.48.0 (cliente LISCOM, otro repo) |
-| **Pendientes en cola** | 6 (v1.48.0★, v1.49.0★, v1.50.0★, v1.51.0, v1.52.0★, v1.53.0 — ★ = otro repo) |
-| **Completadas** | 96 |
+| **Próxima** | v1.53.0 (dashboard monitoreo API, labit) o v1.48.0 (cliente LISCOM, otro repo) |
+| **Pendientes en cola** | 5 (v1.48.0★, v1.49.0★, v1.50.0★, v1.52.0★, v1.53.0 — ★ = otro repo) |
+| **Completadas** | 97 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (6)
+### Pendientes (5)
 
 | Versión | Repo | Nombre | Prompt |
 |---|---|---|---|
 | v1.48.0 | **interfases** (Django) | Cliente labit + sync de protocolos en LISCOM | `pendientes/v1.48.0-liscom-cliente-labit-sync.md` |
 | v1.49.0 | **interfases** (Django) | Mapeo HL7 + respuesta DSR/ORL al scan | `pendientes/v1.49.0-liscom-mapeo-codigos-respuesta-scan.md` |
 | v1.50.0 | **interfases** (Django) | Recepción HL7 ORU/OUL + bandeja de revisión humana | `interfases/.../pendientes/v1.50.0-liscom-recepcion-resultados-bandeja.md` |
-| v1.51.0 | labit | Endpoint POST `/api/v1/results/batch` (idempotencia + respeta validación bioquímico) | `pendientes/v1.51.0-api-ingesta-resultados-batch.md` |
 | v1.52.0 | **interfases** (Django) | Cliente outbound + cola persistente + dashboard `/outbound/` | `interfases/.../pendientes/v1.52.0-liscom-cliente-cola-outbound.md` |
 | v1.53.0 | labit | Dashboard monitoreo API: batches recibidos, rechazos `ALREADY_VALIDATED`, salud de sedes | `pendientes/v1.53.0-api-monitor-dashboard.md` |
 
@@ -40,10 +39,11 @@
 
 _Sin prompts en ejecución._
 
-### Completados (96)
+### Completados (97)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.51.0 | Endpoint POST `/api/v1/results/batch` (idempotencia + ALREADY_VALIDATED) | 2026-04-18 | v1.51.0 |
 | v1.48.5 | Formato extendido de barcode (`{protocol_number}^{material_abbreviation}`) | 2026-04-18 | v1.48.5 |
 | v1.47.0 | API pública: protocolos unificados (clinical/sample/vet) + PII gating | 2026-04-18 | v1.47.0 |
 | v1.46.0 | API pública con API key + módulo admin de keys (LISCOM foundation) | 2026-04-18 | v1.46.0 |
