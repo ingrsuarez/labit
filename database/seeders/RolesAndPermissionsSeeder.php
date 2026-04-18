@@ -240,6 +240,9 @@ class RolesAndPermissionsSeeder extends Seeder
             // AUDITORÍA
             'auditoria.section',
 
+            // API PÚBLICA (Integraciones)
+            'api-clients.manage',
+
             // CONTABILIDAD
             'contabilidad.section',
             'contabilidad.accounts.index',

@@ -198,6 +198,44 @@
             </a>
             @endcan
 
+            @can('api-clients.manage')
+            <a href="{{ route('api-clients.index') }}"
+               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                {{ request()->routeIs('api-clients.*')
+                    ? 'bg-zinc-700 text-white'
+                    : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                </svg>
+                API Keys
+            </a>
+            @endcan
+
+            @can('lab-admissions.index')
+            {{-- v1.53.0: Monitoreo de ingesta API desde LISCOM --}}
+            @php
+                $apiRejectedToday = \Illuminate\Support\Facades\Cache::remember('api_monitor_rejected_today', 60,
+                    fn () => \App\Models\ResultIngestion::where('rejection_reason', 'ALREADY_VALIDATED')
+                        ->whereDate('created_at', today())->count());
+            @endphp
+            <a href="{{ route('admin.api-monitor.dashboard') }}"
+               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                {{ request()->routeIs('admin.api-monitor.*')
+                    ? 'bg-zinc-700 text-white'
+                    : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
+                </svg>
+                <span class="flex-1">Monitoreo API</span>
+                @if ($apiRejectedToday > 0)
+                    <span class="ml-1 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 bg-violet-500 text-white text-xs rounded-full font-semibold">
+                        {{ $apiRejectedToday > 99 ? '99+' : $apiRejectedToday }}
+                    </span>
+                @endif
+            </a>
+            @endcan
+
             @can('companies.section')
             <a href="{{ route('companies.index') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors

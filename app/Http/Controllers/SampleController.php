@@ -1060,13 +1060,24 @@ class SampleController extends Controller
             ->unique()
             ->implode('/');
 
+        $primaryMaterial = $sample->determinations
+            ->pluck('test.material_abbreviation')
+            ->filter()
+            ->first();
+
+        $barcodeContent = \App\Services\BarcodeFormatService::forLabel(
+            $sample->protocol_number,
+            $primaryMaterial
+        );
+
         $barcode = new \Picqer\Barcode\BarcodeGeneratorSVG;
-        $barcodeSvg = $barcode->getBarcode($sample->protocol_number, $barcode::TYPE_CODE_128, 2, 60);
+        $barcodeSvg = $barcode->getBarcode($barcodeContent, $barcode::TYPE_CODE_128, 2, 60);
 
         return view('sample.label', [
             'sample' => $sample,
             'materials' => $materials ?: 'N/A',
             'barcodeSvg' => $barcodeSvg,
+            'barcodeContent' => $barcodeContent,
         ]);
     }
 

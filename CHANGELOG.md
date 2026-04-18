@@ -5,6 +5,81 @@
 
 ---
 
+## [v1.53.0] — 2026-04-18 — Dashboard de monitoreo de la API (ingesta de resultados desde LISCOM)
+
+### Agregado
+- **Dashboard `/admin/api-monitor`** (Livewire 3) con counters de batches/mensajes/rechazos con auto-refresh cada 10s.
+- **`App\Services\Api\ApiMonitorService`** — lectura agregada de `result_batches` + `result_ingestions`. Usa contadores materializados de v1.51.0 (no agrega JSON en vivo).
+- **5 componentes Livewire** (`App\Livewire\Api\Dashboard`, `BatchesList`, `BatchDetail`, `IngestionsList`, `IngestionDetail`) con filtros URL-persistidos vía `#[Url]`.
+- **3 componentes Blade reusables** (`x-api-monitor.counter-card`, `x-api-monitor.health-badge`, `x-api-monitor.status-badge`).
+- **Banner ALREADY_VALIDATED** visible para bioquímicos cuando hay rechazos del período. Drill-down al mensaje y protocolo real en labit.
+- **Tabla de estado de sedes** con clasificación de salud (`healthy`/`idle`/`stale`/`inactive`/`never_used`) basada en `last_used_at` del ApiClient.
+- **Comando `php artisan api:cleanup`** con `--dry-run`, `--days`, `--no-interaction`. Scheduling diario a las 03:00 en `Kernel.php`.
+- **`config/api.php`** con `log_retention_days` configurable vía `API_LOG_RETENTION_DAYS` (default 90 días).
+- **Migración de índices** sobre `result_ingestions` y `result_batches` para queries del dashboard.
+- **20 tests Feature** pasando (17 dashboard + 3 cleanup).
+- **`docs/operations/api-monitor.md`** — runbook operativo.
+- **Entrada sidebar** con badge de rechazos ALREADY_VALIDATED del día (cacheado 60s).
+
+### Decisión de permisos (tensión resuelta)
+No existe permission `view-protocols` transversal. Se eligió **`lab-admissions.index`** como permission de acceso al dashboard porque es compartido por todos los roles del laboratorio (`bioquimico`, `tecnico-lab`, `recepcion-lab`). Sin permissions nuevos.
+
+### Notas técnicas
+- `getProtocolUrl()` resuelve la URL del protocolo buscando el modelo por `protocol_number` (query puntual solo en detalle de 1 ingestion, no en listados).
+- Raw payload truncado de v1.51.0 (marker `_truncated`) se detecta visualmente en el detalle del batch.
+- Los counters del dashboard leen de `result_batches.items_*` (campos materializados), no del JSON de `items_summary`. Performance garantizada incluso con muchos registros.
+
+---
+
+## [v1.51.0] — 2026-04-18 — Ingesta de resultados desde LISCOM (`POST /api/v1/results/batch`)
+
+### Agregado
+- **Endpoint `POST /api/v1/results/batch`** con autenticación API key (v1.46.0). Recibe resultados ya validados humanamente en LISCOM y los persiste contra `admission_tests`, `sample_determinations` y `vet_admission_tests`.
+- **`App\Models\ResultBatch`** — cabecera de cada request batch. Contadores por estado, `raw_request` (truncado a 64KB). Idempotencia por `(api_client_id, external_batch_id)`.
+- **`App\Models\ResultIngestion`** — detalle por mensaje (`hl7_control_id`). `items_summary` JSON con resultado de cada OBX. Idempotencia por `(api_client_id, hl7_control_id)`.
+- **`App\Services\Api\ApiResultIngestionService`** — servicio central con lógica de: lookup de protocolo por prefijo (`C`/`A`/`V`), verificación de sede, regla ALREADY_VALIDATED, overwrite con log, idempotencia doble.
+- **`App\Http\Requests\Api\IngestResultsBatchRequest`** — validación (UUID batch, max 500 ítems, `labit_test_id` existente en BD).
+- **`App\Http\Controllers\Api\V1\ResultIngestionController`** — thin controller.
+- **2 migraciones**: `result_batches` + `result_ingestions`.
+- **Tests Feature** `tests/Feature/Api/V1/ResultIngestionBatchTest.php` (15 casos: 3 tipos felices, overwrite, ALREADY_VALIDATED, 2 idempotencias, 4 errores, mixed batch).
+- **Doc API** `docs/api/v1/results.md`.
+
+### Regla crítica implementada
+Si `is_validated = true`, el ítem se rechaza con `ALREADY_VALIDATED`. El valor **nunca** se sobrescribe. Se devuelven `validated_at` + `validated_by_name` para que LISCOM lo marque y no reintente.
+
+### Notas técnicas
+- Prefijos de protocolo consistentes con `ProtocolType` enum de v1.47.0 (`C`/`A`/`V`, sin guión).
+- Los modelos de determinación no usan trait `Auditable` → se optó por logging estructurado en canal `api` (overwrite, ALREADY_VALIDATED). La trazabilidad explícita vía `audit_logs` es tensión abierta.
+- Endpoint individual `POST /api/v1/results` no implementado (fuera de scope).
+- Notificación al bioquímico cuando llegan resultados por API: fuera de scope, planificar en v1.51.1 o v1.53.0.
+
+---
+
+## [v1.48.5] — 2026-04-18 — Formato extendido de barcode (preparación HL7)
+
+### Cambiado
+- **Etiquetas de protocolo** ahora generan barcodes con formato
+  `{protocol_number}^{material_abbreviation}` (antes: solo `protocol_number`).
+  Ej: `C-2026-001234^EDTA`.
+- Habilita filtrado por material desde el lado del servidor HL7 (LISCOM, v1.49.0).
+- Si el material no se puede determinar, fallback transparente al formato anterior.
+- Aplicado en: laboratorio clínico (`LabAdmissionController::printLabel`) y muestras
+  (`SampleController::printLabel`, Opción 3.A — primer material).
+
+### Agregado
+- `App\Services\BarcodeFormatService` — helper estático con método
+  `forLabel(string, ?string): string`.
+- Test Feature `tests/Feature/BarcodeFormatTest.php` (5 casos).
+
+### Notas técnicas
+- `VetAdmissionController` no genera etiquetas con barcode → sin cambios.
+- **Tensión abierta:** `public/js/zebra-label-print.js` arma el ZPL usando
+  `label.protocol_number` directamente; las impresoras Zebra imprimirán el formato
+  anterior hasta que se resuelva en hotfix v1.48.5.1 (agregar `barcode_content` al
+  JSON de `labelData()` y consumirlo en el JS).
+
+---
+
 ## [v1.45.0] — 2026-04-13 — Eliminar cliente: reglas protocolos y facturación
 
 ### Cambiado

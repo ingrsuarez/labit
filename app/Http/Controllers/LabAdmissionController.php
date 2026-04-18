@@ -936,8 +936,14 @@ class LabAdmissionController extends Controller
         $barcode = new \Picqer\Barcode\BarcodeGeneratorSVG;
 
         foreach ($labels as &$label) {
-            $label['barcode_svg'] = $barcode->getBarcode(
+            $content = \App\Services\BarcodeFormatService::forLabel(
                 $admission->protocol_number,
+                $label['material'] ?? null
+            );
+
+            $label['barcode_content'] = $content;
+            $label['barcode_svg'] = $barcode->getBarcode(
+                $content,
                 $barcode::TYPE_CODE_128,
                 2,
                 60

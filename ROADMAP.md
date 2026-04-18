@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-13 (**v1.45.0** eliminar cliente sin protocolos/facturación)
+> Última actualización: 2026-04-18 (completada v1.48.5 — formato extendido de barcode `{protocol_number}^{material_abbreviation}`)
 
 ---
 
@@ -93,6 +93,9 @@
 | v1.43.0 | Precios protocolo veterinario: NBU veterinaria × NBU práctica | 2026-04-12 | `customers.veterinary_nbu_value`; `searchTests` + `store` server-side; UI clientes y alta vet; tests Feature |
 | v1.44.0 | Nomenclador veterinario (hub + listado filtrado) | 2026-04-12 | Ruta `lab/veterinario/nomenclador`; `TestController::indexVeterinary`; reusa `test/index`; redirección `_context=vet_nomenclator` |
 | v1.45.0 | Eliminar cliente: protocolos y facturación | 2026-04-13 | `CustomerController::destroy` agrupa bloqueos; botón eliminar + `CustomerDestroyTest` |
+| v1.46.0 | API pública con API key + módulo admin de keys | 2026-04-18 | Modelo `ApiClient` (1 key/sede, hash SHA-256, prefix `labit_`), middleware `auth.api_key` + canal log `api`, endpoint `GET /api/v1/ping`, CRUD `/admin/api-clients` con modal "key una sola vez" + regenerate, permiso `api-clients.manage`. 13 tests Feature verde. DD-005 en BLUEPRINT |
+| v1.47.0 | API pública: protocolos unificados (clinical/sample/vet) + PII gating | 2026-04-18 | `GET /api/v1/protocols`, `/by-barcode/{code}`, `/{type}/{id}`. `ProtocolResource` polimórfico + `DeterminationResource` con normalización de status (pending/in_progress/completed/validated). Enum `ProtocolType` (prefijos C/A/V). Service `ProtocolLookupService` con merge en PHP + filtro por sede. PII (DNI/CUIT) gateado por `api_clients.patient_data_level` (default `minimal`). 15 tests Feature verde. Doc en `docs/api/v1/protocols.md`. DD-006 en BLUEPRINT |
+| v1.48.5 | Formato extendido de barcode (`{protocol_number}^{material_abbreviation}`) | 2026-04-18 | `BarcodeFormatService::forLabel()`. Clínico (una etiqueta por material) + Muestras (primer material, Opción 3.A). VetAdmission sin etiquetas → sin cambios. Tensión abierta: ZPL Zebra usa `protocol_number` directo → hotfix v1.48.5.1 pendiente. 5 tests Feature verde. |
 
 ---
 
@@ -105,7 +108,31 @@
 
 ## Planificado
 
-_Sin versiones en tabla (la cola de prompts en `pendientes/` está vacía; nuevas entradas vía Agente PM.)_
+### Cadena de integración LISCOM (servidor HL7 local) ↔ Labit (cloud)
+
+LISCOM vive en `c:\wamp64\www\interfases` (Django + Channels + HL7 MLLP). El flujo objetivo:
+labit crea protocolos con barcodes → equipos escanean y consultan a liscom → liscom consulta
+a labit por API y cachea localmente → equipo procesa → liscom recibe HL7 con resultados →
+operador revisa → liscom envía a labit por API (con cola de reintentos para tolerar caídas
+de internet).
+
+| Versión | Nombre | Estado | Prompt | Notas |
+|---|---|---|---|---|
+| v1.46.0 | API pública: auth con API key + admin de keys | ✅ Completada (2026-04-18) | `completados/v1.46.0-api-publica-fundacion.md` | Tag `v1.46.0`. Cimiento de la cadena LISCOM. Una key por sede + log canal `api`. |
+| v1.47.0 | Endpoints GET de protocolos unificados (clinical + sample + vet) | ✅ Completada (2026-04-18) | `completados/v1.47.0-protocolos-api-endpoints.md` | Tag `v1.47.0`. Resource polimórfico + filtrado automático por sede + PII gating por nivel de la key (default minimal, sin DNI). Soporta sync incremental con `updated_since`. |
+| v1.48.5 | Formato extendido de barcode: `protocol_number^material_abbr` | ✅ Completada (2026-04-18) | `completados/v1.48.5-barcode-formato-extendido.md` | Tag `v1.48.5`. `BarcodeFormatService::forLabel()`. Clínico (etiqueta por material) + Muestras (Opción 3.A, primer material). Tensión abierta: ZPL Zebra usa `protocol_number` directo (pendiente hotfix v1.48.5.1). |
+| v1.49.0 | Mapeo de códigos equipo↔labit + respuesta HL7 al scan en liscom | Pendiente ⚠️ otro repo | `pendientes/v1.49.0-liscom-mapeo-codigos-respuesta-scan.md` | **Se ejecuta en `c:\wamp64\www\interfases` (Django).** Modelo `EquipmentTestMapping` + UI manual + parser de barcode con material + builders DSR^Q03 / ORL^O22 + handler de QRY^Q11 / OUL^R22 en `ConnectionManager._handle_message`. |
+| v1.50.0 | Recepción HL7 ORU/OUL + bandeja de revisión humana en liscom | Pendiente ⚠️ otro repo | `interfases/agent-bootstrap/prompts/pendientes/v1.50.0-liscom-recepcion-resultados-bandeja.md` | **Se ejecuta en `c:\wamp64\www\interfases` (Django).** Modelos `ResultMessage` + `Result`, parser HL7 extendido, `ResultIntakeService` con idempotencia, 3 pantallas web con doc de diseño en `interfases/docs/design/v1.50.0-...`, comando `reprocess_result`. NO envía a labit (eso es v1.52.0). |
+| v1.51.0 | Endpoint POST `/api/v1/results/batch` con idempotencia + respeto a validación bioquímico | ✅ Completada (2026-04-18) | `completados/v1.51.0-api-ingesta-resultados-batch.md` | Tag `v1.51.0`. Modelos `ResultBatch`+`ResultIngestion`, `ApiResultIngestionService` con regla crítica `ALREADY_VALIDATED` (no sobrescribir si `is_validated=true`), lookup por prefijo `ProtocolType` enum (`C`/`A`/`V`), idempotencia doble (batch_id + hl7_control_id). 15 tests Feature verde. Doc en `docs/api/v1/results.md`. DD-007 en BLUEPRINT. |
+| v1.52.0 | Cliente outbound LISCOM → labit + cola persistente + dashboard | Pendiente ⚠️ otro repo | `interfases/agent-bootstrap/prompts/pendientes/v1.52.0-liscom-cliente-cola-outbound.md` | **Se ejecuta en `c:\wamp64\www\interfases` (Django).** Modelos `OutboundDispatch` + `OutboundAttempt`. Backoff exponencial corto (1m/5m/15m/1h/6h, max 5). Mapeo diferenciado de respuestas (`ALREADY_VALIDATED` → blocked terminal, `PROTOCOL_NOT_FOUND` → auto-sync + 1 reintento). Hook post-aprobación + cron de respaldo. Dashboard `/outbound/` con 4 pantallas (doc de diseño en `interfases/docs/design/v1.52.0-...`). Designer ya completado. Cierra la cadena de integración. |
+| v1.53.0 | Dashboard de monitoreo de la API en labit (ingesta de resultados) | ✅ Completada (2026-04-18) | `completados/v1.53.0-api-monitor-dashboard.md` | Tag `v1.53.0`. Livewire 3 (`Dashboard`, `BatchesList`, `BatchDetail`, `IngestionsList`, `IngestionDetail`), `ApiMonitorService` (counters materializados), banner ALREADY_VALIDATED, salud de sedes, `api:cleanup` con retención configurable, 20 tests Feature verde. DD-008 en BLUEPRINT. Runbook en `docs/operations/api-monitor.md`. |
+
+**Tensión del barcode (RESUELTA, decisión PM 2026-04-18):** Se eligió **Opción B** —
+cambiar el formato del barcode en labit a `{protocol_number}^{material_abbreviation}`
+(ej: `C-2026-001234^EDTA`). Esto se ejecuta en **v1.48.5** antes de v1.49.0 para que
+liscom pueda filtrar respuestas HL7 por material. Separator `^` por compatibilidad
+con CODE_128 y por ser separator estándar de componentes en HL7. Si el material es
+nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 > Nota: Los prompts v1.35.2, v1.35.3, v1.36.1 y v3.4.0 figuran en `agent-bootstrap/prompts/completados/`; se retiraron de esta tabla para evitar duplicar el estado.
 
@@ -121,16 +148,17 @@ _Sin versiones en tabla (la cola de prompts en `pendientes/` está vacía; nueva
 - **Testing**: suite de tests automatizados, cobertura mínima
 - **DevOps**: CI/CD, ambientes de staging, deploy automatizado
 - **Seguridad**: 2FA, protección adicional (auditoría base cubierta por v2.5.0/v2.7.0, acceso por rol por v2.4.0)
+- **Integración LISCOM**: cadena v1.46.0–v1.53.0 (ver sección Planificado). Áreas relacionadas pendientes: webhook push de labit→liscom (alternativa a polling), rate limiting de la API pública, replicación multi-instancia avanzada.
 
 ---
 
 ## Progreso general
 
 ```
-Completadas:  ver STATUS.md (última v1.45.0 en develop)
-Planificadas: —
+Completadas:  ver STATUS.md (última v1.53.0 en develop)
+Planificadas: 4 (cadena LISCOM restante en interfases: v1.48.0★, v1.49.0★, v1.50.0★, v1.52.0★)
 En proceso:   0
-Release master: ver tags; develop incluye v1.45.0
+Release master: ver tags; develop incluye v1.53.0
 ```
 
 ---
