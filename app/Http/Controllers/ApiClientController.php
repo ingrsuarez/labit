@@ -53,6 +53,7 @@ class ApiClientController extends Controller
             'company_id' => 'required|exists:companies,id',
             'notes' => 'nullable|string|max:2000',
             'active' => 'nullable|boolean',
+            'patient_data_level' => 'nullable|in:'.ApiClient::LEVEL_MINIMAL.','.ApiClient::LEVEL_STANDARD,
         ]);
 
         $plainKey = ApiClient::generateKey();
@@ -63,6 +64,7 @@ class ApiClientController extends Controller
             'company_id' => $data['company_id'],
             'notes' => $data['notes'] ?? null,
             'active' => $request->boolean('active', true),
+            'patient_data_level' => $data['patient_data_level'] ?? ApiClient::LEVEL_MINIMAL,
             'api_key_hash' => ApiClient::hashKey($plainKey),
             'key_preview' => ApiClient::buildPreview($plainKey),
             'created_by' => auth()->id(),
@@ -95,12 +97,14 @@ class ApiClientController extends Controller
             'name' => 'required|string|max:255',
             'notes' => 'nullable|string|max:2000',
             'active' => 'nullable|boolean',
+            'patient_data_level' => 'required|in:'.ApiClient::LEVEL_MINIMAL.','.ApiClient::LEVEL_STANDARD,
         ]);
 
         $apiClient->update([
             'name' => $data['name'],
             'notes' => $data['notes'] ?? null,
             'active' => $request->boolean('active'),
+            'patient_data_level' => $data['patient_data_level'],
         ]);
 
         $apiClient->logAudit('update', "API client actualizado: {$apiClient->name}");

@@ -87,6 +87,28 @@
                     @enderror
                 </div>
 
+                <div>
+                    <label for="patient_data_level" class="block text-sm font-medium text-gray-700 mb-1">
+                        Nivel de datos del paciente
+                    </label>
+                    <select name="patient_data_level" id="patient_data_level"
+                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        @foreach(\App\Models\ApiClient::PATIENT_DATA_LEVELS as $value => $label)
+                            <option value="{{ $value }}"
+                                @selected(old('patient_data_level', \App\Models\ApiClient::LEVEL_MINIMAL) === $value)>
+                                {{ $label }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">
+                        <strong>Mínimo:</strong> el sistema externo NO recibe el DNI del paciente (recomendado).
+                        <strong>Estándar</strong> requiere justificación legal — incluye datos personales sensibles.
+                    </p>
+                    @error('patient_data_level')
+                        <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <label class="flex items-center gap-2">
                     <input type="checkbox" name="active" value="1" checked
                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">

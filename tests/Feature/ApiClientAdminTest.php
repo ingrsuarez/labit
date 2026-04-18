@@ -141,6 +141,7 @@ class ApiClientAdminTest extends TestCase
             'name' => 'Cliente C renombrado',
             'notes' => 'Una nota de prueba',
             'active' => 0,
+            'patient_data_level' => ApiClient::LEVEL_MINIMAL,
             'lab_branch_id' => $otherBranch->id, // intento de cambio que debe ignorarse
         ]);
 
