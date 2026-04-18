@@ -12,7 +12,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // v1.53.0 — Limpieza diaria de logs de la API (ResultBatch + ResultIngestion)
+        $schedule->command('api:cleanup --no-interaction')->dailyAt('03:00');
     }
 
     /**
