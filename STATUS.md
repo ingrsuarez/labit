@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-18 (Dev: completada v1.46.0 — API pública con API key + admin de keys. Fundación de la cadena LISCOM)
+> Última actualización: 2026-04-18 (Dev: completada v1.47.0 — endpoints GET unificados de protocolos clinical/sample/vet con filtrado por sede y PII gating)
 
 ---
 
@@ -9,23 +9,22 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.46.0** en **develop** (master según último release del usuario) |
+| **Versión actual** | **v1.47.0** en **develop** (master según último release del usuario) |
 | **Última en master** | Ver tags en remoto |
-| **Última completada** | v1.46.0 — API pública con API key (`X-API-Key`) + módulo admin de keys |
+| **Última completada** | v1.47.0 — endpoints GET unificados de protocolos (clinical/sample/vet) + PII gating |
 | **En proceso** | — |
-| **Próxima** | v1.47.0 (endpoints GET de protocolos unificados) |
-| **Pendientes en cola** | 8 (v1.47.0, v1.48.0★, v1.48.5, v1.49.0★, v1.50.0★, v1.51.0, v1.52.0★, v1.53.0 — ★ = otro repo) |
-| **Completadas** | 94 |
+| **Próxima** | v1.48.5 (formato extendido de barcode) o v1.48.0 (cliente LISCOM, otro repo) |
+| **Pendientes en cola** | 7 (v1.48.0★, v1.48.5, v1.49.0★, v1.50.0★, v1.51.0, v1.52.0★, v1.53.0 — ★ = otro repo) |
+| **Completadas** | 95 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (8)
+### Pendientes (7)
 
 | Versión | Repo | Nombre | Prompt |
 |---|---|---|---|
-| v1.47.0 | labit | Endpoints GET de protocolos unificados | `pendientes/v1.47.0-protocolos-api-endpoints.md` |
 | v1.48.0 | **interfases** (Django) | Cliente labit + sync de protocolos en LISCOM | `pendientes/v1.48.0-liscom-cliente-labit-sync.md` |
 | v1.48.5 | labit | Formato extendido de barcode `protocol_number^material_abbr` | `pendientes/v1.48.5-barcode-formato-extendido.md` |
 | v1.49.0 | **interfases** (Django) | Mapeo HL7 + respuesta DSR/ORL al scan | `pendientes/v1.49.0-liscom-mapeo-codigos-respuesta-scan.md` |
@@ -42,10 +41,11 @@
 
 _Sin prompts en ejecución._
 
-### Completados (94)
+### Completados (95)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.47.0 | API pública: protocolos unificados (clinical/sample/vet) + PII gating | 2026-04-18 | v1.47.0 |
 | v1.46.0 | API pública con API key + módulo admin de keys (LISCOM foundation) | 2026-04-18 | v1.46.0 |
 | v1.45.0 | Eliminar cliente: protocolos y facturación | 2026-04-13 | v1.45.0 |
 | v1.44.0 | Nomenclador veterinario (hub lab vet) | 2026-04-12 | v1.44.0 |
@@ -233,12 +233,10 @@ v1.0.0 (completada)
 
 **Cadena LISCOM↔labit completamente planificada.** Orden sugerido:
 
-1. **v1.46.0 (labit)** — API key + admin. Bloquea todo lo demás. Designer recomendado.
-   `Lee .agents/AgenteDesigner/AGENTE_DESIGNER.md y diseñá la UI de admin de API keys de v1.46.0.`
-   o directo: `Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá v1.46.0.`
-2. **v1.47.0 (labit)** — endpoints GET de protocolos. Depende de v1.46.0.
+1. ~~**v1.46.0 (labit)** — API key + admin~~ ✅ completada (2026-04-18).
+2. ~~**v1.47.0 (labit)** — endpoints GET de protocolos~~ ✅ completada (2026-04-18).
 3. **v1.48.5 (labit)** — formato extendido de barcode. **Independiente, se puede hacer en paralelo
-   con v1.46.0/v1.47.0.** Es chico (1-2 horas).
+   con la cadena LISCOM.** Es chico (1-2 horas).
 4. **v1.51.0 (labit)** — endpoint POST `/api/v1/results/batch`. Depende de v1.46.0 + v1.47.0.
 5. **v1.48.0 (LISCOM)** — cliente labit + sync. Otro repo. Depende de labit v1.47.0.
 6. **v1.49.0 (LISCOM)** — mapeo + respuesta a queries. Depende de LISCOM v1.48.0 + labit v1.48.5.
