@@ -2,7 +2,7 @@
 
 > Arquitectura técnica, estructura del proyecto y decisiones de diseño.
 > Fuente de verdad para el Agente CTO y cualquier agente que necesite contexto técnico.
-> Última actualización: 2026-04-05
+> Última actualización: 2026-04-18 (DD-005 API pública con API key y módulo Admin de keys)
 
 ---
 
@@ -129,7 +129,7 @@ Los permisos se gestionan con Spatie Laravel Permission y se asignan por secció
 | **RRHH** | Employee, Job, Category, Leave, Holiday, Payroll, PayrollItem, SalaryItem, Document, DocumentFile | EmployeeController, PayrollController, VacationController, LeaveController, DocumentController | Legajos, organigrama, liquidaciones, vacaciones, ausencias |
 | **Calidad** | NonConformity, NonConformityFollowUp, Circular, CircularSignature | NonConformityController, CircularController | No conformidades, circulares con firma digital |
 | **Portal** | (usa modelos de RRHH y Calidad) | EmployeePortalController, Portal\CircularController | Dashboard, equipo, recibos, solicitudes, circulares |
-| **Admin** | User, Role, Permission | UserController, RoleController, PermissionController, AdminSectionController | Usuarios, roles, permisos, configuración |
+| **Admin** | User, Role, Permission, ApiClient | UserController, RoleController, PermissionController, AdminSectionController, ApiClientController | Usuarios, roles, permisos, configuración, **API keys públicas** |
 
 ---
 
@@ -155,6 +155,11 @@ Los permisos se gestionan con Spatie Laravel Permission y se asignan por secció
 - **Razón:** Coherencia con sedes de laboratorio (v1.30.x) y trazabilidad de inventario por depósito
 - **Consecuencia:** OC, remitos, FC y movimientos manuales exponen y validan sede; la migración pivote FC–múltiples remitos es **idempotente** ante tablas ya creadas para no cortar la cadena de `migrate`
 
+### DD-005: API pública con API key (no Sanctum), una key por sede
+- **Decisión:** Auth máquina-a-máquina por header `X-API-Key`, key con prefijo `labit_` + 40 chars random, persistida solo como hash SHA-256, una key por `lab_branch_id` (más `company_id` requerido). CRUD admin en `/admin/api-clients` con permiso `api-clients.manage`. Middleware `auth.api_key` valida + tracking en background (`afterResponse`) + log estructurado en canal `api`. Endpoint inicial `GET /api/v1/ping`.
+- **Razón:** Sanctum apunta a tokens de usuarios humanos; para integraciones máquina-a-máquina (LISCOM, equipos HL7) una key explícita y rotable es más auditable y evita acoplar al ciclo de Sanctum. Una key por sede simplifica el filtrado automático por `lab_branch_id` en endpoints futuros (v1.47.0+) y limita el blast radius si una key se compromete. Prefijo identificable habilita detección de leaks en logs/git/screenshots (estilo Stripe/GitHub).
+- **Consecuencia:** La key plana se muestra **una sola vez** al crear/regenerar (modal con confirmación). El `lab_branch_id` es inmutable post-creación: si una sede cambia de instancia, se crea una key nueva. El logging del canal `api` (rotación diaria, `storage/logs/api-YYYY-MM-DD.log`) NO incluye la key plana ni el hash. Sin rate limiting en esta versión; si se necesita, agregar `throttle` al grupo `v1` (Laravel ya lo tiene listo).
+
 ---
 
 ## Integraciones externas
@@ -162,6 +167,7 @@ Los permisos se gestionan con Spatie Laravel Permission y se asignan por secció
 | Integración | Tipo | Auth | Notas |
 |---|---|---|---|
 | Email (SMTP) | Envío de resultados y notificaciones | .env config | Resultados de muestras, circulares |
+| API pública v1 | Salida de datos a sistemas externos (LISCOM, etc.) | API key (`X-API-Key`) | Modelo `ApiClient`, middleware `auth.api_key`, una key por sede; ver DD-005. Endpoints de negocio en v1.47.0+ |
 
 ---
 
