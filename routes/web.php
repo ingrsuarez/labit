@@ -728,3 +728,16 @@ Route::middleware([
     Route::get('/circulars/{circular}', [App\Http\Controllers\Portal\CircularController::class, 'show'])->name('circulars.show');
     Route::post('/circulars/{circular}/sign', [App\Http\Controllers\Portal\CircularController::class, 'sign'])->name('circulars.sign');
 });
+
+// v1.53.0 — Dashboard de monitoreo de la API (ingesta de resultados desde LISCOM)
+// Acceso: usuarios logueados con permission 'lab-admissions.index' (roles: bioquimico, tecnico-lab, recepcion-lab)
+// Sección técnica adicional: permission 'api-clients.manage' (admin IT, de v1.46.0)
+Route::middleware(['auth', 'verified'])->prefix('admin/api-monitor')->name('admin.api-monitor.')->group(function () {
+    Route::middleware('can:lab-admissions.index')->group(function () {
+        Route::get('/', \App\Livewire\Api\Dashboard::class)->name('dashboard');
+        Route::get('/batches', \App\Livewire\Api\BatchesList::class)->name('batches');
+        Route::get('/batches/{batch}', \App\Livewire\Api\BatchDetail::class)->name('batches.show');
+        Route::get('/ingestions', \App\Livewire\Api\IngestionsList::class)->name('ingestions');
+        Route::get('/ingestions/{ingestion}', \App\Livewire\Api\IngestionDetail::class)->name('ingestions.show');
+    });
+});

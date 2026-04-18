@@ -2,7 +2,7 @@
 
 > Arquitectura técnica, estructura del proyecto y decisiones de diseño.
 > Fuente de verdad para el Agente CTO y cualquier agente que necesite contexto técnico.
-> Última actualización: 2026-04-18 (DD-007 ingesta de resultados: idempotencia doble + regla no-overwrite si validado)
+> Última actualización: 2026-04-18 (DD-008 dashboard monitoreo API: Livewire 3, permission lab-admissions.index, api:cleanup)
 
 ---
 
@@ -171,6 +171,12 @@ Los permisos se gestionan con Spatie Laravel Permission y se asignan por secció
 - **Razón:** El flujo de validación del bioquímico es la operación de mayor valor en labit. Permitir que la API de LISCOM sobrescriba resultados ya validados introduciría regresiones silenciosas en datos clínicos. La idempotencia doble elimina la necesidad de que LISCOM implemente deduplicación: puede reintentar libremente. Los modelos `ResultBatch` + `ResultIngestion` persisten el estado para la UI de monitoreo (v1.53.0). Logging estructurado (canal `api`) provee trazabilidad de overwrites y rechazos sin necesidad de modificar `audit_logs` en esta versión.
 - **Consecuencia:** LISCOM (v1.52.0) debe leer los `reason` de la response para clasificar los ítems: `ALREADY_VALIDATED` → no reintentar; `PROTOCOL_NOT_FOUND` / `DETERMINATION_NOT_FOUND` → alerta; `duplicate` → ya procesado. El trait `Auditable` no está en los modelos de determinación; si se suma en el futuro, los overwrites quedarán doblemente trazados (log + audit_logs). Notificación al bioquímico sobre resultados nuevos pendientes de validar es tensión abierta (v1.51.1 o v1.53.0).
 
+### DD-008: Dashboard de monitoreo API — permission `lab-admissions.index`, contadores materializados, retención configurable
+
+- **Decisión:** Dashboard Livewire 3 en `/admin/api-monitor` para visualizar la ingesta de resultados (v1.51.0). Acceso vía permission `lab-admissions.index` (no se crea permission nuevo — es compartido por todos los roles del lab). Sección técnica adicional (raw payload, info técnica) gateada por `api-clients.manage`. Counters del dashboard leen de columnas materializadas `result_batches.items_*` (no del JSON `items_summary`). Retención configurable con `API_LOG_RETENTION_DAYS` + comando `api:cleanup`. Sidebar con badge de rechazos ALREADY_VALIDATED del día (cacheado 60s).
+- **Razón:** Visibilidad operativa para que el laboratorio confíe en la automatización y detecte problemas temprano. `lab-admissions.index` es el permission más inclusivo del laboratorio sin crear uno nuevo. Los contadores materializados de v1.51.0 evitan agregaciones JSON en vivo. La retención evita que las tablas crezcan sin límite.
+- **Consecuencia:** Si en el futuro se añade un permission `view-protocols` más granular, este middleware puede actualizarse. El comando `api:cleanup` debe tener acceso a confirmación interactiva en producción pero usar `--no-interaction` en cron. El badge del sidebar hace 1 query por pageview pero está cacheado 60s.
+
 ---
 
 ## Integraciones externas
@@ -180,6 +186,7 @@ Los permisos se gestionan con Spatie Laravel Permission y se asignan por secció
 | Email (SMTP) | Envío de resultados y notificaciones | .env config | Resultados de muestras, circulares |
 | API pública v1 | Salida de datos a sistemas externos (LISCOM, etc.) | API key (`X-API-Key`) | Modelo `ApiClient`, middleware `auth.api_key`, una key por sede; ver DD-005 (auth) y DD-006 (protocolos unificados clinical/sample/vet). Doc completa: `docs/api/v1/protocols.md`. |
 | Ingesta de resultados v1 | Recepción de resultados de equipos HL7 desde LISCOM | API key (`X-API-Key`) | Modelos `ResultBatch` + `ResultIngestion`; ver DD-007. Doc: `docs/api/v1/results.md`. |
+| Dashboard monitoreo API | Visualización operativa de la ingesta de resultados | Web auth + permission `lab-admissions.index` | Livewire 3; componentes `App\Livewire\Api\*`; servicio `ApiMonitorService`; ver DD-008. Runbook: `docs/operations/api-monitor.md`. |
 
 ---
 

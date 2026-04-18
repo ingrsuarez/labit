@@ -5,6 +5,32 @@
 
 ---
 
+## [v1.53.0] — 2026-04-18 — Dashboard de monitoreo de la API (ingesta de resultados desde LISCOM)
+
+### Agregado
+- **Dashboard `/admin/api-monitor`** (Livewire 3) con counters de batches/mensajes/rechazos con auto-refresh cada 10s.
+- **`App\Services\Api\ApiMonitorService`** — lectura agregada de `result_batches` + `result_ingestions`. Usa contadores materializados de v1.51.0 (no agrega JSON en vivo).
+- **5 componentes Livewire** (`App\Livewire\Api\Dashboard`, `BatchesList`, `BatchDetail`, `IngestionsList`, `IngestionDetail`) con filtros URL-persistidos vía `#[Url]`.
+- **3 componentes Blade reusables** (`x-api-monitor.counter-card`, `x-api-monitor.health-badge`, `x-api-monitor.status-badge`).
+- **Banner ALREADY_VALIDATED** visible para bioquímicos cuando hay rechazos del período. Drill-down al mensaje y protocolo real en labit.
+- **Tabla de estado de sedes** con clasificación de salud (`healthy`/`idle`/`stale`/`inactive`/`never_used`) basada en `last_used_at` del ApiClient.
+- **Comando `php artisan api:cleanup`** con `--dry-run`, `--days`, `--no-interaction`. Scheduling diario a las 03:00 en `Kernel.php`.
+- **`config/api.php`** con `log_retention_days` configurable vía `API_LOG_RETENTION_DAYS` (default 90 días).
+- **Migración de índices** sobre `result_ingestions` y `result_batches` para queries del dashboard.
+- **20 tests Feature** pasando (17 dashboard + 3 cleanup).
+- **`docs/operations/api-monitor.md`** — runbook operativo.
+- **Entrada sidebar** con badge de rechazos ALREADY_VALIDATED del día (cacheado 60s).
+
+### Decisión de permisos (tensión resuelta)
+No existe permission `view-protocols` transversal. Se eligió **`lab-admissions.index`** como permission de acceso al dashboard porque es compartido por todos los roles del laboratorio (`bioquimico`, `tecnico-lab`, `recepcion-lab`). Sin permissions nuevos.
+
+### Notas técnicas
+- `getProtocolUrl()` resuelve la URL del protocolo buscando el modelo por `protocol_number` (query puntual solo en detalle de 1 ingestion, no en listados).
+- Raw payload truncado de v1.51.0 (marker `_truncated`) se detecta visualmente en el detalle del batch.
+- Los counters del dashboard leen de `result_batches.items_*` (campos materializados), no del JSON de `items_summary`. Performance garantizada incluso con muchos registros.
+
+---
+
 ## [v1.51.0] — 2026-04-18 — Ingesta de resultados desde LISCOM (`POST /api/v1/results/batch`)
 
 ### Agregado
