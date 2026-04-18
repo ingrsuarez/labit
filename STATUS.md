@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-18 (sesión PM: planificación v1.53.0 — dashboard monitoreo API. Cadena LISCOM↔labit completa)
+> Última actualización: 2026-04-18 (Dev: completada v1.46.0 — API pública con API key + admin de keys. Fundación de la cadena LISCOM)
 
 ---
 
@@ -9,23 +9,22 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.45.0** en **develop** (master según último release del usuario) |
+| **Versión actual** | **v1.46.0** en **develop** (master según último release del usuario) |
 | **Última en master** | Ver tags en remoto |
-| **Última completada** | v1.45.0 — Eliminar cliente: solo bloqueo por protocolos o facturación |
+| **Última completada** | v1.46.0 — API pública con API key (`X-API-Key`) + módulo admin de keys |
 | **En proceso** | — |
-| **Próxima** | v1.46.0 (API key) — primera de la cadena LISCOM |
-| **Pendientes en cola** | 9 (v1.46.0, v1.47.0, v1.48.0★, v1.48.5, v1.49.0★, v1.50.0★, v1.51.0, v1.52.0★, v1.53.0 — ★ = otro repo) |
-| **Completadas** | 93 |
+| **Próxima** | v1.47.0 (endpoints GET de protocolos unificados) |
+| **Pendientes en cola** | 8 (v1.47.0, v1.48.0★, v1.48.5, v1.49.0★, v1.50.0★, v1.51.0, v1.52.0★, v1.53.0 — ★ = otro repo) |
+| **Completadas** | 94 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (9)
+### Pendientes (8)
 
 | Versión | Repo | Nombre | Prompt |
 |---|---|---|---|
-| v1.46.0 | labit | API pública: auth API key + admin de keys | `pendientes/v1.46.0-api-publica-fundacion.md` |
 | v1.47.0 | labit | Endpoints GET de protocolos unificados | `pendientes/v1.47.0-protocolos-api-endpoints.md` |
 | v1.48.0 | **interfases** (Django) | Cliente labit + sync de protocolos en LISCOM | `pendientes/v1.48.0-liscom-cliente-labit-sync.md` |
 | v1.48.5 | labit | Formato extendido de barcode `protocol_number^material_abbr` | `pendientes/v1.48.5-barcode-formato-extendido.md` |
@@ -43,10 +42,11 @@
 
 _Sin prompts en ejecución._
 
-### Completados (93)
+### Completados (94)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.46.0 | API pública con API key + módulo admin de keys (LISCOM foundation) | 2026-04-18 | v1.46.0 |
 | v1.45.0 | Eliminar cliente: protocolos y facturación | 2026-04-13 | v1.45.0 |
 | v1.44.0 | Nomenclador veterinario (hub lab vet) | 2026-04-12 | v1.44.0 |
 | v1.43.0 | Precios vet: NBU veterinaria × NBU práctica | 2026-04-12 | v1.43.0 |

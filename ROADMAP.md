@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-18 (planificación cadena **v1.46.0–v1.53.0** integración LISCOM)
+> Última actualización: 2026-04-18 (completada v1.46.0 — API pública + admin de keys; primera de la cadena LISCOM)
 
 ---
 
@@ -93,6 +93,7 @@
 | v1.43.0 | Precios protocolo veterinario: NBU veterinaria × NBU práctica | 2026-04-12 | `customers.veterinary_nbu_value`; `searchTests` + `store` server-side; UI clientes y alta vet; tests Feature |
 | v1.44.0 | Nomenclador veterinario (hub + listado filtrado) | 2026-04-12 | Ruta `lab/veterinario/nomenclador`; `TestController::indexVeterinary`; reusa `test/index`; redirección `_context=vet_nomenclator` |
 | v1.45.0 | Eliminar cliente: protocolos y facturación | 2026-04-13 | `CustomerController::destroy` agrupa bloqueos; botón eliminar + `CustomerDestroyTest` |
+| v1.46.0 | API pública con API key + módulo admin de keys | 2026-04-18 | Modelo `ApiClient` (1 key/sede, hash SHA-256, prefix `labit_`), middleware `auth.api_key` + canal log `api`, endpoint `GET /api/v1/ping`, CRUD `/admin/api-clients` con modal "key una sola vez" + regenerate, permiso `api-clients.manage`. 13 tests Feature verde. DD-005 en BLUEPRINT |
 
 ---
 
@@ -115,7 +116,7 @@ de internet).
 
 | Versión | Nombre | Estado | Prompt | Notas |
 |---|---|---|---|---|
-| v1.46.0 | API pública: auth con API key + admin de keys | Pendiente | `pendientes/v1.46.0-api-publica-fundacion.md` | Cimiento de toda la cadena. Una key por sede. Designer pendiente para CRUD admin. |
+| v1.46.0 | API pública: auth con API key + admin de keys | ✅ Completada (2026-04-18) | `completados/v1.46.0-api-publica-fundacion.md` | Tag `v1.46.0`. Cimiento de la cadena LISCOM. Una key por sede + log canal `api`. |
 | v1.47.0 | Endpoints GET de protocolos unificados (clinical + sample + vet) | Pendiente | `pendientes/v1.47.0-protocolos-api-endpoints.md` | Resource polimórfico, filtrado automático por sede/empresa, sin DNI por default, soporta sync incremental con `updated_since`. |
 | v1.48.0 | Cliente labit en liscom + sync diaria + DB local de protocolos | Pendiente ⚠️ otro repo | `pendientes/v1.48.0-liscom-cliente-labit-sync.md` | **Se ejecuta en `c:\wamp64\www\interfases` (Django).** Cliente HTTP + 4 modelos cache + sync (today/incremental/range/on_demand) + comando management + UI básica. Designer pendiente. |
 | v1.48.5 | Formato extendido de barcode: `protocol_number^material_abbr` | Pendiente | `pendientes/v1.48.5-barcode-formato-extendido.md` | Cambia `BarcodeGeneratorSVG::getBarcode()` en clínico y muestras para incluir el código de material. Habilita filtrado por tubo del lado liscom. Vet también si tiene labels (revisar). |
@@ -153,10 +154,10 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 ## Progreso general
 
 ```
-Completadas:  ver STATUS.md (última v1.45.0 en develop)
-Planificadas: 9 (cadena LISCOM v1.46.0–v1.53.0, incluye v1.48.5)
+Completadas:  ver STATUS.md (última v1.46.0 en develop)
+Planificadas: 8 (cadena LISCOM v1.47.0–v1.53.0, incluye v1.48.5)
 En proceso:   0
-Release master: ver tags; develop incluye v1.45.0
+Release master: ver tags; develop incluye v1.46.0
 ```
 
 ---
