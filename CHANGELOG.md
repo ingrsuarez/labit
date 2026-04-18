@@ -5,6 +5,31 @@
 
 ---
 
+## [v1.48.5] — 2026-04-18 — Formato extendido de barcode (preparación HL7)
+
+### Cambiado
+- **Etiquetas de protocolo** ahora generan barcodes con formato
+  `{protocol_number}^{material_abbreviation}` (antes: solo `protocol_number`).
+  Ej: `C-2026-001234^EDTA`.
+- Habilita filtrado por material desde el lado del servidor HL7 (LISCOM, v1.49.0).
+- Si el material no se puede determinar, fallback transparente al formato anterior.
+- Aplicado en: laboratorio clínico (`LabAdmissionController::printLabel`) y muestras
+  (`SampleController::printLabel`, Opción 3.A — primer material).
+
+### Agregado
+- `App\Services\BarcodeFormatService` — helper estático con método
+  `forLabel(string, ?string): string`.
+- Test Feature `tests/Feature/BarcodeFormatTest.php` (5 casos).
+
+### Notas técnicas
+- `VetAdmissionController` no genera etiquetas con barcode → sin cambios.
+- **Tensión abierta:** `public/js/zebra-label-print.js` arma el ZPL usando
+  `label.protocol_number` directamente; las impresoras Zebra imprimirán el formato
+  anterior hasta que se resuelva en hotfix v1.48.5.1 (agregar `barcode_content` al
+  JSON de `labelData()` y consumirlo en el JS).
+
+---
+
 ## [v1.45.0] — 2026-04-13 — Eliminar cliente: reglas protocolos y facturación
 
 ### Cambiado
