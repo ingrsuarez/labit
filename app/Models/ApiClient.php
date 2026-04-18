@@ -12,6 +12,15 @@ class ApiClient extends Model
 {
     use Auditable, HasFactory;
 
+    public const LEVEL_MINIMAL = 'minimal';
+
+    public const LEVEL_STANDARD = 'standard';
+
+    public const PATIENT_DATA_LEVELS = [
+        self::LEVEL_MINIMAL => 'Mínimo (sin DNI)',
+        self::LEVEL_STANDARD => 'Estándar (incluye DNI)',
+    ];
+
     protected $fillable = [
         'name',
         'api_key_hash',
@@ -19,6 +28,7 @@ class ApiClient extends Model
         'lab_branch_id',
         'company_id',
         'active',
+        'patient_data_level',
         'last_used_at',
         'requests_count',
         'notes',
@@ -74,5 +84,14 @@ class ApiClient extends Model
     public static function buildPreview(string $plain): string
     {
         return substr($plain, 0, 12).'…';
+    }
+
+    /**
+     * Indica si esta key está autorizada a recibir el DNI del paciente
+     * en las respuestas de la API. Por defecto es false (level=minimal).
+     */
+    public function includesDni(): bool
+    {
+        return $this->patient_data_level === self::LEVEL_STANDARD;
     }
 }

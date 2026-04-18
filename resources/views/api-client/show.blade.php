@@ -78,6 +78,21 @@
                     <dd class="col-span-2 text-sm text-gray-900">{{ $client->company?->displayName() ?? '—' }}</dd>
                 </div>
                 <div class="grid grid-cols-3 gap-4 px-6 py-4">
+                    <dt class="text-sm font-medium text-gray-500">Datos del paciente</dt>
+                    <dd class="col-span-2 text-sm text-gray-900">
+                        @if($client->includesDni())
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                                Estándar (incluye DNI)
+                            </span>
+                            <span class="text-xs text-gray-500 ml-2">la API expone documento del paciente</span>
+                        @else
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                                Mínimo (sin DNI)
+                            </span>
+                        @endif
+                    </dd>
+                </div>
+                <div class="grid grid-cols-3 gap-4 px-6 py-4">
                     <dt class="text-sm font-medium text-gray-500">Preview de key</dt>
                     <dd class="col-span-2">
                         <code class="text-sm font-mono bg-gray-100 text-gray-700 px-2 py-1 rounded">

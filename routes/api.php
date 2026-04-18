@@ -44,4 +44,19 @@ Route::prefix('v1')->middleware('auth.api_key')->group(function () {
             'time' => now()->toIso8601String(),
         ]);
     })->name('api.v1.ping');
+
+    // Protocolos unificados (clinical/sample/vet) — v1.47.0
+    Route::get('protocols', [\App\Http\Controllers\Api\V1\ProtocolController::class, 'index'])
+        ->name('api.v1.protocols.index');
+
+    // El barcode puede contener caracteres especiales (ej: futuro `^material`).
+    // `where('code', '.+')` evita que Laravel parta la URL por `/`.
+    Route::get('protocols/by-barcode/{code}', [\App\Http\Controllers\Api\V1\ProtocolController::class, 'showByBarcode'])
+        ->where('code', '.+')
+        ->name('api.v1.protocols.by_barcode');
+
+    Route::get('protocols/{type}/{id}', [\App\Http\Controllers\Api\V1\ProtocolController::class, 'show'])
+        ->whereIn('type', ['clinical', 'sample', 'vet'])
+        ->whereNumber('id')
+        ->name('api.v1.protocols.show');
 });
