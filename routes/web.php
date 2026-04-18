@@ -98,6 +98,16 @@ Route::middleware([
         Route::get('admin/configuracion', [App\Http\Controllers\AdminSectionController::class, 'configuracion'])->name('admin.section.configuracion');
     });
 
+    // API CLIENTS (Admin de API keys públicas)
+    Route::middleware('can:api-clients.manage')
+        ->prefix('admin')
+        ->group(function () {
+            Route::resource('api-clients', App\Http\Controllers\ApiClientController::class)
+                ->parameters(['api-clients' => 'apiClient']);
+            Route::post('api-clients/{apiClient}/regenerate', [App\Http\Controllers\ApiClientController::class, 'regenerate'])
+                ->name('api-clients.regenerate');
+        });
+
     // PATIENTS ROUTES
     Route::get('/patient/new', [App\Http\Controllers\PatientController::class, 'index'])->name('patient.index');
     Route::get('/patient/show', [App\Http\Controllers\PatientController::class, 'show'])->name('patient.show');
