@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-18 (completada v1.47.0 — endpoints GET unificados de protocolos clinical/sample/vet con PII gating; segunda de la cadena LISCOM)
+> Última actualización: 2026-04-18 (completada v1.48.5 — formato extendido de barcode `{protocol_number}^{material_abbreviation}`)
 
 ---
 
@@ -95,6 +95,7 @@
 | v1.45.0 | Eliminar cliente: protocolos y facturación | 2026-04-13 | `CustomerController::destroy` agrupa bloqueos; botón eliminar + `CustomerDestroyTest` |
 | v1.46.0 | API pública con API key + módulo admin de keys | 2026-04-18 | Modelo `ApiClient` (1 key/sede, hash SHA-256, prefix `labit_`), middleware `auth.api_key` + canal log `api`, endpoint `GET /api/v1/ping`, CRUD `/admin/api-clients` con modal "key una sola vez" + regenerate, permiso `api-clients.manage`. 13 tests Feature verde. DD-005 en BLUEPRINT |
 | v1.47.0 | API pública: protocolos unificados (clinical/sample/vet) + PII gating | 2026-04-18 | `GET /api/v1/protocols`, `/by-barcode/{code}`, `/{type}/{id}`. `ProtocolResource` polimórfico + `DeterminationResource` con normalización de status (pending/in_progress/completed/validated). Enum `ProtocolType` (prefijos C/A/V). Service `ProtocolLookupService` con merge en PHP + filtro por sede. PII (DNI/CUIT) gateado por `api_clients.patient_data_level` (default `minimal`). 15 tests Feature verde. Doc en `docs/api/v1/protocols.md`. DD-006 en BLUEPRINT |
+| v1.48.5 | Formato extendido de barcode (`{protocol_number}^{material_abbreviation}`) | 2026-04-18 | `BarcodeFormatService::forLabel()`. Clínico (una etiqueta por material) + Muestras (primer material, Opción 3.A). VetAdmission sin etiquetas → sin cambios. Tensión abierta: ZPL Zebra usa `protocol_number` directo → hotfix v1.48.5.1 pendiente. 5 tests Feature verde. |
 
 ---
 
@@ -119,8 +120,7 @@ de internet).
 |---|---|---|---|---|
 | v1.46.0 | API pública: auth con API key + admin de keys | ✅ Completada (2026-04-18) | `completados/v1.46.0-api-publica-fundacion.md` | Tag `v1.46.0`. Cimiento de la cadena LISCOM. Una key por sede + log canal `api`. |
 | v1.47.0 | Endpoints GET de protocolos unificados (clinical + sample + vet) | ✅ Completada (2026-04-18) | `completados/v1.47.0-protocolos-api-endpoints.md` | Tag `v1.47.0`. Resource polimórfico + filtrado automático por sede + PII gating por nivel de la key (default minimal, sin DNI). Soporta sync incremental con `updated_since`. |
-| v1.48.0 | Cliente labit en liscom + sync diaria + DB local de protocolos | Pendiente ⚠️ otro repo | `pendientes/v1.48.0-liscom-cliente-labit-sync.md` | **Se ejecuta en `c:\wamp64\www\interfases` (Django).** Cliente HTTP + 4 modelos cache + sync (today/incremental/range/on_demand) + comando management + UI básica. Designer pendiente. |
-| v1.48.5 | Formato extendido de barcode: `protocol_number^material_abbr` | Pendiente | `pendientes/v1.48.5-barcode-formato-extendido.md` | Cambia `BarcodeGeneratorSVG::getBarcode()` en clínico y muestras para incluir el código de material. Habilita filtrado por tubo del lado liscom. Vet también si tiene labels (revisar). |
+| v1.48.5 | Formato extendido de barcode: `protocol_number^material_abbr` | ✅ Completada (2026-04-18) | `completados/v1.48.5-barcode-formato-extendido.md` | Tag `v1.48.5`. `BarcodeFormatService::forLabel()`. Clínico (etiqueta por material) + Muestras (Opción 3.A, primer material). Tensión abierta: ZPL Zebra usa `protocol_number` directo (pendiente hotfix v1.48.5.1). |
 | v1.49.0 | Mapeo de códigos equipo↔labit + respuesta HL7 al scan en liscom | Pendiente ⚠️ otro repo | `pendientes/v1.49.0-liscom-mapeo-codigos-respuesta-scan.md` | **Se ejecuta en `c:\wamp64\www\interfases` (Django).** Modelo `EquipmentTestMapping` + UI manual + parser de barcode con material + builders DSR^Q03 / ORL^O22 + handler de QRY^Q11 / OUL^R22 en `ConnectionManager._handle_message`. |
 | v1.50.0 | Recepción HL7 ORU/OUL + bandeja de revisión humana en liscom | Pendiente ⚠️ otro repo | `interfases/agent-bootstrap/prompts/pendientes/v1.50.0-liscom-recepcion-resultados-bandeja.md` | **Se ejecuta en `c:\wamp64\www\interfases` (Django).** Modelos `ResultMessage` + `Result`, parser HL7 extendido, `ResultIntakeService` con idempotencia, 3 pantallas web con doc de diseño en `interfases/docs/design/v1.50.0-...`, comando `reprocess_result`. NO envía a labit (eso es v1.52.0). |
 | v1.51.0 | Endpoint POST `/api/v1/results/batch` con idempotencia + respeto a validación bioquímico | Pendiente | `pendientes/v1.51.0-api-ingesta-resultados-batch.md` | Modelos `ResultBatch`+`ResultIngestion`, `ApiResultIngestionService` con regla **NO sobrescribir si `is_validated=true`**, lookup unificado por prefijo (C-/S-/V-), idempotencia doble (batch_id + hl7_control_id), response detallada por ítem con códigos (`ingested`/`overwritten`/`rejected`/`duplicate`). Sin UI (eso es v1.53.0). |
@@ -155,10 +155,10 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 ## Progreso general
 
 ```
-Completadas:  ver STATUS.md (última v1.47.0 en develop)
-Planificadas: 7 (cadena LISCOM restante: v1.48.0★, v1.48.5, v1.49.0★, v1.50.0★, v1.51.0, v1.52.0★, v1.53.0)
+Completadas:  ver STATUS.md (última v1.48.5 en develop)
+Planificadas: 6 (cadena LISCOM restante: v1.48.0★, v1.49.0★, v1.50.0★, v1.51.0, v1.52.0★, v1.53.0)
 En proceso:   0
-Release master: ver tags; develop incluye v1.47.0
+Release master: ver tags; develop incluye v1.48.5
 ```
 
 ---

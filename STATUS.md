@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-18 (Dev: completada v1.47.0 — endpoints GET unificados de protocolos clinical/sample/vet con filtrado por sede y PII gating)
+> Última actualización: 2026-04-18 (Dev: completada v1.48.5 — formato extendido de barcode `{protocol_number}^{material_abbreviation}`)
 
 ---
 
@@ -9,24 +9,23 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.47.0** en **develop** (master según último release del usuario) |
+| **Versión actual** | **v1.48.5** en **develop** (master según último release del usuario) |
 | **Última en master** | Ver tags en remoto |
-| **Última completada** | v1.47.0 — endpoints GET unificados de protocolos (clinical/sample/vet) + PII gating |
+| **Última completada** | v1.48.5 — formato extendido de barcode (`{protocol_number}^{material_abbreviation}`) |
 | **En proceso** | — |
-| **Próxima** | v1.48.5 (formato extendido de barcode) o v1.48.0 (cliente LISCOM, otro repo) |
-| **Pendientes en cola** | 7 (v1.48.0★, v1.48.5, v1.49.0★, v1.50.0★, v1.51.0, v1.52.0★, v1.53.0 — ★ = otro repo) |
-| **Completadas** | 95 |
+| **Próxima** | v1.51.0 (endpoint POST `/api/v1/results/batch`) o v1.48.0 (cliente LISCOM, otro repo) |
+| **Pendientes en cola** | 6 (v1.48.0★, v1.49.0★, v1.50.0★, v1.51.0, v1.52.0★, v1.53.0 — ★ = otro repo) |
+| **Completadas** | 96 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (7)
+### Pendientes (6)
 
 | Versión | Repo | Nombre | Prompt |
 |---|---|---|---|
 | v1.48.0 | **interfases** (Django) | Cliente labit + sync de protocolos en LISCOM | `pendientes/v1.48.0-liscom-cliente-labit-sync.md` |
-| v1.48.5 | labit | Formato extendido de barcode `protocol_number^material_abbr` | `pendientes/v1.48.5-barcode-formato-extendido.md` |
 | v1.49.0 | **interfases** (Django) | Mapeo HL7 + respuesta DSR/ORL al scan | `pendientes/v1.49.0-liscom-mapeo-codigos-respuesta-scan.md` |
 | v1.50.0 | **interfases** (Django) | Recepción HL7 ORU/OUL + bandeja de revisión humana | `interfases/.../pendientes/v1.50.0-liscom-recepcion-resultados-bandeja.md` |
 | v1.51.0 | labit | Endpoint POST `/api/v1/results/batch` (idempotencia + respeta validación bioquímico) | `pendientes/v1.51.0-api-ingesta-resultados-batch.md` |
@@ -41,10 +40,11 @@
 
 _Sin prompts en ejecución._
 
-### Completados (95)
+### Completados (96)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.48.5 | Formato extendido de barcode (`{protocol_number}^{material_abbreviation}`) | 2026-04-18 | v1.48.5 |
 | v1.47.0 | API pública: protocolos unificados (clinical/sample/vet) + PII gating | 2026-04-18 | v1.47.0 |
 | v1.46.0 | API pública con API key + módulo admin de keys (LISCOM foundation) | 2026-04-18 | v1.46.0 |
 | v1.45.0 | Eliminar cliente: protocolos y facturación | 2026-04-13 | v1.45.0 |
@@ -235,11 +235,10 @@ v1.0.0 (completada)
 
 1. ~~**v1.46.0 (labit)** — API key + admin~~ ✅ completada (2026-04-18).
 2. ~~**v1.47.0 (labit)** — endpoints GET de protocolos~~ ✅ completada (2026-04-18).
-3. **v1.48.5 (labit)** — formato extendido de barcode. **Independiente, se puede hacer en paralelo
-   con la cadena LISCOM.** Es chico (1-2 horas).
+3. ~~**v1.48.5 (labit)** — formato extendido de barcode~~ ✅ completada (2026-04-18).
 4. **v1.51.0 (labit)** — endpoint POST `/api/v1/results/batch`. Depende de v1.46.0 + v1.47.0.
 5. **v1.48.0 (LISCOM)** — cliente labit + sync. Otro repo. Depende de labit v1.47.0.
-6. **v1.49.0 (LISCOM)** — mapeo + respuesta a queries. Depende de LISCOM v1.48.0 + labit v1.48.5.
+6. **v1.49.0 (LISCOM)** — mapeo + respuesta a queries. Depende de LISCOM v1.48.0 + labit v1.48.5 ✅.
 7. **v1.50.0 (LISCOM)** — recepción ORU/OUL + bandeja revisión. Depende de LISCOM v1.49.0.
 8. **v1.52.0 (LISCOM)** — cliente outbound + cola + dashboard. Depende de LISCOM v1.50.0 + labit v1.51.0. **Cierra la cadena de integración base** (flujo end-to-end operativo).
 9. **v1.53.0 (labit)** — dashboard monitoreo API. Depende de v1.51.0. Visibilidad operativa post-integración. **No bloqueante para producción** — la cadena funciona sin esta versión, pero el laboratorio necesita esta pantalla para confiar en la automatización.
