@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-13 (**v1.45.0** eliminar cliente sin protocolos/facturación)
+> Última actualización: 2026-04-18 (planificación cadena **v1.46.0–v1.53.0** integración LISCOM)
 
 ---
 
@@ -105,7 +105,32 @@
 
 ## Planificado
 
-_Sin versiones en tabla (la cola de prompts en `pendientes/` está vacía; nuevas entradas vía Agente PM.)_
+### Cadena de integración LISCOM (servidor HL7 local) ↔ Labit (cloud)
+
+LISCOM vive en `c:\wamp64\www\interfases` (Django + Channels + HL7 MLLP). El flujo objetivo:
+labit crea protocolos con barcodes → equipos escanean y consultan a liscom → liscom consulta
+a labit por API y cachea localmente → equipo procesa → liscom recibe HL7 con resultados →
+operador revisa → liscom envía a labit por API (con cola de reintentos para tolerar caídas
+de internet).
+
+| Versión | Nombre | Estado | Prompt | Notas |
+|---|---|---|---|---|
+| v1.46.0 | API pública: auth con API key + admin de keys | Pendiente | `pendientes/v1.46.0-api-publica-fundacion.md` | Cimiento de toda la cadena. Una key por sede. Designer pendiente para CRUD admin. |
+| v1.47.0 | Endpoints GET de protocolos unificados (clinical + sample + vet) | Pendiente | `pendientes/v1.47.0-protocolos-api-endpoints.md` | Resource polimórfico, filtrado automático por sede/empresa, sin DNI por default, soporta sync incremental con `updated_since`. |
+| v1.48.0 | Cliente labit en liscom + sync diaria + DB local de protocolos | Pendiente ⚠️ otro repo | `pendientes/v1.48.0-liscom-cliente-labit-sync.md` | **Se ejecuta en `c:\wamp64\www\interfases` (Django).** Cliente HTTP + 4 modelos cache + sync (today/incremental/range/on_demand) + comando management + UI básica. Designer pendiente. |
+| v1.48.5 | Formato extendido de barcode: `protocol_number^material_abbr` | Pendiente | `pendientes/v1.48.5-barcode-formato-extendido.md` | Cambia `BarcodeGeneratorSVG::getBarcode()` en clínico y muestras para incluir el código de material. Habilita filtrado por tubo del lado liscom. Vet también si tiene labels (revisar). |
+| v1.49.0 | Mapeo de códigos equipo↔labit + respuesta HL7 al scan en liscom | Pendiente ⚠️ otro repo | `pendientes/v1.49.0-liscom-mapeo-codigos-respuesta-scan.md` | **Se ejecuta en `c:\wamp64\www\interfases` (Django).** Modelo `EquipmentTestMapping` + UI manual + parser de barcode con material + builders DSR^Q03 / ORL^O22 + handler de QRY^Q11 / OUL^R22 en `ConnectionManager._handle_message`. |
+| v1.50.0 | Recepción HL7 ORU/OUL + bandeja de revisión humana en liscom | Pendiente ⚠️ otro repo | `interfases/agent-bootstrap/prompts/pendientes/v1.50.0-liscom-recepcion-resultados-bandeja.md` | **Se ejecuta en `c:\wamp64\www\interfases` (Django).** Modelos `ResultMessage` + `Result`, parser HL7 extendido, `ResultIntakeService` con idempotencia, 3 pantallas web con doc de diseño en `interfases/docs/design/v1.50.0-...`, comando `reprocess_result`. NO envía a labit (eso es v1.52.0). |
+| v1.51.0 | Endpoint POST `/api/v1/results/batch` con idempotencia + respeto a validación bioquímico | Pendiente | `pendientes/v1.51.0-api-ingesta-resultados-batch.md` | Modelos `ResultBatch`+`ResultIngestion`, `ApiResultIngestionService` con regla **NO sobrescribir si `is_validated=true`**, lookup unificado por prefijo (C-/S-/V-), idempotencia doble (batch_id + hl7_control_id), response detallada por ítem con códigos (`ingested`/`overwritten`/`rejected`/`duplicate`). Sin UI (eso es v1.53.0). |
+| v1.52.0 | Cliente outbound LISCOM → labit + cola persistente + dashboard | Pendiente ⚠️ otro repo | `interfases/agent-bootstrap/prompts/pendientes/v1.52.0-liscom-cliente-cola-outbound.md` | **Se ejecuta en `c:\wamp64\www\interfases` (Django).** Modelos `OutboundDispatch` + `OutboundAttempt`. Backoff exponencial corto (1m/5m/15m/1h/6h, max 5). Mapeo diferenciado de respuestas (`ALREADY_VALIDATED` → blocked terminal, `PROTOCOL_NOT_FOUND` → auto-sync + 1 reintento). Hook post-aprobación + cron de respaldo. Dashboard `/outbound/` con 4 pantallas (doc de diseño en `interfases/docs/design/v1.52.0-...`). Designer ya completado. Cierra la cadena de integración. |
+| v1.53.0 | Dashboard de monitoreo de la API en labit (ingesta de resultados) | Pendiente | `pendientes/v1.53.0-api-monitor-dashboard.md` | Pantalla admin `/admin/api-monitor/` para ver batches recibidos de LISCOM, mensajes con drill-down, banner destacado de rechazos `ALREADY_VALIDATED`, estado de salud de las sedes (healthy/idle/stale/inactive). Reusa layout admin (sin Designer). Polling Livewire 10s. Comando `api:cleanup` con retención configurable (`API_LOG_RETENTION_DAYS`, default 90). Solo lectura + link al CRUD de keys de v1.46.0. |
+
+**Tensión del barcode (RESUELTA, decisión PM 2026-04-18):** Se eligió **Opción B** —
+cambiar el formato del barcode en labit a `{protocol_number}^{material_abbreviation}`
+(ej: `C-2026-001234^EDTA`). Esto se ejecuta en **v1.48.5** antes de v1.49.0 para que
+liscom pueda filtrar respuestas HL7 por material. Separator `^` por compatibilidad
+con CODE_128 y por ser separator estándar de componentes en HL7. Si el material es
+nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 > Nota: Los prompts v1.35.2, v1.35.3, v1.36.1 y v3.4.0 figuran en `agent-bootstrap/prompts/completados/`; se retiraron de esta tabla para evitar duplicar el estado.
 
@@ -121,6 +146,7 @@ _Sin versiones en tabla (la cola de prompts en `pendientes/` está vacía; nueva
 - **Testing**: suite de tests automatizados, cobertura mínima
 - **DevOps**: CI/CD, ambientes de staging, deploy automatizado
 - **Seguridad**: 2FA, protección adicional (auditoría base cubierta por v2.5.0/v2.7.0, acceso por rol por v2.4.0)
+- **Integración LISCOM**: cadena v1.46.0–v1.53.0 (ver sección Planificado). Áreas relacionadas pendientes: webhook push de labit→liscom (alternativa a polling), rate limiting de la API pública, replicación multi-instancia avanzada.
 
 ---
 
@@ -128,7 +154,7 @@ _Sin versiones en tabla (la cola de prompts en `pendientes/` está vacía; nueva
 
 ```
 Completadas:  ver STATUS.md (última v1.45.0 en develop)
-Planificadas: —
+Planificadas: 9 (cadena LISCOM v1.46.0–v1.53.0, incluye v1.48.5)
 En proceso:   0
 Release master: ver tags; develop incluye v1.45.0
 ```

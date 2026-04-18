@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-13 (**v1.45.0** eliminar cliente sin protocolos/facturación)
+> Última actualización: 2026-04-18 (sesión PM: planificación v1.53.0 — dashboard monitoreo API. Cadena LISCOM↔labit completa)
 
 ---
 
@@ -13,17 +13,31 @@
 | **Última en master** | Ver tags en remoto |
 | **Última completada** | v1.45.0 — Eliminar cliente: solo bloqueo por protocolos o facturación |
 | **En proceso** | — |
-| **Próxima** | Planificar nuevas versiones (cola de prompts vacía) |
-| **Pendientes en cola** | 0 |
+| **Próxima** | v1.46.0 (API key) — primera de la cadena LISCOM |
+| **Pendientes en cola** | 9 (v1.46.0, v1.47.0, v1.48.0★, v1.48.5, v1.49.0★, v1.50.0★, v1.51.0, v1.52.0★, v1.53.0 — ★ = otro repo) |
 | **Completadas** | 93 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (0)
+### Pendientes (9)
 
-_Sin prompts pendientes._
+| Versión | Repo | Nombre | Prompt |
+|---|---|---|---|
+| v1.46.0 | labit | API pública: auth API key + admin de keys | `pendientes/v1.46.0-api-publica-fundacion.md` |
+| v1.47.0 | labit | Endpoints GET de protocolos unificados | `pendientes/v1.47.0-protocolos-api-endpoints.md` |
+| v1.48.0 | **interfases** (Django) | Cliente labit + sync de protocolos en LISCOM | `pendientes/v1.48.0-liscom-cliente-labit-sync.md` |
+| v1.48.5 | labit | Formato extendido de barcode `protocol_number^material_abbr` | `pendientes/v1.48.5-barcode-formato-extendido.md` |
+| v1.49.0 | **interfases** (Django) | Mapeo HL7 + respuesta DSR/ORL al scan | `pendientes/v1.49.0-liscom-mapeo-codigos-respuesta-scan.md` |
+| v1.50.0 | **interfases** (Django) | Recepción HL7 ORU/OUL + bandeja de revisión humana | `interfases/.../pendientes/v1.50.0-liscom-recepcion-resultados-bandeja.md` |
+| v1.51.0 | labit | Endpoint POST `/api/v1/results/batch` (idempotencia + respeta validación bioquímico) | `pendientes/v1.51.0-api-ingesta-resultados-batch.md` |
+| v1.52.0 | **interfases** (Django) | Cliente outbound + cola persistente + dashboard `/outbound/` | `interfases/.../pendientes/v1.52.0-liscom-cliente-cola-outbound.md` |
+| v1.53.0 | labit | Dashboard monitoreo API: batches recibidos, rechazos `ALREADY_VALIDATED`, salud de sedes | `pendientes/v1.53.0-api-monitor-dashboard.md` |
+
+> **Versiones marcadas con repo "interfases"** se ejecutan en `c:\wamp64\www\interfases`
+> (Python/Django), no en este repo. Requieren bootstrap del sistema de agentes en ese proyecto
+> (copiar `.agents/` y `agent-bootstrap/` desde labit).
 
 ### En proceso (0)
 
@@ -217,7 +231,40 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-Cola `pendientes/` vacía: planificar con Agente PM o añadir un prompt en `agent-bootstrap/prompts/pendientes/`. Para ejecutar el programador: `Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo completo.`
+**Cadena LISCOM↔labit completamente planificada.** Orden sugerido:
+
+1. **v1.46.0 (labit)** — API key + admin. Bloquea todo lo demás. Designer recomendado.
+   `Lee .agents/AgenteDesigner/AGENTE_DESIGNER.md y diseñá la UI de admin de API keys de v1.46.0.`
+   o directo: `Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá v1.46.0.`
+2. **v1.47.0 (labit)** — endpoints GET de protocolos. Depende de v1.46.0.
+3. **v1.48.5 (labit)** — formato extendido de barcode. **Independiente, se puede hacer en paralelo
+   con v1.46.0/v1.47.0.** Es chico (1-2 horas).
+4. **v1.51.0 (labit)** — endpoint POST `/api/v1/results/batch`. Depende de v1.46.0 + v1.47.0.
+5. **v1.48.0 (LISCOM)** — cliente labit + sync. Otro repo. Depende de labit v1.47.0.
+6. **v1.49.0 (LISCOM)** — mapeo + respuesta a queries. Depende de LISCOM v1.48.0 + labit v1.48.5.
+7. **v1.50.0 (LISCOM)** — recepción ORU/OUL + bandeja revisión. Depende de LISCOM v1.49.0.
+8. **v1.52.0 (LISCOM)** — cliente outbound + cola + dashboard. Depende de LISCOM v1.50.0 + labit v1.51.0. **Cierra la cadena de integración base** (flujo end-to-end operativo).
+9. **v1.53.0 (labit)** — dashboard monitoreo API. Depende de v1.51.0. Visibilidad operativa post-integración. **No bloqueante para producción** — la cadena funciona sin esta versión, pero el laboratorio necesita esta pantalla para confiar en la automatización.
+
+> **Cronología sugerida de ejecución paralela:**
+>
+> | Track | Versiones | Notas |
+> |---|---|---|
+> | A (labit) | v1.46.0 → v1.47.0 → v1.48.5 → v1.51.0 → v1.53.0 | El último es opcional/posterior |
+> | B (LISCOM) | v1.48.0 → v1.49.0 → v1.50.0 → v1.52.0 | Arranca cuando Track A llegó a v1.47.0 |
+>
+> Convergencia: v1.52.0 (LISCOM) necesita v1.51.0 (labit) mergeada.
+> v1.53.0 (labit) puede esperar a tener datos reales fluyendo (después de v1.52.0).
+
+**Para arrancar la ejecución:**
+```
+Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá la versión disponible.
+```
+
+**Para nueva sesión PM** (cuando la cadena esté en producción y surjan ideas nuevas):
+```
+Lee .agents/AgentePM/AGENTE_PM.md y arrancá una sesión de planificación.
+```
 
 ---
 
