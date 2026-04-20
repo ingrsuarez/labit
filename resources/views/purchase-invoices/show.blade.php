@@ -15,6 +15,12 @@
                     <a href="{{ route('purchase-invoices.edit', $invoice) }}"
                        class="inline-flex items-center px-4 py-2 bg-zinc-700 text-white text-sm font-medium rounded-lg hover:bg-zinc-800 transition-colors">Editar</a>
                 @endif
+                @can('purchase-credit-notes.create')
+                    @if(in_array($invoice->status, ['pendiente', 'parcialmente_pagada']) && $invoice->balance > 0)
+                        <a href="{{ route('purchase-credit-notes.create', ['supplier_id' => $invoice->supplier_id, 'purchase_invoice_id' => $invoice->id]) }}"
+                           class="inline-flex items-center px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors">Registrar NC</a>
+                    @endif
+                @endcan
                 <a href="{{ route('purchase-invoices.index') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">&larr; Volver</a>
             </div>
         </div>
@@ -266,6 +272,36 @@
                 </div>
             </div>
         </div>
+
+        @if($invoice->purchaseCreditNotes->count() > 0)
+            <div class="bg-white rounded-xl shadow-sm border border-amber-200 overflow-hidden mb-6">
+                <div class="px-4 py-3 border-b border-amber-100 bg-amber-50/50">
+                    <h2 class="text-lg font-semibold text-gray-800">Notas de crédito aplicadas</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Comprobante</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Fecha</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @foreach($invoice->purchaseCreditNotes as $cn)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3 text-sm">
+                                        <a href="{{ route('purchase-credit-notes.show', $cn) }}" class="text-zinc-700 font-semibold hover:text-zinc-900 underline">{{ $cn->full_number }}</a>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-500">{{ $cn->issue_date->format('d/m/Y') }}</td>
+                                    <td class="px-4 py-3 text-sm font-semibold text-gray-800 text-right">${{ number_format($cn->total, 2, ',', '.') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endif
 
         <x-journal-entry-widget :source="$invoice" />
 

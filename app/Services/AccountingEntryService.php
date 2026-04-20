@@ -10,6 +10,7 @@ use App\Models\CreditNote;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryLine;
 use App\Models\PaymentOrder;
+use App\Models\PurchaseCreditNote;
 use App\Models\PurchaseInvoice;
 use App\Models\SalesInvoice;
 use Carbon\Carbon;
@@ -321,6 +322,73 @@ class AccountingEntryService
             Carbon::parse($invoice->issue_date),
             'Compra — FC '.$invoice->full_number,
             $invoice,
+            $lines
+        );
+    }
+
+    /**
+     * Nota de crédito recibida de proveedor: revierte el efecto de la compra (reduce deuda y gastos/IVA crédito).
+     */
+    public function fromPurchaseCreditNote(PurchaseCreditNote $creditNote): ?JournalEntry
+    {
+        $creditNote->loadMissing(['items', 'supplier']);
+
+        $itemsWithSupply = $creditNote->items->whereNotNull('supply_id');
+        $itemsWithoutSupply = $creditNote->items->whereNull('supply_id');
+
+        $netoInsumos = round($itemsWithSupply->sum(fn ($i) => (float) $i->quantity * (float) $i->unit_price), 2);
+        $netoServicios = round($itemsWithoutSupply->sum(fn ($i) => (float) $i->quantity * (float) $i->unit_price), 2);
+
+        $totalIva = round(
+            (float) $creditNote->iva_21 + (float) $creditNote->iva_10_5 + (float) $creditNote->iva_27,
+            2
+        );
+        $totalBruto = round((float) $creditNote->total, 2);
+        $percOtros = round((float) $creditNote->percepciones + (float) $creditNote->otros_impuestos, 2);
+
+        $lines = [];
+
+        $netoServiciosPlus = $netoServicios + $percOtros;
+
+        if ($netoInsumos > 0) {
+            $lines[] = [
+                'account_code' => '5.1.01',
+                'debit' => 0,
+                'credit' => $netoInsumos,
+                'description' => 'Reversión insumos — NC compra '.$creditNote->full_number,
+            ];
+        }
+
+        if ($netoServiciosPlus > 0) {
+            $lines[] = [
+                'account_code' => '5.1.02',
+                'debit' => 0,
+                'credit' => $netoServiciosPlus,
+                'description' => 'Reversión servicios / otros — NC compra '.$creditNote->full_number,
+            ];
+        }
+
+        if ($totalIva > 0) {
+            $lines[] = [
+                'account_code' => '1.1.06',
+                'debit' => 0,
+                'credit' => $totalIva,
+                'description' => 'IVA crédito fiscal NC proveedor',
+            ];
+        }
+
+        $lines[] = [
+            'account_code' => '2.1.01',
+            'debit' => $totalBruto,
+            'credit' => 0,
+            'description' => 'Reduce deuda '.($creditNote->supplier->name ?? '').' — NC '.$creditNote->full_number,
+        ];
+
+        return $this->createEntry(
+            (int) $creditNote->company_id,
+            Carbon::parse($creditNote->issue_date),
+            'NC proveedor — '.$creditNote->full_number,
+            $creditNote,
             $lines
         );
     }

@@ -85,6 +85,11 @@ class Company extends Model
         return $this->hasMany(PurchaseInvoice::class);
     }
 
+    public function purchaseCreditNotes(): HasMany
+    {
+        return $this->hasMany(PurchaseCreditNote::class);
+    }
+
     public function paymentOrders(): HasMany
     {
         return $this->hasMany(PaymentOrder::class);

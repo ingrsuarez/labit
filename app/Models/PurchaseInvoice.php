@@ -84,6 +84,11 @@ class PurchaseInvoice extends Model
         return $this->hasMany(PaymentOrderItem::class);
     }
 
+    public function purchaseCreditNotes()
+    {
+        return $this->hasMany(PurchaseCreditNote::class);
+    }
+
     public function recalculate(): void
     {
         // Subtotal = neto gravado. `items.total` ya incluye IVA por línea (misma convención que ventas).
