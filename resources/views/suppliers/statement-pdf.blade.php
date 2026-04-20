@@ -17,6 +17,7 @@
     td.num { text-align: right; font-family: monospace; }
     .row-saldo-inicial { background-color: #f9fafb; color: #9ca3af; font-style: italic; }
     .row-payment { background-color: #f0fdf4; }
+    .row-credit_note { background-color: #fffbeb; }
     tfoot tr { background-color: #f3f4f6; font-weight: bold; }
     .saldo-final { font-size: 12px; font-weight: bold; }
     .badge-acreedor { color: #16a34a; }

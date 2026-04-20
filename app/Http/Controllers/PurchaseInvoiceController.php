@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use App\Models\DeliveryNote;
 use App\Models\JournalEntry;
+use App\Models\PurchaseCreditNote;
 use App\Models\PurchaseInvoice;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseService;
@@ -50,9 +51,14 @@ class PurchaseInvoiceController extends Controller
 
         $invoices = $query->paginate(15)->withQueryString();
 
-        $total_balance = PurchaseInvoice::where('company_id', active_company_id())
+        $companyId = active_company_id();
+        $sumInvoices = PurchaseInvoice::where('company_id', $companyId)
             ->whereIn('status', ['pendiente', 'parcialmente_pagada'])
             ->sum('balance');
+        $unappliedNc = PurchaseCreditNote::where('company_id', $companyId)
+            ->whereNull('purchase_invoice_id')
+            ->sum('total');
+        $total_balance = max(0, (float) $sumInvoices - (float) $unappliedNc);
 
         $branches = LabBranchResolver::activeBranchesForForms();
 
@@ -335,6 +341,7 @@ class PurchaseInvoiceController extends Controller
         $purchaseInvoice->load([
             'supplier', 'deliveryNotes', 'purchaseOrder', 'creator',
             'items.supply', 'items.purchaseService.category', 'paymentOrderItems.paymentOrder',
+            'purchaseCreditNotes',
         ]);
 
         return view('purchase-invoices.show', ['invoice' => $purchaseInvoice]);

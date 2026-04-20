@@ -48,7 +48,7 @@
                         Gestión de Clientes
                     @elseif(request()->routeIs('sales.*') || request()->routeIs('sales-invoices.*') || request()->routeIs('quotes.*') || request()->routeIs('collection-receipts.*') || request()->routeIs('credit-notes.*') || request()->routeIs('points-of-sale.*'))
                         Ventas
-                    @elseif(request()->routeIs('suppliers.*') || request()->routeIs('purchases.*') || request()->routeIs('purchase-orders.*') || request()->routeIs('delivery-notes.*') || request()->routeIs('purchase-invoices.*') || request()->routeIs('payment-orders.*'))
+                    @elseif(request()->routeIs('suppliers.*') || request()->routeIs('purchases.*') || request()->routeIs('purchase-orders.*') || request()->routeIs('delivery-notes.*') || request()->routeIs('purchase-invoices.*') || request()->routeIs('purchase-credit-notes.*') || request()->routeIs('payment-orders.*'))
                         Compras
                     @elseif(request()->routeIs('companies.*'))
                         Empresas

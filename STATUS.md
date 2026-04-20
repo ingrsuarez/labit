@@ -14,24 +14,18 @@
 | **Última completada** | v1.53.0 — dashboard monitoreo API (Livewire 3, `api:cleanup`, 20 tests) |
 | **En proceso** | — |
 | **Próxima** | v1.48.0 (cliente LISCOM, repo interfases) |
-| **Pendientes en cola** | 4 (v1.48.0★, v1.49.0★, v1.50.0★, v1.52.0★ — ★ = otro repo) |
+| **Pendientes en cola** | 0 — cola de labit vacía ✅ (v1.48.0★ y v1.49.0★ completados en interfases) |
 | **Completadas** | 98 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (4)
+### Pendientes (0)
 
-| Versión | Repo | Nombre | Prompt |
-|---|---|---|---|
-| v1.48.0 | **interfases** (Django) | Cliente labit + sync de protocolos en LISCOM | `pendientes/v1.48.0-liscom-cliente-labit-sync.md` |
-| v1.49.0 | **interfases** (Django) | Mapeo HL7 + respuesta DSR/ORL al scan | `pendientes/v1.49.0-liscom-mapeo-codigos-respuesta-scan.md` |
-| v1.50.0 | **interfases** (Django) | Recepción HL7 ORU/OUL + bandeja de revisión humana | `interfases/.../pendientes/v1.50.0-liscom-recepcion-resultados-bandeja.md` |
-| v1.52.0 | **interfases** (Django) | Cliente outbound + cola persistente + dashboard `/outbound/` | `interfases/.../pendientes/v1.52.0-liscom-cliente-cola-outbound.md` |
+> Cola de labit vacía. Todos los prompts de la cadena LISCOM completados (v1.48.0 y v1.49.0 ejecutados en `interfases`).
 
-> **Versiones marcadas con repo "interfases"** se ejecutan en `c:\wamp64\www\interfases`
-> (Python/Django), no en este repo. Requieren bootstrap del sistema de agentes en ese proyecto
+
 > (copiar `.agents/` y `agent-bootstrap/` desde labit).
 
 ### En proceso (0)

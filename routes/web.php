@@ -391,6 +391,11 @@ Route::middleware([
         Route::get('purchase-invoices/available-delivery-notes', [App\Http\Controllers\PurchaseInvoiceController::class, 'availableDeliveryNotes'])->name('purchase-invoices.available-delivery-notes');
         Route::resource('purchase-invoices', App\Http\Controllers\PurchaseInvoiceController::class);
 
+        // NOTAS DE CRÉDITO DE PROVEEDOR
+        Route::get('purchase-credit-notes/check-duplicate', [App\Http\Controllers\PurchaseCreditNoteController::class, 'checkDuplicate'])->name('purchase-credit-notes.check-duplicate');
+        Route::get('purchase-credit-notes/available-purchase-invoices', [App\Http\Controllers\PurchaseCreditNoteController::class, 'availablePurchaseInvoices'])->name('purchase-credit-notes.available-purchase-invoices');
+        Route::resource('purchase-credit-notes', App\Http\Controllers\PurchaseCreditNoteController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
+
         // PAYMENT ORDERS (Órdenes de Pago)
         Route::resource('payment-orders', App\Http\Controllers\PaymentOrderController::class);
         Route::post('payment-orders/{payment_order}/confirm', [App\Http\Controllers\PaymentOrderController::class, 'confirm'])->name('payment-orders.confirm');

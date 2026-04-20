@@ -114,13 +114,20 @@
 
                             <!-- Movimientos del período -->
                             @forelse($movements as $mov)
-                                <tr class="hover:bg-gray-50 transition-colors {{ $mov['type'] === 'payment' ? 'bg-green-50/30' : '' }}">
+                                <tr class="hover:bg-gray-50 transition-colors {{ $mov['type'] === 'payment' ? 'bg-green-50/30' : ($mov['type'] === 'credit_note' ? 'bg-amber-50/50' : '') }}">
                                     <td class="px-4 py-2.5 text-gray-600 whitespace-nowrap">{{ $mov['date']->format('d/m/Y') }}</td>
                                     <td class="px-4 py-2.5 font-medium text-gray-800 whitespace-nowrap">
                                         @if($mov['type'] === 'invoice')
                                             <span class="inline-flex items-center gap-1.5">
                                                 <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                                </svg>
+                                                {{ $mov['reference'] }}
+                                            </span>
+                                        @elseif($mov['type'] === 'credit_note')
+                                            <span class="inline-flex items-center gap-1.5">
+                                                <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h7M6 8h7"/>
                                                 </svg>
                                                 {{ $mov['reference'] }}
                                             </span>

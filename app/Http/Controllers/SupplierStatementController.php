@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PaymentOrder;
+use App\Models\PurchaseCreditNote;
 use App\Models\PurchaseInvoice;
 use App\Models\Supplier;
 use Carbon\Carbon;
@@ -105,6 +106,13 @@ class SupplierStatementController extends Controller
             ->orderBy('id')
             ->get(['id', 'date', 'total', 'number', 'payment_method']);
 
+        $creditNotes = PurchaseCreditNote::where('supplier_id', $supplierId)
+            ->where('company_id', $companyId)
+            ->whereBetween('issue_date', [$dateFromCarbon->toDateString(), $dateToCarbon->toDateString()])
+            ->orderBy('issue_date')
+            ->orderBy('id')
+            ->get(['id', 'issue_date', 'total', 'credit_note_number', 'point_of_sale', 'voucher_type', 'purchase_invoice_id']);
+
         $movements = collect();
 
         foreach ($invoices as $inv) {
@@ -116,7 +124,7 @@ class SupplierStatementController extends Controller
                 'detail' => 'Factura de compra',
                 'debe' => 0,
                 'haber' => (float) $inv->total,
-                'sort_key' => $inv->issue_date.'_'.str_pad($inv->id, 10, '0', STR_PAD_LEFT),
+                'sort_key' => $inv->issue_date.'_0_'.str_pad($inv->id, 10, '0', STR_PAD_LEFT),
             ]);
         }
 
@@ -128,7 +136,26 @@ class SupplierStatementController extends Controller
                 'detail' => 'Orden de pago — '.$pay->paymentMethodsLabel(),
                 'debe' => (float) $pay->total,
                 'haber' => 0,
-                'sort_key' => $pay->date.'_'.str_pad($pay->id, 10, '0', STR_PAD_LEFT),
+                'sort_key' => $pay->date.'_1_'.str_pad($pay->id, 10, '0', STR_PAD_LEFT),
+            ]);
+        }
+
+        foreach ($creditNotes as $cn) {
+            $pv = $cn->point_of_sale !== null && $cn->point_of_sale !== ''
+                ? str_pad((string) $cn->point_of_sale, 5, '0', STR_PAD_LEFT).'-'
+                : '';
+            $ref = "NC {$cn->voucher_type} {$pv}{$cn->credit_note_number}";
+            $detail = $cn->purchase_invoice_id
+                ? 'Nota de crédito (aplicada a factura)'
+                : 'Nota de crédito (sin aplicar a factura)';
+            $movements->push([
+                'date' => Carbon::parse($cn->issue_date),
+                'type' => 'credit_note',
+                'reference' => $ref,
+                'detail' => $detail,
+                'debe' => (float) $cn->total,
+                'haber' => 0,
+                'sort_key' => $cn->issue_date->format('Y-m-d').'_2_'.str_pad((string) $cn->id, 10, '0', STR_PAD_LEFT),
             ]);
         }
 
@@ -165,6 +192,11 @@ class SupplierStatementController extends Controller
             ->where('date', '<', $dateFrom->toDateString())
             ->sum('total');
 
-        return (float) $invoicesBefore - (float) $paymentsBefore;
+        $creditNotesBefore = PurchaseCreditNote::where('supplier_id', $supplierId)
+            ->where('company_id', $companyId)
+            ->where('issue_date', '<', $dateFrom->toDateString())
+            ->sum('total');
+
+        return (float) $invoicesBefore - (float) $paymentsBefore - (float) $creditNotesBefore;
     }
 }
