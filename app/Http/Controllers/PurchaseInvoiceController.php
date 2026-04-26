@@ -385,8 +385,7 @@ class PurchaseInvoiceController extends Controller
                 ->with('error', 'Solo se pueden editar facturas en estado pendiente.');
         }
 
-        $remitosCompanyId = (int) $purchaseInvoice->company_id;
-        $previousCompanyId = $remitosCompanyId;
+        $previousCompanyId = (int) $purchaseInvoice->company_id;
 
         $validated = $request->validate([
             'company_id' => [
@@ -460,8 +459,8 @@ class PurchaseInvoiceController extends Controller
         $this->assertItemsPurchaseServicesBelongToCompany($validated['items'], (int) $validated['company_id']);
 
         $deliveryNoteIds = $this->resolveDeliveryNoteIds($request);
-        $this->validateDeliveryNotesForInvoice($deliveryNoteIds, (int) $validated['supplier_id'], $purchaseInvoice->id, $remitosCompanyId);
-        $this->validateLinkedDeliveryNotesBranchConsistency($deliveryNoteIds, (int) $validated['lab_branch_id'], $remitosCompanyId);
+        $this->validateDeliveryNotesForInvoice($deliveryNoteIds, (int) $validated['supplier_id'], $purchaseInvoice->id);
+        $this->validateLinkedDeliveryNotesBranchConsistency($deliveryNoteIds, (int) $validated['lab_branch_id']);
 
         $purchaseInvoice->update([
             'company_id' => (int) $validated['company_id'],
