@@ -143,6 +143,7 @@
                                             <div>
                                                 <div class="flex items-center gap-1">
                                                     <input type="text"
+                                                           x-show="!item.supply_id"
                                                            x-model="searchText"
                                                            @input.debounce.300ms="doSearch()"
                                                            @focus="if (searchText.length >= 2) showResults = true"
@@ -152,7 +153,7 @@
                                                            @keydown.escape="showResults = false"
                                                            @keydown.tab="onTab($event)"
                                                            placeholder="Buscar insumo..."
-                                                           required
+                                                           :required="!item.supply_id"
                                                            :id="'item-supply-' + index"
                                                            class="flex-1 min-w-0 rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
 
@@ -419,7 +420,7 @@
                         item.lot_number = '';
                         item.expiration_date = '';
                     }
-                    this.searchText = label;
+                    this.searchText = '';
                     this.showResults = false;
                     this.$nextTick(() => {
                         const qtyInput = document.querySelector(`#item-qty-${index}`);
@@ -431,7 +432,12 @@
                     item.supply_id = '';
                     item._supply_code = '';
                     item._supply_name = '';
+                    item._supply_label = '';
                     this.searchText = '';
+                    this.$nextTick(() => {
+                        const el = document.querySelector(`#item-supply-${index}`);
+                        if (el) el.focus();
+                    });
                 },
 
                 highlightNext() {
