@@ -237,8 +237,7 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-52">Servicio</th>
-                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Descripción / Insumo</th>
+                                <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Descripción / Insumo / Servicio</th>
                                 <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">Cantidad</th>
                                 <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">Precio Unit.</th>
                                 <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">Tasa IVA</th>
@@ -251,25 +250,10 @@
                         <tbody class="divide-y divide-gray-200">
                             <template x-for="(item, index) in items" :key="index">
                                 <tr class="hover:bg-gray-50">
-                                    <td class="px-3 py-2 align-top w-52">
-                                        <input type="hidden" :name="'items[' + index + '][purchase_service_id]'" :value="item.purchase_service_id || ''">
-                                        <select @change="selectPurchaseService(item, index, $event.target.value)"
-                                                class="w-full rounded-lg border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
-                                            <option value="">— Ninguno —</option>
-                                            <template x-for="g in purchaseServiceGroups" :key="g.id === null ? 'uncat' : g.id">
-                                                <optgroup :label="g.name">
-                                                    <template x-for="s in g.services" :key="s.id">
-                                                        <option :value="s.id"
-                                                                :selected="String(item.purchase_service_id || '') === String(s.id)"
-                                                                x-text="(s.code ? s.code + ' · ' : '') + s.name"></option>
-                                                    </template>
-                                                </optgroup>
-                                            </template>
-                                        </select>
-                                    </td>
-                                    <td class="px-3 py-2" x-data="supplySearch(item, index)">
+                                    <td class="px-3 py-2" x-data="itemSearch(item, index, purchaseServiceGroups)">
                                         <input type="hidden" :name="'items[' + index + '][description]'" :value="item.description">
                                         <input type="hidden" :name="'items[' + index + '][supply_id]'" :value="item.supply_id || ''">
+                                        <input type="hidden" :name="'items[' + index + '][purchase_service_id]'" :value="item.purchase_service_id || ''">
                                         <input type="hidden" :name="'items[' + index + '][quantity]'" :value="item.quantity">
                                         <input type="hidden" :name="'items[' + index + '][unit_price]'" :value="item.unit_price">
                                         <input type="hidden" :name="'items[' + index + '][iva_rate]'" :value="item.iva_rate">
@@ -281,7 +265,7 @@
                                             <div class="flex-1 min-w-0 relative">
                                                 <div class="flex items-center gap-1">
                                                     <input type="text"
-                                                           x-show="!item.supply_id"
+                                                           x-show="!item.supply_id && !item.purchase_service_id"
                                                            x-model="searchText"
                                                            @input.debounce.300ms="doSearch()"
                                                            @focus="if (searchText.length >= 2) showResults = true"
@@ -290,37 +274,82 @@
                                                            @keydown.enter.prevent="selectHighlighted()"
                                                            @keydown.escape="showResults = false"
                                                            @keydown.tab="onTab($event)"
-                                                           placeholder="Buscar insumo o escribir descripción..."
-                                                           :required="!item.supply_id"
+                                                           placeholder="Buscar insumo o servicio..."
+                                                           :required="!item.supply_id && !item.purchase_service_id"
                                                            :id="'item-desc-' + index"
                                                            class="flex-1 min-w-0 rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
 
+                                                    {{-- Badge insumo --}}
                                                     <span x-show="item.supply_id" x-cloak
                                                           class="shrink-0 inline-flex items-center gap-2 mt-0.5">
                                                         <span class="text-xs text-teal-700 font-mono" x-text="item._supply_code"></span>
                                                         <span class="text-xs text-gray-500" x-text="item._supply_label || item.description"></span>
-                                                        <button type="button" @click="unlinkSupply()" class="text-xs text-gray-400 hover:text-red-500">&times;</button>
+                                                        <button type="button" @click="unlinkItem()" class="text-xs text-gray-400 hover:text-red-500">&times;</button>
+                                                    </span>
+
+                                                    {{-- Badge servicio --}}
+                                                    <span x-show="item.purchase_service_id && !item.supply_id" x-cloak
+                                                          class="shrink-0 inline-flex items-center gap-2 px-2 py-0.5 rounded bg-indigo-50 border border-indigo-200">
+                                                        <span class="text-xs font-mono text-indigo-700" x-text="item._service_label || item.description"></span>
+                                                        <button type="button" @click="unlinkItem()" class="text-xs text-indigo-300 hover:text-red-500">&times;</button>
                                                     </span>
                                                 </div>
 
-                                                <div x-show="showResults && (results.length > 0 || searchText.length >= 2)" x-cloak
+                                                <div x-show="showResults && (results.length > 0 || serviceResults.length > 0 || (searchText.length >= 2 && !loading))"
+                                                     x-cloak
                                                      @click.outside="showResults = false"
-                                                     class="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                                    <template x-for="(supply, i) in results" :key="supply.id">
-                                                        <button type="button"
-                                                                @click="selectSupply(supply)"
-                                                                @mouseenter="highlightedIndex = i"
-                                                                :class="highlightedIndex === i ? 'bg-teal-50 text-teal-800' : 'text-gray-700'"
-                                                                class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 last:border-0">
-                                                            <span class="font-mono text-xs text-gray-400" x-text="supply.code"></span>
-                                                            <span x-text="supply.name"></span>
-                                                            <template x-if="supply.brand">
-                                                                <span class="text-xs text-gray-400" x-text="'— ' + supply.brand"></span>
+                                                     class="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-72 overflow-y-auto">
+
+                                                    {{-- Sección INSUMOS --}}
+                                                    <template x-if="results.length > 0">
+                                                        <div>
+                                                            <div class="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-gray-400 bg-gray-50 border-b border-gray-100">
+                                                                Insumos
+                                                            </div>
+                                                            <template x-for="(supply, i) in results.slice(0, 6)" :key="'s-' + supply.id">
+                                                                <button type="button"
+                                                                        @click="selectSupply(supply)"
+                                                                        @mouseenter="highlightedIndex = i"
+                                                                        :class="highlightedIndex === i ? 'bg-teal-50 text-teal-800' : 'text-gray-700'"
+                                                                        class="w-full text-left px-3 py-2 text-sm hover:bg-teal-50 flex items-center gap-2 border-b border-gray-50 last:border-0">
+                                                                    <span class="font-mono text-xs text-teal-700" x-text="supply.code"></span>
+                                                                    <span x-text="supply.name"></span>
+                                                                    <template x-if="supply.brand">
+                                                                        <span class="text-xs text-gray-400" x-text="'— ' + supply.brand"></span>
+                                                                    </template>
+                                                                </button>
                                                             </template>
-                                                        </button>
+                                                        </div>
                                                     </template>
 
+                                                    {{-- Sección SERVICIOS --}}
+                                                    <template x-if="serviceResults.length > 0">
+                                                        <div>
+                                                            <div class="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-gray-400 bg-gray-50 border-b border-gray-100"
+                                                                 :class="results.length > 0 ? 'border-t border-gray-200' : ''">
+                                                                Servicios
+                                                            </div>
+                                                            <template x-for="(svc, i) in serviceResults.slice(0, 6)" :key="'svc-' + svc.id">
+                                                                <button type="button"
+                                                                        @click="selectService(svc)"
+                                                                        class="w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 flex items-center gap-2 border-b border-gray-50 last:border-0">
+                                                                    <span class="text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded px-1">SRV</span>
+                                                                    <span class="text-gray-800" x-text="svc.name"></span>
+                                                                    <span class="text-xs text-gray-400" x-text="svc._group_name"></span>
+                                                                </button>
+                                                            </template>
+                                                        </div>
+                                                    </template>
+
+                                                    {{-- Sin resultados --}}
+                                                    <div x-show="results.length === 0 && serviceResults.length === 0 && searchText.length >= 2 && !loading"
+                                                         class="px-3 py-2 text-sm text-gray-400">
+                                                        Sin resultados. Podés escribir una descripción libre o crear un insumo nuevo.
+                                                    </div>
+
+                                                    {{-- Crear insumo --}}
                                                     <button type="button"
+                                                            x-show="searchText.length >= 2 && !loading"
                                                             @click="openCreateModal()"
                                                             class="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2 border-t border-gray-200">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -328,11 +357,6 @@
                                                         </svg>
                                                         <span>Crear insumo "<span x-text="searchText" class="font-medium"></span>"</span>
                                                     </button>
-
-                                                    <div x-show="results.length === 0 && searchText.length >= 2 && !loading"
-                                                         class="px-3 py-2 text-sm text-gray-400">
-                                                        Sin resultados. Podés escribir una descripción libre o crear uno nuevo.
-                                                    </div>
                                                 </div>
                                             </div>
 
@@ -402,37 +426,37 @@
                         </tbody>
                         <tfoot class="bg-gray-50">
                             <tr>
-                                <td colspan="7" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Subtotal (Neto Gravado)</td>
+                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Subtotal (Neto Gravado)</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(subtotal)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="iva105 > 0">
-                                <td colspan="7" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 10,5%</td>
+                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 10,5%</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(iva105)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="iva21 > 0">
-                                <td colspan="7" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 21%</td>
+                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 21%</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(iva21)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="iva27 > 0">
-                                <td colspan="7" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 27%</td>
+                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">IVA 27%</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(iva27)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="percepciones > 0">
-                                <td colspan="7" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Percepciones</td>
+                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Percepciones</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(percepciones)"></td>
                                 <td></td>
                             </tr>
                             <tr x-show="otrosImpuestos > 0">
-                                <td colspan="7" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Otros Impuestos</td>
+                                <td colspan="6" class="px-3 py-2 text-right text-sm font-medium text-gray-600">Otros Impuestos</td>
                                 <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + formatMoney(otrosImpuestos)"></td>
                                 <td></td>
                             </tr>
                             <tr class="border-t-2 border-gray-300">
-                                <td colspan="7" class="px-3 py-3 text-right text-sm font-bold text-gray-800">TOTAL</td>
+                                <td colspan="6" class="px-3 py-3 text-right text-sm font-bold text-gray-800">TOTAL</td>
                                 <td class="px-3 py-3 text-right text-base font-bold text-gray-900" x-text="'$' + formatMoney(grandTotal)"></td>
                                 <td></td>
                             </tr>
@@ -535,20 +559,33 @@
             : collect();
     @endphp
     <script>
-        function supplySearch(item, index) {
+        function itemSearch(item, index, serviceGroups) {
             return {
-                searchText: item.description || '',
+                searchText: '',
                 results: [],
+                serviceResults: [],
                 showResults: false,
                 loading: false,
                 highlightedIndex: -1,
 
                 async doSearch() {
                     item.description = this.searchText;
-                    if (this.searchText.length < 2) {
+                    const q = this.searchText.trim().toLowerCase();
+                    if (q.length < 2) {
                         this.results = [];
+                        this.serviceResults = [];
                         this.showResults = false;
                         return;
+                    }
+                    this.serviceResults = [];
+                    for (const g of serviceGroups) {
+                        for (const s of g.services) {
+                            const haystack = ((s.code || '') + ' ' + s.name + ' ' + g.name).toLowerCase();
+                            if (haystack.includes(q)) {
+                                this.serviceResults.push({ ...s, _group_name: g.name });
+                            }
+                        }
+                        if (this.serviceResults.length >= 6) break;
                     }
                     this.loading = true;
                     try {
@@ -573,6 +610,7 @@
                     item.description = label;
                     item._supply_code = supply.code;
                     item._supply_label = label;
+                    item._service_label = '';
                     this.searchText = '';
                     this.showResults = false;
 
@@ -599,10 +637,33 @@
                     });
                 },
 
-                unlinkSupply() {
+                selectService(svc) {
+                    item.purchase_service_id = String(svc.id);
                     item.supply_id = '';
                     item._supply_code = '';
                     item._supply_label = '';
+                    item._service_label = (svc.code ? svc.code + ' — ' : '') + svc.name;
+                    item.description = item._service_label;
+                    item.lot_number = '';
+                    item.expiration_date = '';
+                    item.updates_stock = false;
+                    this.searchText = '';
+                    this.showResults = false;
+                    this.$nextTick(() => {
+                        const qtyInput = document.querySelector(`#item-qty-${index}`);
+                        if (qtyInput) qtyInput.focus();
+                    });
+                },
+
+                unlinkItem() {
+                    item.supply_id = '';
+                    item.purchase_service_id = '';
+                    item._supply_code = '';
+                    item._supply_label = '';
+                    item._service_label = '';
+                    item.description = '';
+                    item.lot_number = '';
+                    item.expiration_date = '';
                     this.searchText = '';
                     this.$nextTick(() => {
                         const el = document.querySelector(`#item-desc-${index}`);
@@ -647,7 +708,10 @@
 
                 init() {
                     if (item.supply_id && (item._supply_label || item.description)) {
-                        this.searchText = item._supply_label || item.description;
+                        this.searchText = '';
+                    } else if (item.purchase_service_id && item.description) {
+                        item._service_label = item.description;
+                        this.searchText = '';
                     }
                 }
             }
@@ -888,39 +952,8 @@
                     this.items.push({ description: '', supply_id: '', purchase_service_id: '', quantity: 1, unit_price: 0, iva_rate: '21', lot_number: '', expiration_date: '', updates_stock: !this.hasLinkedDeliveryNotes() });
                 },
 
-                selectPurchaseService(item, index, value) {
-                    const id = value ? String(value) : '';
-                    item.purchase_service_id = id;
-                    if (! id) {
-                        return;
-                    }
-                    let svc = null;
-                    for (const g of this.purchaseServiceGroups) {
-                        const found = g.services.find(s => String(s.id) === id);
-                        if (found) {
-                            svc = found;
-                            break;
-                        }
-                    }
-                    if (! svc) {
-                        return;
-                    }
-                    item.supply_id = '';
-                    item._supply_code = '';
-                    item._supply_label = '';
-                    item.lot_number = '';
-                    item.expiration_date = '';
-                    item.updates_stock = false;
-                    const label = svc.code ? `${svc.code} — ${svc.name}` : svc.name;
-                    item.description = label;
-                    this.$nextTick(() => {
-                        const input = document.querySelector(`#item-desc-${index}`);
-                        if (input) {
-                            input.value = label;
-                            input.dispatchEvent(new Event('input', { bubbles: true }));
-                        }
-                    });
-                },
+
+
 
                 removeItem(index) {
                     this.items.splice(index, 1);
