@@ -622,13 +622,19 @@ class PurchaseInvoiceController extends Controller
      */
     protected function validateDeliveryNotesForInvoice(array $ids, int $supplierId, ?int $excludePurchaseInvoiceId, ?int $companyId = null): void
     {
-        $companyId ??= active_company_id();
+        // Si se pasa un companyId específico (modo edición), validar contra ese company.
+        // Si no (modo creación), validar contra todas las empresas del usuario autenticado.
+        if ($companyId !== null) {
+            $validCompanyIds = collect([$companyId]);
+        } else {
+            $validCompanyIds = auth()->user()->load('companies')->companies->pluck('id');
+        }
 
         foreach ($ids as $dnId) {
-            $dn = DeliveryNote::where('company_id', $companyId)->find($dnId);
+            $dn = DeliveryNote::whereIn('company_id', $validCompanyIds)->find($dnId);
             if (! $dn) {
                 throw ValidationException::withMessages([
-                    'delivery_note_ids' => 'Uno de los remitos no existe o no pertenece a la empresa activa.',
+                    'delivery_note_ids' => 'Uno de los remitos no existe o no pertenece a las empresas del usuario.',
                 ]);
             }
             if ((int) $dn->supplier_id !== (int) $supplierId) {
