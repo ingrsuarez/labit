@@ -168,6 +168,7 @@
                                             <div>
                                                 <div class="flex items-center gap-1">
                                                     <input type="text"
+                                                           autocomplete="off"
                                                            x-show="!item.supply_id"
                                                            x-model="searchText"
                                                            @input.debounce.300ms="doSearch()"
