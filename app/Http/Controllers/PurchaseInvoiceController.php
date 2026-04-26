@@ -119,8 +119,10 @@ class PurchaseInvoiceController extends Controller
             $companyId = (int) $pi->company_id;
         }
 
+        $userCompanyIds = auth()->user()->load('companies')->companies->pluck('id');
+
         $notes = DeliveryNote::query()
-            ->where('company_id', $companyId)
+            ->whereIn('company_id', $userCompanyIds)
             ->where('supplier_id', $supplierId)
             ->where('status', 'aceptado')
             ->orderByDesc('date')
