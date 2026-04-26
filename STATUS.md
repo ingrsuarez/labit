@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-26 (Dev: completada v1.54.0 — UX combobox insumos)
+> Última actualización: 2026-04-26 (Dev: completada v1.55.0 — buscador unificado insumos + servicios en FC)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.54.0** en **develop** |
+| **Versión actual** | **v1.55.0** en **develop** |
 | **Última en master** | Ver tags en remoto |
-| **Última completada** | v1.54.0 — UX combobox insumos: ocultar input al seleccionar |
+| **Última completada** | v1.55.0 — FC: buscador unificado insumos + servicios (dropdown 2 secciones) |
 | **En proceso** | — |
-| **Próxima** | v1.48.0 (cliente LISCOM, repo interfases) |
-| **Pendientes en cola** | 0 — cola de labit vacía ✅ (v1.48.0★ y v1.49.0★ completados en interfases) |
-| **Completadas** | 98 |
+| **Próxima** | — |
+| **Pendientes en cola** | 0 — cola de labit vacía ✅ |
+| **Completadas** | 100 |
 
 ---
 
@@ -23,10 +23,7 @@
 
 ### Pendientes (0)
 
-> Cola de labit vacía. Todos los prompts de la cadena LISCOM completados (v1.48.0 y v1.49.0 ejecutados en `interfases`).
-
-
-> (copiar `.agents/` y `agent-bootstrap/` desde labit).
+> Cola de labit vacía.
 
 ### En proceso (0)
 
