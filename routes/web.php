@@ -349,6 +349,7 @@ Route::middleware([
         // SUPPLIERS (Proveedores)
         Route::get('suppliers/search', [App\Http\Controllers\SupplierController::class, 'search'])->name('suppliers.search');
         Route::get('suppliers/by-cuit/{cuit}', [App\Http\Controllers\SupplierController::class, 'findByCuit'])->name('suppliers.by-cuit');
+        Route::post('suppliers/store-inline', [App\Http\Controllers\SupplierController::class, 'storeInline'])->name('suppliers.store-inline');
         Route::resource('suppliers', App\Http\Controllers\SupplierController::class);
 
         // SUPPLY CATEGORIES (Categorías de Insumos)

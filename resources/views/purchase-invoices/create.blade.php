@@ -141,12 +141,26 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor <span class="text-red-500">*</span></label>
-                        <select name="supplier_id" x-model="supplier_id" @change="checkDuplicate(); onSupplierChange()" required class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
-                            <option value="">Seleccionar...</option>
-                            @foreach($suppliers as $sup)
-                                <option value="{{ $sup->id }}" {{ old('supplier_id', $selectedSupplierId ?? $deliveryNote?->supplier_id ?? $purchaseOrder?->supplier_id) == $sup->id ? 'selected' : '' }}>{{ $sup->name }}</option>
-                            @endforeach
-                        </select>
+                        <div class="flex items-center gap-2">
+                            <select name="supplier_id" x-model="supplier_id" @change="checkDuplicate(); onSupplierChange()" required class="flex-1 rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                <option value="">Seleccionar...</option>
+                                @foreach($suppliers as $sup)
+                                    <option value="{{ $sup->id }}" {{ old('supplier_id', $selectedSupplierId ?? $deliveryNote?->supplier_id ?? $purchaseOrder?->supplier_id) == $sup->id ? 'selected' : '' }}>{{ $sup->name }}</option>
+                                @endforeach
+                                <template x-for="sup in inlineSuppliers" :key="sup.id">
+                                    <option :value="sup.id" x-text="sup.name"></option>
+                                </template>
+                            </select>
+                            @can('suppliers.create')
+                            <button type="button" @click="openNewSupplierModal()"
+                                    class="flex-shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 hover:text-zinc-700 transition-colors"
+                                    title="Nuevo proveedor">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                            </button>
+                            @endcan
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Sede / depósito <span class="text-red-500">*</span></label>
@@ -738,6 +752,17 @@
                 editId: null,
                 duplicateWarning: false,
 
+                showNewSupplierModal: false,
+                inlineSuppliers: [],
+                newSupplierErrors: {},
+                newSupplierLoading: false,
+                newSupplierForm: {
+                    name: '', business_name: '', tax_id: '', tax_condition: '',
+                    email: '', phone: '', address: '', city: '', state: '',
+                    country: 'Argentina', postal: '', cbu: '', bank_alias: '',
+                    bank_name: '', contact_name: '', contact_phone: '', notes: '',
+                },
+
                 deliveryNoteIds: initialDnIds,
                 deliveryNoteLabels: initialDnLabels,
                 selectedDeliveryNoteId: '',
@@ -833,6 +858,46 @@
                 padPointOfSale() {
                     if (this.point_of_sale) {
                         this.point_of_sale = String(parseInt(this.point_of_sale) || 0).padStart(5, '0');
+                    }
+                },
+
+                openNewSupplierModal() {
+                    this.newSupplierErrors = {};
+                    this.newSupplierForm = {
+                        name: '', business_name: '', tax_id: '', tax_condition: '',
+                        email: '', phone: '', address: '', city: '', state: '',
+                        country: 'Argentina', postal: '', cbu: '', bank_alias: '',
+                        bank_name: '', contact_name: '', contact_phone: '', notes: '',
+                    };
+                    this.showNewSupplierModal = true;
+                },
+
+                async submitNewSupplier() {
+                    this.newSupplierLoading = true;
+                    this.newSupplierErrors = {};
+                    try {
+                        const resp = await fetch('{{ route('suppliers.store-inline') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            },
+                            body: JSON.stringify(this.newSupplierForm),
+                        });
+                        const data = await resp.json();
+                        if (!resp.ok) {
+                            this.newSupplierErrors = data.errors ?? { name: [data.message ?? 'Error al guardar.'] };
+                            return;
+                        }
+                        this.inlineSuppliers.push({ id: data.id, name: data.name });
+                        this.supplier_id = String(data.id);
+                        this.showNewSupplierModal = false;
+                        await this.onSupplierChange();
+                    } catch (e) {
+                        this.newSupplierErrors = { name: ['Error de red. Intentá nuevamente.'] };
+                    } finally {
+                        this.newSupplierLoading = false;
                     }
                 },
 
@@ -1060,4 +1125,131 @@
             }
         }
     </script>
+
+{{-- Modal Nuevo Proveedor --}}
+<div x-show="showNewSupplierModal" x-cloak
+     class="fixed inset-0 z-50 flex items-center justify-center p-4"
+     @keydown.escape.window="showNewSupplierModal = false">
+    <div class="absolute inset-0 bg-black/50" @click="showNewSupplierModal = false"></div>
+    <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" @click.stop>
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+            <h2 class="text-lg font-semibold text-gray-800">Nuevo Proveedor</h2>
+            <button type="button" @click="showNewSupplierModal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <template x-if="Object.keys(newSupplierErrors).length > 0">
+            <div class="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <ul class="text-sm text-red-700 list-disc list-inside space-y-1">
+                    <template x-for="(msgs, field) in newSupplierErrors" :key="field">
+                        <template x-for="msg in msgs" :key="msg"><li x-text="msg"></li></template>
+                    </template>
+                </ul>
+            </div>
+        </template>
+        <div class="p-6 space-y-5">
+            <div>
+                <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Datos Principales</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre <span class="text-red-500">*</span></label>
+                        <input type="text" x-model="newSupplierForm.name" placeholder="Nombre comercial" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500" :class="newSupplierErrors.name ? 'border-red-400' : ''">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Razón Social</label>
+                        <input type="text" x-model="newSupplierForm.business_name" placeholder="Razón social" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">CUIT</label>
+                        <input type="text" x-model="newSupplierForm.tax_id" placeholder="XX-XXXXXXXX-X" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500" :class="newSupplierErrors.tax_id ? 'border-red-400' : ''">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Condición IVA</label>
+                        <select x-model="newSupplierForm.tax_condition" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                            <option value="">Seleccionar...</option>
+                            <option value="responsable_inscripto">Responsable Inscripto</option>
+                            <option value="monotributo">Monotributo</option>
+                            <option value="exento">Exento</option>
+                            <option value="consumidor_final">Consumidor Final</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Contacto</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" x-model="newSupplierForm.email" placeholder="correo@proveedor.com" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500" :class="newSupplierErrors.email ? 'border-red-400' : ''">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                        <input type="text" x-model="newSupplierForm.phone" placeholder="Teléfono principal" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Contacto (persona)</label>
+                        <input type="text" x-model="newSupplierForm.contact_name" placeholder="Nombre del contacto" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono de contacto</label>
+                        <input type="text" x-model="newSupplierForm.contact_phone" placeholder="Teléfono del contacto" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Dirección</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
+                        <input type="text" x-model="newSupplierForm.address" placeholder="Calle y número" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Ciudad</label>
+                        <input type="text" x-model="newSupplierForm.city" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
+                        <input type="text" x-model="newSupplierForm.state" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">País</label>
+                        <input type="text" x-model="newSupplierForm.country" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Código Postal</label>
+                        <input type="text" x-model="newSupplierForm.postal" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Datos Bancarios</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">CBU</label>
+                        <input type="text" x-model="newSupplierForm.cbu" placeholder="CBU (22 dígitos)" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Alias</label>
+                        <input type="text" x-model="newSupplierForm.bank_alias" placeholder="Alias de transferencia" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Banco</label>
+                        <input type="text" x-model="newSupplierForm.bank_name" placeholder="Nombre del banco" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                    </div>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Notas / Observaciones</label>
+                <textarea x-model="newSupplierForm.notes" rows="2" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500" placeholder="Observaciones sobre el proveedor..."></textarea>
+            </div>
+        </div>
+        <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 sticky bottom-0 bg-white">
+            <button type="button" @click="showNewSupplierModal = false" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Cancelar</button>
+            <button type="button" @click="submitNewSupplier()" :disabled="newSupplierLoading" class="px-5 py-2 text-sm font-semibold text-white bg-zinc-700 rounded-lg hover:bg-zinc-800 disabled:opacity-60 transition-colors">
+                <span x-show="!newSupplierLoading">Guardar Proveedor</span>
+                <span x-show="newSupplierLoading">Guardando...</span>
+            </button>
+        </div>
+    </div>
+</div>
 </x-admin-layout>
