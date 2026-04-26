@@ -27,7 +27,8 @@ class PurchaseInvoiceController extends Controller
 
         $query = PurchaseInvoice::with(['supplier', 'creator', 'deliveryNotes', 'labBranch'])
             ->where('company_id', active_company_id())
-            ->orderByDesc('created_at');
+            ->orderByDesc('issue_date')
+            ->orderByDesc('id');
 
         if ($request->filled('lab_branch_id')) {
             $query->where('lab_branch_id', $request->lab_branch_id);
