@@ -1,7 +1,7 @@
-# STATUS — Labit
+﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-18 (Dev: completada v1.53.0 — dashboard monitoreo API: Livewire 3, `api:cleanup`, 20 tests)
+> Última actualización: 2026-04-26 (Dev: completada v1.54.1 — hotfix lote/vencimiento remito: ocultar inputs con x-if)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.53.0** en **develop** |
+| **Versión actual** | **v1.54.1** en **develop** |
 | **Última en master** | Ver tags en remoto |
-| **Última completada** | v1.53.0 — dashboard monitoreo API (Livewire 3, `api:cleanup`, 20 tests) |
+| **Última completada** | v1.55.0 — FC: buscador unificado insumos + servicios (dropdown 2 secciones) |
 | **En proceso** | — |
-| **Próxima** | v1.48.0 (cliente LISCOM, repo interfases) |
-| **Pendientes en cola** | 0 — cola de labit vacía ✅ (v1.48.0★ y v1.49.0★ completados en interfases) |
-| **Completadas** | 98 |
+| **Próxima** | — |
+| **Pendientes en cola** | 0 — cola de labit vacía ✅ |
+| **Completadas** | 101 |
 
 ---
 
@@ -23,10 +23,7 @@
 
 ### Pendientes (0)
 
-> Cola de labit vacía. Todos los prompts de la cadena LISCOM completados (v1.48.0 y v1.49.0 ejecutados en `interfases`).
-
-
-> (copiar `.agents/` y `agent-bootstrap/` desde labit).
+> Cola de labit vacía.
 
 ### En proceso (0)
 
@@ -36,6 +33,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.54.0 | UX combobox insumos: ocultar input al seleccionar (delivery-notes + purchase-invoices) | 2026-04-26 | v1.54.0 |
 | v1.51.0 | Endpoint POST `/api/v1/results/batch` (idempotencia + ALREADY_VALIDATED) | 2026-04-18 | v1.51.0 |
 | v1.48.5 | Formato extendido de barcode (`{protocol_number}^{material_abbreviation}`) | 2026-04-18 | v1.48.5 |
 | v1.47.0 | API pública: protocolos unificados (clinical/sample/vet) + PII gating | 2026-04-18 | v1.47.0 |

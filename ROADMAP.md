@@ -136,6 +136,15 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 > Nota: Los prompts v1.35.2, v1.35.3, v1.36.1 y v3.4.0 figuran en `agent-bootstrap/prompts/completados/`; se retiraron de esta tabla para evitar duplicar el estado.
 
+
+---
+
+## Planificado — Próximas versiones
+
+| Versión | Nombre | Estado | Prompt |
+|---|---|---|---|
+| v1.54.0 | UX combobox insumos: ocultar input al seleccionar | Pendiente | `pendientes/v1.54.0-ux-combobox-insumos-ocultar-input.md` |
+
 ---
 
 ## Áreas candidatas (sin planificar)

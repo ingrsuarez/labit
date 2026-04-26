@@ -143,6 +143,7 @@
                                             <div>
                                                 <div class="flex items-center gap-1">
                                                     <input type="text"
+                                                           x-show="!item.supply_id"
                                                            x-model="searchText"
                                                            @input.debounce.300ms="doSearch()"
                                                            @focus="if (searchText.length >= 2) showResults = true"
@@ -152,7 +153,7 @@
                                                            @keydown.escape="showResults = false"
                                                            @keydown.tab="onTab($event)"
                                                            placeholder="Buscar insumo..."
-                                                           required
+                                                           :required="!item.supply_id"
                                                            :id="'item-supply-' + index"
                                                            class="flex-1 min-w-0 rounded border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
 
@@ -214,21 +215,27 @@
                                                class="w-24 rounded border-gray-300 text-sm text-center focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
                                     <td class="px-3 py-2">
-                                        <input type="text" :name="'items[' + index + '][lot_number]'"
-                                               x-model="item.lot_number"
-                                               @keydown.enter.prevent="$dispatch('add-remito-item')"
-                                               placeholder="—"
-                                               :disabled="!item._tracks_lot"
-                                               :class="item._tracks_lot ? '' : 'bg-gray-50 text-gray-300'"
-                                               class="w-24 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
+                                        <template x-if="item._tracks_lot">
+                                            <input type="text" :name="'items[' + index + '][lot_number]'"
+                                                   x-model="item.lot_number"
+                                                   @keydown.enter.prevent="$dispatch('add-remito-item')"
+                                                   placeholder="Lote"
+                                                   class="w-24 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
+                                        </template>
+                                        <template x-if="!item._tracks_lot">
+                                            <span class="text-gray-300 text-xs">—</span>
+                                        </template>
                                     </td>
                                     <td class="px-3 py-2">
-                                        <input type="date" :name="'items[' + index + '][expiration_date]'"
-                                               x-model="item.expiration_date"
-                                               @keydown.enter.prevent="$dispatch('add-remito-item')"
-                                               :disabled="!item._tracks_lot"
-                                               :class="item._tracks_lot ? '' : 'bg-gray-50 text-gray-300'"
-                                               class="w-32 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
+                                        <template x-if="item._tracks_lot">
+                                            <input type="date" :name="'items[' + index + '][expiration_date]'"
+                                                   x-model="item.expiration_date"
+                                                   @keydown.enter.prevent="$dispatch('add-remito-item')"
+                                                   class="w-32 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
+                                        </template>
+                                        <template x-if="!item._tracks_lot">
+                                            <span class="text-gray-300 text-xs">—</span>
+                                        </template>
                                     </td>
                                     <td class="px-3 py-2">
                                         <input type="text" :name="'items[' + index + '][notes]'" x-model="item.notes"
@@ -419,7 +426,7 @@
                         item.lot_number = '';
                         item.expiration_date = '';
                     }
-                    this.searchText = label;
+                    this.searchText = '';
                     this.showResults = false;
                     this.$nextTick(() => {
                         const qtyInput = document.querySelector(`#item-qty-${index}`);
@@ -431,7 +438,12 @@
                     item.supply_id = '';
                     item._supply_code = '';
                     item._supply_name = '';
+                    item._supply_label = '';
                     this.searchText = '';
+                    this.$nextTick(() => {
+                        const el = document.querySelector(`#item-supply-${index}`);
+                        if (el) el.focus();
+                    });
                 },
 
                 highlightNext() {
@@ -629,6 +641,10 @@
                             this.items[this.newSupplyForRow]._supply_name = data.name;
                             this.items[this.newSupplyForRow]._supply_code = data.code;
                             this.items[this.newSupplyForRow]._tracks_lot = !!data.tracks_lot;
+                            if (!data.tracks_lot) {
+                                this.items[this.newSupplyForRow].lot_number = '';
+                                this.items[this.newSupplyForRow].expiration_date = '';
+                            }
                             this.$nextTick(() => {
                                 const input = document.querySelector(`#item-supply-${this.newSupplyForRow}`);
                                 if (input) {
