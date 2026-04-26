@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.56.0** en **develop** |
+| **Versión actual** | **v1.57.0** en **develop** |
 | **Última en master** | Ver tags en remoto |
 | **Última completada** | v1.55.0 — FC: buscador unificado insumos + servicios (dropdown 2 secciones) |
 | **En proceso** | — |
 | **Próxima** | — |
 | **Pendientes en cola** | 0 — cola de labit vacía ✅ |
-| **Completadas** | 102 |
+| **Completadas** | 103 |
 
 ---
 
