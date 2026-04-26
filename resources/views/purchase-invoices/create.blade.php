@@ -568,6 +568,8 @@
                     'quantity' => floatval($i->quantity_received),
                     'unit_price' => $i->supply ? floatval($i->supply->last_price ?? 0) : 0,
                     'iva_rate' => '21',
+                    'lot_number' => $i->lot_number ?? '',
+                    'expiration_date' => $i->expiration_date?->format('Y-m-d') ?? '',
                 ];
             })->values()
             : collect();
@@ -737,7 +739,7 @@
             const initialDnLabels = @json($deliveryNote ? [ (string) $deliveryNote->id => $deliveryNote->remito_number ] : []);
 
             return {
-                items: deliveryNoteItems.length > 0 ? [...deliveryNoteItems.map(i => ({...i, lot_number: '', expiration_date: '', _supply_code: '', updates_stock: false}))] : [],
+                items: deliveryNoteItems.length > 0 ? [...deliveryNoteItems.map(i => ({...i, _supply_code: '', updates_stock: false}))] : [],
                 percepciones: {{ old('percepciones', 0) }},
                 otrosImpuestos: {{ old('otros_impuestos', 0) }},
                 purchaseServiceGroups: @json($purchaseServiceCatalog ?? []),
