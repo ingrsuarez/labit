@@ -46,9 +46,19 @@
                     <span>Ya existe otro remito con este número para el mismo proveedor. Corregí antes de guardar.</span>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <input type="hidden" name="remito_number" :value="remitoNumberForDup">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Punto de Venta</label>
+                        <input type="text" x-model="remitoPdv"
+                               @blur="padRemitoPdv(); checkDuplicateRemito()"
+                               maxlength="5" placeholder="00000"
+                               :class="duplicateRemitoWarning ? 'w-full rounded-lg border-red-400 text-sm focus:border-red-500 focus:ring-red-500' : 'w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500'">
+                    </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">N° Remito <span class="text-red-500">*</span></label>
-                        <input type="text" name="remito_number" x-model="remitoNumberForDup" @input.debounce.400ms="checkDuplicateRemito()" required
+                        <input type="text" x-model="remitoNum"
+                               @blur="padRemitoNum(); checkDuplicateRemito()" required
+                               maxlength="8" placeholder="00000000"
                                :class="duplicateRemitoWarning ? 'w-full rounded-lg border-red-400 text-sm focus:border-red-500 focus:ring-red-500' : 'w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500'">
                     </div>
                     <div>
@@ -512,7 +522,14 @@
             const poBranchById = @json($poBranchByIdJson);
 
             return {
-                remitoNumberForDup: @json(old('remito_number', $deliveryNote->remito_number)),
+                remitoPdv: @json(explode('-', old('remito_number', $deliveryNote->remito_number ?? ''), 2)[0] ?? ''),
+                remitoNum: @json(explode('-', old('remito_number', $deliveryNote->remito_number ?? ''), 2)[1] ?? ''),
+
+                get remitoNumberForDup() {
+                    if (!this.remitoPdv || !this.remitoNum) return '';
+                    return this.remitoPdv + '-' + this.remitoNum;
+                },
+
                 supplierIdForDup: '{{ old('supplier_id', $deliveryNote->supplier_id) }}',
                 duplicateRemitoWarning: false,
                 excludeRemitoId: {{ $deliveryNote->id }},
@@ -578,6 +595,18 @@
                     }
                     if (t.tagName === 'INPUT' && ! t.closest('#remito-items-section')) {
                         $event.preventDefault();
+                    }
+                },
+
+                padRemitoPdv() {
+                    if (this.remitoPdv) {
+                        this.remitoPdv = String(parseInt(this.remitoPdv) || 0).padStart(5, '0');
+                    }
+                },
+
+                padRemitoNum() {
+                    if (this.remitoNum) {
+                        this.remitoNum = String(parseInt(this.remitoNum) || 0).padStart(8, '0');
                     }
                 },
 
