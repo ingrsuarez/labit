@@ -574,8 +574,12 @@ class PurchaseInvoiceController extends Controller
             return;
         }
 
-        $companyId ??= active_company_id();
-        $notes = DeliveryNote::where('company_id', $companyId)->whereIn('id', $deliveryNoteIds)->get();
+        if ($companyId !== null) {
+            $validCompanyIds = collect([$companyId]);
+        } else {
+            $validCompanyIds = auth()->user()->load('companies')->companies->pluck('id');
+        }
+        $notes = DeliveryNote::whereIn('company_id', $validCompanyIds)->whereIn('id', $deliveryNoteIds)->get();
 
         foreach ($notes as $dn) {
             if (! $dn->lab_branch_id) {
