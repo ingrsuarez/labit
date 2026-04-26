@@ -150,6 +150,15 @@
                                             <a href="{{ route('delivery-notes.show', $note) }}" class="text-gray-500 hover:text-zinc-700">Ver</a>
 
                                             @if(!$hasInvoice)
+                                                @can('purchase-invoices.create')
+                                                    <a href="{{ route('purchase-invoices.create', ['delivery_note_id' => $note->id]) }}"
+                                                       class="text-teal-600 hover:text-teal-800 text-xs font-medium">
+                                                        Crear FC
+                                                    </a>
+                                                @endcan
+                                            @endif
+
+                                            @if(!$hasInvoice)
                                                 <a href="{{ route('delivery-notes.edit', $note) }}"
                                                    class="inline-flex items-center px-2 py-1 text-xs font-medium text-zinc-700 bg-zinc-100 hover:bg-zinc-200 rounded">
                                                     Editar
