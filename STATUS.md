@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-26 (Dev: completada v1.59.0 — prellenar lote/vencimiento FC desde remito)
+> Última actualización: 2026-04-26 (Dev: completada v1.60.0 — fix autocomplete navegador en buscador insumos remito)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.59.0** en **develop** |
+| **Versión actual** | **v1.60.0** en **develop** |
 | **Última en master** | Ver tags en remoto |
-| **Última completada** | v1.59.0 — Prellenar lote/vencimiento al crear FC desde remito |
+| **Última completada** | v1.60.0 — Fix autocomplete navegador en buscador de insumos del remito |
 | **En proceso** | — |
-| **Próxima** | v1.60.0 — Fix autocomplete navegador en buscador de insumos del remito |
-| **Pendientes en cola** | 3 |
-| **Completadas** | 106 |
+| **Próxima** | v1.61.0 — Enter agrega ítem en Factura de Compra |
+| **Pendientes en cola** | 2 |
+| **Completadas** | 107 |
 
 ---
 
