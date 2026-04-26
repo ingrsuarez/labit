@@ -75,7 +75,8 @@ class DeliveryNoteController extends Controller
 
     public function getItems(DeliveryNote $deliveryNote)
     {
-        abort_if($deliveryNote->company_id !== active_company_id(), 403);
+        $userCompanyIds = auth()->user()->load('companies')->companies->pluck('id');
+        abort_if(! $userCompanyIds->contains($deliveryNote->company_id), 403);
 
         $items = $deliveryNote->items()->with('supply:id,code,name,brand,tracks_lot')->get();
 
