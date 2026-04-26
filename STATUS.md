@@ -1,4 +1,4 @@
-﻿# STATUS — Labit
+# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
 > Última actualización: 2026-04-26 (Dev: completada v1.54.1 — hotfix lote/vencimiento remito: ocultar inputs con x-if)
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.57.0** en **develop** |
+| **Versión actual** | **v1.58.0** en **develop** |
 | **Última en master** | Ver tags en remoto |
-| **Última completada** | v1.55.0 — FC: buscador unificado insumos + servicios (dropdown 2 secciones) |
+| **Última completada** | v1.58.0 — Modal "Nuevo Proveedor" desde formulario de FC |
 | **En proceso** | — |
-| **Próxima** | — |
-| **Pendientes en cola** | 0 — cola de labit vacía ✅ |
-| **Completadas** | 103 |
+| **Próxima** | v1.58.1 — Modal "Nuevo Proveedor" desde formulario de Remito |
+| **Pendientes en cola** | 2 |
+| **Completadas** | 104 |
 
 ---
 
