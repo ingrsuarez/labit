@@ -6,7 +6,7 @@
             </a>
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Previsualización de factura masiva</h1>
-                <p class="text-gray-500 text-sm mt-1">Revisá los protocolos y datos antes de confirmar</p>
+                <p class="text-gray-500 text-sm mt-1">Revisá los protocolos. En el siguiente paso vas a poder agregar líneas extras (toma de muestra, flete, etc.) antes de enviar a AFIP.</p>
             </div>
         </div>
 
@@ -156,8 +156,8 @@
                     </a>
                     <button type="submit"
                             class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
-                            onclick="return confirm('¿Confirmar la creación de la factura con {{ count($protocolIds) }} protocolos?')">
-                        <i class="bi bi-receipt mr-1"></i> Crear factura
+                            onclick="return confirm('Se creará un borrador con {{ count($protocolIds) }} protocolos. Vas a poder revisar y agregar líneas extras antes de enviar a AFIP. ¿Continuar?')">
+                        <i class="bi bi-file-earmark-text mr-1"></i> Crear borrador
                     </button>
                 </div>
             </form>

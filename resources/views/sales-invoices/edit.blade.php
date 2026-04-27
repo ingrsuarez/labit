@@ -1,12 +1,54 @@
 <x-admin-layout>
+    @php
+        $isAfipDraft = $invoice->status === 'pendiente' && $invoice->is_electronic && ! $invoice->cae;
+        $isAfipRejected = $invoice->is_electronic && ! $invoice->cae && $invoice->afip_result === 'R';
+    @endphp
     <div class="p-4 md:p-6" x-data="invoiceEditForm()">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">Editar {{ $invoice->full_number }}</h1>
-                <p class="text-gray-500 text-sm mt-1">Modificar factura de venta</p>
+                <h1 class="text-2xl font-bold text-gray-800">
+                    {{ $isAfipDraft ? 'Editar borrador — pendiente AFIP' : 'Editar '.$invoice->full_number }}
+                </h1>
+                <p class="text-gray-500 text-sm mt-1">
+                    {{ $isAfipDraft ? 'Borrador editable: agregá líneas extras y enviá a AFIP cuando esté listo.' : 'Modificar factura de venta' }}
+                </p>
             </div>
             <a href="{{ route('sales-invoices.show', $invoice) }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">&larr; Volver</a>
         </div>
+
+        @if(session('success'))
+            <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">{{ session('success') }}</div>
+        @endif
+
+        @if(session('error'))
+            <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{{ session('error') }}</div>
+        @endif
+
+        @if($isAfipDraft)
+            <div class="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4">
+                <div class="flex items-start gap-3">
+                    <svg class="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+                    </svg>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-amber-900">
+                            {{ $isAfipRejected ? 'Borrador — AFIP rechazó el envío anterior' : 'Borrador — pendiente de envío a AFIP' }}
+                        </h3>
+                        <p class="text-sm text-amber-800 mt-1">
+                            Esta factura todavía no fue emitida ante AFIP. Podés editar items, agregar líneas extras
+                            (toma de muestra, flete, descuentos, etc.) o cambiar datos. Cuando confirmes, se enviará
+                            automáticamente y se obtendrá el CAE.
+                        </p>
+                        @if($isAfipRejected && !empty($invoice->afip_response))
+                            <details class="mt-2 text-xs text-amber-700">
+                                <summary class="cursor-pointer underline">Ver respuesta AFIP</summary>
+                                <pre class="mt-1 whitespace-pre-wrap break-words">{{ json_encode($invoice->afip_response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                            </details>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endif
 
         @if($errors->any())
             <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -18,7 +60,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('sales-invoices.update', $invoice) }}">
+        <form id="invoice-edit-form" method="POST" action="{{ route('sales-invoices.update', $invoice) }}">
             @csrf
             @method('PUT')
 
@@ -50,10 +92,18 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">N° Factura <span class="text-red-500">*</span></label>
-                        <input type="text" name="invoice_number" value="{{ old('invoice_number', $invoice->invoice_number) }}" required
-                               placeholder="Ej: 00012345"
-                               class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            N° Factura @unless($isAfipDraft)<span class="text-red-500">*</span>@endunless
+                        </label>
+                        @if($isAfipDraft)
+                            <input type="text" value="{{ $invoice->invoice_number }}" readonly
+                                   class="w-full rounded-lg border-gray-200 bg-gray-50 text-sm text-gray-500">
+                            <p class="text-[11px] text-gray-500 mt-1">AFIP asignará el número al enviar.</p>
+                        @else
+                            <input type="text" name="invoice_number" value="{{ old('invoice_number', $invoice->invoice_number) }}" required
+                                   placeholder="Ej: 00012345"
+                                   class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                        @endif
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Cliente <span class="text-red-500">*</span></label>
@@ -205,14 +255,34 @@
                 </div>
             </div>
 
-            <div class="flex justify-end gap-3">
-                <a href="{{ route('sales-invoices.show', $invoice) }}" class="px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 text-sm">Cancelar</a>
-                <button type="submit" :disabled="items.length === 0"
-                        class="px-6 py-3 bg-zinc-700 text-white font-semibold rounded-lg hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm shadow-sm">
-                    Guardar Cambios
-                </button>
-            </div>
         </form>
+
+        <div class="flex flex-wrap justify-end items-center gap-3">
+            <a href="{{ route('sales-invoices.show', $invoice) }}" class="px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 text-sm">Cancelar</a>
+
+            <button type="submit" form="invoice-edit-form" :disabled="items.length === 0"
+                    class="px-6 py-3 bg-zinc-700 text-white font-semibold rounded-lg hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm shadow-sm">
+                Guardar cambios
+            </button>
+
+            @if($invoice->is_electronic && ! $invoice->cae)
+                @php
+                    $isRetry = $invoice->afip_result === 'R';
+                    $btnLabel = $isRetry ? 'Reintentar AFIP' : 'Enviar a AFIP';
+                @endphp
+                <form method="POST" action="{{ route('sales-invoices.retry-afip', $invoice) }}" class="inline">
+                    @csrf
+                    <button type="submit"
+                            class="px-6 py-3 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition-colors text-sm shadow-sm inline-flex items-center gap-2"
+                            onclick="return confirm('Se enviará la factura a AFIP. Asegurate de haber guardado los cambios. ¿Continuar?')">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                        </svg>
+                        {{ $btnLabel }}
+                    </button>
+                </form>
+            @endif
+        </div>
     </div>
 
     @php

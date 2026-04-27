@@ -4,17 +4,26 @@
              search: '{{ request('search') }}',
              status: '{{ request('status') }}',
              customer_id: '{{ request('customer_id') }}',
+             afip_draft: {{ request()->boolean('afip_draft') ? 'true' : 'false' }},
              loading: false,
              init() {
                  this.$watch('search', () => this.fetchResults());
                  this.$watch('status', () => this.fetchResults());
                  this.$watch('customer_id', () => this.fetchResults());
+                 this.$watch('afip_draft', () => {
+                     if (this.afip_draft) { this.status = ''; }
+                     this.fetchResults();
+                 });
              },
              fetchResults() {
                  this.loading = true;
                  const params = new URLSearchParams();
                  if (this.search) params.set('search', this.search);
-                 if (this.status) params.set('status', this.status);
+                 if (this.afip_draft) {
+                     params.set('afip_draft', '1');
+                 } else if (this.status) {
+                     params.set('status', this.status);
+                 }
                  if (this.customer_id) params.set('customer_id', this.customer_id);
                  const url = '{{ route('sales-invoices.index') }}' + (params.toString() ? '?' + params.toString() : '');
 
@@ -68,7 +77,7 @@
                     </div>
                 </div>
                 <div class="w-full md:w-52">
-                    <select x-model="status" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                    <select x-model="status" :disabled="afip_draft" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500 disabled:bg-gray-100">
                         <option value="">Todos los estados</option>
                         <option value="pendiente">Pendiente</option>
                         <option value="parcialmente_cobrada">Parcialmente Cobrada</option>
@@ -84,8 +93,23 @@
                         @endforeach
                     </select>
                 </div>
-                <button x-show="search || status || customer_id" @click="search = ''; status = ''; customer_id = ''" type="button"
+                <button x-show="search || status || customer_id || afip_draft" @click="search = ''; status = ''; customer_id = ''; afip_draft = false" type="button"
                         class="px-4 py-2 text-gray-500 hover:text-gray-700 text-sm font-medium transition-colors">Limpiar</button>
+            </div>
+
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+                <span class="text-xs text-gray-500 font-medium">Atajos:</span>
+                <button type="button" @click="afip_draft = !afip_draft"
+                        :class="afip_draft ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-amber-50'"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Borradores AFIP
+                    @if($afip_draft_count > 0)
+                        <span class="bg-amber-500 text-white text-[10px] rounded-full px-1.5 py-0.5">{{ $afip_draft_count }}</span>
+                    @endif
+                </button>
             </div>
         </div>
 

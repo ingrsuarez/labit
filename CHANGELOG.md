@@ -5,6 +5,41 @@
 
 ---
 
+## [v1.65.0] — 2026-04-27 — Borrador editable y líneas extras en facturación masiva
+
+### Cambio de flujo (UX percibible)
+La facturación masiva (`/billing/batch-preview`) **ya no emite la factura en línea**. El botón pasa a llamarse **"Crear borrador"** y crea una `SalesInvoice` con `status='pendiente'`, sin CAE y con `invoice_number='PENDIENTE-AFIP'` (para electrónicas), redirigiendo al `sales-invoices.edit` existente. Desde el edit, el usuario puede:
+
+- Agregar **líneas libres** (descripción + cantidad + precio + IVA) sin `test_id` — útil para toma de muestra, flete, descuentos, otros conceptos no asociados a determinaciones de protocolos.
+- Quitar o editar items individuales.
+- Cambiar customer, PV, fecha, notas, percepciones.
+- Apretar **"Enviar a AFIP"** (PV electrónico, reusa `sales-invoices.retry-afip`) o **"Confirmar"** (PV no electrónico).
+
+### Agregado
+- **Banner amarillo "BORRADOR — pendiente de envío a AFIP"** en `resources/views/sales-invoices/edit.blade.php` (visible solo para borradores electrónicos sin CAE; muestra el detalle de rechazo AFIP si lo hay).
+- **Botón "Enviar a AFIP" / "Reintentar AFIP"** en `edit.blade.php`, en form separada hacia `sales-invoices.retry-afip`, con confirmación.
+- **Soporte para líneas libres** (sin `test_id`) en el form del edit (ya existía la infraestructura del controller; se documenta y valida explícitamente en este release).
+- **Filtro "Borradores AFIP"** en `/sales-invoices` con badge de cantidad (`afip_draft_count` pasado por el controller). Mutuamente excluyente con el filtro `status`.
+- **Scope `SalesInvoice::afipDraft()`** + accessor `is_afip_draft` (`status='pendiente' AND is_electronic=true AND cae IS NULL`).
+- **Tests Feature** en `tests/Feature/Billing/BatchInvoiceDraftTest.php` (5 casos: borrador sin AFIP, agregar línea libre, enviar a AFIP desde edit, filtro de listado, factura con CAE no editable).
+
+### Cambiado
+- **`BillingController::batchInvoice`**: se quita el bloque `if ($isElectronic) { AfipService::createVoucher(...) }`. Siempre se crea borrador y se redirige a `sales-invoices.edit` con flash success diferenciado por electrónico/manual.
+- **`SalesInvoiceController::index`**: incluye `afip_draft_count` y aplica el scope cuando llega `?afip_draft=1`.
+- **`SalesInvoiceController::update`**: para electrónicas en estado borrador (`is_afip_draft`), `invoice_number` pasa a `nullable|string` sin `unique`, evitando choques con el placeholder `PENDIENTE-AFIP` de varios borradores simultáneos.
+- **`SalesInvoiceController::retryAfip`**: pasa de `new AfipService` a `app(AfipService::class)` (DI), habilitando mocking en tests.
+- **`resources/views/billing/batch-preview.blade.php`**: subtítulo y label del botón actualizados ("Crear borrador" en vez de "Crear factura"; mensaje de confirmación menciona el siguiente paso editable).
+- **`resources/views/sales-invoices/index.blade.php`**: nuevo toggle "Borradores AFIP" con Alpine.js, deshabilita el select `status` cuando está activo.
+- **`resources/views/sales-invoices/edit.blade.php`**: título dinámico ("Editar borrador — pendiente AFIP"), `id="invoice-edit-form"`, "N° Factura" read-only para borradores electrónicos.
+
+### Notas técnicas
+- **Sin migraciones, sin modelos nuevos, sin permisos nuevos** — refactor + ajustes de UI sobre infraestructura existente.
+- Reusa endpoints `sales-invoices.update` y `sales-invoices.retry-afip` (este último ya soportaba envío inicial; el gate `is_electronic && !cae` cubre tanto envío como reintento).
+- Tests existentes que asumían redirect inmediato a `show` con CAE quedan obsoletos; el flujo masivo ahora redirige a `edit` y el CAE se obtiene en un segundo paso explícito.
+- Decisión registrada como **DD-009** en `BLUEPRINT.md`.
+
+---
+
 ## [v1.53.0] — 2026-04-18 — Dashboard de monitoreo de la API (ingesta de resultados desde LISCOM)
 
 ### Agregado

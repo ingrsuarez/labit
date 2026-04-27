@@ -34,7 +34,9 @@ class SalesInvoiceController extends Controller
             });
         }
 
-        if ($request->filled('status')) {
+        if ($request->boolean('afip_draft')) {
+            $query->afipDraft();
+        } elseif ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
@@ -47,7 +49,12 @@ class SalesInvoiceController extends Controller
         $total_balance = SalesInvoice::where('company_id', active_company_id())
             ->whereIn('status', ['pendiente', 'parcialmente_cobrada'])->sum('balance');
 
-        return view('sales-invoices.index', compact('invoices', 'total_balance'));
+        $afip_draft_count = SalesInvoice::query()
+            ->where('company_id', active_company_id())
+            ->afipDraft()
+            ->count();
+
+        return view('sales-invoices.index', compact('invoices', 'total_balance', 'afip_draft_count'));
     }
 
     public function create(Request $request)
@@ -368,8 +375,13 @@ class SalesInvoiceController extends Controller
                 ->with('error', 'Solo se pueden editar facturas en estado pendiente.');
         }
 
+        $isAfipDraft = $salesInvoice->is_electronic && ! $salesInvoice->cae;
+        $invoiceNumberRules = $isAfipDraft
+            ? 'nullable|string'
+            : 'required|string|unique:sales_invoices,invoice_number,'.$salesInvoice->id.',id,voucher_type,'.$request->voucher_type.',point_of_sale_id,'.$request->point_of_sale_id;
+
         $validated = $request->validate([
-            'invoice_number' => 'required|string|unique:sales_invoices,invoice_number,'.$salesInvoice->id.',id,voucher_type,'.$request->voucher_type.',point_of_sale_id,'.$request->point_of_sale_id,
+            'invoice_number' => $invoiceNumberRules,
             'voucher_type' => 'required|in:A,B,C',
             'point_of_sale_id' => 'required|exists:points_of_sale,id',
             'customer_id' => 'required|exists:customers,id',
@@ -411,8 +423,12 @@ class SalesInvoiceController extends Controller
             'items.*.iva_rate.in' => 'La alícuota de IVA no es válida.',
         ]);
 
+        $newInvoiceNumber = $isAfipDraft
+            ? ($salesInvoice->invoice_number ?: 'PENDIENTE-AFIP')
+            : $validated['invoice_number'];
+
         $salesInvoice->update([
-            'invoice_number' => $validated['invoice_number'],
+            'invoice_number' => $newInvoiceNumber,
             'voucher_type' => $validated['voucher_type'],
             'point_of_sale_id' => $validated['point_of_sale_id'],
             'customer_id' => $validated['customer_id'],
@@ -523,7 +539,7 @@ class SalesInvoiceController extends Controller
         $salesInvoice->load(['pointOfSale', 'customer', 'items']);
 
         try {
-            $afip = new AfipService;
+            $afip = app(AfipService::class);
             $result = $afip->createVoucher($salesInvoice);
 
             if ($result['result'] === 'A' || $result['result'] === 'O') {
