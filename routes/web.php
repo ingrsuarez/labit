@@ -349,6 +349,7 @@ Route::middleware([
         // SUPPLIERS (Proveedores)
         Route::get('suppliers/search', [App\Http\Controllers\SupplierController::class, 'search'])->name('suppliers.search');
         Route::get('suppliers/by-cuit/{cuit}', [App\Http\Controllers\SupplierController::class, 'findByCuit'])->name('suppliers.by-cuit');
+        Route::post('suppliers/store-inline', [App\Http\Controllers\SupplierController::class, 'storeInline'])->name('suppliers.store-inline');
         Route::resource('suppliers', App\Http\Controllers\SupplierController::class);
 
         // SUPPLY CATEGORIES (Categorías de Insumos)
@@ -364,6 +365,10 @@ Route::middleware([
         Route::get('supplies/search', [App\Http\Controllers\SupplyController::class, 'search'])->name('supplies.search');
         Route::get('supplies/{supply}/available-lots', [App\Http\Controllers\SupplyController::class, 'availableLots'])
             ->name('supplies.available-lots');
+        Route::get('supplies/{supply}/merge-preview', [App\Http\Controllers\SupplyController::class, 'mergePreview'])
+            ->name('supplies.merge-preview');
+        Route::post('supplies/{supply}/merge', [App\Http\Controllers\SupplyController::class, 'merge'])
+            ->name('supplies.merge');
         Route::resource('supplies', App\Http\Controllers\SupplyController::class);
 
         // STOCK MOVEMENTS (Movimientos de Stock)

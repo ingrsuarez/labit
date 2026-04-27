@@ -6,7 +6,10 @@ use App\Models\Supplier;
 use App\Models\Supply;
 use App\Models\SupplyCategory;
 use App\Services\SupplyLotBalanceService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class SupplyController extends Controller
@@ -224,5 +227,101 @@ class SupplyController extends Controller
                 'quantity' => max(0, (int) round($r->quantity)),
             ])->values()->all()
         );
+    }
+
+    /**
+     * Conteos de referencias del insumo origen para mostrar en el preview del modal de unificación.
+     */
+    public function mergePreview(Request $request, Supply $supply): JsonResponse
+    {
+        $this->authorize('supplies.edit');
+
+        return response()->json([
+            'stock_movements' => DB::table('stock_movements')->where('supply_id', $supply->id)->count(),
+            'purchase_invoice_items' => DB::table('purchase_invoice_items')->where('supply_id', $supply->id)->count(),
+            'purchase_order_items' => DB::table('purchase_order_items')->where('supply_id', $supply->id)->count(),
+            'delivery_note_items' => DB::table('delivery_note_items')->where('supply_id', $supply->id)->count(),
+            'purchase_quotation_request_items' => DB::table('purchase_quotation_request_items')->where('supply_id', $supply->id)->count(),
+            'purchase_credit_note_items' => DB::table('purchase_credit_note_items')->where('supply_id', $supply->id)->count(),
+            'branch_stocks' => DB::table('supply_lab_branch_stock')->where('supply_id', $supply->id)->count(),
+        ]);
+    }
+
+    /**
+     * Unifica el insumo origen ($supply) en el destino: reasigna referencias, suma stock y desactiva el origen.
+     * Operación irreversible — se ejecuta en una sola transacción.
+     */
+    public function merge(Request $request, Supply $supply): RedirectResponse
+    {
+        $this->authorize('supplies.edit');
+
+        $request->validate([
+            'target_id' => [
+                'required',
+                'integer',
+                'exists:supplies,id',
+                function (string $attribute, mixed $value, \Closure $fail) use ($supply): void {
+                    if ((int) $value === $supply->id) {
+                        $fail('El insumo destino debe ser diferente al origen.');
+                    }
+                },
+            ],
+        ]);
+
+        $target = Supply::findOrFail((int) $request->target_id);
+
+        if (! $target->is_active) {
+            return back()->with('error', 'El insumo destino está inactivo.');
+        }
+
+        DB::transaction(function () use ($supply, $target): void {
+            DB::table('stock_movements')->where('supply_id', $supply->id)->update(['supply_id' => $target->id]);
+            DB::table('purchase_invoice_items')->where('supply_id', $supply->id)->update(['supply_id' => $target->id]);
+            DB::table('purchase_order_items')->where('supply_id', $supply->id)->update(['supply_id' => $target->id]);
+            DB::table('delivery_note_items')->where('supply_id', $supply->id)->update(['supply_id' => $target->id]);
+            DB::table('purchase_quotation_request_items')->where('supply_id', $supply->id)->update(['supply_id' => $target->id]);
+            DB::table('purchase_credit_note_items')->where('supply_id', $supply->id)->whereNotNull('supply_id')->update(['supply_id' => $target->id]);
+
+            $sourceBranchStocks = DB::table('supply_lab_branch_stock')
+                ->where('supply_id', $supply->id)
+                ->get();
+
+            foreach ($sourceBranchStocks as $row) {
+                $existing = DB::table('supply_lab_branch_stock')
+                    ->where('supply_id', $target->id)
+                    ->where('lab_branch_id', $row->lab_branch_id)
+                    ->first();
+
+                if ($existing) {
+                    DB::table('supply_lab_branch_stock')
+                        ->where('supply_id', $target->id)
+                        ->where('lab_branch_id', $row->lab_branch_id)
+                        ->update(['quantity' => $existing->quantity + $row->quantity]);
+                    DB::table('supply_lab_branch_stock')
+                        ->where('supply_id', $supply->id)
+                        ->where('lab_branch_id', $row->lab_branch_id)
+                        ->delete();
+                } else {
+                    DB::table('supply_lab_branch_stock')
+                        ->where('supply_id', $supply->id)
+                        ->where('lab_branch_id', $row->lab_branch_id)
+                        ->update(['supply_id' => $target->id]);
+                }
+            }
+
+            $target->increment('stock', (float) $supply->stock);
+
+            if ((float) $supply->last_price > (float) $target->last_price) {
+                $target->update(['last_price' => $supply->last_price]);
+            }
+
+            $supply->update([
+                'is_active' => false,
+                'name' => '[UNIFICADO→'.$target->code.'] '.$supply->name,
+            ]);
+        });
+
+        return redirect()->route('supplies.index')
+            ->with('success', "Insumo \"{$supply->name}\" unificado en \"{$target->name}\" correctamente.");
     }
 }
