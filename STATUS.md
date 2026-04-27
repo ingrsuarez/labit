@@ -1,7 +1,7 @@
-﻿# STATUS — Labit
+# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-26 (Dev: completada v1.60.0 — fix autocomplete navegador en buscador insumos remito)
+> Última actualización: 2026-04-26 (Dev: completada v1.61.0 — Enter agrega ítem en Factura de Compra)
 
 ---
 
@@ -9,30 +9,34 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.60.0** en **develop** |
+| **Versión actual** | **v1.61.0** en **develop** |
 | **Última en master** | Ver tags en remoto |
-| **Última completada** | v1.60.0 — Fix autocomplete navegador en buscador de insumos del remito |
+| **Última completada** | v1.61.0 — Enter agrega ítem en Factura de Compra (UX igual al remito) |
 | **En proceso** | — |
-| **Próxima** | v1.61.0 — Enter agrega ítem en Factura de Compra |
+| **Próxima** | v1.62.0 — Unificar insumos: merge A → B con reasignación de referencias |
 | **Pendientes en cola** | 2 |
-| **Completadas** | 107 |
+| **Completadas** | 108 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (0)
+### Pendientes (2)
 
-> Cola de labit vacía.
+| Versión | Nombre | Prompt |
+|---|---|---|
+| v1.62.0 | Unificar insumos: merge A → B con reasignación de referencias | `pendientes/v1.62.0-unificar-insumos-merge.md` |
+| v1.63.0 | Percepciones de compra: catálogo, FC, asiento contable y saldos | `pendientes/v1.63.0-percepciones-compra.md` |
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (97)
+### Completados (98)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.61.0 | Enter agrega ítem en Factura de Compra (igual que en remito) | 2026-04-26 | v1.61.0 |
 | v1.54.0 | UX combobox insumos: ocultar input al seleccionar (delivery-notes + purchase-invoices) | 2026-04-26 | v1.54.0 |
 | v1.51.0 | Endpoint POST `/api/v1/results/batch` (idempotencia + ALREADY_VALIDATED) | 2026-04-18 | v1.51.0 |
 | v1.48.5 | Formato extendido de barcode (`{protocol_number}^{material_abbreviation}`) | 2026-04-18 | v1.48.5 |

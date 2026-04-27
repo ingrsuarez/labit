@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-18 (completada v1.48.5 — formato extendido de barcode `{protocol_number}^{material_abbreviation}`)
+> Última actualización: 2026-04-26 (completada v1.61.0 — Enter agrega ítem en Factura de Compra)
 
 ---
 
@@ -143,7 +143,18 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
-| v1.54.0 | UX combobox insumos: ocultar input al seleccionar | Pendiente | `pendientes/v1.54.0-ux-combobox-insumos-ocultar-input.md` |
+| v1.54.0 | UX combobox insumos: ocultar input al seleccionar | ✅ Completada | `completados/v1.54.0-ux-combobox-insumos-ocultar-input.md` |
+| v1.54.1 | Hotfix lote/vencimiento remito: ocultar inputs cuando no trackea lote | ✅ Completada | `completados/v1.54.1-hotfix-lote-vencimiento-remito-xshow.md` |
+| v1.55.0 | Factura de compra: buscador unificado insumos + servicios | ✅ Completada | `completados/v1.55.0-fc-buscador-unificado-insumos-servicios.md` |
+| v1.56.0 | Botón "Crear Factura de Compra" desde show e index del remito | ✅ Completada | `completados/v1.56.0-boton-crear-fc-desde-remito.md` |
+| v1.57.0 | Fix cross-company: remitos visibles en FC sin importar empresa activa | ✅ Completada | `completados/v1.57.0-fix-cross-company-remitos-disponibles-fc.md` |
+| v1.58.0 | Modal "Nuevo Proveedor" desde formulario de FC | ✅ Completada | `completados/v1.58.0-modal-nuevo-proveedor-desde-fc.md` |
+| v1.58.1 | Modal "Nuevo Proveedor" desde formulario de Remito | ✅ Completada | `completados/v1.58.1-modal-nuevo-proveedor-desde-remito.md` |
+| v1.59.0 | Prellenar lote/vencimiento al crear FC desde remito | ✅ Completada | `completados/v1.59.0-prellenar-lote-vencimiento-fc-desde-remito.md` |
+| v1.60.0 | Fix: deshabilitar autocomplete del navegador en buscador de insumos del remito | ✅ Completada | `completados/v1.60.0-disable-browser-autocomplete-insumo-remito.md` |
+| v1.61.0 | Enter agrega ítem en Factura de Compra (igual que en remito) | ✅ Completada | `completados/v1.61.0-enter-agrega-item-fc.md` |
+| v1.62.0 | Unificar insumos: merge A → B con reasignación de referencias | Pendiente | `pendientes/v1.62.0-unificar-insumos-merge.md` |
+| v1.63.0 | Percepciones de compra: catálogo, FC, asiento contable y saldos | Pendiente (Designer primero) | `pendientes/v1.63.0-percepciones-compra.md` |
 
 ---
 
@@ -151,6 +162,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 - **Libro Diario y Libro Mayor**: interfaces de consulta contable (v3.4.0 completada en prompts; verificar cierre en CHANGELOG si aplica)
 - **Tesorería**: saldos en tiempo real por cuenta; ~~endoso e-cheq en OP~~ → v1.39.1
+- **Percepciones e impuestos**: ~~percepciones en compras (catálogo + FC + asiento + saldos)~~ → **v1.63.0** (planificada). Pendiente futuro: declaraciones/pagos del impuesto que descarguen el saldo de anticipos (sería v1.64.0 si hace falta), percepciones en NC de proveedor (v1.63.1).
 - **Lector QR facturas de compra**: ~~escaneo de QR de facturas recibidas para autocompletar datos~~ → completado en v1.28.0
 - **UI/UX**: auditoría visual, migración de componentes, design system
 - **Recibos de cobro**: ~~retenciones sufridas en cobranzas~~ → **v1.40.0**; ~~PDF para cliente~~ → **v1.41.0**; cobro parcial — UX y validación de saldo (candidato futuro)
