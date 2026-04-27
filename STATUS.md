@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-04-27 (PM: planificada v1.66.0 — Dashboard ejecutivo financiero + reubicación de RRHH; orden de ejecución recomendado actualizado)
+> Última actualización: 2026-04-27 (Dev: v1.65.0 mergeada a develop — borrador editable en facturación masiva con líneas extras y filtro "Borradores AFIP")
 
 ---
 
@@ -9,41 +9,41 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.62.0** en **develop** |
+| **Versión actual** | **v1.65.0** en **develop** |
 | **Última en master** | Ver tags en remoto |
-| **Última completada** | v1.62.0 — Unificar insumos: merge A → B con reasignación de referencias |
+| **Última completada** | v1.65.0 — Borrador editable y líneas extras en facturación masiva |
 | **En proceso** | — |
-| **Próxima recomendada** | v1.65.0 — Borrador editable y líneas extras en facturación masiva |
-| **Pendientes en cola** | 5 |
-| **Completadas** | 109 |
+| **Próxima recomendada** | v1.66.0 — Dashboard ejecutivo financiero + reubicación de RRHH (requiere Designer) |
+| **Pendientes en cola** | 4 |
+| **Completadas** | 110 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (5) — orden de ejecución recomendado por PM
+### Pendientes (4) — orden de ejecución recomendado por PM
 
 | # | Versión | Nombre | Designer | Prompt |
 |---|---|---|---|---|
-| 1 | v1.65.0 | Borrador editable y líneas extras en facturación masiva | — | `pendientes/v1.65.0-borrador-editable-facturacion-masiva.md` |
-| 2 | v1.66.0 | Dashboard ejecutivo financiero + reubicación del panel de RRHH | Sí | `pendientes/v1.66.0-dashboard-financiero-rrhh.md` |
-| 3 | v1.63.0 | Percepciones de compra: catálogo, FC, asiento contable y saldos | Sí | `pendientes/v1.63.0-percepciones-compra.md` |
-| 4 | v1.63.1 | Percepciones en NC de proveedor (espejo de v1.63.0) | — | `pendientes/v1.63.1-percepciones-nc-proveedor.md` |
-| 5 | v1.64.0 | Declaraciones de impuestos e imputación de anticipos sufridos | Sí | `pendientes/v1.64.0-declaraciones-impuestos-imputacion-anticipos.md` |
+| 1 | v1.66.0 | Dashboard ejecutivo financiero + reubicación del panel de RRHH | Sí | `pendientes/v1.66.0-dashboard-financiero-rrhh.md` |
+| 2 | v1.63.0 | Percepciones de compra: catálogo, FC, asiento contable y saldos | Sí | `pendientes/v1.63.0-percepciones-compra.md` |
+| 3 | v1.63.1 | Percepciones en NC de proveedor (espejo de v1.63.0) | — | `pendientes/v1.63.1-percepciones-nc-proveedor.md` |
+| 4 | v1.64.0 | Declaraciones de impuestos e imputación de anticipos sufridos | Sí | `pendientes/v1.64.0-declaraciones-impuestos-imputacion-anticipos.md` |
 
-> **Razonamiento del orden** (sesión PM 2026-04-27):
-> 1. v1.65.0 primero — quick win sin Designer (4-6h), valor diario inmediato
-> 2. v1.66.0 segundo — visibilidad ejecutiva alta, en paralelo Designer puede arrancar
-> 3-5. Bloque temático de impuestos al final (v1.63.0 → v1.63.1 → v1.64.0) para no perder contexto técnico (asientos, plan de cuentas, percepciones)
+> **Razonamiento del orden** (sesión PM 2026-04-27 + Dev 2026-04-27):
+> 1. ✅ v1.65.0 completada — quick win sin Designer ejecutado primero
+> 2. v1.66.0 siguiente — visibilidad ejecutiva alta, requiere Designer (brief en `agent-bootstrap/handoffs/v1.66.0-pm-to-dev.md`)
+> 3-4. Bloque temático de impuestos (v1.63.0 → v1.63.1 → v1.64.0) para no perder contexto técnico (asientos, plan de cuentas, percepciones)
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (99)
+### Completados (100)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.65.0 | Borrador editable y líneas extras en facturación masiva | 2026-04-27 | v1.65.0 |
 | v1.62.0 | Unificar insumos: merge A → B con reasignación de referencias | 2026-04-26 | v1.62.0 |
 | v1.61.0 | Enter agrega ítem en Factura de Compra (igual que en remito) | 2026-04-26 | v1.61.0 |
 | v1.54.0 | UX combobox insumos: ocultar input al seleccionar (delivery-notes + purchase-invoices) | 2026-04-26 | v1.54.0 |
@@ -225,9 +225,9 @@ v1.0.0 (completada)
 |---|---|
 | `README.md` | Actualizado (v1.0.1) |
 | `ROADMAP.md` | Actualizado |
-| `BLUEPRINT.md` | Actualizado (DD-004 stock por sede, 2026-04-05) |
+| `BLUEPRINT.md` | Actualizado (DD-009 borrador editable facturación masiva, 2026-04-27) |
 | `STATUS.md` | Actualizado (este archivo) |
-| `CHANGELOG.md` | Actualizado (v1.44.0, 2026-04-12) |
+| `CHANGELOG.md` | Actualizado (v1.65.0, 2026-04-27) |
 | `RESUMEN_INSTITUCIONAL.md` | Completo |
 | `agent-bootstrap/PHASES.md` | Creado |
 
@@ -235,20 +235,19 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-**Sesión PM 2026-04-27 cerrada.** Cola priorizada con 5 pendientes:
+**v1.65.0 completada y mergeada a develop (2026-04-27).** Cola priorizada con 4 pendientes:
 
-1. **v1.65.0** — Borrador editable en facturación masiva (sin Designer, ~4-6h)
-2. **v1.66.0** — Dashboard ejecutivo financiero + reubicación de RRHH (Designer primero, ~1 día)
-3. **v1.63.0** — Percepciones de compra (Designer primero, ~2 días) — arranca bloque de impuestos
-4. **v1.63.1** — Percepciones en NC de proveedor (sin Designer, ~1 día)
-5. **v1.64.0** — DDJJ + imputación de anticipos (Designer primero, ~2 días) — cierra bloque
+1. **v1.66.0** — Dashboard ejecutivo financiero + reubicación de RRHH (Designer primero, ~1 día)
+2. **v1.63.0** — Percepciones de compra (Designer primero, ~2 días) — arranca bloque de impuestos
+3. **v1.63.1** — Percepciones en NC de proveedor (sin Designer, ~1 día)
+4. **v1.64.0** — DDJJ + imputación de anticipos (Designer primero, ~2 días) — cierra bloque
 
-> **Cronología con paralelismo Designer↔Dev (1 semana):**
+> **Cronología con paralelismo Designer↔Dev (resto de la semana):**
 >
 > | Día | Dev | Designer |
 > |---|---|---|
-> | 1 | v1.65.0 | brief v1.66.0 |
-> | 2 | v1.66.0 | brief v1.63.0 |
+> | 1 | ✅ v1.65.0 (hecha) | brief v1.66.0 (pendiente) |
+> | 2 | v1.66.0 (espera Designer) | brief v1.63.0 |
 > | 3-4 | v1.63.0 | brief v1.64.0 |
 > | 5 | v1.63.1 | — |
 > | 6-7 | v1.64.0 | — |
@@ -256,12 +255,20 @@ v1.0.0 (completada)
 **Cadena LISCOM↔labit:** completada en labit (v1.46.0, v1.47.0, v1.48.5, v1.51.0, v1.53.0).
 Pendientes en repo `interfases` (Django): v1.48.0, v1.49.0, v1.50.0, v1.52.0.
 
-**Para arrancar la ejecución:**
+**Para arrancar el Designer (próximo paso recomendado):**
 ```
-Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá v1.65.0.
+Lee .agents/AgenteDesigner/AGENTE_DESIGNER.md y diseñá la UI de v1.66.0.
+Leé agent-bootstrap/handoffs/v1.66.0-pm-to-dev.md sección "Diseño pendiente del Designer"
+para el brief completo. El doc de diseño debe quedar en
+docs/design/v1.66.0-dashboard-financiero-rrhh.md.
 ```
 
-**Para arrancar el Designer en paralelo** (cuando v1.65.0 esté avanzado):
+**Para continuar la ejecución del Dev:**
+```
+Lee .agents/AgenteProgramador/AGENTE_WORKFLOW.md y ejecutá el ciclo completo.
+```
+
+**Para arrancar el Designer en paralelo** (alternativa):
 ```
 Lee .agents/AgenteDesigner/AGENTE_DESIGNER.md y diseñá la UI de v1.66.0.
 Leé agent-bootstrap/handoffs/v1.66.0-pm-to-dev.md sección "Diseño pendiente del Designer"
