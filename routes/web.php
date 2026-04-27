@@ -365,6 +365,10 @@ Route::middleware([
         Route::get('supplies/search', [App\Http\Controllers\SupplyController::class, 'search'])->name('supplies.search');
         Route::get('supplies/{supply}/available-lots', [App\Http\Controllers\SupplyController::class, 'availableLots'])
             ->name('supplies.available-lots');
+        Route::get('supplies/{supply}/merge-preview', [App\Http\Controllers\SupplyController::class, 'mergePreview'])
+            ->name('supplies.merge-preview');
+        Route::post('supplies/{supply}/merge', [App\Http\Controllers\SupplyController::class, 'merge'])
+            ->name('supplies.merge');
         Route::resource('supplies', App\Http\Controllers\SupplyController::class);
 
         // STOCK MOVEMENTS (Movimientos de Stock)
