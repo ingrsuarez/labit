@@ -1,6 +1,6 @@
 <x-admin-layout>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <div class="p-4 md:p-6" x-data="invoiceForm()">
+    <div class="p-4 md:p-6" x-data="invoiceForm()" @add-fc-item="addItemAndFocusNext()">
         <div class="flex items-center justify-between mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Nueva Factura de Compra</h1>
@@ -377,9 +377,10 @@
                                             <template x-if="item.supply_id && getSupplyTracksLot(item.supply_id)">
                                                 <div class="flex gap-2 shrink-0">
                                                     <input type="text" x-model="item.lot_number" placeholder="Lote"
-                                                           @keydown.enter.prevent
+                                                           @keydown.enter.prevent="$dispatch('add-fc-item')"
                                                            class="w-28 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
                                                     <input type="date" x-model="item.expiration_date"
+                                                           @keydown.enter.prevent="$dispatch('add-fc-item')"
                                                            class="w-36 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
                                                 </div>
                                             </template>
@@ -389,12 +390,14 @@
                                         <input type="number" x-model.number="item.quantity" min="1" step="1" required
                                                :id="'item-qty-' + index"
                                                :tabindex="100 + index * 2"
+                                               @keydown.enter.prevent="$dispatch('add-fc-item')"
                                                class="w-24 rounded border-gray-300 text-sm text-center focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
                                     <td class="px-3 py-2">
                                         <input type="number" x-model.number="item.unit_price" min="0" step="0.01" required
                                                :id="'item-unit-' + index"
                                                :tabindex="101 + index * 2"
+                                               @keydown.enter.prevent="$dispatch('add-fc-item')"
                                                class="w-32 rounded border-gray-300 text-sm text-right focus:border-zinc-500 focus:ring-zinc-500">
                                     </td>
                                     <td class="px-3 py-2">
@@ -1017,6 +1020,15 @@
 
                 addItem() {
                     this.items.push({ description: '', supply_id: '', purchase_service_id: '', quantity: 1, unit_price: 0, iva_rate: '21', lot_number: '', expiration_date: '', updates_stock: !this.hasLinkedDeliveryNotes() });
+                },
+
+                addItemAndFocusNext() {
+                    this.addItem();
+                    this.$nextTick(() => {
+                        const idx = this.items.length - 1;
+                        const el = document.getElementById('item-desc-' + idx);
+                        el?.focus();
+                    });
                 },
 
 
