@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-26 (completada v1.61.0 — Enter agrega ítem en Factura de Compra)
+> Última actualización: 2026-04-27 (planificada v1.66.0 — Dashboard ejecutivo financiero + reubicación del panel de RRHH)
 
 ---
 
@@ -155,6 +155,10 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 | v1.61.0 | Enter agrega ítem en Factura de Compra (igual que en remito) | ✅ Completada | `completados/v1.61.0-enter-agrega-item-fc.md` |
 | v1.62.0 | Unificar insumos: merge A → B con reasignación de referencias | Pendiente | `pendientes/v1.62.0-unificar-insumos-merge.md` |
 | v1.63.0 | Percepciones de compra: catálogo, FC, asiento contable y saldos | Pendiente (Designer primero) | `pendientes/v1.63.0-percepciones-compra.md` |
+| v1.63.1 | Percepciones en NC de proveedor (espejo de v1.63.0) | Pendiente | `pendientes/v1.63.1-percepciones-nc-proveedor.md` |
+| v1.64.0 | Declaraciones de impuestos e imputación de anticipos sufridos | Pendiente (Designer primero) | `pendientes/v1.64.0-declaraciones-impuestos-imputacion-anticipos.md` |
+| v1.65.0 | Borrador editable y líneas extras en facturación masiva | Pendiente | `pendientes/v1.65.0-borrador-editable-facturacion-masiva.md` |
+| v1.66.0 | Dashboard ejecutivo financiero + reubicación del panel de RRHH | Pendiente (Designer primero) | `pendientes/v1.66.0-dashboard-financiero-rrhh.md` |
 
 ---
 
@@ -162,9 +166,11 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 - **Libro Diario y Libro Mayor**: interfaces de consulta contable (v3.4.0 completada en prompts; verificar cierre en CHANGELOG si aplica)
 - **Tesorería**: saldos en tiempo real por cuenta; ~~endoso e-cheq en OP~~ → v1.39.1
-- **Percepciones e impuestos**: ~~percepciones en compras (catálogo + FC + asiento + saldos)~~ → **v1.63.0** (planificada). Pendiente futuro: declaraciones/pagos del impuesto que descarguen el saldo de anticipos (sería v1.64.0 si hace falta), percepciones en NC de proveedor (v1.63.1).
+- **Percepciones e impuestos**: ~~percepciones en compras (catálogo + FC + asiento + saldos)~~ → **v1.63.0** (planificada). ~~percepciones en NC de proveedor~~ → **v1.63.1** (planificada). ~~declaraciones del impuesto + imputación de anticipos sufridos~~ → **v1.64.0** (planificada). Futuro: pago del saldo a pagar de una DDJJ (v1.64.1), importación de archivos AFIP/IIBB (v1.64.2), traslado automático de saldo a favor cross-período (v1.64.3).
 - **Lector QR facturas de compra**: ~~escaneo de QR de facturas recibidas para autocompletar datos~~ → completado en v1.28.0
 - **UI/UX**: auditoría visual, migración de componentes, design system
+- **Facturación masiva**: ~~borrador editable + líneas extras antes de AFIP~~ → **v1.65.0** (planificada). Futuro: catálogo de servicios facturables recurrentes (v1.67.0 si surge necesidad), auto-guardado del borrador (v1.67.1).
+- **Dashboard ejecutivo**: ~~panel financiero con KPIs del mes (ventas/compras/ingresos/egresos) + reubicación de RRHH a `/rrhh`~~ → **v1.66.0** (planificada). Futuro: drilldown desde gráficos (v1.66.1), saldos de tesorería + deudores (v1.66.2), filtros de período personalizado (v1.66.3), comparación interanual (v1.66.4), export PDF (v1.66.5).
 - **Recibos de cobro**: ~~retenciones sufridas en cobranzas~~ → **v1.40.0**; ~~PDF para cliente~~ → **v1.41.0**; cobro parcial — UX y validación de saldo (candidato futuro)
 - **Testing**: suite de tests automatizados, cobertura mínima
 - **DevOps**: CI/CD, ambientes de staging, deploy automatizado

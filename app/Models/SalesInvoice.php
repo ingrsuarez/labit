@@ -100,4 +100,18 @@ class SalesInvoice extends Model
     {
         return $this->afip_result === 'A';
     }
+
+    public function scopeAfipDraft($query)
+    {
+        return $query->where('status', 'pendiente')
+            ->where('is_electronic', true)
+            ->whereNull('cae');
+    }
+
+    public function getIsAfipDraftAttribute(): bool
+    {
+        return $this->status === 'pendiente'
+            && (bool) $this->is_electronic
+            && empty($this->cae);
+    }
 }

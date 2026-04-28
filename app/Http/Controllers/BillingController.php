@@ -10,7 +10,6 @@ use App\Models\PointOfSale;
 use App\Models\SalesInvoice;
 use App\Models\Sample;
 use App\Models\VetAdmission;
-use App\Services\AfipService;
 use Illuminate\Http\Request;
 
 class BillingController extends Controller
@@ -291,47 +290,10 @@ class BillingController extends Controller
             ]);
         }
 
-        if ($isElectronic) {
-            $invoice->load(['pointOfSale', 'customer', 'items']);
-            try {
-                $afip = new AfipService;
-                $result = $afip->createVoucher($invoice);
+        $msg = "Borrador creado con {$protocols->count()} protocolos. Revisá los datos y agregá líneas extras si es necesario antes de "
+            .($isElectronic ? 'enviar a AFIP.' : 'confirmar.');
 
-                if ($result['result'] === 'A' || $result['result'] === 'O') {
-                    $invoice->update([
-                        'cae' => $result['cae'],
-                        'cae_expiration' => $result['cae_expiration'],
-                        'afip_voucher_number' => $result['voucher_number'],
-                        'afip_result' => $result['result'],
-                        'afip_response' => $result['full_response'],
-                        'invoice_number' => str_pad($result['voucher_number'], 8, '0', STR_PAD_LEFT),
-                    ]);
-
-                    return redirect()->route('sales-invoices.show', $invoice)
-                        ->with('success', "Factura electrónica {$invoice->fresh()->full_number} creada con {$protocols->count()} protocolos. CAE: {$result['cae']}");
-                }
-
-                $invoice->update([
-                    'afip_result' => $result['result'] ?? 'R',
-                    'afip_response' => $result['full_response'],
-                ]);
-
-                return redirect()->route('sales-invoices.show', $invoice)
-                    ->with('error', 'AFIP rechazó la factura.');
-
-            } catch (\Exception $e) {
-                $invoice->update([
-                    'afip_result' => 'R',
-                    'afip_response' => ['error' => $e->getMessage()],
-                ]);
-
-                return redirect()->route('sales-invoices.show', $invoice)
-                    ->with('warning', 'Factura creada pero AFIP devolvió error: '.$e->getMessage());
-            }
-        }
-
-        return redirect()->route('sales-invoices.show', $invoice)
-            ->with('success', "Factura creada con {$protocols->count()} protocolos.");
+        return redirect()->route('sales-invoices.edit', $invoice)->with('success', $msg);
     }
 
     public function summary()
