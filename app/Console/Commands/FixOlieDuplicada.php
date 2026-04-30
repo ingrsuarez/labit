@@ -97,25 +97,24 @@ class FixOlieDuplicada extends Command
             return self::SUCCESS;
         }
 
+        // Capturamos los datos de B en memoria ANTES de borrar.
+        $bCertPath = $b->afip_cert_path;
+        $bKeyPath = $b->afip_key_path;
+        $bProduction = (bool) $b->afip_production;
+        $bShortName = $b->short_name;
+
         DB::beginTransaction();
         try {
-            $a->afip_cert_path = $b->afip_cert_path;
-            $a->afip_key_path = $b->afip_key_path;
-            $a->afip_production = $b->afip_production;
-            if (! $a->short_name) {
-                $a->short_name = $b->short_name ?: 'Olie Unipersonal';
-            }
-            $a->cuit = '27-29145034-8';
-            $a->save();
-            $this->info('[1+2] Empresa A actualizada con certs y CUIT normalizado.');
+            // Hay que borrar B primero porque tiene el CUIT '27-29145034-8' (unique)
+            // y necesitamos que A pase a tener ese mismo CUIT.
 
             if ($pos7B && ! $pos7A) {
                 $pos7B->company_id = $a->id;
                 $pos7B->save();
-                $this->info("[3] POS id={$pos7B->id} reasignado a empresa A (id={$a->id}).");
+                $this->info("[3a] POS id={$pos7B->id} reasignado de B → A (id={$a->id}).");
             } elseif ($pos7A && $pos7B) {
                 $pos7B->delete();
-                $this->info("[3] POS duplicado de B id={$pos7B->id} borrado (A ya tenia el suyo id={$pos7A->id}).");
+                $this->info("[3a] POS duplicado de B id={$pos7B->id} borrado (A ya tenia el suyo id={$pos7A->id}).");
             }
 
             if ($b->users()->count() > 0) {
@@ -124,7 +123,17 @@ class FixOlieDuplicada extends Command
             }
 
             $b->delete();
-            $this->info('[5] Empresa B borrada.');
+            $this->info('[5] Empresa B borrada (libera el CUIT 27-29145034-8).');
+
+            $a->afip_cert_path = $bCertPath;
+            $a->afip_key_path = $bKeyPath;
+            $a->afip_production = $bProduction;
+            if (! $a->short_name) {
+                $a->short_name = $bShortName ?: 'Olie Unipersonal';
+            }
+            $a->cuit = '27-29145034-8';
+            $a->save();
+            $this->info('[1+2] Empresa A actualizada con certs y CUIT normalizado.');
 
             $taFile = storage_path('app/afip/ta_wsfe_27291450348_prod.json');
             if (file_exists($taFile)) {
