@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PointOfSale;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class PointOfSaleController extends Controller
 {
@@ -38,13 +39,23 @@ class PointOfSaleController extends Controller
     {
         $this->authorize('points-of-sale.create');
 
+        $companyId = active_company_id();
+
         $validated = $request->validate([
-            'code' => 'required|string|max:5|unique:points_of_sale,code',
+            'code' => [
+                'required', 'string', 'max:5',
+                Rule::unique('points_of_sale', 'code')
+                    ->where(fn ($q) => $q->where('company_id', $companyId)),
+            ],
             'name' => 'required|string|max:255',
             'address' => 'nullable|string|max:255',
             'is_active' => 'boolean',
             'is_electronic' => 'boolean',
-            'afip_pos_number' => 'nullable|required_if:is_electronic,1|integer|min:1|max:99999',
+            'afip_pos_number' => [
+                'nullable', 'required_if:is_electronic,1', 'integer', 'min:1', 'max:99999',
+                Rule::unique('points_of_sale', 'afip_pos_number')
+                    ->where(fn ($q) => $q->where('company_id', $companyId)),
+            ],
         ]);
 
         $validated['is_active'] = $request->has('is_active');
@@ -78,13 +89,25 @@ class PointOfSaleController extends Controller
 
         abort_if($pointOfSale->company_id !== active_company_id(), 403);
 
+        $companyId = active_company_id();
+
         $validated = $request->validate([
-            'code' => 'required|string|max:5|unique:points_of_sale,code,' . $pointOfSale->id,
+            'code' => [
+                'required', 'string', 'max:5',
+                Rule::unique('points_of_sale', 'code')
+                    ->ignore($pointOfSale->id)
+                    ->where(fn ($q) => $q->where('company_id', $companyId)),
+            ],
             'name' => 'required|string|max:255',
             'address' => 'nullable|string|max:255',
             'is_active' => 'boolean',
             'is_electronic' => 'boolean',
-            'afip_pos_number' => 'nullable|required_if:is_electronic,1|integer|min:1|max:99999',
+            'afip_pos_number' => [
+                'nullable', 'required_if:is_electronic,1', 'integer', 'min:1', 'max:99999',
+                Rule::unique('points_of_sale', 'afip_pos_number')
+                    ->ignore($pointOfSale->id)
+                    ->where(fn ($q) => $q->where('company_id', $companyId)),
+            ],
         ]);
 
         $validated['is_active'] = $request->has('is_active');
