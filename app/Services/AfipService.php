@@ -78,13 +78,19 @@ class AfipService
         $this->cuit = $company?->cuit
             ? str_replace('-', '', $company->cuit)
             : config('afip.cuit');
-        $this->certPath = $company?->afip_cert_path
-            ? base_path($company->afip_cert_path)
-            : base_path(config('afip.cert_path'));
-        $this->keyPath = $company?->afip_key_path
-            ? base_path($company->afip_key_path)
-            : base_path(config('afip.key_path'));
+        $this->certPath = $this->resolveCertPath($company?->afip_cert_path ?: config('afip.cert_path'));
+        $this->keyPath = $this->resolveCertPath($company?->afip_key_path ?: config('afip.key_path'));
         $this->production = $company?->afip_production ?? (bool) config('afip.production');
+    }
+
+    protected function resolveCertPath(string $path): string
+    {
+        // Si ya es ruta absoluta (Linux: empieza con /, Windows: C:\...), no la prefijes con base_path.
+        if (preg_match('#^(/|[A-Za-z]:[\\\\/])#', $path)) {
+            return $path;
+        }
+
+        return base_path($path);
     }
 
     // ─── WSAA ────────────────────────────────────────────────
