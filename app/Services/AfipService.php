@@ -75,9 +75,18 @@ class AfipService
     {
         $company = $company ?? active_company();
 
-        $this->cuit = $company?->cuit
+        $cuit = $company?->cuit
             ? str_replace('-', '', $company->cuit)
             : config('afip.cuit');
+
+        if (! $cuit) {
+            throw new Exception(
+                'AfipService no puede inicializarse: no hay empresa activa con CUIT ni AFIP_CUIT en .env. '.
+                'Si esto ocurre al reintentar una factura, pasa la empresa explicita: new AfipService($invoice->company).'
+            );
+        }
+
+        $this->cuit = $cuit;
         $this->certPath = $this->resolveCertPath($company?->afip_cert_path ?: config('afip.cert_path'));
         $this->keyPath = $this->resolveCertPath($company?->afip_key_path ?: config('afip.key_path'));
         $this->production = $company?->afip_production ?? (bool) config('afip.production');

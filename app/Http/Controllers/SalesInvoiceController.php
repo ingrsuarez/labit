@@ -268,10 +268,10 @@ class SalesInvoiceController extends Controller
         }
 
         if ($isElectronic) {
-            $invoice->load(['pointOfSale', 'customer', 'items']);
+            $invoice->load(['pointOfSale', 'customer', 'items', 'company']);
 
             try {
-                $afip = new AfipService;
+                $afip = new AfipService($invoice->company);
                 $result = $afip->createVoucher($invoice);
 
                 if ($result['result'] === 'A' || $result['result'] === 'O') {
@@ -491,11 +491,11 @@ class SalesInvoiceController extends Controller
             'point_of_sale_id' => 'required|exists:points_of_sale,id',
         ]);
 
-        $pos = PointOfSale::findOrFail($request->point_of_sale_id);
+        $pos = PointOfSale::with('company')->findOrFail($request->point_of_sale_id);
 
         if ($pos->is_electronic) {
             try {
-                $afip = new AfipService;
+                $afip = new AfipService($pos->company);
                 $voucherTypeId = AfipService::getVoucherTypeId($request->voucher_type);
                 $last = $afip->getLastVoucher($pos->afip_pos_number, $voucherTypeId);
 
@@ -536,10 +536,10 @@ class SalesInvoiceController extends Controller
                 ->with('error', 'Esta factura no requiere reintento de autorización.');
         }
 
-        $salesInvoice->load(['pointOfSale', 'customer', 'items']);
+        $salesInvoice->load(['pointOfSale', 'customer', 'items', 'company']);
 
         try {
-            $afip = app(AfipService::class);
+            $afip = new AfipService($salesInvoice->company);
             $result = $afip->createVoucher($salesInvoice);
 
             if ($result['result'] === 'A' || $result['result'] === 'O') {

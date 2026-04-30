@@ -112,7 +112,7 @@ class CreditNoteController extends Controller
             $creditNote->recalculate();
 
             if ($isElectronic) {
-                $afip = new AfipService;
+                $afip = new AfipService($creditNote->company);
                 $afipResponse = $afip->createCreditNote($creditNote);
 
                 $creditNote->update([
@@ -194,10 +194,10 @@ class CreditNoteController extends Controller
             return back()->with('error', 'Esta nota de crédito no requiere autorización AFIP.');
         }
 
-        $creditNote->load(['pointOfSale', 'customer', 'items', 'salesInvoice.pointOfSale']);
+        $creditNote->load(['pointOfSale', 'customer', 'items', 'salesInvoice.pointOfSale', 'company']);
 
         try {
-            $afip = new AfipService;
+            $afip = new AfipService($creditNote->company);
             $afipResponse = $afip->createCreditNote($creditNote);
 
             $creditNote->update([
