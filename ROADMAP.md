@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-04-27 (planificada v1.66.0 — Dashboard ejecutivo financiero + reubicación del panel de RRHH)
+> Última actualización: 2026-05-01 (hotfix v1.65.1 — Etiquetas de protocolo para laboratorio veterinario)
 
 ---
 
@@ -143,6 +143,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
+| v1.65.1 | Etiquetas de protocolo para laboratorio veterinario | Pendiente (hotfix) | `pendientes/v1.65.1-etiquetas-lab-veterinario.md` |
 | v1.54.0 | UX combobox insumos: ocultar input al seleccionar | ✅ Completada | `completados/v1.54.0-ux-combobox-insumos-ocultar-input.md` |
 | v1.54.1 | Hotfix lote/vencimiento remito: ocultar inputs cuando no trackea lote | ✅ Completada | `completados/v1.54.1-hotfix-lote-vencimiento-remito-xshow.md` |
 | v1.55.0 | Factura de compra: buscador unificado insumos + servicios | ✅ Completada | `completados/v1.55.0-fc-buscador-unificado-insumos-servicios.md` |
