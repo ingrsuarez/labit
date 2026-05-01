@@ -26,7 +26,7 @@ class DeterminationResource extends JsonResource
         return [
             'id' => $this->id,
             'test_id' => $test?->id,
-            'test_code' => null, // external_code se completa en v1.49.0 (mapeo HL7)
+            'test_code' => $test?->code,
             'test_name' => $test?->name,
             'material' => $test?->materialRelation ? [
                 'id' => $test->materialRelation->id,
