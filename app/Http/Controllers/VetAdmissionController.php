@@ -233,7 +233,8 @@ class VetAdmissionController extends Controller
         $vetAdmission->load([
             'customer', 'veterinarian', 'species',
             'vetTests.test.parentTests',
-            'creator',
+            'vetTests.test.materialRelation',
+            'creator', 'labBranch',
         ]);
 
         return view('vet.admissions.show', compact('vetAdmission'));
@@ -398,6 +399,111 @@ class VetAdmissionController extends Controller
             );
 
         return back()->with('success', 'Informe enviado correctamente a '.$validated['email']);
+    }
+
+    public function labelData(VetAdmission $vetAdmission)
+    {
+        $this->authorize('vet-labels.print');
+
+        $vetAdmission->load(['vetTests.test.materialRelation', 'vetTests.test.parentTests', 'labBranch']);
+
+        $labels = $this->groupByMaterial($vetAdmission);
+
+        return response()->json([
+            'labels' => $labels,
+            'total_labels' => count($labels),
+        ]);
+    }
+
+    public function printLabel(VetAdmission $vetAdmission)
+    {
+        $this->authorize('vet-labels.print');
+
+        $vetAdmission->load(['vetTests.test.materialRelation', 'vetTests.test.parentTests', 'labBranch']);
+
+        $labels = $this->groupByMaterial($vetAdmission);
+
+        $barcode = new \Picqer\Barcode\BarcodeGeneratorSVG;
+
+        foreach ($labels as &$label) {
+            $content = \App\Services\BarcodeFormatService::forLabel(
+                $vetAdmission->protocol_number,
+                $label['material'] ?? null
+            );
+
+            $label['barcode_content'] = $content;
+            $label['barcode_svg'] = $barcode->getBarcode(
+                $content,
+                $barcode::TYPE_CODE_128,
+                2,
+                60
+            );
+        }
+        unset($label);
+
+        return view('vet.admissions.label', [
+            'vetAdmission' => $vetAdmission,
+            'labels' => $labels,
+        ]);
+    }
+
+    private function groupByMaterial(VetAdmission $vetAdmission): array
+    {
+        $parentTestIds = $vetAdmission->vetTests->pluck('test_id')->toArray();
+        $materialGroups = [];
+
+        foreach ($vetAdmission->vetTests as $vt) {
+            $test = $vt->test;
+            if (! $test || ! $test->materialRelation) {
+                continue;
+            }
+
+            $isChild = $test->parentTests->whereIn('id', $parentTestIds)->isNotEmpty();
+            if ($isChild) {
+                continue;
+            }
+
+            $materialId = $test->materialRelation->id;
+            if (! isset($materialGroups[$materialId])) {
+                $materialGroups[$materialId] = [
+                    'material_name' => $test->materialRelation->name,
+                    'material_code' => $test->material_abbreviation,
+                    'tests' => [],
+                ];
+            }
+            $materialGroups[$materialId]['tests'][] = $test->name;
+        }
+
+        $branchName = $vetAdmission->labBranch->name ?? 'VETERINARIO';
+
+        $labels = [];
+        foreach ($materialGroups as $group) {
+            $labels[] = [
+                'protocol_number' => $vetAdmission->protocol_number,
+                'customer_name' => $vetAdmission->owner_name ?? 'Sin dueño',
+                'material' => $group['material_code'],
+                'material_name' => $group['material_name'],
+                'sample_type' => 'VETERINARIO',
+                'entry_date' => $vetAdmission->date?->format('d/m/Y') ?? '',
+                'tests_count' => count($group['tests']),
+                'branch_name' => $branchName,
+            ];
+        }
+
+        if (empty($labels)) {
+            $labels[] = [
+                'protocol_number' => $vetAdmission->protocol_number,
+                'customer_name' => $vetAdmission->owner_name ?? 'Sin dueño',
+                'material' => '?',
+                'material_name' => 'Sin material',
+                'sample_type' => 'VETERINARIO',
+                'entry_date' => $vetAdmission->date?->format('d/m/Y') ?? '',
+                'tests_count' => $vetAdmission->vetTests->count(),
+                'branch_name' => $branchName,
+            ];
+        }
+
+        return $labels;
     }
 
     private function generatePdfFilename(VetAdmission $vetAdmission): string
