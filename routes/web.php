@@ -265,6 +265,9 @@ Route::middleware([
         Route::post('admissions/{vetAdmission}/unvalidate/{vetAdmissionTest}', [App\Http\Controllers\VetAdmissionController::class, 'unvalidateTest'])->name('vet.admissions.unvalidateTest');
         Route::post('admissions/{vetAdmission}/validate-all', [App\Http\Controllers\VetAdmissionController::class, 'validateAll'])->name('vet.admissions.validateAll');
 
+        Route::get('admissions/{vetAdmission}/label-data', [App\Http\Controllers\VetAdmissionController::class, 'labelData'])->name('vet.admissions.labelData');
+        Route::get('admissions/{vetAdmission}/label', [App\Http\Controllers\VetAdmissionController::class, 'printLabel'])->name('vet.admissions.label');
+
         Route::get('customer/{customer}/veterinarians', [App\Http\Controllers\VetAdmissionController::class, 'getVeterinarians'])->name('vet.customer.veterinarians');
     });
 

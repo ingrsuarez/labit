@@ -208,6 +208,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'lab-reports.send',
             'lab-reports.index',
             'lab-labels.print',
+            'vet-labels.print',
 
             // VENTAS (Módulo de Ventas)
             'ventas.section',
@@ -457,6 +458,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'lab-admissions.index', 'lab-admissions.create', 'lab-admissions.edit', 'lab-admissions.show',
             'lab-reports.print', 'lab-reports.send',
             'lab-labels.print',
+            'vet-labels.print',
             // Muestras
             'samples.section', 'samples.index', 'samples.create', 'samples.edit', 'samples.show',
             'samples-reports.preview', 'samples-reports.print', 'samples-reports.send',
@@ -481,6 +483,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'lab-results.create', 'lab-results.edit',
             'lab-reports.preview',
             'lab-labels.print',
+            'vet-labels.print',
             // Muestras
             'samples.section', 'samples.index', 'samples.show',
             'samples-results.create', 'samples-results.edit',
@@ -502,6 +505,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'lab-results.create', 'lab-results.edit', 'lab-results.validate',
             'lab-reports.preview', 'lab-reports.print', 'lab-reports.send', 'lab-reports.index',
             'lab-labels.print',
+            'vet-labels.print',
             // Muestras
             'samples.section', 'samples.index', 'samples.show',
             'samples-results.create', 'samples-results.edit', 'samples-results.validate',
