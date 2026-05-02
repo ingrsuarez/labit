@@ -254,14 +254,16 @@ class VetAdmissionController extends Controller
         foreach ($request->results as $data) {
             $vat = VetAdmissionTest::find($data['id']);
             if ($vat && $vat->vet_admission_id === $vetAdmission->id && ! $vat->is_validated) {
+                $resultValue = $data['result'] ?? null;
+                $hasResult = $resultValue !== null && $resultValue !== '';
                 $vat->update([
-                    'result' => $data['result'] ?? null,
+                    'result' => $resultValue,
                     'unit' => $data['unit'] ?? null,
                     'reference_value' => $data['reference_value'] ?? null,
                     'method' => $data['method'] ?? null,
-                    'status' => ! empty($data['result']) ? 'completed' : 'pending',
-                    'analyzed_by' => ! empty($data['result']) ? auth()->id() : null,
-                    'analyzed_at' => ! empty($data['result']) ? now() : null,
+                    'status' => $hasResult ? 'completed' : 'pending',
+                    'analyzed_by' => $hasResult ? auth()->id() : null,
+                    'analyzed_at' => $hasResult ? now() : null,
                 ]);
             }
         }
