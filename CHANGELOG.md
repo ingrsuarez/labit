@@ -5,6 +5,22 @@
 
 ---
 
+## [v1.65.2] — 2026-05-02 — Fix PDF veterinario: excluir no validadas y corregir jerarquía
+
+### Corregido
+- **Determinaciones no validadas aparecían en el PDF veterinario** — `VetAdmissionTestDisplayOrder::orderedEntries()` tenía un paso de "orphans" que recolectaba TODAS las `VetAdmissionTest` no visitadas por el DFS, incluyendo las no validadas. Ahora, en modo PDF (`$hierarchyFromValidatedOnly = true`), los orphans se filtran a solo validados, alineando el comportamiento con los PDFs de lab clínico y muestras.
+- **Prácticas no validadas aparecían fuera de su grupo padre** — consecuencia directa del bug anterior: al no participar en la construcción del grafo jerárquico (solo validadas armaban aristas), las no validadas caían como orphans a nivel 0 (standalone), fuera de su grupo padre. El fix elimina esas filas del PDF.
+
+### Agregado
+- **Defensa en profundidad en la vista PDF** (`vet/admissions/pdf-mpdf.blade.php`): `@continue` para entradas no validadas que no sean cabeceras de grupo (padre/sub-padre), como segunda barrera independiente del filtro en el servicio de orden.
+
+### Notas técnicas
+- El cambio es de 2 líneas en `VetAdmissionTestDisplayOrder` y 3 líneas en la vista Blade.
+- Los padres y sub-padres siguen apareciendo como agrupadores incluso si no tienen resultado propio, siempre que tengan al menos un hijo validado (comportamiento idéntico a lab clínico y muestras).
+- La vista `show` (pantalla de carga/validación) no se ve afectada: sigue usando `orderedEntries($this, false)` que incluye todas las filas.
+
+---
+
 ## [v1.65.0] — 2026-04-27 — Borrador editable y líneas extras en facturación masiva
 
 ### Cambio de flujo (UX percibible)
