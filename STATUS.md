@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.65.1** en **develop** |
+| **Versión actual** | **v1.65.2** en **hotfix/v1.65.2-fix-pdf-vet-no-validadas** |
 | **Última en master** | Ver tags en remoto |
 | **Última completada** | v1.65.1 — Etiquetas de protocolo para laboratorio veterinario |
-| **En proceso** | — |
+| **En proceso** | v1.65.2 — Fix PDF veterinario: excluir no validadas + jerarquía orphans |
 | **Próxima recomendada** | v1.66.0 — Dashboard ejecutivo financiero + reubicación de RRHH (requiere Designer) |
 | **Pendientes en cola** | 4 |
-| **Completadas** | 111 |
+| **Completadas** | 112 |
 
 ---
 

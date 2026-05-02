@@ -265,6 +265,10 @@
                 $indent = $level * 20;
             @endphp
 
+            @if(!$vt->is_validated && !$isParent && !$isSub)
+                @continue
+            @endif
+
             @if($isParent && !$isSub)
                 <tr class="det-parent">
                     <td colspan="4">{{ strtoupper($vt->test->name ?? 'N/A') }}</td>

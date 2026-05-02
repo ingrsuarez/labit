@@ -144,6 +144,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
 | v1.65.1 | Etiquetas de protocolo para laboratorio veterinario | Pendiente (hotfix) | `pendientes/v1.65.1-etiquetas-lab-veterinario.md` |
+|| v1.65.2 | Fix PDF veterinario: excluir no validadas + jerarquía orphans | En progreso (hotfix) | — (ejecutado directo) |
 | v1.54.0 | UX combobox insumos: ocultar input al seleccionar | ✅ Completada | `completados/v1.54.0-ux-combobox-insumos-ocultar-input.md` |
 | v1.54.1 | Hotfix lote/vencimiento remito: ocultar inputs cuando no trackea lote | ✅ Completada | `completados/v1.54.1-hotfix-lote-vencimiento-remito-xshow.md` |
 | v1.55.0 | Factura de compra: buscador unificado insumos + servicios | ✅ Completada | `completados/v1.55.0-fc-buscador-unificado-insumos-servicios.md` |

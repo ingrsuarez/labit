@@ -155,7 +155,8 @@ class VetAdmissionTestDisplayOrder
         }
 
         $visited = $orderedTests->pluck('vt')->map(fn (VetAdmissionTest $vt) => $vt->test_id)->all();
-        $orphans = $allVetTests->filter(fn (VetAdmissionTest $vt) => ! in_array($vt->test_id, $visited, true))
+        $orphanSource = $hierarchyFromValidatedOnly ? $sourceForEdges : $allVetTests;
+        $orphans = $orphanSource->filter(fn (VetAdmissionTest $vt) => ! in_array($vt->test_id, $visited, true))
             ->sort(fn (VetAdmissionTest $a, VetAdmissionTest $b) => self::compareTestIds($a->test_id, $b->test_id, $itemsByTestId))
             ->values();
 
