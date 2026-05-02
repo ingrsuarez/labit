@@ -5,6 +5,29 @@
 
 ---
 
+## [v1.65.3] — 2026-05-02 — Hotfix: validar y mostrar resultados con valor cero en protocolos veterinarios
+
+### Corregido
+- **Determinaciones con resultado `0` no se podían validar en protocolos veterinarios** (ej. Basófilos = 0, Glucosa = 0). El sistema las trataba como "sin resultado" debido a checks falsy (`empty()`, `! $value`) sobre un campo string que recibe `"0"`. Como consecuencia:
+  - El badge mostraba "Pendiente" en vez de "Completo".
+  - No aparecía el botón ✓ para validar.
+  - "Validar Todos" las saltaba.
+  - No se incluían en el PDF (porque éste solo renderiza filas validadas).
+- **`VetAdmissionTest::hasResult()`** cambiado de `! empty($this->result)` a `$this->result !== null && $this->result !== ''` (comparación estricta), permitiendo `"0"` y `0` como resultados válidos.
+- **`VetAdmissionController::loadResults()`** reemplaza `! empty($data['result'])` por una variable `$hasResult` con comparación estricta para definir `status`, `analyzed_by` y `analyzed_at`.
+- **Vista `vet/admissions/show.blade.php`** ahora usa `$vt->hasResult()` (en vez de `$vt->result` truthy) para decidir el badge "Completo" y la visibilidad del botón ✓.
+
+### Cambiado
+- **Botones de validar/desvalidar individuales en la vista veterinaria** dejan de usar formularios anidados (HTML inválido — el botón submiteaba el form padre `loadResults`). Ahora usan `<button type="button" onclick="vetSubmitAction(...)">` con un helper JS local que crea un form dinámico al `validateTest`/`unvalidateTest`. Mismo patrón que el módulo clínico (`submitAction`).
+
+### Notas técnicas
+- Causa raíz: semántica falsy de PHP. `empty("0") === true`, `! "0" === true`. La regla canónica para campos string que pueden contener `"0"` es comparar contra `null` y `''`.
+- El PDF (`vet/admissions/pdf-mpdf.blade.php`) ya usaba `$vt->result ?? '-'` (null coalescing) que es correcto para `"0"`. Al destrabarse la validación, las filas con `0` ya aparecen automáticamente.
+- Análogo al fix v1.19.2 (que resolvió lo mismo en lab clínico). El módulo veterinario tenía su propio `hasResult()` con la misma falla.
+- Hotfix aplicado en rama `hotfix/vet-validacion-resultado-cero`, mergeado a develop y master en un solo camino.
+
+---
+
 ## [v1.65.2] — 2026-05-02 — Fix PDF veterinario: excluir no validadas y corregir jerarquía
 
 ### Corregido

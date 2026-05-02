@@ -205,7 +205,7 @@
                                     <td class="px-4 py-2 text-center">
                                         @if($vt->is_validated)
                                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Validado</span>
-                                        @elseif($vt->result)
+                                        @elseif($vt->hasResult())
                                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Completo</span>
                                         @else
                                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Pendiente</span>
@@ -213,15 +213,13 @@
                                     </td>
                                     <td class="px-4 py-2 text-center">
                                         @if($vt->is_validated)
-                                            <form action="{{ route('vet.admissions.unvalidateTest', [$vetAdmission, $vt]) }}" method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit" class="text-red-600 hover:text-red-800 text-xs font-medium" title="Desvalidar">✕</button>
-                                            </form>
-                                        @elseif($vt->result)
-                                            <form action="{{ route('vet.admissions.validateTest', [$vetAdmission, $vt]) }}" method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit" class="text-green-600 hover:text-green-800 text-xs font-medium" title="Validar">✓</button>
-                                            </form>
+                                            <button type="button"
+                                                    onclick="vetSubmitAction('{{ route('vet.admissions.unvalidateTest', [$vetAdmission, $vt]) }}')"
+                                                    class="text-red-600 hover:text-red-800 text-xs font-medium" title="Desvalidar">✕</button>
+                                        @elseif($vt->hasResult())
+                                            <button type="button"
+                                                    onclick="vetSubmitAction('{{ route('vet.admissions.validateTest', [$vetAdmission, $vt]) }}')"
+                                                    class="text-green-600 hover:text-green-800 text-xs font-medium" title="Validar">✓</button>
                                         @endif
                                     </td>
                                 </tr>
@@ -452,6 +450,22 @@
     <style>
         [x-cloak] { display: none !important; }
     </style>
+
+    <script>
+        function vetSubmitAction(url) {
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+            form.style.display = 'none';
+            var csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = '_token';
+            csrf.value = '{{ csrf_token() }}';
+            form.appendChild(csrf);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
 
     <script src="{{ asset('js/zebra-label-print.js') }}"></script>
 </x-lab-layout>

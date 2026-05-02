@@ -55,6 +55,6 @@ class VetAdmissionTest extends Model
 
     public function hasResult(): bool
     {
-        return ! empty($this->result);
+        return $this->result !== null && $this->result !== '';
     }
 }
