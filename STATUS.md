@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-03 (Dev: v1.66.0 — Dashboard ejecutivo financiero + reubicación de RRHH; mergeado a develop)
+> Última actualización: 2026-05-03 (Release: develop → master con v1.66.0 + fix AFIP error visibility)
 
 ---
 
@@ -9,8 +9,8 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.66.0** en **develop** (master sigue en v1.65.3) |
-| **Última en master** | v1.65.3 (hotfix vet — 2026-05-02) |
+| **Versión actual** | **v1.66.0** en **develop** y **master** |
+| **Última en master** | v1.66.0 (release 2026-05-03 — incluye también el hotfix de AFIP error visibility) |
 | **Última completada** | v1.66.0 — Dashboard ejecutivo financiero + reubicación del panel de RRHH |
 | **En proceso** | — |
 | **Próxima recomendada** | v1.63.0 — Percepciones de compra (requiere Designer) |
