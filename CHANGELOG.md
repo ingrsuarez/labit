@@ -5,6 +5,25 @@
 
 ---
 
+## [v1.66.3] — 2026-05-03 — Hotfix: scroll horizontal en Facturas de Venta (listado y formularios)
+
+### Corregido
+- **El listado `Facturas de Venta` (`/sales-invoices`) y los formularios `Nueva Factura de Venta` y `Editar Factura de Venta` mostraban barra de scroll horizontal y se cortaban del lado derecho** cuando había clientes con razones sociales largas (ej: "COLEGIO DE BIOQUIMICOS DE NEUQUEN ROISA DoctRed"). Mismo bug que `v1.66.2` pero del lado de venta: el `<select>` con la lista de clientes empujaba la grilla y el filtro fuera del viewport.
+
+### Solución
+- Se agregó `[&>div]:min-w-0` al grid de "Datos del Comprobante" en `create.blade.php` y `edit.blade.php`, y al row de filtros en `index.blade.php`.
+- Se agregó `min-w-0` a los `<select>` de cliente y de status del listado.
+- Vistas afectadas:
+  - `resources/views/sales-invoices/index.blade.php`
+  - `resources/views/sales-invoices/create.blade.php`
+  - `resources/views/sales-invoices/edit.blade.php`
+- Sin cambios en CSS bundle (las utilities `min-w-0` y `[&>div]:min-w-0` ya entraron al CSS en `v1.66.2`).
+
+### Cómo aplicar en producción
+Sólo `git pull`. No hay assets nuevos ni migraciones. Hard refresh del navegador si hace falta.
+
+---
+
 ## [v1.66.2] — 2026-05-03 — Hotfix: scroll horizontal en formularios de Factura de Compra y Remito
 
 ### Corregido
