@@ -58,6 +58,21 @@
 
             <div class="border-t border-zinc-700 my-2"></div>
 
+            {{-- Recursos Humanos (panel general — v1.66.0) --}}
+            @if (auth()->user()?->hasAnyRole(['admin', 'contador']))
+            <a href="{{ route('rrhh.index') }}"
+               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                {{ request()->routeIs('rrhh.*')
+                    ? 'bg-zinc-700 text-white'
+                    : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0M9 14a2 2 0 100-4 2 2 0 000 4zm0 0c-1.5 0-3 .5-3 2v1h6v-1c0-1.5-1.5-2-3-2z"/>
+                </svg>
+                Recursos Humanos
+            </a>
+            @endif
+
             @can('personal.section')
             <!-- Personal -->
             <a href="{{ route('admin.section.personal') }}"

@@ -40,8 +40,25 @@
                             automáticamente y se obtendrá el CAE.
                         </p>
                         @if($isAfipRejected && !empty($invoice->afip_response))
+                            @php
+                                $editObs = $invoice->afip_response['FeDetResp']['FECAEDetResponse']['Observaciones']['Obs'] ?? null;
+                                if ($editObs && !isset($editObs[0])) $editObs = [$editObs];
+                            @endphp
+                            @if(isset($invoice->afip_response['error']))
+                                <p class="text-sm text-red-700 mt-2 font-medium">Error: {{ $invoice->afip_response['error'] }}</p>
+                            @endif
+                            @if($editObs)
+                                <div class="mt-2 text-sm text-red-700">
+                                    <p class="font-medium">Observaciones AFIP:</p>
+                                    <ul class="list-disc list-inside mt-1">
+                                        @foreach($editObs as $ob)
+                                            <li><strong>{{ $ob['Code'] ?? '' }}</strong>: {{ $ob['Msg'] ?? '' }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
                             <details class="mt-2 text-xs text-amber-700">
-                                <summary class="cursor-pointer underline">Ver respuesta AFIP</summary>
+                                <summary class="cursor-pointer underline">Ver respuesta completa AFIP (JSON)</summary>
                                 <pre class="mt-1 whitespace-pre-wrap break-words">{{ json_encode($invoice->afip_response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
                             </details>
                         @endif

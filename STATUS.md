@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-02 (Dev: v1.65.2 completada y mergeada a develop — Fix PDF veterinario)
+> Última actualización: 2026-05-03 (Dev: v1.66.0 — Dashboard ejecutivo financiero + reubicación de RRHH; mergeado a develop)
 
 ---
 
@@ -9,40 +9,40 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.65.2** en **develop** |
-| **Última en master** | Ver tags en remoto |
-| **Última completada** | v1.65.2 — Fix PDF veterinario: excluir no validadas + jerarquía orphans |
+| **Versión actual** | **v1.66.0** en **develop** (master sigue en v1.65.3) |
+| **Última en master** | v1.65.3 (hotfix vet — 2026-05-02) |
+| **Última completada** | v1.66.0 — Dashboard ejecutivo financiero + reubicación del panel de RRHH |
 | **En proceso** | — |
-| **Próxima recomendada** | v1.66.0 — Dashboard ejecutivo financiero + reubicación de RRHH (requiere Designer) |
-| **Pendientes en cola** | 4 |
-| **Completadas** | 112 |
+| **Próxima recomendada** | v1.63.0 — Percepciones de compra (requiere Designer) |
+| **Pendientes en cola** | 3 |
+| **Completadas** | 114 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (4) — orden de ejecución recomendado por PM
+### Pendientes (3) — orden de ejecución recomendado por PM
 
 | # | Versión | Nombre | Designer | Prompt |
 |---|---|---|---|---|
-| 1 | v1.66.0 | Dashboard ejecutivo financiero + reubicación del panel de RRHH | Sí | `pendientes/v1.66.0-dashboard-financiero-rrhh.md` |
-| 2 | v1.63.0 | Percepciones de compra: catálogo, FC, asiento contable y saldos | Sí | `pendientes/v1.63.0-percepciones-compra.md` |
-| 3 | v1.63.1 | Percepciones en NC de proveedor (espejo de v1.63.0) | — | `pendientes/v1.63.1-percepciones-nc-proveedor.md` |
-| 4 | v1.64.0 | Declaraciones de impuestos e imputación de anticipos sufridos | Sí | `pendientes/v1.64.0-declaraciones-impuestos-imputacion-anticipos.md` |
+| 1 | v1.63.0 | Percepciones de compra: catálogo, FC, asiento contable y saldos | Sí | `pendientes/v1.63.0-percepciones-compra.md` |
+| 2 | v1.63.1 | Percepciones en NC de proveedor (espejo de v1.63.0) | — | `pendientes/v1.63.1-percepciones-nc-proveedor.md` |
+| 3 | v1.64.0 | Declaraciones de impuestos e imputación de anticipos sufridos | Sí | `pendientes/v1.64.0-declaraciones-impuestos-imputacion-anticipos.md` |
 
-> **Razonamiento del orden** (sesión PM/Dev 2026-05-01):
-> 1. ~~v1.65.1 hotfix~~ completada
-> 2. v1.66.0 siguiente — visibilidad ejecutiva alta, requiere Designer (brief en `agent-bootstrap/handoffs/v1.66.0-pm-to-dev.md`)
-> 3-4. Bloque temático de impuestos (v1.63.0 → v1.63.1 → v1.64.0) para no perder contexto técnico (asientos, plan de cuentas, percepciones)
+> **Razonamiento del orden** (sesión PM/Dev 2026-05-01, actualizado 2026-05-03):
+> 1. ~~v1.66.0~~ completada (dashboard ejecutivo + mudanza RRHH)
+> 2-3-4. Bloque temático de impuestos (v1.63.0 → v1.63.1 → v1.64.0) para no perder contexto técnico (asientos, plan de cuentas, percepciones)
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (100)
+### Completados (102)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.66.0 | Dashboard ejecutivo financiero + reubicación del panel de RRHH | 2026-05-03 | v1.66.0 |
+| v1.65.3 | Hotfix vet: validar y mostrar resultado 0 (basofilos/glucosa = 0) | 2026-05-02 | v1.65.3 |
 | v1.65.2 | Fix PDF veterinario: excluir no validadas + jerarquía orphans | 2026-05-02 | v1.65.2 |
 | v1.65.1 | Etiquetas de protocolo para laboratorio veterinario | 2026-05-01 | v1.65.1 |
 | v1.65.0 | Borrador editable y líneas extras en facturación masiva | 2026-04-27 | v1.65.0 |
@@ -229,7 +229,7 @@ v1.0.0 (completada)
 | `ROADMAP.md` | Actualizado |
 | `BLUEPRINT.md` | Actualizado (DD-009 borrador editable facturación masiva, 2026-04-27) |
 | `STATUS.md` | Actualizado (este archivo) |
-| `CHANGELOG.md` | Actualizado (v1.65.0, 2026-04-27) |
+| `CHANGELOG.md` | Actualizado (v1.65.3 hotfix, 2026-05-02) |
 | `RESUMEN_INSTITUCIONAL.md` | Completo |
 | `agent-bootstrap/PHASES.md` | Creado |
 
