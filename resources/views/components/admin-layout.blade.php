@@ -31,7 +31,7 @@
             @include('admin.partials.sidebar')
 
             <!-- Contenido Principal -->
-            <div class="flex-1 flex flex-col md:ml-64">
+            <div class="flex-1 min-w-0 flex flex-col md:ml-64">
                 <!-- Header -->
                 @include('admin.partials.header')
 
