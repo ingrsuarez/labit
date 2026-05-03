@@ -181,8 +181,24 @@
                             </button>
                         </form>
                     </div>
-                    @if($invoice->afip_response && isset($invoice->afip_response['error']))
-                        <p class="text-sm text-red-700 mt-2">Error: {{ $invoice->afip_response['error'] }}</p>
+                    @if($invoice->afip_response)
+                        @if(isset($invoice->afip_response['error']))
+                            <p class="text-sm text-red-700 mt-2">Error: {{ $invoice->afip_response['error'] }}</p>
+                        @endif
+                        @php
+                            $obs = $invoice->afip_response['FeDetResp']['FECAEDetResponse']['Observaciones']['Obs'] ?? null;
+                            if ($obs && !isset($obs[0])) $obs = [$obs];
+                        @endphp
+                        @if($obs)
+                            <div class="mt-2 text-sm text-red-700">
+                                <p class="font-medium">Observaciones AFIP:</p>
+                                <ul class="list-disc list-inside mt-1">
+                                    @foreach($obs as $ob)
+                                        <li><strong>{{ $ob['Code'] ?? '' }}</strong>: {{ $ob['Msg'] ?? '' }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                     @endif
                 </div>
             @endif

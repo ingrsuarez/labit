@@ -219,7 +219,13 @@ class CreditNoteController extends Controller
                 return back()->with('success', 'Nota de crédito autorizada por AFIP. CAE: '.$afipResponse['cae']);
             }
 
-            return back()->with('error', 'AFIP rechazó la nota de crédito.');
+            $errorMsg = 'AFIP rechazó la nota de crédito.';
+            if (! empty($afipResponse['observations'])) {
+                $obs = collect($afipResponse['observations'])->flatten()->implode(' | ');
+                $errorMsg .= ' Observaciones: '.$obs;
+            }
+
+            return back()->with('error', $errorMsg);
 
         } catch (\Exception $e) {
             return back()->with('error', 'Error al conectar con AFIP: '.$e->getMessage());
