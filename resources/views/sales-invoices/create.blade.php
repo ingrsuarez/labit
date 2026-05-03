@@ -67,7 +67,7 @@
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">Datos del Comprobante</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 [&>div]:min-w-0"
                      x-data="{
                          voucherType: '{{ old('voucher_type', $prefillVoucherType ?? '') }}',
                          pointOfSaleId: '{{ old('point_of_sale_id', '') }}',
@@ -126,7 +126,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Cliente <span class="text-red-500">*</span></label>
-                        <select name="customer_id" required class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                        <select name="customer_id" required class="w-full min-w-0 rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                             <option value="">Seleccionar...</option>
                             @foreach($customers as $cust)
                                 <option value="{{ $cust->id }}" {{ old('customer_id', $selectedCustomerId ?? $quote?->customer_id) == $cust->id ? 'selected' : '' }}>{{ $cust->name }}</option>

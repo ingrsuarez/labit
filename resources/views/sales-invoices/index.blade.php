@@ -64,7 +64,7 @@
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
-            <div class="flex flex-col md:flex-row gap-3">
+            <div class="flex flex-col md:flex-row gap-3 [&>div]:min-w-0">
                 <div class="flex-1 relative">
                     <input type="text" x-model.debounce.400ms="search"
                            placeholder="Buscar por número o cliente..."
@@ -77,7 +77,7 @@
                     </div>
                 </div>
                 <div class="w-full md:w-52">
-                    <select x-model="status" :disabled="afip_draft" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500 disabled:bg-gray-100">
+                    <select x-model="status" :disabled="afip_draft" class="w-full min-w-0 rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500 disabled:bg-gray-100">
                         <option value="">Todos los estados</option>
                         <option value="pendiente">Pendiente</option>
                         <option value="parcialmente_cobrada">Parcialmente Cobrada</option>
@@ -86,7 +86,7 @@
                     </select>
                 </div>
                 <div class="w-full md:w-52">
-                    <select x-model="customer_id" class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                    <select x-model="customer_id" class="w-full min-w-0 rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                         <option value="">Todos los clientes</option>
                         @foreach(\App\Models\Customer::where('status', 'activo')->orderBy('name')->get() as $cust)
                             <option value="{{ $cust->id }}">{{ $cust->name }}</option>
