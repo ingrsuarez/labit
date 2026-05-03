@@ -5,6 +5,26 @@
 
 ---
 
+## [v1.66.1] — 2026-05-03 — Hotfix: barras del dashboard financiero invisibles en producción
+
+### Corregido
+- **Las barras de los gráficos de los widgets Ventas, Ingresos y Egresos no se veían en producción** (mostraban un gráfico aparentemente vacío aunque los KPIs sí estaban bien). El bug era de **purge de Tailwind CSS**: las clases de color (`bg-emerald-400/600`, `bg-sky-400/600`, `bg-rose-400/600`) estaban definidas únicamente en `config/dashboard.php` y se inyectaban interpoladas en el componente Blade (`{{ $palette['bar'] }}`). Tailwind sólo escanea `resources/views/**/*.blade.php` y archivos similares, así que esas clases dinámicas no aparecían en el bundle final y las barras quedaban transparentes con altura > 0.
+
+### Solución
+- Se agregó `config/dashboard.php` a la lista de `content` en `tailwind.config.js`.
+- Se agregó `safelist` explícita con todas las clases de las paletas de los 4 widgets (`bg-{emerald,amber,sky,rose}-{100,400,600}` y `text-{emerald,amber,sky,rose}-600`) para garantizar que se incluyan en el CSS final aunque alguien renombre la palette en el config.
+- Rebuild de assets (`npm run build`) y commit de `public/build/*` al repo.
+
+### Notas técnicas
+- En desarrollo local el bug podía no reproducirse si Tailwind ya había cacheado el HTML compilado de `storage/framework/views/*.php` con las clases ya interpoladas (porque sí está en el `content` glob). Por eso pasó la review local y sólo apareció después de un deploy limpio.
+- COMPRAS sí se veía (al menos las barritas) porque `bg-amber-400` y `bg-amber-600` ya existían literalmente en otros blades del proyecto y Tailwind las había incluido.
+- Lección aprendida: cualquier clase de Tailwind que vaya por `config/*.php` o por DB debe ir explícitamente en el `safelist` del `tailwind.config.js`.
+
+### Cómo aplicar en producción
+Sólo hay que hacer `git pull` (los assets compilados están commiteados en `public/build/`). No hace falta correr `npm install` ni `npm run build` en el server. Si el navegador del cliente cachea el CSS viejo, hard refresh (`Ctrl+F5`).
+
+---
+
 ## [v1.66.0] — 2026-05-03 — Dashboard ejecutivo financiero + reubicación del panel de RRHH
 
 ### Agregado
