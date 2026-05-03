@@ -59,7 +59,7 @@
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">Datos del Comprobante</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 [&>div]:min-w-0">
                     <div class="md:col-span-2 lg:col-span-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Empresa <span class="text-red-500">*</span></label>
                         <select name="company_id" required class="w-full max-w-md rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
@@ -96,7 +96,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor <span class="text-red-500">*</span></label>
                         <div class="flex items-center gap-2">
-                            <select name="supplier_id" x-model="supplier_id" @change="checkDuplicate(); onSupplierChange()" required class="flex-1 rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                            <select name="supplier_id" x-model="supplier_id" @change="checkDuplicate(); onSupplierChange()" required class="flex-1 min-w-0 rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                                 @foreach($suppliers as $sup)
                                     <option value="{{ $sup->id }}" {{ old('supplier_id', $invoice->supplier_id) == $sup->id ? 'selected' : '' }}>{{ $sup->name }}</option>
                                 @endforeach

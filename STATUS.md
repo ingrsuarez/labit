@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-03 (Hotfix v1.66.1 — barras del dashboard financiero visibles en producción)
+> Última actualización: 2026-05-03 (Hotfix v1.66.2 — scroll horizontal en formularios FC/Remito)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.66.1** en **develop** y **master** |
-| **Última en master** | v1.66.1 (hotfix 2026-05-03 — barras del dashboard financiero) |
-| **Última completada** | v1.66.1 — Hotfix: clases dinámicas de Tailwind purgadas en producción |
+| **Versión actual** | **v1.66.2** en **develop** y **master** |
+| **Última en master** | v1.66.2 (hotfix 2026-05-03 — overflow horizontal en formularios) |
+| **Última completada** | v1.66.2 — Hotfix: scroll horizontal en formularios de Factura de Compra y Remito |
 | **En proceso** | — |
 | **Próxima recomendada** | v1.63.0 — Percepciones de compra (requiere Designer) |
 | **Pendientes en cola** | 3 |
-| **Completadas** | 115 |
+| **Completadas** | 116 |
 
 ---
 
@@ -37,10 +37,11 @@
 
 _Sin prompts en ejecución._
 
-### Completados (103)
+### Completados (104)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.66.2 | Hotfix: scroll horizontal en formularios de Factura de Compra y Remito | 2026-05-03 | v1.66.2 |
 | v1.66.1 | Hotfix: barras del dashboard financiero invisibles (Tailwind purge) | 2026-05-03 | v1.66.1 |
 | v1.66.0 | Dashboard ejecutivo financiero + reubicación del panel de RRHH | 2026-05-03 | v1.66.0 |
 | v1.65.3 | Hotfix vet: validar y mostrar resultado 0 (basofilos/glucosa = 0) | 2026-05-02 | v1.65.3 |
