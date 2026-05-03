@@ -5,6 +5,23 @@
 
 ---
 
+## [v1.66.4] — 2026-05-03 — Hotfix: completar fix de scroll horizontal en `<x-admin-layout>`
+
+### Corregido
+- En `v1.66.2` se agregó `min-w-0` al `<main>` del layout admin para evitar que el contenido empuje el viewport. Pero **el padre directo del `<main>` (el contenedor `<div class="flex-1 flex flex-col md:ml-64">`) seguía sin `min-w-0`**, así que en pantallas con tablas o filas anchas (ej: el listado de Facturas de Venta con razones sociales largas en una sola línea con `whitespace-nowrap`) el contenedor se expandía y arrastraba todo el viewport.
+- Resultado visible: la página `/sales-invoices` y otras con tablas anchas seguían mostrando barra de scroll horizontal a nivel de viewport y se veían cortadas a la derecha (filtros, columnas finales de la tabla, etc.).
+
+### Solución
+- Se agregó `min-w-0` también al wrapper del `<main>` en `resources/views/components/admin-layout.blade.php`. Ahora todos los flex items del path raíz → contenido tienen `min-width: 0`, así el `overflow-x-auto` que envuelve a las tablas funciona como corresponde y el scroll horizontal queda **dentro** de cada tabla, no a nivel viewport.
+- Cambio mínimo (1 línea) y de bajo riesgo. Sin impacto en CSS bundle.
+
+### Cómo aplicar en producción
+Sólo `git pull` y hard refresh (`Ctrl+F5`).
+
+> ⚠️ Nota importante: si aún ves el bug después del deploy, verificá que efectivamente hayas hecho `git pull` desde el último deploy en producción. Los fixes `v1.66.1`, `v1.66.2` y `v1.66.3` también son necesarios para que se vea bien todo el conjunto (paletas del dashboard + formularios sin overflow + listados sin overflow).
+
+---
+
 ## [v1.66.3] — 2026-05-03 — Hotfix: scroll horizontal en Facturas de Venta (listado y formularios)
 
 ### Corregido
