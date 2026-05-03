@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-03 (Dev: v1.66.0 — Dashboard ejecutivo financiero + reubicación de RRHH; mergeado a develop)
+> Última actualización: 2026-05-03 (Hotfix v1.66.1 — barras del dashboard financiero visibles en producción)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.66.0** en **develop** (master sigue en v1.65.3) |
-| **Última en master** | v1.65.3 (hotfix vet — 2026-05-02) |
-| **Última completada** | v1.66.0 — Dashboard ejecutivo financiero + reubicación del panel de RRHH |
+| **Versión actual** | **v1.66.1** en **develop** y **master** |
+| **Última en master** | v1.66.1 (hotfix 2026-05-03 — barras del dashboard financiero) |
+| **Última completada** | v1.66.1 — Hotfix: clases dinámicas de Tailwind purgadas en producción |
 | **En proceso** | — |
 | **Próxima recomendada** | v1.63.0 — Percepciones de compra (requiere Designer) |
 | **Pendientes en cola** | 3 |
-| **Completadas** | 114 |
+| **Completadas** | 115 |
 
 ---
 
@@ -37,10 +37,11 @@
 
 _Sin prompts en ejecución._
 
-### Completados (102)
+### Completados (103)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.66.1 | Hotfix: barras del dashboard financiero invisibles (Tailwind purge) | 2026-05-03 | v1.66.1 |
 | v1.66.0 | Dashboard ejecutivo financiero + reubicación del panel de RRHH | 2026-05-03 | v1.66.0 |
 | v1.65.3 | Hotfix vet: validar y mostrar resultado 0 (basofilos/glucosa = 0) | 2026-05-02 | v1.65.3 |
 | v1.65.2 | Fix PDF veterinario: excluir no validadas + jerarquía orphans | 2026-05-02 | v1.65.2 |
