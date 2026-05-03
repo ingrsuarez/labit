@@ -563,8 +563,14 @@ class SalesInvoiceController extends Controller
                 'afip_response' => $result['full_response'],
             ]);
 
+            $errorMsg = 'AFIP rechazó la factura nuevamente.';
+            if (! empty($result['observations'])) {
+                $obs = collect($result['observations'])->flatten()->implode(' | ');
+                $errorMsg .= ' Observaciones: '.$obs;
+            }
+
             return redirect()->route('sales-invoices.show', $salesInvoice)
-                ->with('error', 'AFIP rechazó la factura nuevamente.');
+                ->with('error', $errorMsg);
 
         } catch (\Exception $e) {
             $salesInvoice->update([
