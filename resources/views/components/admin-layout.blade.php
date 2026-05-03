@@ -36,7 +36,7 @@
                 @include('admin.partials.header')
 
                 <!-- Page Content -->
-                <main class="flex-1">
+                <main class="flex-1 min-w-0">
                     {{ $slot }}
                 </main>
             </div>

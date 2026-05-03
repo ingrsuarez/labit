@@ -5,6 +5,37 @@
 
 ---
 
+## [v1.66.2] — 2026-05-03 — Hotfix: scroll horizontal en formularios de Factura de Compra y Remito
+
+### Corregido
+- **Los formularios `Nueva Factura de Compra`, `Editar Factura de Compra`, `Nuevo Remito` y `Editar Remito` mostraban barra de scroll horizontal y se cortaban del lado derecho** cuando había proveedores con nombres largos. El campo "Proveedor" desbordaba la grilla y empujaba todo el formulario fuera del viewport.
+
+### Causa raíz
+- El campo Proveedor está dentro de un `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">` y contiene un `<select class="flex-1 ...">` con las opciones de proveedores.
+- Por defecto los `select` tienen `min-width: auto = min-content`, donde el `min-content` es el ancho de la opción más larga. Si un proveedor tiene un nombre con muchas palabras o muy largo, el select queda "rígidamente" ancho.
+- Como las celdas de un grid `1fr` y los items flex tampoco se encogen por debajo de su `min-content` por defecto, todo el formulario terminaba ocupando más ancho que la pantalla.
+
+### Solución
+- Se agregó la utility `[&>div]:min-w-0` al grid de "Datos del Comprobante" y "Datos del Remito" para permitir que las celdas se encojan.
+- Se agregó `min-w-0` al `<select name="supplier_id">` para que el flex item pueda achicarse.
+- Defensivamente, se agregó `min-w-0` al `<main>` del componente `<x-admin-layout>` para que el área de contenido nunca empuje el viewport hacia los lados (problema típico de flexbox sin `min-width: 0`).
+- Vistas afectadas:
+  - `resources/views/purchase-invoices/create.blade.php`
+  - `resources/views/purchase-invoices/edit.blade.php`
+  - `resources/views/delivery-notes/create.blade.php`
+  - `resources/views/delivery-notes/edit.blade.php`
+  - `resources/views/components/admin-layout.blade.php`
+- Rebuild de assets (`npm run build`) y commit de `public/build/*` al repo.
+
+### Notas técnicas
+- El truco `[&>div]:min-w-0` es una variante arbitraria de Tailwind v3 que aplica `min-width: 0` a todos los `<div>` que son hijos directos del elemento. Es la forma más limpia de "destrabar" todas las celdas del grid sin tener que tocar cada `<div>` individualmente.
+- Este patrón es la fix recomendada en CSS para grid + flex anidado con contenido de ancho variable. Lección: cuando un select está dentro de `flex-1` y a su vez la celda de grid es `1fr`, hay que poner `min-w-0` en ambos lados de la cadena.
+
+### Cómo aplicar en producción
+Sólo `git pull`. El CSS regenerado ya está commiteado en `public/build/`. Hard refresh del navegador (`Ctrl+F5`) si el cliente cachea el CSS viejo.
+
+---
+
 ## [v1.66.1] — 2026-05-03 — Hotfix: barras del dashboard financiero invisibles en producción
 
 ### Corregido
