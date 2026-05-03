@@ -46,7 +46,7 @@
                     <span>Ya existe un remito con este número para el mismo proveedor. Corregí el número o el proveedor antes de cargar ítems; no se puede guardar hasta resolverlo.</span>
                 </div>
                 <input type="hidden" name="remito_number" :value="remitoNumberForDup">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 [&>div]:min-w-0">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Punto de Venta</label>
                         <input type="text" x-model="remitoPdv"
@@ -66,8 +66,8 @@
                         <div class="flex items-center gap-2">
                             <select name="supplier_id" x-model="supplierIdForDup" @change="checkDuplicateRemito()" required
                                     :class="duplicateRemitoWarning
-                                        ? 'flex-1 rounded-lg border-red-400 text-sm focus:border-red-500 focus:ring-red-500'
-                                        : 'flex-1 rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500'">
+                                        ? 'flex-1 min-w-0 rounded-lg border-red-400 text-sm focus:border-red-500 focus:ring-red-500'
+                                        : 'flex-1 min-w-0 rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500'">
                                 <option value="">Seleccionar...</option>
                                 @foreach($suppliers as $sup)
                                     <option value="{{ $sup->id }}">{{ $sup->name }}</option>

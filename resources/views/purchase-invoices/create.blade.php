@@ -113,7 +113,7 @@
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">Datos del Comprobante</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 [&>div]:min-w-0">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Tipo Comprobante <span class="text-red-500">*</span></label>
                         <select name="voucher_type" required class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
@@ -142,7 +142,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor <span class="text-red-500">*</span></label>
                         <div class="flex items-center gap-2">
-                            <select name="supplier_id" x-model="supplier_id" @change="checkDuplicate(); onSupplierChange()" required class="flex-1 rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                            <select name="supplier_id" x-model="supplier_id" @change="checkDuplicate(); onSupplierChange()" required class="flex-1 min-w-0 rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
                                 <option value="">Seleccionar...</option>
                                 @foreach($suppliers as $sup)
                                     <option value="{{ $sup->id }}" {{ old('supplier_id', $selectedSupplierId ?? $deliveryNote?->supplier_id ?? $purchaseOrder?->supplier_id) == $sup->id ? 'selected' : '' }}>{{ $sup->name }}</option>
