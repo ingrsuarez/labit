@@ -5,6 +5,42 @@
 
 ---
 
+## [v1.66.0] — 2026-05-03 — Dashboard ejecutivo financiero + reubicación del panel de RRHH
+
+### Agregado
+- **Dashboard ejecutivo financiero** en `/dashboard` con 4 widgets del mes corriente: Ventas netas, Compras netas, Ingresos y Egresos. Cada widget muestra:
+  - KPI grande del mes en curso.
+  - Variación porcentual vs mes anterior con flechas (▲ verde, ▼ rojo, gris si sin cambios, "—" si sin datos previos).
+  - Gráfico de barras con la evolución de los últimos 12 meses, con la barra del mes corriente destacada.
+  - Tooltip Alpine al hacer hover sobre cada barra mostrando el monto exacto.
+- **Panel de Recursos Humanos** en nueva ruta `/rrhh` (`RrhhController@index`, vista `rrhh/index.blade.php`) — mudanza 1:1 del contenido que antes vivía en `/dashboard` (KPIs de empleados, gráficos, cumpleaños, solicitudes, top puestos, accesos rápidos).
+- **Entrada nueva en sidebar admin** "Recursos Humanos" arriba de Personal/Ausencias/Liquidaciones, visible solo para roles `admin` y `contador`.
+- **`FinancialDashboardService`** (`app/Services/FinancialDashboardService.php`) que calcula los 4 datasets, filtra por empresa activa (`active_company_id()`) y maneja casos borde de variación % (división por cero, cap a ±999%, ambos en cero, etc.).
+- **Componente Blade `<x-financial-widget>`** (`resources/views/components/financial-widget.blade.php`) reutilizable para los 4 widgets, con paleta configurable.
+- **`config/dashboard.php`** centraliza las paletas de los widgets (emerald/amber/sky/rose).
+- **Documento de diseño** `docs/designs/DISEÑO_v1.66.0-dashboard-financiero-rrhh.md` (entregado por AGENTE_DESIGNER) con anatomía visual, estados, accesibilidad y QA checklist.
+- **Tests:**
+  - 13 tests Unit en `tests/Unit/Services/FinancialDashboardServiceTest.php` cubriendo cálculo de variación %, filtrado por empresa, exclusión de borradores AFIP sin CAE, exclusión de recibos/OP anuladas, estructura de la serie de 12 meses.
+  - 8 tests Feature en `tests/Feature/Dashboard/FinancialDashboardTest.php` cubriendo redirects por rol, banner sin empresa activa y nombre de empresa visible.
+  - 5 tests Feature en `tests/Feature/Rrhh/RrhhAccessTest.php` cubriendo control de acceso a `/rrhh` (admin/contador OK, otros roles 403).
+
+### Cambiado
+- **`DashboardController@index`** se reescribe: mantiene los redirects por rol existentes (recepcion-lab/tecnico-lab/bioquimico → laboratorio, compras → compras, ventas → ventas) y delega el cálculo financiero al `FinancialDashboardService`. Toda la lógica de RRHH se mudó al `RrhhController`.
+- **Vista `dashboard.blade.php`** reescrita con header "Panel ejecutivo", badge de empresa activa, banner sutil cuando falta empresa y el grid 2x2 de los 4 widgets.
+
+### Decisiones de diseño (resumen)
+- **Sin librerías de gráficos externas** — barras hechas con `<div>` + Tailwind, igual que el patrón de "Contrataciones por mes" del dashboard original.
+- **Paleta diferenciada por widget sin juicio de valor** — el color identifica el concepto, no marca "bueno/malo". El juicio lo da la variación % (verde sube, rojo baja, gris igual).
+- **Cap de variación a ±999%** y manejo explícito de mes anterior = 0 → "sin datos previos" (en vez de +∞%).
+- **Mudanza de RRHH 1:1** sin cambios funcionales — solo cambia el título de la pantalla y la ruta.
+
+### Notas técnicas
+- Multi-empresa: todas las queries filtran por `company_id = active_company_id()`. Si no hay empresa activa, el dashboard muestra ceros con un banner amarillo en la parte superior.
+- Cross-database: el service usa `strftime('%Y-%m', ...)` en SQLite (suite de tests) y `DATE_FORMAT(..., '%Y-%m')` en MySQL/MariaDB (producción).
+- Detectado durante la ejecución: el test pre-existente `Tests\Feature\Billing\BatchInvoiceDraftTest::send to afip from edit obtains cae` falla en aislamiento por un mock de AFIP que devuelve `null` en `cae`. NO está relacionado con v1.66.0 — venía roto desde v1.65.0/v1.65.x. Cuando ese test falla, deja una transacción colgada que cascadea "There is already an active transaction" al resto de la suite. **Recomendación:** abrir hotfix posterior para fixear el mock de AFIP en ese test específico.
+
+---
+
 ## [v1.65.3] — 2026-05-02 — Hotfix: validar y mostrar resultados con valor cero en protocolos veterinarios
 
 ### Corregido

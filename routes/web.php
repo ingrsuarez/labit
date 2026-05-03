@@ -56,6 +56,9 @@ Route::middleware([
 
     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
+    // PANEL DE RECURSOS HUMANOS (mudanza desde dashboard en v1.66.0)
+    Route::get('/rrhh', [App\Http\Controllers\RrhhController::class, 'index'])->name('rrhh.index');
+
     // FIRMA DIGITAL DEL USUARIO
     Route::post('/user/signature', [App\Http\Controllers\UserSignatureController::class, 'update'])->name('user.signature.update');
     Route::delete('/user/signature', [App\Http\Controllers\UserSignatureController::class, 'destroy'])->name('user.signature.destroy');
