@@ -108,6 +108,11 @@ class CompanyController extends Controller
                 ->with('success', 'Empresa actualizada. Volvé a generar el resumen del Libro IVA para la nueva empresa.');
         }
 
+        if (str_ends_with($path, '/billing/batch-preview') || str_ends_with($path, '/billing/batch-invoice')) {
+            return redirect()->route('billing.uninvoiced')
+                ->with('success', 'Empresa actualizada. Seleccioná nuevamente las determinaciones a facturar.');
+        }
+
         return redirect()->back();
     }
 
