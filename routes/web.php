@@ -261,6 +261,8 @@ Route::middleware([
         Route::get('admissions/{vetAdmission}', [App\Http\Controllers\VetAdmissionController::class, 'show'])->name('vet.admissions.show');
 
         Route::post('admissions/{vetAdmission}/results', [App\Http\Controllers\VetAdmissionController::class, 'loadResults'])->name('vet.admissions.loadResults');
+        Route::post('admissions/{vetAdmission}/add-tests', [App\Http\Controllers\VetAdmissionController::class, 'addTests'])->name('vet.admissions.addTests');
+        Route::delete('admissions/{vetAdmission}/remove-test/{vetAdmissionTest}', [App\Http\Controllers\VetAdmissionController::class, 'removeTest'])->name('vet.admissions.removeTest');
         Route::get('admissions/{vetAdmission}/pdf', [App\Http\Controllers\VetAdmissionController::class, 'downloadPdf'])->name('vet.admissions.downloadPdf');
         Route::get('admissions/{vetAdmission}/pdf/view', [App\Http\Controllers\VetAdmissionController::class, 'viewPdf'])->name('vet.admissions.viewPdf');
         Route::post('admissions/{vetAdmission}/send-email', [App\Http\Controllers\VetAdmissionController::class, 'sendEmail'])->name('vet.admissions.sendEmail');

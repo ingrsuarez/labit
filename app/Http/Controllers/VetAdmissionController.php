@@ -271,6 +271,125 @@ class VetAdmissionController extends Controller
         return redirect()->back()->with('success', 'Resultados guardados correctamente.');
     }
 
+    public function addTests(Request $request, VetAdmission $vetAdmission)
+    {
+        $request->validate([
+            'tests' => 'required|array|min:1',
+            'tests.*.test_id' => 'required|exists:tests,id',
+        ]);
+
+        $customer = $vetAdmission->customer;
+        if (! $customer || ! $customer->isVeterinary()) {
+            return redirect()->back()->with('error', 'El cliente del protocolo no es una veterinaria válida.');
+        }
+
+        $rate = $customer->veterinaryNbuRate();
+        $addedPrice = 0;
+        $addedCount = 0;
+
+        foreach ($request->tests as $testData) {
+            $test = Test::find($testData['test_id']);
+            if (! $test) {
+                continue;
+            }
+
+            $alreadyExists = VetAdmissionTest::where('vet_admission_id', $vetAdmission->id)
+                ->where('test_id', $test->id)
+                ->exists();
+            if ($alreadyExists) {
+                continue;
+            }
+
+            $nbu = (float) ($test->nbu ?? 0);
+            $price = self::veterinaryPriceFromNbu($rate, $nbu);
+            $addedPrice += $price;
+
+            VetAdmissionTest::create([
+                'vet_admission_id' => $vetAdmission->id,
+                'test_id' => $test->id,
+                'price' => $price,
+                'nbu_units' => $test->nbu ?? 1,
+                'unit' => $test->unit,
+                'method' => $test->method,
+                'reference_value' => $this->buildReferenceValue($test, $vetAdmission->species_id),
+            ]);
+            $addedCount++;
+
+            $children = $test->getAllChildren(false);
+            foreach ($children as $childTest) {
+                $childExists = VetAdmissionTest::where('vet_admission_id', $vetAdmission->id)
+                    ->where('test_id', $childTest->id)
+                    ->exists();
+                if (! $childExists) {
+                    VetAdmissionTest::create([
+                        'vet_admission_id' => $vetAdmission->id,
+                        'test_id' => $childTest->id,
+                        'price' => 0,
+                        'nbu_units' => $childTest->nbu ?? 0,
+                        'unit' => $childTest->unit,
+                        'method' => $childTest->method,
+                        'reference_value' => $this->buildReferenceValue($childTest, $vetAdmission->species_id),
+                    ]);
+                }
+            }
+        }
+
+        $vetAdmission->update([
+            'total_price' => $vetAdmission->total_price + $addedPrice,
+        ]);
+
+        if ($addedCount === 0) {
+            return redirect()->back()->with('error', 'Las prácticas seleccionadas ya estaban en el protocolo.');
+        }
+
+        return redirect()->back()->with('success', "Se agregaron {$addedCount} práctica(s) al protocolo.");
+    }
+
+    public function removeTest(VetAdmission $vetAdmission, VetAdmissionTest $vetAdmissionTest)
+    {
+        if ($vetAdmissionTest->vet_admission_id !== $vetAdmission->id) {
+            abort(404);
+        }
+
+        if ($vetAdmissionTest->is_validated) {
+            return redirect()->back()->with('error', 'No se puede quitar una práctica ya validada.');
+        }
+
+        $test = $vetAdmissionTest->test;
+        $removedPrice = (float) $vetAdmissionTest->price;
+        $removedCount = 1;
+
+        $vetAdmissionTest->delete();
+
+        if ($test) {
+            $children = $test->getAllChildren(false);
+            $childTestIds = $children->pluck('id')->toArray();
+
+            if (! empty($childTestIds)) {
+                $childVats = VetAdmissionTest::where('vet_admission_id', $vetAdmission->id)
+                    ->whereIn('test_id', $childTestIds)
+                    ->where('is_validated', false)
+                    ->get();
+
+                foreach ($childVats as $childVat) {
+                    $removedPrice += (float) $childVat->price;
+                    $removedCount++;
+                    $childVat->delete();
+                }
+            }
+        }
+
+        $newTotal = max(0, $vetAdmission->total_price - $removedPrice);
+        $vetAdmission->update(['total_price' => $newTotal]);
+
+        $msg = "Práctica eliminada del protocolo.";
+        if ($removedCount > 1) {
+            $msg = "Se eliminaron {$removedCount} prácticas (padre + hijos) del protocolo.";
+        }
+
+        return redirect()->back()->with('success', $msg);
+    }
+
     public function validateTest(VetAdmission $vetAdmission, VetAdmissionTest $vetAdmissionTest)
     {
         if (! $vetAdmissionTest->hasResult()) {
