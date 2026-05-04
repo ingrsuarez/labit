@@ -5,6 +5,30 @@
 
 ---
 
+## [v1.67.3] — 2026-05-04 — Hotfix: orden de determinaciones en email veterinario
+
+### Corregido
+- **El PDF adjunto en el email de resultados veterinarios no respetaba el orden definido de las determinaciones** (jerarquía padre→sub-padre→hijo + `sort_order`). El informe descargado/visualizado desde la app sí lo respetaba.
+
+### Causa raíz
+- `VetAdmissionResultMail::attachments()` cargaba `vetTests` con un eager load filtrado a solo las validadas (`fn ($q) => $q->where('is_validated', true)`), mientras que `downloadPdf`/`viewPdf` cargaban todas sin filtro.
+- `VetAdmissionTestDisplayOrder::orderedEntries()` necesita **todas** las determinaciones del protocolo para construir correctamente la jerarquía padre-hijo (tests padre que sirven como agrupadores estructurales pueden no estar validados pero son necesarios para que sus hijos se ordenen dentro del grupo). Al recibir solo las validadas, los padres no validados desaparecían de `$allProtocolTestIds`, los hijos perdían su grupo y caían como orphans a nivel 0 con un orden distinto.
+- Adicionalmente, el cálculo del validador más frecuente (`validated_by`) no filtraba la colección a validadas, incluyendo nulls de tests no validados al contar.
+
+### Solución
+- Eager load de `vetTests` sin filtro, alineado a `downloadPdf`/`viewPdf`.
+- Filtro `->where('is_validated', true)` en la colección para el cálculo del validador (mismo patrón que el controller).
+
+### Notas técnicas
+- Cambio de 2 líneas en `app/Mail/VetAdmissionResultMail.php`.
+- El template PDF (`vet/admissions/pdf-mpdf.blade.php`) y `VetAdmissionTestDisplayOrder` no se modificaron — ya manejaban correctamente el filtrado interno.
+- Mismo patrón de bug potencial existe en `SampleResultsMail` y `LabAdmissionResultMail` (candidatos a auditoría preventiva).
+
+### Cómo aplicar en producción
+Solo `git pull`. Sin migraciones, sin assets, sin seeders.
+
+---
+
 ## [v1.67.0] — 2026-05-04 — API: catálogo de tests/determinaciones para LISCOM
 
 ### Agregado
