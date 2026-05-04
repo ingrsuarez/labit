@@ -76,6 +76,7 @@ class VetAdmission extends Model
             'pending' => 'Pendiente',
             'in_progress' => 'En Proceso',
             'completed' => 'Completado',
+            'validated' => 'Validado',
             'cancelled' => 'Cancelado',
             default => $this->status,
         };
@@ -87,6 +88,7 @@ class VetAdmission extends Model
             'pending' => 'yellow',
             'in_progress' => 'blue',
             'completed' => 'green',
+            'validated' => 'purple',
             'cancelled' => 'red',
             default => 'gray',
         };

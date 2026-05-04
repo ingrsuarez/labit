@@ -49,6 +49,7 @@ class VetAdmissionTest extends Model
             'pending' => 'Pendiente',
             'in_progress' => 'En Proceso',
             'completed' => 'Completado',
+            'validated' => 'Validado',
             default => $this->status,
         };
     }
