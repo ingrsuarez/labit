@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-04 (v1.67.2 — Hotfix birth pacientes timestamp→date)
+> Última actualización: 2026-05-04 (v1.67.3 — Hotfix orden determinaciones en email veterinario)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.67.2** en **develop** |
-| **Última en master** | v1.66.5 (UX 2026-05-03 — listado de Facturas de Venta más compacto) |
-| **Última completada** | v1.67.2 — Hotfix birth pacientes (timestamp→date) |
+| **Versión actual** | **v1.67.3** en **develop** |
+| **Última en master** | v1.67.3 (Hotfix orden determinaciones en email veterinario) |
+| **Última completada** | v1.67.3 — Hotfix orden determinaciones en email veterinario |
 | **En proceso** | — |
 | **Próxima recomendada** | v1.63.0 — Percepciones de compra (requiere Designer) |
 | **Pendientes en cola** | 3 |
-| **Completadas** | 122 |
+| **Completadas** | 123 |
 
 ---
 
@@ -41,6 +41,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.67.3 | Hotfix: orden determinaciones en email veterinario | 2026-05-04 | v1.67.3 |
 | v1.67.2 | Hotfix: columna birth de pacientes (timestamp → date) | 2026-05-04 | v1.67.2 |
 | v1.67.1 | Hotfix: billing batch al cambiar empresa (MethodNotAllowed) | 2026-05-04 | v1.67.1 |
 | v1.67.0 | API: catálogo de tests/determinaciones para LISCOM | 2026-05-04 | v1.67.0 |
