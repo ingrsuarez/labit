@@ -51,12 +51,11 @@ class VetAdmissionResultMail extends Mailable
     {
         $this->vetAdmission->load([
             'customer', 'veterinarian', 'species',
-            'vetTests' => fn ($q) => $q->where('is_validated', true),
-            'vetTests.test.parentTests',
-            'vetTests.test.childTests',
+            'vetTests.test.parentTests', 'vetTests.test.childTests',
         ]);
 
         $validatorId = $this->vetAdmission->vetTests
+            ->where('is_validated', true)
             ->pluck('validated_by')
             ->countBy()->sortDesc()->keys()->first();
         $validator = $validatorId ? User::find($validatorId) : null;
