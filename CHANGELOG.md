@@ -5,6 +5,23 @@
 
 ---
 
+## [v1.67.0] — 2026-05-04 — API: catálogo de tests/determinaciones para LISCOM
+
+### Agregado
+- **Endpoint `GET /api/v1/tests?search=...`** para búsqueda en el catálogo de determinaciones de labit. Permite a LISCOM buscar tests por nombre o código para configurar los mapeos de códigos por equipo (`EquipmentTestMapping` de v1.49.0).
+- **Filtro por categoría** (`?category=clinico|aguas_alimentos|veterinario`) para acotar la búsqueda al tipo de laboratorio relevante.
+- **`TestController`** (`app/Http/Controllers/Api/V1/TestController.php`) con búsqueda LIKE por `name` y `code`, paginación configurable (max 100 por página), mínimo 2 caracteres de búsqueda.
+- **`TestResource`** (`app/Http/Resources/Api/V1/TestResource.php`) con estructura completa: `id`, `code`, `name`, `unit`, `method`, `nbu`, `categories`, `is_parent`, `is_child`, `material` (con id/name/abbreviation).
+- **12 Feature tests** en `tests/Feature/Api/V1/TestCatalogApiTest.php`: auth requerida, búsqueda por nombre/código, campos esperados, flags parent/child, filtro por categoría, paginación, cap de per_page, API key inactiva, material null.
+
+### Notas técnicas
+- Detrás de `auth.api_key` (v1.46.0), igual que los demás endpoints de la API v1.
+- `is_parent` y `is_child` permiten a LISCOM distinguir tests agrupadores (padres/sub-padres) de determinaciones concretas para evitar mapear headers como tests reales.
+- Eager loading de `materialRelation`, `childTests` y `parentTests` para evitar N+1.
+- El endpoint no requiere migraciones ni permisos nuevos.
+
+---
+
 ## [v1.66.5] — 2026-05-03 — UX: listado de Facturas de Venta más compacto y fila clickeable
 
 ### Cambiado
