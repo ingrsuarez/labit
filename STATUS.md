@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-04 (v1.67.1 — Hotfix billing batch al cambiar empresa)
+> Última actualización: 2026-05-04 (v1.67.2 — Hotfix birth pacientes timestamp→date)
 
 ---
 
@@ -12,19 +12,20 @@
 | **Versión actual** | **v1.67.1** en **develop** |
 | **Última en master** | v1.66.5 (UX 2026-05-03 — listado de Facturas de Venta más compacto) |
 | **Última completada** | v1.67.1 — Hotfix billing batch al cambiar empresa |
-| **En proceso** | — |
+| **En proceso** | v1.67.2 — Hotfix birth pacientes (timestamp→date) |
 | **Próxima recomendada** | v1.63.0 — Percepciones de compra (requiere Designer) |
-| **Pendientes en cola** | 3 |
+| **Pendientes en cola** | 4 |
 | **Completadas** | 121 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (3) — orden de ejecución recomendado por PM
+### Pendientes (4) — orden de ejecución recomendado por PM
 
 | # | Versión | Nombre | Designer | Prompt |
 |---|---|---|---|---|
+| 0 | **v1.67.2** | **Hotfix: columna birth de pacientes (timestamp → date)** | No | `pendientes/v1.67.2-hotfix-patients-birth-timestamp-to-date.md` |
 | 1 | v1.63.0 | Percepciones de compra: catálogo, FC, asiento contable y saldos | Sí | `pendientes/v1.63.0-percepciones-compra.md` |
 | 2 | v1.63.1 | Percepciones en NC de proveedor (espejo de v1.63.0) | — | `pendientes/v1.63.1-percepciones-nc-proveedor.md` |
 | 3 | v1.64.0 | Declaraciones de impuestos e imputación de anticipos sufridos | Sí | `pendientes/v1.64.0-declaraciones-impuestos-imputacion-anticipos.md` |
@@ -33,9 +34,11 @@
 > 1. ~~v1.66.0~~ completada (dashboard ejecutivo + mudanza RRHH)
 > 2-3-4. Bloque temático de impuestos (v1.63.0 → v1.63.1 → v1.64.0) para no perder contexto técnico (asientos, plan de cuentas, percepciones)
 
-### En proceso (0)
+### En proceso (1)
 
-_Sin prompts en ejecución._
+| Versión | Nombre | Prompt |
+|---|---|---|
+| v1.67.2 | Hotfix: columna birth de pacientes (timestamp → date) | `pendientes/v1.67.2-hotfix-patients-birth-timestamp-to-date.md` |
 
 ### Completados (107)
 

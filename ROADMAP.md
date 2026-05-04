@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-04 (v1.67.1 — Hotfix billing batch al cambiar empresa)
+> Última actualización: 2026-05-04 (v1.67.2 — Hotfix birth pacientes timestamp→date)
 
 ---
 
@@ -105,6 +105,7 @@
 
 | Versión | Nombre | Estado | Rama |
 |---|---|---|---|
+| v1.67.2 | Hotfix: columna birth de pacientes (timestamp → date) | Prompt listo | `pendientes/v1.67.2-hotfix-patients-birth-timestamp-to-date.md` |
 
 ---
 

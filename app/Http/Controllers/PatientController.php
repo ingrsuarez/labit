@@ -35,7 +35,6 @@ class PatientController extends Controller
         $patient->birth = $request->birth;
         $patient->sex = $request->sex;
         $patient->type = 'active';
-        $patient->type = 'active';
         $patient->address = strtolower($request->address);
         $patient->country = $request->country;
         $patient->state = $request->state;
@@ -88,7 +87,6 @@ class PatientController extends Controller
         $patient->phone = $request->phone;
         $patient->birth = $request->birth;
         $patient->sex = $request->sex;
-        $patient->type = 'active';
         $patient->type = 'active';
         $patient->address = strtolower($request->address);
         $patient->country = $request->country;
