@@ -403,7 +403,7 @@ class VetAdmissionController extends Controller
             'status' => 'validated',
         ]);
 
-        $vetAdmission->load('vetTests');
+        $vetAdmission->load(['vetTests.test.childTests']);
         $vetAdmission->update(['status' => $vetAdmission->calculated_status]);
 
         return redirect()->back()->with('success', 'Práctica validada.');
@@ -418,7 +418,7 @@ class VetAdmissionController extends Controller
             'status' => $vetAdmissionTest->hasResult() ? 'completed' : 'pending',
         ]);
 
-        $vetAdmission->load('vetTests');
+        $vetAdmission->load(['vetTests.test.childTests']);
         $vetAdmission->update(['status' => $vetAdmission->calculated_status]);
 
         return redirect()->back()->with('success', 'Validación removida.');
@@ -440,7 +440,7 @@ class VetAdmissionController extends Controller
             }
         }
 
-        $vetAdmission->load('vetTests');
+        $vetAdmission->load(['vetTests.test.childTests']);
         $vetAdmission->update(['status' => $vetAdmission->calculated_status]);
 
         return redirect()->back()->with('success', "Se validaron {$count} prácticas.");

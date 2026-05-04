@@ -96,17 +96,35 @@ class VetAdmission extends Model
 
     public function getCalculatedStatusAttribute(): string
     {
-        $total = $this->vetTests->count();
+        // Excluir padres-título: tests sin resultado cuyo Test tiene hijos
+        // (agrupadores que no llevan resultado propio).
+        // Solo aplica si la relación test.childTests está cargada; si no,
+        // se incluye por defecto para no ocultar determinaciones pendientes reales.
+        $countable = $this->vetTests->filter(function (VetAdmissionTest $vt) {
+            if ($vt->hasResult() || $vt->is_validated) {
+                return true;
+            }
+
+            if ($vt->relationLoaded('test') && $vt->test?->relationLoaded('childTests')) {
+                return $vt->test->childTests->isEmpty();
+            }
+
+            return true;
+        });
+
+        $total = $countable->count();
+
         if ($total === 0) {
             return 'pending';
         }
 
-        $validated = $this->vetTests->where('is_validated', true)->count();
-        $completed = $this->vetTests->where('status', 'completed')->count();
+        $validated = $countable->where('is_validated', true)->count();
+        $completed = $countable->whereIn('status', ['completed', 'validated'])->count();
 
         if ($validated === $total) {
             return 'validated';
         }
+
         if ($completed === $total || $validated > 0) {
             return 'completed';
         }
