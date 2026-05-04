@@ -21,8 +21,7 @@ class ProtocolController extends Controller
 {
     public function __construct(
         private readonly ProtocolLookupService $service,
-    ) {
-    }
+    ) {}
 
     /**
      * Listado unificado de los 3 tipos de protocolo, con filtros por
@@ -71,6 +70,10 @@ class ProtocolController extends Controller
             return response()->json(['error' => 'Protocol not found'], 404);
         }
 
+        if ($found->status === 'pending') {
+            $found->update(['status' => 'in_progress']);
+        }
+
         return new ProtocolResource($found);
     }
 
@@ -93,6 +96,10 @@ class ProtocolController extends Controller
 
         if (! $found) {
             return response()->json(['error' => 'Protocol not found'], 404);
+        }
+
+        if ($found->status === 'pending') {
+            $found->update(['status' => 'in_progress']);
         }
 
         return new ProtocolResource($found);

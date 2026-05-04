@@ -1,7 +1,7 @@
-# STATUS — Labit
+﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-04 (v1.67.3 — Hotfix orden determinaciones en email veterinario)
+> Última actualización: 2026-05-04 (v1.67.4 — Hotfix estado validación vet + in_progress por LISCOM)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.67.3** en **develop** |
+| **Versión actual** | **v1.67.4** en **develop** |
 | **Última en master** | v1.67.3 (Hotfix orden determinaciones en email veterinario) |
 | **Última completada** | v1.67.3 — Hotfix orden determinaciones en email veterinario |
 | **En proceso** | — |
 | **Próxima recomendada** | v1.63.0 — Percepciones de compra (requiere Designer) |
 | **Pendientes en cola** | 3 |
-| **Completadas** | 123 |
+| **Completadas** | 124 |
 
 ---
 
@@ -41,6 +41,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.67.4 | Hotfix: estado validacion vet + in_progress por LISCOM | 2026-05-04 | v1.67.4 |
 | v1.67.3 | Hotfix: orden determinaciones en email veterinario | 2026-05-04 | v1.67.3 |
 | v1.67.2 | Hotfix: columna birth de pacientes (timestamp → date) | 2026-05-04 | v1.67.2 |
 | v1.67.1 | Hotfix: billing batch al cambiar empresa (MethodNotAllowed) | 2026-05-04 | v1.67.1 |
