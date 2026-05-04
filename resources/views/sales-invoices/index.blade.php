@@ -128,15 +128,14 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">N° Factura</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Cliente</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Fecha Emisión</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Vencimiento</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Total</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Cobrado</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Saldo</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Acciones</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">N° Factura</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Cliente</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Emisión</th>
+                                <th class="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Vencim.</th>
+                                <th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Total</th>
+                                <th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Cobrado</th>
+                                <th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Saldo</th>
+                                <th class="px-3 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
@@ -144,8 +143,9 @@
                                 @php
                                     $isPastDue = $invoice->due_date && $invoice->due_date->isPast() && !in_array($invoice->status, ['cobrada', 'anulada']);
                                 @endphp
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 py-3 whitespace-nowrap">
+                                <tr class="hover:bg-gray-50 cursor-pointer transition-colors"
+                                    onclick="rowClick(event, '{{ route('sales-invoices.show', $invoice) }}')">
+                                    <td class="px-3 py-3 whitespace-nowrap align-top">
                                         <a href="{{ route('sales-invoices.show', $invoice) }}" class="text-zinc-700 font-semibold hover:text-zinc-900 text-sm">
                                             @if($invoice->is_electronic && $invoice->cae)
                                                 <svg class="inline w-4 h-4 text-indigo-500 mr-0.5 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -155,26 +155,23 @@
                                             {{ $invoice->full_number }}
                                         </a>
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{{ $invoice->customer->name }}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $invoice->issue_date->format('d/m/Y') }}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm {{ $isPastDue ? 'text-red-600 font-medium' : 'text-gray-500' }}">
-                                        {{ $invoice->due_date?->format('d/m/Y') ?? '-' }}
-                                        @if($isPastDue)
-                                            <span class="text-xs ml-1">(vencida)</span>
-                                        @endif
+                                    <td class="px-3 py-3 text-sm text-gray-700 align-top">
+                                        <span class="line-clamp-2 break-words block max-w-[180px]" title="{{ $invoice->customer->name }}">{{ $invoice->customer->name }}</span>
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-800 text-right">${{ number_format($invoice->total, 2, ',', '.') }}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">${{ number_format($invoice->amount_collected, 2, ',', '.') }}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-semibold {{ $invoice->balance > 0 ? 'text-amber-600' : 'text-green-600' }}">
+                                    <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-500 align-top">{{ $invoice->issue_date->format('d/m/Y') }}</td>
+                                    <td class="px-3 py-3 whitespace-nowrap text-sm align-top {{ $isPastDue ? 'text-red-600 font-medium' : 'text-gray-500' }}"
+                                        @if($isPastDue) title="Vencida" @endif>
+                                        {{ $invoice->due_date?->format('d/m/Y') ?? '-' }}
+                                    </td>
+                                    <td class="px-3 py-3 whitespace-nowrap text-sm font-semibold text-gray-800 text-right align-top">${{ number_format($invoice->total, 2, ',', '.') }}</td>
+                                    <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-600 text-right align-top">${{ number_format($invoice->amount_collected, 2, ',', '.') }}</td>
+                                    <td class="px-3 py-3 whitespace-nowrap text-sm text-right font-semibold align-top {{ $invoice->balance > 0 ? 'text-amber-600' : 'text-green-600' }}">
                                         ${{ number_format($invoice->balance, 2, ',', '.') }}
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-center">
+                                    <td class="px-3 py-3 whitespace-nowrap text-center align-top">
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $invoice->status_color }}-100 text-{{ $invoice->status_color }}-700">
                                             {{ $invoice->status_label }}
                                         </span>
-                                    </td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-right text-sm">
-                                        <a href="{{ route('sales-invoices.show', $invoice) }}" class="text-gray-500 hover:text-zinc-700">Ver</a>
                                     </td>
                                 </tr>
                             @endforeach
@@ -196,4 +193,18 @@
         </div>
         </div>
     </div>
+
+    <script>
+        // Click en cualquier celda de la fila navega al show de la factura.
+        // Respeta clicks sobre <a>/<button> internos para no duplicar navegacion,
+        // y soporta ctrl/meta+click para abrir en pestaña nueva.
+        function rowClick(event, url) {
+            if (event.target.closest('a, button')) return;
+            if (event.ctrlKey || event.metaKey || event.button === 1) {
+                window.open(url, '_blank');
+            } else {
+                window.location.href = url;
+            }
+        }
+    </script>
 </x-admin-layout>

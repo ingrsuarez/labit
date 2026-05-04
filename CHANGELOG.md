@@ -5,6 +5,27 @@
 
 ---
 
+## [v1.66.5] — 2026-05-03 — UX: listado de Facturas de Venta más compacto y fila clickeable
+
+### Cambiado
+- **Listado de Facturas de Venta (`/sales-invoices`)** rediseñado para que la tabla quepa mejor en pantallas estándar y no requiera scroll horizontal:
+  - **Columna "Acciones" eliminada.** Toda la fila es clickeable y navega al detalle de la factura. Soporta `Ctrl/Cmd+click` y click con la rueda del mouse para abrir en pestaña nueva. Los clicks sobre el `<a>` del N° de Factura siguen funcionando como links normales.
+  - **Razón social del cliente truncada con wrap a 2 líneas** (`max-w-[180px]` + `line-clamp-2`). Para ver el nombre completo se puede pasar el mouse por encima (atributo `title`).
+  - **Fechas vencidas** ahora se muestran solo en color rojo con tooltip "Vencida"; se quitó el badge "(vencida)" para ahorrar espacio.
+  - **Headers más cortos**: "Fecha Emisión" → "Emisión", "Vencimiento" → "Vencim.".
+  - Padding horizontal reducido de `px-4` a `px-3` y celdas alineadas al top (`align-top`) para que la fila no crezca verticalmente cuando la razón social hace wrap.
+  - `cursor-pointer` y `transition-colors` en cada fila para reforzar la affordance de "clickeable".
+
+### Notas técnicas
+- La función global `rowClick(event, url)` está declarada al final del slot del Blade y sobrevive al reemplazo AJAX del `#results-container` que hace el filtro reactivo de búsqueda/estado/cliente.
+- Se respeta el comportamiento estándar del navegador: si el click cae sobre un `<a>` o `<button>` interno (ej: el link del N° de Factura), se deja propagar normalmente y se evita la navegación duplicada.
+- Sin cambios en `Controller`/`Model`/rutas. Solo Blade + 1 línea de JS.
+
+### Cómo aplicar en producción
+`git pull` y hard refresh (`Ctrl+F5`). El bundle de CSS cambió de hash (`app-a19a11fa.css` → `app-a2da10f9.css`) por la nueva utility `max-w-[180px]`, así que Vite hace cache busting automático.
+
+---
+
 ## [v1.66.4] — 2026-05-03 — Hotfix: completar fix de scroll horizontal en `<x-admin-layout>`
 
 ### Corregido

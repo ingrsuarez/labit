@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-03 (Hotfix v1.66.4 — completar min-w-0 en padre del main)
+> Última actualización: 2026-05-03 (v1.66.5 — listado de FV más compacto + fila clickeable)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.66.4** en **develop** y **master** |
-| **Última en master** | v1.66.4 (hotfix 2026-05-03 — admin-layout min-w-0 completo) |
-| **Última completada** | v1.66.4 — Hotfix: completar fix de scroll horizontal en `<x-admin-layout>` |
+| **Versión actual** | **v1.66.5** en **develop** y **master** |
+| **Última en master** | v1.66.5 (UX 2026-05-03 — listado de Facturas de Venta más compacto) |
+| **Última completada** | v1.66.5 — UX: listado de Facturas de Venta más compacto y fila clickeable |
 | **En proceso** | — |
 | **Próxima recomendada** | v1.63.0 — Percepciones de compra (requiere Designer) |
 | **Pendientes en cola** | 3 |
-| **Completadas** | 118 |
+| **Completadas** | 119 |
 
 ---
 
@@ -37,10 +37,11 @@
 
 _Sin prompts en ejecución._
 
-### Completados (106)
+### Completados (107)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.66.5 | UX: listado de Facturas de Venta más compacto y fila clickeable | 2026-05-03 | v1.66.5 |
 | v1.66.4 | Hotfix: completar min-w-0 en padre del main del admin-layout | 2026-05-03 | v1.66.4 |
 | v1.66.3 | Hotfix: scroll horizontal en Facturas de Venta (listado y formularios) | 2026-05-03 | v1.66.3 |
 | v1.66.2 | Hotfix: scroll horizontal en formularios de Factura de Compra y Remito | 2026-05-03 | v1.66.2 |
