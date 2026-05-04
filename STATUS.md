@@ -1,7 +1,7 @@
 # STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-04 (v1.67.0 — API tests catalog para LISCOM)
+> Última actualización: 2026-05-04 (v1.67.1 — Hotfix billing batch al cambiar empresa)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.67.0** en **develop** |
+| **Versión actual** | **v1.67.1** en **develop** |
 | **Última en master** | v1.66.5 (UX 2026-05-03 — listado de Facturas de Venta más compacto) |
-| **Última completada** | v1.67.0 — API: catálogo de tests/determinaciones para LISCOM |
+| **Última completada** | v1.67.1 — Hotfix billing batch al cambiar empresa |
 | **En proceso** | — |
 | **Próxima recomendada** | v1.63.0 — Percepciones de compra (requiere Designer) |
 | **Pendientes en cola** | 3 |
-| **Completadas** | 120 |
+| **Completadas** | 121 |
 
 ---
 
@@ -41,6 +41,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.67.1 | Hotfix: billing batch al cambiar empresa (MethodNotAllowed) | 2026-05-04 | v1.67.1 |
 | v1.67.0 | API: catálogo de tests/determinaciones para LISCOM | 2026-05-04 | v1.67.0 |
 | v1.66.5 | UX: listado de Facturas de Venta más compacto y fila clickeable | 2026-05-03 | v1.66.5 |
 | v1.66.4 | Hotfix: completar min-w-0 en padre del main del admin-layout | 2026-05-03 | v1.66.4 |
