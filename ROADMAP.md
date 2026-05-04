@@ -1,7 +1,7 @@
 # ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-04 (v1.67.0 — API tests catalog para LISCOM)
+> Última actualización: 2026-05-04 (v1.67.2 — Hotfix birth pacientes timestamp→date)
 
 ---
 
@@ -96,6 +96,8 @@
 | v1.46.0 | API pública con API key + módulo admin de keys | 2026-04-18 | Modelo `ApiClient` (1 key/sede, hash SHA-256, prefix `labit_`), middleware `auth.api_key` + canal log `api`, endpoint `GET /api/v1/ping`, CRUD `/admin/api-clients` con modal "key una sola vez" + regenerate, permiso `api-clients.manage`. 13 tests Feature verde. DD-005 en BLUEPRINT |
 | v1.47.0 | API pública: protocolos unificados (clinical/sample/vet) + PII gating | 2026-04-18 | `GET /api/v1/protocols`, `/by-barcode/{code}`, `/{type}/{id}`. `ProtocolResource` polimórfico + `DeterminationResource` con normalización de status (pending/in_progress/completed/validated). Enum `ProtocolType` (prefijos C/A/V). Service `ProtocolLookupService` con merge en PHP + filtro por sede. PII (DNI/CUIT) gateado por `api_clients.patient_data_level` (default `minimal`). 15 tests Feature verde. Doc en `docs/api/v1/protocols.md`. DD-006 en BLUEPRINT |
 | v1.48.5 | Formato extendido de barcode (`{protocol_number}^{material_abbreviation}`) | 2026-04-18 | `BarcodeFormatService::forLabel()`. Clínico (una etiqueta por material) + Muestras (primer material, Opción 3.A). VetAdmission sin etiquetas → sin cambios. Tensión abierta: ZPL Zebra usa `protocol_number` directo → hotfix v1.48.5.1 pendiente. 5 tests Feature verde. |
+| v1.67.2 | Hotfix: columna birth de pacientes (timestamp → date) | 2026-05-04 | Columna `patients.birth` de TIMESTAMP a DATE para soportar fechas pre-1970. Limpia línea duplicada en PatientController. |
+| v1.67.1 | Hotfix billing batch al cambiar empresa | 2026-05-04 | `switchCompany` redirige a `billing.uninvoiced` en vez de `redirect()->back()` cuando URL es `/billing/batch-preview` o `/billing/batch-invoice`. Mismo patrón que v1.41.1 (Libro IVA). |
 | v1.67.0 | API: catálogo de tests/determinaciones para LISCOM | 2026-05-04 | `GET /api/v1/tests?search=...&category=...`. Búsqueda por name/code, filtro por categoría, flags is_parent/is_child, material. 12 tests Feature verde. Complementa v1.47.0 para que LISCOM configure EquipmentTestMapping (v1.49.0). |
 
 ---

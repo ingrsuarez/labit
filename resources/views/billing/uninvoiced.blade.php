@@ -1,5 +1,11 @@
 <x-admin-layout>
     <div class="p-4 md:p-6" x-data="batchBilling()">
+        @if(session('success'))
+            <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
+                {{ session('success') }}
+            </div>
+        @endif
+
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Protocolos sin facturar</h1>
