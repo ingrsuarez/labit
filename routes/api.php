@@ -1,8 +1,9 @@
 <?php
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -14,12 +15,13 @@ use Illuminate\Support\Facades\Auth;
 |
 */
 
-Route::get('/test', function(){
+Route::get('/test', function () {
     return ['name' => 'Rodrigo'];
 });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     $user = Auth::user();
+
     return $user->name;
 });
 
@@ -59,6 +61,10 @@ Route::prefix('v1')->middleware('auth.api_key')->group(function () {
         ->whereIn('type', ['clinical', 'sample', 'vet'])
         ->whereNumber('id')
         ->name('api.v1.protocols.show');
+
+    // Catálogo de tests/determinaciones — búsqueda para equivalencias LISCOM
+    Route::get('tests', [\App\Http\Controllers\Api\V1\TestController::class, 'index'])
+        ->name('api.v1.tests.index');
 
     // Ingesta de resultados desde LISCOM — v1.51.0
     Route::post('results/batch', [\App\Http\Controllers\Api\V1\ResultIngestionController::class, 'batch'])
