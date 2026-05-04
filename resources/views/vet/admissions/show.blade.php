@@ -1,5 +1,5 @@
 <x-lab-layout title="Protocolo {{ $vetAdmission->protocol_number }}">
-    <div class="py-6 px-4 md:px-6 lg:px-8 mt-14 md:mt-0" x-data="{ showEmailModal: false }">
+    <div class="py-6 px-4 md:px-6 lg:px-8 mt-14 md:mt-0" x-data="vetShowPage()">
         <div class="mb-6">
             <a href="{{ route('vet.admissions.index') }}" class="text-amber-600 hover:text-amber-800 text-sm flex items-center mb-2">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,6 +45,13 @@
                             Validar Todos
                         </button>
                     </form>
+                    <button type="button" @click="showAddTestsModal = true"
+                            class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium transition-colors">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Agregar Prácticas
+                    </button>
                     @can('sales-invoices.create')
                         @if(!$vetAdmission->isInvoiced())
                             <a href="{{ route('sales-invoices.from-protocol', ['protocol_type' => 'vet_admission', 'protocol_id' => $vetAdmission->id]) }}"
@@ -160,6 +167,7 @@
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-28">Método</th>
                                 <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-24">Estado</th>
                                 <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-24">Validar</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">Quitar</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -222,6 +230,17 @@
                                                     class="text-green-600 hover:text-green-800 text-xs font-medium" title="Validar">✓</button>
                                         @endif
                                     </td>
+                                    <td class="px-4 py-2 text-center">
+                                        @if(!$vt->is_validated && !$isTreeChild)
+                                            <button type="button"
+                                                    onclick="if(confirm('¿Quitar esta práctica del protocolo?')) vetDeleteAction('{{ route('vet.admissions.removeTest', [$vetAdmission, $vt]) }}')"
+                                                    class="text-red-400 hover:text-red-600 transition-colors" title="Quitar del protocolo">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                            </button>
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -234,6 +253,76 @@
                     </button>
                 </div>
             </form>
+        </div>
+
+        {{-- Modal de agregar prácticas --}}
+        <div x-show="showAddTestsModal" x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+             @keydown.escape.window="showAddTestsModal = false">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6" @click.outside="showAddTestsModal = false">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Agregar prácticas al protocolo
+                </h3>
+                <form action="{{ route('vet.admissions.addTests', $vetAdmission) }}" method="POST">
+                    @csrf
+                    <div class="relative mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Buscar determinación</label>
+                        <input type="text" x-model="addTestSearch" x-ref="addTestSearchInput"
+                               @input="searchNewTests()"
+                               @keydown.enter.prevent="selectFirstNewTest()"
+                               @keydown.escape="addTestDropdownOpen = false; addTestSearch = ''"
+                               placeholder="Buscar por código o nombre..."
+                               class="w-full border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500">
+                        <div x-show="addTestDropdownOpen && addTestResults.length > 0"
+                             class="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                            <template x-for="test in addTestResults" :key="test.id">
+                                <div @click="selectNewTest(test)"
+                                     class="px-3 py-2 hover:bg-emerald-50 cursor-pointer flex justify-between items-center text-sm">
+                                    <div>
+                                        <span class="font-mono text-xs text-gray-400" x-text="test.code"></span>
+                                        <span class="ml-1 font-medium" x-text="test.name"></span>
+                                    </div>
+                                    <span class="text-emerald-600 font-medium" x-text="'$' + test.price.toFixed(2)"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div x-show="selectedNewTests.length > 0" class="mb-4">
+                        <p class="text-sm font-medium text-gray-700 mb-2">Prácticas a agregar:</p>
+                        <div class="space-y-1 max-h-40 overflow-y-auto">
+                            <template x-for="(t, idx) in selectedNewTests" :key="t.test_id">
+                                <div class="flex items-center justify-between bg-emerald-50 rounded-lg px-3 py-2">
+                                    <input type="hidden" :name="'tests[' + idx + '][test_id]'" :value="t.test_id">
+                                    <div class="text-sm">
+                                        <span class="font-mono text-xs text-gray-400" x-text="t.code"></span>
+                                        <span class="ml-1 font-medium" x-text="t.name"></span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm text-emerald-700 font-medium" x-text="'$' + t.price.toFixed(2)"></span>
+                                        <button type="button" @click="selectedNewTests.splice(idx, 1)"
+                                                class="text-red-400 hover:text-red-600">&times;</button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-3">
+                        <button type="button" @click="showAddTestsModal = false; selectedNewTests = []; addTestSearch = ''"
+                                class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                            Cancelar
+                        </button>
+                        <button type="submit" :disabled="selectedNewTests.length === 0"
+                                class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Agregar al protocolo
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
 
         {{-- Modal de envío de email --}}
@@ -464,6 +553,78 @@
             form.appendChild(csrf);
             document.body.appendChild(form);
             form.submit();
+        }
+
+        function vetDeleteAction(url) {
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+            form.style.display = 'none';
+            var csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = '_token';
+            csrf.value = '{{ csrf_token() }}';
+            form.appendChild(csrf);
+            var method = document.createElement('input');
+            method.type = 'hidden';
+            method.name = '_method';
+            method.value = 'DELETE';
+            form.appendChild(method);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function vetShowPage() {
+            return {
+                showEmailModal: false,
+                showAddTestsModal: false,
+                addTestSearch: '',
+                addTestResults: [],
+                addTestDropdownOpen: false,
+                selectedNewTests: [],
+                searchTestsUrl: @json(route('vet.admissions.searchTests')),
+                customerId: @json($vetAdmission->customer_id),
+                existingTestIds: @json($vetAdmission->vetTests->pluck('test_id')->toArray()),
+
+                async searchNewTests() {
+                    if (this.addTestSearch.length < 2) {
+                        this.addTestResults = [];
+                        this.addTestDropdownOpen = false;
+                        return;
+                    }
+                    try {
+                        const url = `${this.searchTestsUrl}?q=${encodeURIComponent(this.addTestSearch)}&customer_id=${this.customerId}`;
+                        const resp = await fetch(url);
+                        const tests = await resp.json();
+                        const selectedIds = this.selectedNewTests.map(t => t.test_id);
+                        this.addTestResults = tests.filter(t =>
+                            !this.existingTestIds.includes(t.id) && !selectedIds.includes(t.id)
+                        );
+                        this.addTestDropdownOpen = true;
+                    } catch (e) {
+                        this.addTestResults = [];
+                    }
+                },
+
+                selectFirstNewTest() {
+                    if (this.addTestResults.length > 0) {
+                        this.selectNewTest(this.addTestResults[0]);
+                    }
+                },
+
+                selectNewTest(test) {
+                    this.selectedNewTests.push({
+                        test_id: test.id,
+                        code: test.code,
+                        name: test.name,
+                        price: test.price,
+                    });
+                    this.addTestSearch = '';
+                    this.addTestResults = [];
+                    this.addTestDropdownOpen = false;
+                    this.$refs.addTestSearchInput.focus();
+                },
+            };
         }
     </script>
 
