@@ -382,7 +382,7 @@ class VetAdmissionController extends Controller
         $newTotal = max(0, $vetAdmission->total_price - $removedPrice);
         $vetAdmission->update(['total_price' => $newTotal]);
 
-        $msg = "Práctica eliminada del protocolo.";
+        $msg = 'Práctica eliminada del protocolo.';
         if ($removedCount > 1) {
             $msg = "Se eliminaron {$removedCount} prácticas (padre + hijos) del protocolo.";
         }
@@ -400,7 +400,11 @@ class VetAdmissionController extends Controller
             'is_validated' => true,
             'validated_by' => auth()->id(),
             'validated_at' => now(),
+            'status' => 'validated',
         ]);
+
+        $vetAdmission->load('vetTests');
+        $vetAdmission->update(['status' => $vetAdmission->calculated_status]);
 
         return redirect()->back()->with('success', 'Práctica validada.');
     }
@@ -411,7 +415,11 @@ class VetAdmissionController extends Controller
             'is_validated' => false,
             'validated_by' => null,
             'validated_at' => null,
+            'status' => $vetAdmissionTest->hasResult() ? 'completed' : 'pending',
         ]);
+
+        $vetAdmission->load('vetTests');
+        $vetAdmission->update(['status' => $vetAdmission->calculated_status]);
 
         return redirect()->back()->with('success', 'Validación removida.');
     }
@@ -426,10 +434,14 @@ class VetAdmissionController extends Controller
                     'is_validated' => true,
                     'validated_by' => auth()->id(),
                     'validated_at' => now(),
+                    'status' => 'validated',
                 ]);
                 $count++;
             }
         }
+
+        $vetAdmission->load('vetTests');
+        $vetAdmission->update(['status' => $vetAdmission->calculated_status]);
 
         return redirect()->back()->with('success', "Se validaron {$count} prácticas.");
     }
@@ -601,7 +613,7 @@ class VetAdmissionController extends Controller
         foreach ($materialGroups as $group) {
             $labels[] = [
                 'protocol_number' => $vetAdmission->protocol_number,
-                'customer_name' => $vetAdmission->owner_name ?? 'Sin dueño',
+                'customer_name' => $vetAdmission->animal_name ?? $vetAdmission->owner_name ?? 'Sin nombre',
                 'material' => $group['material_code'],
                 'material_name' => $group['material_name'],
                 'sample_type' => 'VETERINARIO',
@@ -614,7 +626,7 @@ class VetAdmissionController extends Controller
         if (empty($labels)) {
             $labels[] = [
                 'protocol_number' => $vetAdmission->protocol_number,
-                'customer_name' => $vetAdmission->owner_name ?? 'Sin dueño',
+                'customer_name' => $vetAdmission->animal_name ?? $vetAdmission->owner_name ?? 'Sin nombre',
                 'material' => '?',
                 'material_name' => 'Sin material',
                 'sample_type' => 'VETERINARIO',

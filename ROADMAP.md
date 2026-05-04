@@ -1,7 +1,7 @@
-# ROADMAP — Labit
+﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-04 (v1.67.3 — Hotfix orden determinaciones en email veterinario)
+> Última actualización: 2026-05-04 (v1.67.4 — Hotfix estado validación vet + in_progress por LISCOM)
 
 ---
 
@@ -147,6 +147,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
+| v1.67.4 | Hotfix estado validación vet + in_progress por LISCOM | Pendiente (hotfix) | `pendientes/v1.67.4-hotfix-estado-validacion-vet-y-liscom-in-progress.md` |
 | v1.65.1 | Etiquetas de protocolo para laboratorio veterinario | Pendiente (hotfix) | `pendientes/v1.65.1-etiquetas-lab-veterinario.md` |
 || v1.65.2 | Fix PDF veterinario: excluir no validadas + jerarquía orphans | ✅ Completada (hotfix) | — (ejecutado directo) |
 | v1.54.0 | UX combobox insumos: ocultar input al seleccionar | ✅ Completada | `completados/v1.54.0-ux-combobox-insumos-ocultar-input.md` |
