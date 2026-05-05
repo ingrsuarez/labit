@@ -96,7 +96,8 @@ class PatientController extends Controller
             $patient->save();
             $patient->logAudit('updated', 'Editó el paciente '.$patient->full_name);
 
-            return redirect()->route('patient.show');
+            return redirect()->route('lab.patients.index')
+                ->with('success', 'Paciente actualizado correctamente.');
         } catch (\Exception $e) {
 
             if ($e->errorInfo[1] == 1062) {

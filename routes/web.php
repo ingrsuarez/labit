@@ -193,6 +193,9 @@ Route::middleware([
             return back();
         })->name('switch-lab-branch');
 
+        // LAB PATIENTS
+        Route::get('lab/patients', [App\Http\Controllers\LabPatientController::class, 'index'])->name('lab.patients.index');
+
         // LAB ADMISSIONS (Admisiones de Pacientes - Laboratorio)
         Route::get('lab/admissions', [App\Http\Controllers\LabAdmissionController::class, 'index'])->name('lab.admissions.index');
         Route::get('lab/admissions/create', [App\Http\Controllers\LabAdmissionController::class, 'create'])->name('lab.admissions.create');
