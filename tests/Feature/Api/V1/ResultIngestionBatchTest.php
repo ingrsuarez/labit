@@ -383,7 +383,7 @@ class ResultIngestionBatchTest extends TestCase
         ]);
         $this->withHeaders($this->authHeaders())->postJson('/api/v1/results/batch', $payload1);
 
-        // Segundo batch diferente pero con mismo control_id
+        // Segundo batch diferente pero con mismo control_id y mismo equipo → duplicate
         $admission2 = $this->makeAdmission();
         $test2 = $this->makeTest();
         $this->makeAdmissionTest($admission2, $test2);
@@ -402,6 +402,72 @@ class ResultIngestionBatchTest extends TestCase
             'test_id' => $test2->id,
             'result' => '55',
         ]);
+    }
+
+    /**
+     * Un protocolo con resultados de dos equipos distintos (mismo hl7_control_id derivado del
+     * número de protocolo) debe procesar ambos mensajes de forma independiente.
+     * Escenario real: CONTADOR BC-780 envía hemograma, DIRUI CST240 envía bioquímica.
+     */
+    public function test_multi_equipo_mismo_protocolo_mismo_control_id(): void
+    {
+        $admission = $this->makeAdmission();
+
+        // BC-780 tiene test de hemograma
+        $testHemograma = $this->makeTest();
+        $this->makeAdmissionTest($admission, $testHemograma);
+
+        // DIRUI CST240 tiene test de bioquímica
+        $testBioquimica = $this->makeTest();
+        $this->makeAdmissionTest($admission, $testBioquimica);
+
+        // Ambos equipos usan el mismo hl7_control_id (MSH-10 = número de protocolo)
+        $sharedControlId = $admission->protocol_number;
+
+        // 1) BC-780 envía primero
+        $payload1 = $this->batchPayload($this->uuid(), [
+            array_merge($this->item($sharedControlId, $admission->protocol_number, $testHemograma->id, '14.5'), [
+                'equipment_name' => 'CONTADOR BC-780',
+            ]),
+        ]);
+
+        $response1 = $this->withHeaders($this->authHeaders())
+            ->postJson('/api/v1/results/batch', $payload1);
+
+        $response1->assertStatus(200)
+            ->assertJsonPath('items.0.status', 'ingested');
+
+        $this->assertDatabaseHas('admission_tests', [
+            'admission_id' => $admission->id,
+            'test_id' => $testHemograma->id,
+            'result' => '14.5',
+        ]);
+
+        // 2) DIRUI CST240 envía después — mismo hl7_control_id, equipo diferente → NO debe ser duplicate
+        $payload2 = $this->batchPayload($this->uuid(), [
+            array_merge($this->item($sharedControlId, $admission->protocol_number, $testBioquimica->id, '0.74'), [
+                'equipment_name' => 'DIRUI CST240',
+            ]),
+        ]);
+
+        $response2 = $this->withHeaders($this->authHeaders())
+            ->postJson('/api/v1/results/batch', $payload2);
+
+        $response2->assertStatus(200)
+            ->assertJsonPath('items.0.status', 'ingested');
+
+        $this->assertDatabaseHas('admission_tests', [
+            'admission_id' => $admission->id,
+            'test_id' => $testBioquimica->id,
+            'result' => '0.74',
+        ]);
+
+        // 3) Si DIRUI reintenta con el mismo equipo → ahora sí debe ser duplicate
+        $response3 = $this->withHeaders($this->authHeaders())
+            ->postJson('/api/v1/results/batch', $payload2);
+
+        $response3->assertStatus(200)
+            ->assertJsonPath('duplicate', true);
     }
 
     // ─── Casos de error ──────────────────────────────────────────────────────
