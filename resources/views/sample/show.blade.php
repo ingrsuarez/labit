@@ -231,7 +231,7 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Seleccionar Determinación</label>
                                     <select name="test_id" required class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 mb-3">
                                         <option value="">Seleccionar...</option>
-                                        @foreach(\App\Models\Test::whereJsonContains('categories', 'aguas_alimentos')->orderBy('name')->get() as $test)
+                                        @foreach($availableTests as $test)
                                             @if(!$sample->determinations->contains('test_id', $test->id))
                                                 <option value="{{ $test->id }}">{{ $test->code }} - {{ $test->name }}</option>
                                             @endif

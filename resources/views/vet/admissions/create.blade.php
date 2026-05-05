@@ -149,6 +149,9 @@
                                             <div>
                                                 <span class="font-mono font-medium text-gray-900" x-text="test.code"></span>
                                                 <span class="text-gray-600" x-text="' — ' + test.name"></span>
+                                                <template x-if="test.parent_name">
+                                                    <span class="text-xs text-gray-400 ml-1" x-text="'(hijo de ' + test.parent_name + ')'"></span>
+                                                </template>
                                             </div>
                                             <span class="font-medium text-amber-600" x-text="'$' + parseFloat(test.price || 0).toLocaleString('es-AR', {minimumFractionDigits: 2})"></span>
                                         </div>
