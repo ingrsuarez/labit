@@ -1,6 +1,6 @@
 # API v1 — Ingesta de resultados (`POST /api/v1/results/batch`)
 
-> Versión: **v1.51.0** | Introducido: 2026-04-18
+> Versión: **v1.67.6** | Introducido: 2026-04-18 | Actualizado: 2026-05-05 (multi-equipo)
 
 ---
 
@@ -152,7 +152,7 @@ POST /api/v1/results/batch
 | `ingested` | Todos los resultados del mensaje fueron ingresados o sobrescritos exitosamente. |
 | `partial` | Al menos uno fue ingresado/sobrescrito y al menos uno fue rechazado. |
 | `rejected` | Todos los resultados del mensaje fueron rechazados, o el protocolo no existe. |
-| `duplicate` | El `hl7_control_id` ya fue procesado para este `api_client`. Se devuelven los resultados originales. |
+| `duplicate` | El `hl7_control_id` + `equipment_name` ya fue procesado para este `api_client`. Se devuelven los resultados originales. |
 
 ## Status codes por resultado (level: OBX)
 
@@ -179,7 +179,19 @@ El endpoint es **doblemente idempotente**:
 
 1. **A nivel batch** (`batch_id`): si el mismo `batch_id` se recibe dos veces del mismo `api_client`, la segunda respuesta devuelve los resultados del primer procesamiento con `"duplicate": true`. La BD no se modifica.
 
-2. **A nivel mensaje** (`hl7_control_id`): si el mismo `hl7_control_id` aparece en un nuevo batch (mismo `api_client`), ese ítem se devuelve con `status: duplicate` y no se procesa nuevamente.
+2. **A nivel mensaje** (`hl7_control_id` + `equipment_name`): un mensaje es un reenvío idempotente solo si proviene del **mismo equipo** (`equipment_name`) con el mismo `hl7_control_id`. Si el mismo `hl7_control_id` llega de un equipo diferente, se trata como un mensaje complementario y se procesa normalmente.
+
+### Escenario multi-equipo (v1.67.6)
+
+Un protocolo puede recibir resultados de múltiples equipos con el mismo `hl7_control_id` (LISCOM puede construir MSH-10 a partir del número de protocolo):
+
+| Evento | hl7_control_id | equipment_name | Resultado |
+|---|---|---|---|
+| BC-780 envía hemograma | `V2605050003` | `CONTADOR BC-780` | `ingested` |
+| DIRUI envía bioquímica | `V2605050003` | `DIRUI CST240` | `ingested` ✓ |
+| BC-780 reintenta | `V2605050003` | `CONTADOR BC-780` | `duplicate` ✓ |
+
+> **Nota para LISCOM:** el campo `equipment_name` es opcional pero **recomendado** en todos los items. Sin él, la deduplicación recae solo sobre `hl7_control_id`, lo que bloquearía escenarios multi-equipo.
 
 ---
 
