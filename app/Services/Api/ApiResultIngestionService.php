@@ -91,6 +91,7 @@ class ApiResultIngestionService
     {
         $existingIngestion = ResultIngestion::where('api_client_id', $client->id)
             ->where('hl7_control_id', $item['hl7_control_id'])
+            ->whereIn('status', [self::STATUS_INGESTED, self::STATUS_OVERWRITTEN, self::STATUS_DUPLICATE])
             ->first();
 
         if ($existingIngestion) {
