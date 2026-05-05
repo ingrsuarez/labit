@@ -41,6 +41,16 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="w-44">
+                    <select name="status" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                        <option value="">Todos los estados</option>
+                        <option value="pending"      {{ request('status') === 'pending'      ? 'selected' : '' }}>Pendiente</option>
+                        <option value="in_progress"  {{ request('status') === 'in_progress'  ? 'selected' : '' }}>En Proceso</option>
+                        <option value="completed"    {{ request('status') === 'completed'    ? 'selected' : '' }}>Completado</option>
+                        <option value="validated"    {{ request('status') === 'validated'    ? 'selected' : '' }}>Validado</option>
+                        <option value="cancelled"    {{ request('status') === 'cancelled'    ? 'selected' : '' }}>Cancelado</option>
+                    </select>
+                </div>
                 @if(isset($branches) && $branches->count() > 1)
                 <div class="w-48">
                     <select name="lab_branch_id" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500">
@@ -67,7 +77,7 @@
                 <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
                     Filtrar
                 </button>
-                @if(request()->hasAny(['search', 'insurance', 'date_from', 'date_to', 'lab_branch_id']))
+                @if(request()->hasAny(['search', 'insurance', 'status', 'date_from', 'date_to', 'lab_branch_id']))
                     <a href="{{ route('lab.admissions.index') }}" class="px-4 py-2 text-gray-500 hover:text-gray-700">
                         Limpiar
                     </a>
@@ -87,6 +97,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paciente</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Obra Social</th>
                                 <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Prácticas</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total OS</th>
                                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Pac.</th>
                                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
@@ -139,6 +150,21 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-center">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
                                             {{ $admission->admissionTests->count() }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                        @php
+                                            $statusColors = [
+                                                'pending'     => 'bg-yellow-100 text-yellow-800',
+                                                'in_progress' => 'bg-blue-100 text-blue-800',
+                                                'completed'   => 'bg-green-100 text-green-800',
+                                                'validated'   => 'bg-purple-100 text-purple-800',
+                                                'cancelled'   => 'bg-red-100 text-red-800',
+                                            ];
+                                            $colorClass = $statusColors[$admission->status] ?? 'bg-gray-100 text-gray-700';
+                                        @endphp
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $colorClass }}">
+                                            {{ $admission->status_label }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">

@@ -68,6 +68,10 @@ class LabAdmissionController extends Controller
             });
         }
 
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
         $admissions = $query->paginate(20)->withQueryString();
         $insurances = Insurance::where('type', '!=', 'nomenclador')
             ->orderByRaw("CASE WHEN type = 'particular' THEN 0 ELSE 1 END")
@@ -593,11 +597,11 @@ class LabAdmissionController extends Controller
         $search = $request->get('q', '');
         $insuranceId = $request->get('insurance_id');
 
-        $tests = Test::whereNull('parent')
-            ->where(function ($query) use ($search) {
-                $query->where('code', 'like', "%{$search}%")
-                    ->orWhere('name', 'like', "%{$search}%");
-            })
+        $tests = Test::where(function ($query) use ($search) {
+            $query->where('code', 'like', "%{$search}%")
+                ->orWhere('name', 'like', "%{$search}%");
+        })
+            ->with(['parentTests', 'parentTest'])
             ->limit(20)
             ->get(['id', 'code', 'name', 'nbu', 'price']);
 
@@ -637,6 +641,16 @@ class LabAdmissionController extends Controller
                     $test->in_nomenclator = false;
                 }
 
+                $test->parent_name = $test->parentTests->first()?->name
+                    ?? $test->parentTest?->name;
+
+                return $test;
+            });
+        } else {
+            $tests = $tests->map(function ($test) {
+                $test->parent_name = $test->parentTests->first()?->name
+                    ?? $test->parentTest?->name;
+
                 return $test;
             });
         }
@@ -661,6 +675,9 @@ class LabAdmissionController extends Controller
             'unit' => $request->unit,
             'reference_value' => $request->reference_value,
         ]);
+
+        $admission->load('admissionTests');
+        $admission->update(['status' => $admission->calculated_status]);
 
         return redirect()->back()->with('success', 'Resultado guardado correctamente.');
     }
@@ -692,6 +709,9 @@ class LabAdmissionController extends Controller
 
         $admission->logAudit('results_loaded', 'Cargó resultados en la admisión Nº '.$admission->protocol_number);
 
+        $admission->load('admissionTests');
+        $admission->update(['status' => $admission->calculated_status]);
+
         return redirect()->back()->with('success', 'Resultados guardados correctamente.');
     }
 
@@ -713,6 +733,9 @@ class LabAdmissionController extends Controller
 
         $admission->logAudit('validated', 'Validó práctica '.$admissionTest->test->name.' en admisión Nº '.$admission->protocol_number);
 
+        $admission->load('admissionTests');
+        $admission->update(['status' => $admission->calculated_status]);
+
         return redirect()->back()->with('success', 'Práctica validada correctamente.');
     }
 
@@ -729,6 +752,9 @@ class LabAdmissionController extends Controller
         ]);
 
         $admission->logAudit('unvalidated', 'Desvalidó práctica '.$admissionTest->test->name.' en admisión Nº '.$admission->protocol_number);
+
+        $admission->load('admissionTests');
+        $admission->update(['status' => $admission->calculated_status]);
 
         return redirect()->back()->with('success', 'Validación removida.');
     }
@@ -752,6 +778,9 @@ class LabAdmissionController extends Controller
         }
 
         $admission->logAudit('validated', "Validó {$count} prácticas en admisión Nº ".$admission->protocol_number);
+
+        $admission->load('admissionTests');
+        $admission->update(['status' => $admission->calculated_status]);
 
         return redirect()->back()->with('success', "Se validaron {$count} prácticas.");
     }

@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-04 (v1.67.4 — Hotfix estado validación vet + in_progress por LISCOM)
+> Última actualización: 2026-05-05 (v1.70.0 — Sección Pacientes en lab clínico)
 
 ---
 
@@ -147,7 +147,11 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
-| v1.67.4 | Hotfix estado validación vet + in_progress por LISCOM | Pendiente (hotfix) | `pendientes/v1.67.4-hotfix-estado-validacion-vet-y-liscom-in-progress.md` |
+| v1.70.0 | Sección Pacientes en lab clínico (lista + sidebar) | Pendiente | `pendientes/v1.70.0-seccion-pacientes-lab-clinico.md` |
+| v1.69.0 | Estado protocolo clínico: columna, filtro y sync automático | Pendiente | `pendientes/v1.69.0-estado-protocolo-clinico-listado-filtro.md` |
+| v1.68.0 | Editar protocolo veterinario con auditoría | Pendiente | `pendientes/v1.68.0-editar-protocolo-veterinario-auditoria.md` |
+| v1.67.5 | Fix búsqueda de determinaciones hijas en protocolos | Pendiente (hotfix) | `pendientes/v1.67.5-fix-busqueda-determinaciones-hijas.md` |
+| v1.67.4 | Hotfix estado validación vet + in_progress por LISCOM | ✅ Completada | `completados/v1.67.4-hotfix-estado-validacion-vet-y-liscom-in-progress.md` |
 | v1.65.1 | Etiquetas de protocolo para laboratorio veterinario | Pendiente (hotfix) | `pendientes/v1.65.1-etiquetas-lab-veterinario.md` |
 || v1.65.2 | Fix PDF veterinario: excluir no validadas + jerarquía orphans | ✅ Completada (hotfix) | — (ejecutado directo) |
 | v1.54.0 | UX combobox insumos: ocultar input al seleccionar | ✅ Completada | `completados/v1.54.0-ux-combobox-insumos-ocultar-input.md` |

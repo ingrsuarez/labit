@@ -209,6 +209,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'lab-reports.index',
             'lab-labels.print',
             'vet-labels.print',
+            'vet-admissions.edit',
 
             // VENTAS (Módulo de Ventas)
             'ventas.section',
@@ -506,6 +507,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'lab-reports.preview', 'lab-reports.print', 'lab-reports.send', 'lab-reports.index',
             'lab-labels.print',
             'vet-labels.print',
+            'vet-admissions.edit',
             // Muestras
             'samples.section', 'samples.index', 'samples.show',
             'samples-results.create', 'samples-results.edit', 'samples-results.validate',
