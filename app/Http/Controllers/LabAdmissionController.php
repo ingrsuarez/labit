@@ -68,6 +68,10 @@ class LabAdmissionController extends Controller
             });
         }
 
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
         $admissions = $query->paginate(20)->withQueryString();
         $insurances = Insurance::where('type', '!=', 'nomenclador')
             ->orderByRaw("CASE WHEN type = 'particular' THEN 0 ELSE 1 END")
@@ -662,6 +666,9 @@ class LabAdmissionController extends Controller
             'reference_value' => $request->reference_value,
         ]);
 
+        $admission->load('admissionTests');
+        $admission->update(['status' => $admission->calculated_status]);
+
         return redirect()->back()->with('success', 'Resultado guardado correctamente.');
     }
 
@@ -692,6 +699,9 @@ class LabAdmissionController extends Controller
 
         $admission->logAudit('results_loaded', 'Cargó resultados en la admisión Nº '.$admission->protocol_number);
 
+        $admission->load('admissionTests');
+        $admission->update(['status' => $admission->calculated_status]);
+
         return redirect()->back()->with('success', 'Resultados guardados correctamente.');
     }
 
@@ -713,6 +723,9 @@ class LabAdmissionController extends Controller
 
         $admission->logAudit('validated', 'Validó práctica '.$admissionTest->test->name.' en admisión Nº '.$admission->protocol_number);
 
+        $admission->load('admissionTests');
+        $admission->update(['status' => $admission->calculated_status]);
+
         return redirect()->back()->with('success', 'Práctica validada correctamente.');
     }
 
@@ -729,6 +742,9 @@ class LabAdmissionController extends Controller
         ]);
 
         $admission->logAudit('unvalidated', 'Desvalidó práctica '.$admissionTest->test->name.' en admisión Nº '.$admission->protocol_number);
+
+        $admission->load('admissionTests');
+        $admission->update(['status' => $admission->calculated_status]);
 
         return redirect()->back()->with('success', 'Validación removida.');
     }
@@ -752,6 +768,9 @@ class LabAdmissionController extends Controller
         }
 
         $admission->logAudit('validated', "Validó {$count} prácticas en admisión Nº ".$admission->protocol_number);
+
+        $admission->load('admissionTests');
+        $admission->update(['status' => $admission->calculated_status]);
 
         return redirect()->back()->with('success', "Se validaron {$count} prácticas.");
     }
