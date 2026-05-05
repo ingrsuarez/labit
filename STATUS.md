@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-04 (v1.67.4 — Hotfix estado validación vet + in_progress por LISCOM)
+> Última actualización: 2026-05-05 (v1.69.0 — Estado protocolo clínico: columna, filtro y sync automático)
 
 ---
 
@@ -9,29 +9,33 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.67.4** en **develop** |
+| **Versión actual** | **v1.69.0** en **develop** |
 | **Última en master** | v1.67.3 (Hotfix orden determinaciones en email veterinario) |
-| **Última completada** | v1.67.3 — Hotfix orden determinaciones en email veterinario |
+| **Última completada** | v1.69.0 — Estado protocolo clínico: columna, filtro y sync automático |
 | **En proceso** | — |
-| **Próxima recomendada** | v1.63.0 — Percepciones de compra (requiere Designer) |
-| **Pendientes en cola** | 3 |
-| **Completadas** | 124 |
+| **Próxima recomendada** | v1.70.0 — Sección Pacientes en lab clínico |
+| **Pendientes en cola** | 5 |
+| **Completadas** | 125 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (3) — orden de ejecución recomendado por PM
+### Pendientes (5) — orden de ejecución recomendado por PM
 
 | # | Versión | Nombre | Designer | Prompt |
 |---|---|---|---|---|
-| 1 | v1.63.0 | Percepciones de compra: catálogo, FC, asiento contable y saldos | Sí | `pendientes/v1.63.0-percepciones-compra.md` |
-| 2 | v1.63.1 | Percepciones en NC de proveedor (espejo de v1.63.0) | — | `pendientes/v1.63.1-percepciones-nc-proveedor.md` |
-| 3 | v1.64.0 | Declaraciones de impuestos e imputación de anticipos sufridos | Sí | `pendientes/v1.64.0-declaraciones-impuestos-imputacion-anticipos.md` |
+| 1 | v1.70.0 | Sección Pacientes en lab clínico (lista + sidebar) | — | `pendientes/v1.70.0-seccion-pacientes-lab-clinico.md` |
+| 2 | v1.67.5 | Fix: búsqueda y selección de determinaciones hijas | — | `pendientes/v1.67.5-fix-busqueda-determinaciones-hijas.md` |
+| 3 | v1.68.0 | Editar protocolo veterinario con auditoría | — | `pendientes/v1.68.0-editar-protocolo-veterinario-auditoria.md` |
+| 4 | v1.63.1 | Percepciones en NC de proveedor (espejo de v1.63.0) | — | `pendientes/v1.63.1-percepciones-nc-proveedor.md` |
+| 5 | v1.64.0 | Declaraciones de impuestos e imputación de anticipos sufridos | Sí | `pendientes/v1.64.0-declaraciones-impuestos-imputacion-anticipos.md` |
 
-> **Razonamiento del orden** (sesión PM/Dev 2026-05-01, actualizado 2026-05-03):
-> 1. ~~v1.66.0~~ completada (dashboard ejecutivo + mudanza RRHH)
-> 2-3-4. Bloque temático de impuestos (v1.63.0 → v1.63.1 → v1.64.0) para no perder contexto técnico (asientos, plan de cuentas, percepciones)
+> **Razonamiento del orden** (sesión PM/Dev 2026-05-05):
+> 1. v1.70.0 — Pacientes sin sidebar, bug de UX urgente en producción
+> 2. v1.67.5 — Hotfix determinaciones hijas (bloquea carga de análisis específicos)
+> 3. v1.68.0 — Editar protocolo vet con auditoría
+> 4-5. Bloque temático de impuestos (v1.63.1 → v1.64.0, requieren v1.63.0 que está bloqueado por Designer)
 
 ### En proceso (0)
 
@@ -41,6 +45,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.69.0 | Estado protocolo clínico: columna estado, filtro y sync automático | 2026-05-05 | v1.69.0 |
 | v1.67.4 | Hotfix: estado validacion vet + in_progress por LISCOM | 2026-05-04 | v1.67.4 |
 | v1.67.3 | Hotfix: orden determinaciones en email veterinario | 2026-05-04 | v1.67.3 |
 | v1.67.2 | Hotfix: columna birth de pacientes (timestamp → date) | 2026-05-04 | v1.67.2 |
