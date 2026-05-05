@@ -90,9 +90,11 @@ class ApiResultIngestionService
     private function processItem(ApiClient $client, ResultBatch $batch, array $item): array
     {
         $equipmentName = $item['equipment_name'] ?? null;
+        $protocolNumber = $item['protocol_number'];
 
         $dedupQuery = ResultIngestion::where('api_client_id', $client->id)
             ->where('hl7_control_id', $item['hl7_control_id'])
+            ->where('protocol_number', $protocolNumber)
             ->whereIn('status', [self::STATUS_INGESTED, self::STATUS_OVERWRITTEN, self::STATUS_DUPLICATE]);
 
         // Scope por equipo: dos equipos distintos enviando resultados para el mismo protocolo
