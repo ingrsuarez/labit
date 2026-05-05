@@ -383,24 +383,20 @@ class ResultIngestionBatchTest extends TestCase
         ]);
         $this->withHeaders($this->authHeaders())->postJson('/api/v1/results/batch', $payload1);
 
-        // Segundo batch diferente pero con mismo control_id y mismo equipo → duplicate
-        $admission2 = $this->makeAdmission();
-        $test2 = $this->makeTest();
-        $this->makeAdmissionTest($admission2, $test2);
-
+        // Segundo batch: mismo control_id, mismo equipo, mismo protocolo → duplicate
         $payload2 = $this->batchPayload($this->uuid(), [
-            $this->item('ctrl-shared', $admission2->protocol_number, $test2->id, '55'),
+            $this->item('ctrl-shared', $admission->protocol_number, $test->id, '55'),
         ]);
         $response = $this->withHeaders($this->authHeaders())->postJson('/api/v1/results/batch', $payload2);
 
         $response->assertStatus(200)
             ->assertJsonPath('items.0.status', ApiResultIngestionService::STATUS_DUPLICATE);
 
-        // El valor del segundo no debe haber cambiado (el item fue duplicado, no procesado)
-        $this->assertDatabaseMissing('admission_tests', [
-            'admission_id' => $admission2->id,
-            'test_id' => $test2->id,
-            'result' => '55',
+        // El valor original no debe haber cambiado
+        $this->assertDatabaseHas('admission_tests', [
+            'admission_id' => $admission->id,
+            'test_id' => $test->id,
+            'result' => '90',
         ]);
     }
 
@@ -467,6 +463,57 @@ class ResultIngestionBatchTest extends TestCase
             ->postJson('/api/v1/results/batch', $payload2);
 
         $response3->assertStatus(200)
+            ->assertJsonPath('duplicate', true);
+    }
+
+    /**
+     * LISCOM resetea hl7_control_id a '1' en cada sesión.
+     * DIRUI CST240 envía resultados para protocolo A con hl7='1' → ingested.
+     * DIRUI CST240 envía resultados para protocolo B con hl7='1' → debe ser ingested también
+     * (diferente protocolo = diferente mensaje, aunque mismo hl7_control_id y mismo equipo).
+     */
+    public function test_mismo_equipo_diferente_protocolo_mismo_control_id_no_es_duplicate(): void
+    {
+        $controlId = '1'; // LISCOM resetea a '1' en cada sesión
+
+        // Protocolo A — DIRUI envía y es ingested
+        $admA = $this->makeAdmission();
+        $testA = $this->makeTest();
+        $this->makeAdmissionTest($admA, $testA);
+
+        $payloadA = $this->batchPayload($this->uuid(), [
+            array_merge($this->item($controlId, $admA->protocol_number, $testA->id, '0.74'), [
+                'equipment_name' => 'DIRUI CST240',
+            ]),
+        ]);
+        $this->withHeaders($this->authHeaders())->postJson('/api/v1/results/batch', $payloadA)
+            ->assertJsonPath('items.0.status', 'ingested');
+
+        // Protocolo B — DIRUI envía con mismo hl7='1' → debe ser ingested, NO duplicate
+        $admB = $this->makeAdmission();
+        $testB = $this->makeTest();
+        $this->makeAdmissionTest($admB, $testB);
+
+        $payloadB = $this->batchPayload($this->uuid(), [
+            array_merge($this->item($controlId, $admB->protocol_number, $testB->id, '1.23'), [
+                'equipment_name' => 'DIRUI CST240',
+            ]),
+        ]);
+        $responseB = $this->withHeaders($this->authHeaders())
+            ->postJson('/api/v1/results/batch', $payloadB);
+
+        $responseB->assertStatus(200)
+            ->assertJsonPath('items.0.status', 'ingested');
+
+        $this->assertDatabaseHas('admission_tests', [
+            'admission_id' => $admB->id,
+            'test_id' => $testB->id,
+            'result' => '1.23',
+        ]);
+
+        // Retry real de protocolo B → ahora sí duplicate
+        $this->withHeaders($this->authHeaders())
+            ->postJson('/api/v1/results/batch', $payloadB)
             ->assertJsonPath('duplicate', true);
     }
 
