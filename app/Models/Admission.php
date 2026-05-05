@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Admission extends Model
 {
-    use Auditable, HasFactory, GeneratesProtocolNumber;
+    use Auditable, GeneratesProtocolNumber, HasFactory;
 
     protected $fillable = [
         'date',
@@ -68,6 +68,8 @@ class Admission extends Model
     const STATUS_IN_PROGRESS = 'in_progress';
 
     const STATUS_COMPLETED = 'completed';
+
+    const STATUS_VALIDATED = 'validated';
 
     const STATUS_CANCELLED = 'cancelled';
 
@@ -176,6 +178,7 @@ class Admission extends Model
             self::STATUS_PENDING => 'Pendiente',
             self::STATUS_IN_PROGRESS => 'En Proceso',
             self::STATUS_COMPLETED => 'Completado',
+            self::STATUS_VALIDATED => 'Validado',
             self::STATUS_CANCELLED => 'Cancelado',
             default => $this->status,
         };
@@ -190,9 +193,51 @@ class Admission extends Model
             self::STATUS_PENDING => 'yellow',
             self::STATUS_IN_PROGRESS => 'blue',
             self::STATUS_COMPLETED => 'green',
+            self::STATUS_VALIDATED => 'purple',
             self::STATUS_CANCELLED => 'red',
             default => 'gray',
         };
+    }
+
+    /**
+     * Estado calculado a partir del estado real de las prácticas.
+     * Requiere que admissionTests esté cargado (eager load).
+     */
+    public function getCalculatedStatusAttribute(): string
+    {
+        $countable = $this->admissionTests->filter(function (AdmissionTest $at) {
+            if ($at->hasResult() || $at->is_validated) {
+                return true;
+            }
+            if ($at->relationLoaded('test') && $at->test?->relationLoaded('childTests')) {
+                return $at->test->childTests->isEmpty();
+            }
+
+            return true;
+        });
+
+        $total = $countable->count();
+
+        if ($total === 0) {
+            return self::STATUS_PENDING;
+        }
+
+        $validated = $countable->where('is_validated', true)->count();
+        $withResult = $countable->filter(fn ($at) => $at->hasResult())->count();
+
+        if ($validated === $total) {
+            return self::STATUS_VALIDATED;
+        }
+
+        if ($withResult === $total || $validated > 0) {
+            return self::STATUS_COMPLETED;
+        }
+
+        if ($withResult > 0) {
+            return self::STATUS_IN_PROGRESS;
+        }
+
+        return self::STATUS_PENDING;
     }
 
     /**
