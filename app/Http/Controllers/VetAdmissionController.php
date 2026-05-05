@@ -96,6 +96,94 @@ class VetAdmissionController extends Controller
         return view('vet.admissions.create', compact('customers', 'species', 'branches', 'customerNbuValues'));
     }
 
+    public function edit(VetAdmission $vetAdmission)
+    {
+        $this->authorize('vet-admissions.edit');
+
+        $vetAdmission->load(['customer', 'veterinarian', 'species', 'labBranch']);
+
+        $customers = Customer::whereJsonContains('type', 'veterinario')->orderBy('name')->get();
+        $species = Species::where('is_active', true)->orderBy('name')->get();
+        $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
+
+        $veterinarians = $vetAdmission->customer
+            ? $vetAdmission->customer->veterinarians()->where('is_active', true)->get(['id', 'name', 'matricula'])
+            : collect();
+
+        return view('vet.admissions.edit', compact('vetAdmission', 'customers', 'species', 'branches', 'veterinarians'));
+    }
+
+    public function update(Request $request, VetAdmission $vetAdmission)
+    {
+        $this->authorize('vet-admissions.edit');
+
+        $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'veterinarian_id' => 'nullable|exists:veterinarians,id',
+            'species_id' => 'required|exists:species,id',
+            'animal_name' => 'required|string|max:255',
+            'owner_name' => 'required|string|max:255',
+            'owner_phone' => 'nullable|string|max:50',
+            'owner_email' => 'nullable|email|max:255',
+            'breed' => 'nullable|string|max:100',
+            'age' => 'nullable|string|max:50',
+            'date' => 'required|date',
+            'observations' => 'nullable|string',
+            'lab_branch_id' => 'nullable|exists:lab_branches,id',
+        ]);
+
+        $auditableFields = [
+            'customer_id' => ['label' => 'Veterinaria',   'resolve' => fn ($id) => \App\Models\Customer::find($id)?->name ?? $id],
+            'veterinarian_id' => ['label' => 'Veterinario',   'resolve' => fn ($id) => $id ? (\App\Models\Veterinarian::find($id)?->name ?? $id) : 'Sin derivante'],
+            'species_id' => ['label' => 'Especie',       'resolve' => fn ($id) => \App\Models\Species::find($id)?->name ?? $id],
+            'animal_name' => ['label' => 'Animal',        'resolve' => fn ($v) => $v],
+            'owner_name' => ['label' => 'Due?o',         'resolve' => fn ($v) => $v],
+            'owner_phone' => ['label' => 'Tel. Due?o',    'resolve' => fn ($v) => $v ?? '?'],
+            'owner_email' => ['label' => 'Email Due?o',   'resolve' => fn ($v) => $v ?? '?'],
+            'breed' => ['label' => 'Raza',          'resolve' => fn ($v) => $v ?? '?'],
+            'age' => ['label' => 'Edad',          'resolve' => fn ($v) => $v ?? '?'],
+            'date' => ['label' => 'Fecha',         'resolve' => fn ($v) => \Carbon\Carbon::parse($v)->format('d/m/Y')],
+            'observations' => ['label' => 'Observaciones', 'resolve' => fn ($v) => $v ?? '?'],
+            'lab_branch_id' => ['label' => 'Sede',          'resolve' => fn ($id) => $id ? (\App\Models\LabBranch::find($id)?->name ?? $id) : '?'],
+        ];
+
+        $changes = [];
+        foreach ($auditableFields as $field => $config) {
+            $oldRaw = $vetAdmission->$field;
+            $newRaw = $request->input($field);
+
+            $oldNorm = $oldRaw === null ? '' : (string) $oldRaw;
+            $newNorm = $newRaw === null ? '' : (string) $newRaw;
+
+            if ($oldNorm !== $newNorm) {
+                $resolve = $config['resolve'];
+                $changes[] = $config['label'].': '.$resolve($oldRaw).' ? '.$resolve($newRaw);
+            }
+        }
+
+        $vetAdmission->update([
+            'customer_id' => $request->customer_id,
+            'veterinarian_id' => $request->veterinarian_id ?: null,
+            'species_id' => $request->species_id,
+            'animal_name' => $request->animal_name,
+            'owner_name' => $request->owner_name,
+            'owner_phone' => $request->owner_phone,
+            'breed' => $request->breed,
+            'age' => $request->age,
+            'date' => $request->date,
+            'observations' => $request->observations,
+            'lab_branch_id' => $request->lab_branch_id,
+            'owner_email' => $request->owner_email,
+        ]);
+
+        if (! empty($changes)) {
+            $vetAdmission->logAudit('updated', 'Protocolo editado. Cambios: '.implode('. ', $changes));
+        }
+
+        return redirect()->route('vet.admissions.show', $vetAdmission)
+            ->with('success', 'Protocolo actualizado correctamente.');
+    }
+
     public function searchTests(Request $request)
     {
         $query = $request->get('q', '');

@@ -262,6 +262,8 @@ Route::middleware([
         Route::get('admissions/search-tests', [App\Http\Controllers\VetAdmissionController::class, 'searchTests'])->name('vet.admissions.searchTests');
         Route::post('admissions', [App\Http\Controllers\VetAdmissionController::class, 'store'])->name('vet.admissions.store');
         Route::get('admissions/{vetAdmission}', [App\Http\Controllers\VetAdmissionController::class, 'show'])->name('vet.admissions.show');
+        Route::get('admissions/{vetAdmission}/edit', [App\Http\Controllers\VetAdmissionController::class, 'edit'])->name('vet.admissions.edit');
+        Route::put('admissions/{vetAdmission}', [App\Http\Controllers\VetAdmissionController::class, 'update'])->name('vet.admissions.update');
 
         Route::post('admissions/{vetAdmission}/results', [App\Http\Controllers\VetAdmissionController::class, 'loadResults'])->name('vet.admissions.loadResults');
         Route::post('admissions/{vetAdmission}/add-tests', [App\Http\Controllers\VetAdmissionController::class, 'addTests'])->name('vet.admissions.addTests');
