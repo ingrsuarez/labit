@@ -63,7 +63,7 @@ class VetAdmissionController extends Controller
 
         if ($request->filled('lab_branch_id')) {
             if ($request->lab_branch_id === 'all') {
-                // No filtrar — se ven todos
+                // No filtrar ? se ven todos
             } elseif ($request->lab_branch_id === 'none') {
                 $query->whereNull('lab_branch_id');
             } else {
@@ -105,22 +105,27 @@ class VetAdmissionController extends Controller
 
         $customerId = $request->integer('customer_id');
         if ($customerId <= 0) {
-            return response()->json(['error' => 'Seleccioná primero la veterinaria.'], 422);
+            return response()->json(['error' => 'Seleccion? primero la veterinaria.'], 422);
         }
 
         $customer = Customer::find($customerId);
         if (! $customer || ! $customer->isVeterinary()) {
-            return response()->json(['error' => 'Cliente veterinario no válido.'], 422);
+            return response()->json(['error' => 'Cliente veterinario no v?lido.'], 422);
         }
 
         $rate = $customer->veterinaryNbuRate();
+
+        $vetParentIds = Test::whereJsonContains('categories', 'veterinario')->pluck('id');
 
         $tests = Test::where(function ($q) use ($query) {
             $q->where('code', 'like', "%{$query}%")
                 ->orWhere('name', 'like', "%{$query}%");
         })
-            ->whereJsonContains('categories', 'veterinario')
-            ->whereDoesntHave('parentTests')
+            ->where(function ($q) use ($vetParentIds) {
+                $q->whereJsonContains('categories', 'veterinario')
+                    ->orWhereHas('parentTests', fn ($p) => $p->whereIn('parent_test_id', $vetParentIds));
+            })
+            ->with(['parentTests', 'parentTest'])
             ->limit(20)
             ->get(['id', 'code', 'name', 'nbu']);
 
@@ -133,6 +138,8 @@ class VetAdmissionController extends Controller
                 'name' => $test->name,
                 'nbu' => $nbu,
                 'price' => self::veterinaryPriceFromNbu($rate, $nbu),
+                'parent_name' => $test->parentTests->first()?->name
+                    ?? $test->parentTest?->name,
             ];
         }));
     }
@@ -225,7 +232,7 @@ class VetAdmissionController extends Controller
         $admission->update(['total_price' => $totalPrice]);
 
         return redirect()->route('vet.admissions.show', $admission)
-            ->with('success', 'Protocolo veterinario creado. Nº '.$admission->protocol_number);
+            ->with('success', 'Protocolo veterinario creado. N? '.$admission->protocol_number);
     }
 
     public function show(VetAdmission $vetAdmission)
@@ -280,7 +287,7 @@ class VetAdmissionController extends Controller
 
         $customer = $vetAdmission->customer;
         if (! $customer || ! $customer->isVeterinary()) {
-            return redirect()->back()->with('error', 'El cliente del protocolo no es una veterinaria válida.');
+            return redirect()->back()->with('error', 'El cliente del protocolo no es una veterinaria v?lida.');
         }
 
         $rate = $customer->veterinaryNbuRate();
@@ -339,10 +346,10 @@ class VetAdmissionController extends Controller
         ]);
 
         if ($addedCount === 0) {
-            return redirect()->back()->with('error', 'Las prácticas seleccionadas ya estaban en el protocolo.');
+            return redirect()->back()->with('error', 'Las pr?cticas seleccionadas ya estaban en el protocolo.');
         }
 
-        return redirect()->back()->with('success', "Se agregaron {$addedCount} práctica(s) al protocolo.");
+        return redirect()->back()->with('success', "Se agregaron {$addedCount} pr?ctica(s) al protocolo.");
     }
 
     public function removeTest(VetAdmission $vetAdmission, VetAdmissionTest $vetAdmissionTest)
@@ -352,7 +359,7 @@ class VetAdmissionController extends Controller
         }
 
         if ($vetAdmissionTest->is_validated) {
-            return redirect()->back()->with('error', 'No se puede quitar una práctica ya validada.');
+            return redirect()->back()->with('error', 'No se puede quitar una pr?ctica ya validada.');
         }
 
         $test = $vetAdmissionTest->test;
@@ -382,9 +389,9 @@ class VetAdmissionController extends Controller
         $newTotal = max(0, $vetAdmission->total_price - $removedPrice);
         $vetAdmission->update(['total_price' => $newTotal]);
 
-        $msg = 'Práctica eliminada del protocolo.';
+        $msg = 'Pr?ctica eliminada del protocolo.';
         if ($removedCount > 1) {
-            $msg = "Se eliminaron {$removedCount} prácticas (padre + hijos) del protocolo.";
+            $msg = "Se eliminaron {$removedCount} pr?cticas (padre + hijos) del protocolo.";
         }
 
         return redirect()->back()->with('success', $msg);
@@ -406,7 +413,7 @@ class VetAdmissionController extends Controller
         $vetAdmission->load(['vetTests.test.childTests']);
         $vetAdmission->update(['status' => $vetAdmission->calculated_status]);
 
-        return redirect()->back()->with('success', 'Práctica validada.');
+        return redirect()->back()->with('success', 'Pr?ctica validada.');
     }
 
     public function unvalidateTest(VetAdmission $vetAdmission, VetAdmissionTest $vetAdmissionTest)
@@ -421,7 +428,7 @@ class VetAdmissionController extends Controller
         $vetAdmission->load(['vetTests.test.childTests']);
         $vetAdmission->update(['status' => $vetAdmission->calculated_status]);
 
-        return redirect()->back()->with('success', 'Validación removida.');
+        return redirect()->back()->with('success', 'Validaci?n removida.');
     }
 
     public function validateAll(VetAdmission $vetAdmission)
@@ -443,7 +450,7 @@ class VetAdmissionController extends Controller
         $vetAdmission->load(['vetTests.test.childTests']);
         $vetAdmission->update(['status' => $vetAdmission->calculated_status]);
 
-        return redirect()->back()->with('success', "Se validaron {$count} prácticas.");
+        return redirect()->back()->with('success', "Se validaron {$count} pr?cticas.");
     }
 
     public function getVeterinarians(Customer $customer)
@@ -457,7 +464,7 @@ class VetAdmissionController extends Controller
     {
         $validatedCount = $vetAdmission->vetTests()->where('is_validated', true)->count();
         if ($validatedCount === 0) {
-            return back()->with('error', 'Debe validar al menos una determinación para descargar el informe.');
+            return back()->with('error', 'Debe validar al menos una determinaci?n para descargar el informe.');
         }
 
         $vetAdmission->load([
@@ -485,7 +492,7 @@ class VetAdmissionController extends Controller
     {
         $validatedCount = $vetAdmission->vetTests()->where('is_validated', true)->count();
         if ($validatedCount === 0) {
-            return back()->with('error', 'Debe validar al menos una determinación para ver el informe.');
+            return back()->with('error', 'Debe validar al menos una determinaci?n para ver el informe.');
         }
 
         $vetAdmission->load([
@@ -513,7 +520,7 @@ class VetAdmissionController extends Controller
     {
         $validatedCount = $vetAdmission->vetTests()->where('is_validated', true)->count();
         if ($validatedCount === 0) {
-            return back()->with('error', 'Debe validar al menos una determinación para enviar el informe.');
+            return back()->with('error', 'Debe validar al menos una determinaci?n para enviar el informe.');
         }
 
         $validated = $request->validate([
@@ -687,7 +694,7 @@ class VetAdmissionController extends Controller
     }
 
     /**
-     * Precio de una práctica veterinaria: valor NBU de la veterinaria × NBU de la determinación.
+     * Precio de una pr?ctica veterinaria: valor NBU de la veterinaria ? NBU de la determinaci?n.
      */
     public static function veterinaryPriceFromNbu(float $veterinaryNbuRate, float $testNbuUnits): float
     {

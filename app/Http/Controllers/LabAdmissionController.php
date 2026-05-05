@@ -597,11 +597,11 @@ class LabAdmissionController extends Controller
         $search = $request->get('q', '');
         $insuranceId = $request->get('insurance_id');
 
-        $tests = Test::whereNull('parent')
-            ->where(function ($query) use ($search) {
-                $query->where('code', 'like', "%{$search}%")
-                    ->orWhere('name', 'like', "%{$search}%");
-            })
+        $tests = Test::where(function ($query) use ($search) {
+            $query->where('code', 'like', "%{$search}%")
+                ->orWhere('name', 'like', "%{$search}%");
+        })
+            ->with(['parentTests', 'parentTest'])
             ->limit(20)
             ->get(['id', 'code', 'name', 'nbu', 'price']);
 
@@ -640,6 +640,16 @@ class LabAdmissionController extends Controller
                     $test->copago = 0;
                     $test->in_nomenclator = false;
                 }
+
+                $test->parent_name = $test->parentTests->first()?->name
+                    ?? $test->parentTest?->name;
+
+                return $test;
+            });
+        } else {
+            $tests = $tests->map(function ($test) {
+                $test->parent_name = $test->parentTests->first()?->name
+                    ?? $test->parentTest?->name;
 
                 return $test;
             });

@@ -43,9 +43,22 @@ class SampleController extends Controller
     {
         $this->authorize('samples.create');
         $customers = Customer::orderBy('name')->get();
-        $tests = Test::whereJsonContains('categories', 'aguas_alimentos')
+
+        $parentIds = Test::whereJsonContains('categories', 'aguas_alimentos')->pluck('id');
+        $tests = Test::where(function ($q) use ($parentIds) {
+            $q->whereJsonContains('categories', 'aguas_alimentos')
+                ->orWhereHas('parentTests', fn ($p) => $p->whereIn('parent_test_id', $parentIds));
+        })
+            ->with(['parentTests', 'parentTest'])
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(function ($test) {
+                $test->parent_name = $test->parentTests->first()?->name
+                    ?? $test->parentTest?->name;
+
+                return $test;
+            });
+
         $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
 
         return view('sample.create', compact('customers', 'tests', 'branches'));
@@ -173,7 +186,15 @@ class SampleController extends Controller
             ->unique()
             ->implode('/');
 
-        return view('sample.show', compact('sample', 'labelMaterials'));
+        $parentIds = Test::whereJsonContains('categories', 'aguas_alimentos')->pluck('id');
+        $availableTests = Test::where(function ($q) use ($parentIds) {
+            $q->whereJsonContains('categories', 'aguas_alimentos')
+                ->orWhereHas('parentTests', fn ($p) => $p->whereIn('parent_test_id', $parentIds));
+        })
+            ->orderBy('name')
+            ->get();
+
+        return view('sample.show', compact('sample', 'labelMaterials', 'availableTests'));
     }
 
     /**
@@ -183,9 +204,22 @@ class SampleController extends Controller
     {
         $this->authorize('samples.edit');
         $customers = Customer::orderBy('name')->get();
-        $tests = Test::whereJsonContains('categories', 'aguas_alimentos')
+
+        $parentIds = Test::whereJsonContains('categories', 'aguas_alimentos')->pluck('id');
+        $tests = Test::where(function ($q) use ($parentIds) {
+            $q->whereJsonContains('categories', 'aguas_alimentos')
+                ->orWhereHas('parentTests', fn ($p) => $p->whereIn('parent_test_id', $parentIds));
+        })
+            ->with(['parentTests', 'parentTest'])
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(function ($test) {
+                $test->parent_name = $test->parentTests->first()?->name
+                    ?? $test->parentTest?->name;
+
+                return $test;
+            });
+
         $sample->load('determinations');
         $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
 

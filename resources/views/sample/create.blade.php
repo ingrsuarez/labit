@@ -145,6 +145,9 @@
                                 <span>
                                     <span class="font-medium text-teal-600" x-text="test.code"></span>
                                     <span class="text-gray-600" x-text="' - ' + test.name"></span>
+                                    <template x-if="test.parent_name">
+                                        <span class="text-xs text-gray-400 ml-1" x-text="'(hijo de ' + test.parent_name + ')'"></span>
+                                    </template>
                                 </span>
                                 <span class="font-medium text-gray-900" x-text="'$' + formatNumber(test.price)"></span>
                             </div>
@@ -237,7 +240,7 @@
                 selectedTests: [],
                 customerId: '{{ old('customer_id', '') }}',
                 discountPercent: 0,
-                allTests: {!! json_encode($tests->map(function($t) { return ['id' => $t->id, 'code' => $t->code, 'name' => $t->name, 'price' => $t->price ?? 0]; })->values()) !!},
+                allTests: {!! json_encode($tests->map(function($t) { return ['id' => $t->id, 'code' => $t->code, 'name' => $t->name, 'price' => $t->price ?? 0, 'parent_name' => $t->parent_name ?? null]; })->values()) !!},
                 customerDiscounts: {!! json_encode($customers->pluck('discount_percent', 'id')) !!},
 
                 get subtotal() {
