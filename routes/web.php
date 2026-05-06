@@ -375,6 +375,21 @@ Route::middleware([
             ->name('purchase-perceptions.toggle-active');
         Route::resource('purchase-perceptions', App\Http\Controllers\PurchasePerceptionController::class)->except(['show']);
 
+        // IMPUESTOS — DDJJ (anticipos sufridos)
+        Route::get('tax-returns/available-advances', [App\Http\Controllers\TaxReturnController::class, 'availableAdvances'])
+            ->name('tax-returns.available-advances')
+            ->middleware('permission:tax-returns.manage');
+        Route::post('tax-returns/{tax_return}/confirm', [App\Http\Controllers\TaxReturnController::class, 'confirm'])
+            ->name('tax-returns.confirm')
+            ->middleware('permission:tax-returns.manage');
+        Route::post('tax-returns/{tax_return}/cancel', [App\Http\Controllers\TaxReturnController::class, 'cancel'])
+            ->name('tax-returns.cancel')
+            ->middleware('permission:tax-returns.manage');
+        Route::resource('taxes', App\Http\Controllers\TaxController::class)
+            ->middleware('permission:taxes.manage');
+        Route::resource('tax-returns', App\Http\Controllers\TaxReturnController::class)
+            ->middleware('permission:tax-returns.manage');
+
         // SERVICIOS DE COMPRA (derivaciones, alquileres, etc.)
         Route::get('purchase-services/statistics', [App\Http\Controllers\PurchaseServiceStatisticsController::class, 'index'])
             ->name('purchase-services.statistics');

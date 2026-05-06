@@ -7,23 +7,21 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class PurchasePerception extends Model
+class Tax extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'company_id',
-        'accounting_account_id',
-        'tax_id',
         'name',
         'jurisdiction',
-        'rate',
+        'liability_account_id',
+        'frequency',
         'is_active',
         'sort_order',
     ];
 
     protected $casts = [
-        'rate' => 'decimal:2',
         'is_active' => 'boolean',
         'sort_order' => 'integer',
     ];
@@ -38,18 +36,19 @@ class PurchasePerception extends Model
         return $this->belongsTo(Company::class);
     }
 
-    public function accountingAccount(): BelongsTo
+    public function liabilityAccount(): BelongsTo
     {
-        return $this->belongsTo(AccountingAccount::class);
+        return $this->belongsTo(AccountingAccount::class, 'liability_account_id');
     }
 
-    public function tax(): BelongsTo
+    /** Percepciones de compra asociadas a este impuesto. */
+    public function perceptions(): HasMany
     {
-        return $this->belongsTo(Tax::class);
+        return $this->hasMany(PurchasePerception::class);
     }
 
-    public function invoicePerceptions(): HasMany
+    public function taxReturns(): HasMany
     {
-        return $this->hasMany(PurchaseInvoicePerception::class);
+        return $this->hasMany(TaxReturn::class);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AccountingAccount;
 use App\Models\PurchasePerception;
+use App\Models\Tax;
 use App\Services\PurchasePerceptionBalanceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class PurchasePerceptionController extends Controller
         $this->authorize('purchase-perceptions.index');
 
         $perceptions = PurchasePerception::where('company_id', active_company_id())
-            ->with('accountingAccount')
+            ->with(['accountingAccount', 'tax'])
             ->orderBy('sort_order')
             ->orderBy('name')
             ->paginate(20);
@@ -26,7 +27,9 @@ class PurchasePerceptionController extends Controller
             ->orderBy('code')
             ->get();
 
-        return view('purchase-perceptions.index', compact('perceptions', 'accounts'));
+        $taxes = Tax::where('company_id', active_company_id())->active()->orderBy('name')->get();
+
+        return view('purchase-perceptions.index', compact('perceptions', 'accounts', 'taxes'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -38,11 +41,17 @@ class PurchasePerceptionController extends Controller
             'jurisdiction' => ['nullable', 'string', 'max:100'],
             'rate' => ['required', 'numeric', 'min:0'],
             'accounting_account_id' => ['required', 'exists:accounting_accounts,id'],
+            'tax_id' => ['nullable', 'integer', 'exists:taxes,id'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
         $validated['company_id'] = active_company_id();
+        if (! empty($validated['tax_id'])) {
+            $this->ensureTaxCompany((int) $validated['tax_id']);
+        } else {
+            $validated['tax_id'] = null;
+        }
         $validated['sort_order'] = $validated['sort_order']
             ?? (PurchasePerception::where('company_id', active_company_id())->max('sort_order') + 10);
         $validated['is_active'] = isset($validated['is_active']) ? (bool) $validated['is_active'] : true;
@@ -76,11 +85,17 @@ class PurchasePerceptionController extends Controller
             'jurisdiction' => ['nullable', 'string', 'max:100'],
             'rate' => ['required', 'numeric', 'min:0'],
             'accounting_account_id' => ['required', 'exists:accounting_accounts,id'],
+            'tax_id' => ['nullable', 'integer', 'exists:taxes,id'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
         $validated['is_active'] = isset($validated['is_active']) ? (bool) $validated['is_active'] : false;
+        if (! empty($validated['tax_id'])) {
+            $this->ensureTaxCompany((int) $validated['tax_id']);
+        } else {
+            $validated['tax_id'] = null;
+        }
 
         $purchasePerception->update($validated);
 
@@ -131,5 +146,11 @@ class PurchasePerceptionController extends Controller
     private function ensureCompany(PurchasePerception $perception): void
     {
         abort_if($perception->company_id !== active_company_id(), 403);
+    }
+
+    private function ensureTaxCompany(int $taxId): void
+    {
+        $ok = Tax::where('company_id', active_company_id())->whereKey($taxId)->exists();
+        abort_unless($ok, 422);
     }
 }

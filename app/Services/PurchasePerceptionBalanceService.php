@@ -6,6 +6,7 @@ use App\Models\JournalEntryLine;
 use App\Models\PurchaseCreditNotePerception;
 use App\Models\PurchaseInvoicePerception;
 use App\Models\PurchasePerception;
+use App\Models\TaxReturnApplication;
 use Illuminate\Support\Collection;
 
 class PurchasePerceptionBalanceService
@@ -36,6 +37,19 @@ class PurchasePerceptionBalanceService
 
             $anticipos = round((float) $anticiposFc - (float) $anticiposNc, 2);
 
+            $imputadoFc = TaxReturnApplication::query()
+                ->whereHas('taxReturn', fn ($q) => $q->where('company_id', $companyId)->where('status', 'confirmed'))
+                ->whereHas('purchaseInvoicePerception', fn ($q) => $q->where('purchase_perception_id', $perception->id))
+                ->sum('amount_applied');
+
+            $imputadoNc = TaxReturnApplication::query()
+                ->whereHas('taxReturn', fn ($q) => $q->where('company_id', $companyId)->where('status', 'confirmed'))
+                ->whereHas('purchaseCreditNotePerception', fn ($q) => $q->where('purchase_perception_id', $perception->id))
+                ->sum('amount_applied');
+
+            $imputado = round((float) $imputadoFc + (float) $imputadoNc, 2);
+            $disponible = round((float) $anticipos - $imputado, 2);
+
             $saldoCuenta = JournalEntryLine::query()
                 ->where('accounting_account_id', $perception->accounting_account_id)
                 ->whereHas('journalEntry', fn ($q) => $q->where('company_id', $companyId)
@@ -47,6 +61,8 @@ class PurchasePerceptionBalanceService
             return [
                 'perception' => $perception,
                 'anticipos_cargados' => $anticipos,
+                'imputado' => $imputado,
+                'disponible' => $disponible,
                 'saldo_cuenta' => round((float) $saldoCuenta, 2),
                 'diferencia' => round((float) $anticipos - (float) $saldoCuenta, 2),
             ];

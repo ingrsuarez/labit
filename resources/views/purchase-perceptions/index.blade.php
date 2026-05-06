@@ -2,17 +2,17 @@
     <div class="p-4 md:p-6" x-data="{
         showModal: false,
         editingId: null,
-        form: { name: '', jurisdiction: '', rate: 0, accounting_account_id: '', sort_order: 0, is_active: true },
+        form: { name: '', jurisdiction: '', rate: 0, accounting_account_id: '', tax_id: '', sort_order: 0, is_active: true },
         search: '',
         filterStatus: 'active',
         openCreate() {
             this.editingId = null;
-            this.form = { name: '', jurisdiction: '', rate: 0, accounting_account_id: '', sort_order: 0, is_active: true };
+            this.form = { name: '', jurisdiction: '', rate: 0, accounting_account_id: '', tax_id: '', sort_order: 0, is_active: true };
             this.showModal = true;
         },
-        openEdit(id, name, jurisdiction, rate, accountId, sortOrder, isActive) {
+        openEdit(id, name, jurisdiction, rate, accountId, taxId, sortOrder, isActive) {
             this.editingId = id;
-            this.form = { name, jurisdiction: jurisdiction || '', rate: parseFloat(rate), accounting_account_id: accountId.toString(), sort_order: sortOrder, is_active: isActive };
+            this.form = { name, jurisdiction: jurisdiction || '', rate: parseFloat(rate), accounting_account_id: accountId.toString(), tax_id: taxId ? taxId.toString() : '', sort_order: sortOrder, is_active: isActive };
             this.showModal = true;
         },
     }">
@@ -68,6 +68,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jurisdicción</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alícuota</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cuenta contable</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Impuesto (DDJJ)</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                             </tr>
@@ -92,6 +93,7 @@
                                         <span class="text-red-500 text-xs">Sin cuenta</span>
                                     @endif
                                 </td>
+                                <td class="px-6 py-4 text-sm text-gray-600">{{ $perception->tax?->name ?? '—' }}</td>
                                 <td class="px-6 py-4">
                                     @if($perception->is_active)
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Activa</span>
@@ -102,7 +104,7 @@
                                 <td class="px-6 py-4 text-right whitespace-nowrap space-x-2">
                                     @can('purchase-perceptions.edit')
                                     <button type="button"
-                                        @click="openEdit({{ $perception->id }}, '{{ addslashes($perception->name) }}', '{{ addslashes($perception->jurisdiction ?? '') }}', {{ $perception->rate }}, {{ $perception->accounting_account_id }}, {{ $perception->sort_order }}, {{ $perception->is_active ? 'true' : 'false' }})"
+                                        @click="openEdit({{ $perception->id }}, {{ json_encode($perception->name) }}, {{ json_encode($perception->jurisdiction) }}, {{ $perception->rate }}, {{ $perception->accounting_account_id }}, {{ json_encode($perception->tax_id) }}, {{ $perception->sort_order }}, {{ $perception->is_active ? 'true' : 'false' }})"
                                         class="text-indigo-600 hover:text-indigo-900 text-sm" title="Editar">
                                         <i class="bi bi-pencil"></i>
                                     </button>
@@ -188,6 +190,15 @@
                                 @endforeach
                             </select>
                         </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Impuesto (DDJJ)</label>
+                            <select name="tax_id" x-model="form.tax_id" class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">— Sin asociar —</option>
+                                @foreach($taxes as $tax)
+                                    <option value="{{ $tax->id }}">{{ $tax->name }}{{ $tax->jurisdiction ? ' ('.$tax->jurisdiction.')' : '' }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div class="flex items-center gap-2">
                             <input type="checkbox" name="is_active" id="create_is_active" value="1" x-model="form.is_active" checked class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                             <label for="create_is_active" class="text-sm text-gray-700">Activa</label>
@@ -227,6 +238,15 @@
                                 <option value="">Seleccionar cuenta...</option>
                                 @foreach($accounts as $account)
                                     <option value="{{ $account->id }}">{{ $account->code }} — {{ $account->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Impuesto (DDJJ)</label>
+                            <select name="tax_id" x-model="form.tax_id" class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">— Sin asociar —</option>
+                                @foreach($taxes as $tax)
+                                    <option value="{{ $tax->id }}">{{ $tax->name }}{{ $tax->jurisdiction ? ' ('.$tax->jurisdiction.')' : '' }}</option>
                                 @endforeach
                             </select>
                         </div>
