@@ -647,6 +647,14 @@
                 ];
             })->values()
             : collect();
+
+        $perceptionCatalogJson = ($perceptionTypes ?? collect())->map(fn ($p) => [
+            'id' => $p->id,
+            'name' => $p->name,
+            'jurisdiction' => $p->jurisdiction,
+            'rate' => $p->rate,
+            'accounting_account_id' => $p->accounting_account_id,
+        ])->values();
     @endphp
     <script>
         function itemSearch(item, index, serviceGroups) {
@@ -818,13 +826,7 @@
                 otrosImpuestos: {{ old('otros_impuestos', 0) }},
                 purchaseServiceGroups: @json($purchaseServiceCatalog ?? []),
                 perceptionLines: @json($perceptionLines ?? []),
-                perceptionCatalog: @json(($perceptionTypes ?? collect())->map(fn($p) => [
-                    'id' => $p->id,
-                    'name' => $p->name,
-                    'jurisdiction' => $p->jurisdiction,
-                    'rate' => $p->rate,
-                    'accounting_account_id' => $p->accounting_account_id,
-                ])),
+                perceptionCatalog: @json($perceptionCatalogJson),
                 supplies: @json(\App\Models\Supply::active()->orderBy('name')->get()->map(function ($s) { return ['id' => $s->id, 'name' => $s->code . ' - ' . $s->name, 'tracks_lot' => $s->tracks_lot]; })),
 
                 point_of_sale: '{{ old('point_of_sale') }}',

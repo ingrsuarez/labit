@@ -145,102 +145,102 @@
                 </div>
             @endif
         </div>
-    </div>
 
-    {{-- Modal crear / editar --}}
-    <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="absolute inset-0 bg-black/50" @click="showModal = false"></div>
-        <div class="relative bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 z-10">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900" x-text="editingId ? 'Editar percepción' : 'Nueva percepción'"></h3>
-                <button type="button" @click="showModal = false" class="text-gray-400 hover:text-gray-600">
-                    <i class="bi bi-x-lg"></i>
-                </button>
+        {{-- Modal dentro del mismo x-data que los botones --}}
+        <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center">
+            <div class="absolute inset-0 bg-black/50" @click="showModal = false"></div>
+            <div class="relative bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 z-10">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900" x-text="editingId ? 'Editar percepción' : 'Nueva percepción'"></h3>
+                    <button type="button" @click="showModal = false" class="text-gray-400 hover:text-gray-600">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                {{-- Formulario crear --}}
+                <template x-if="!editingId">
+                    <form method="POST" action="{{ route('purchase-perceptions.store') }}" class="px-6 py-5 space-y-4">
+                        @csrf
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nombre <span class="text-red-500">*</span></label>
+                            <input type="text" name="name" x-model="form.name" required maxlength="100" class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Jurisdicción</label>
+                            <input type="text" name="jurisdiction" x-model="form.jurisdiction" maxlength="100" placeholder="ej: Neuquén, CABA" class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Alícuota %</label>
+                                <input type="number" name="rate" x-model="form.rate" step="0.01" min="0" class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Orden</label>
+                                <input type="number" name="sort_order" x-model="form.sort_order" min="0" class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Cuenta contable <span class="text-red-500">*</span></label>
+                            <select name="accounting_account_id" x-model="form.accounting_account_id" required class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">Seleccionar cuenta...</option>
+                                @foreach($accounts as $account)
+                                    <option value="{{ $account->id }}">{{ $account->code }} — {{ $account->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" name="is_active" id="create_is_active" value="1" x-model="form.is_active" checked class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                            <label for="create_is_active" class="text-sm text-gray-700">Activa</label>
+                        </div>
+                        <div class="flex justify-end gap-3 pt-2">
+                            <button type="button" @click="showModal = false" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancelar</button>
+                            <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Guardar</button>
+                        </div>
+                    </form>
+                </template>
+
+                {{-- Formulario editar (genera la URL dinámica con JS) --}}
+                <template x-if="editingId">
+                    <form method="POST" :action="`/purchase-perceptions/${editingId}`" class="px-6 py-5 space-y-4">
+                        @csrf @method('PUT')
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nombre <span class="text-red-500">*</span></label>
+                            <input type="text" name="name" x-model="form.name" required maxlength="100" class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Jurisdicción</label>
+                            <input type="text" name="jurisdiction" x-model="form.jurisdiction" maxlength="100" placeholder="ej: Neuquén, CABA" class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Alícuota %</label>
+                                <input type="number" name="rate" x-model="form.rate" step="0.01" min="0" class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Orden</label>
+                                <input type="number" name="sort_order" x-model="form.sort_order" min="0" class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Cuenta contable <span class="text-red-500">*</span></label>
+                            <select name="accounting_account_id" x-model="form.accounting_account_id" required class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">Seleccionar cuenta...</option>
+                                @foreach($accounts as $account)
+                                    <option value="{{ $account->id }}">{{ $account->code }} — {{ $account->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" name="is_active" id="edit_is_active" value="1" x-model="form.is_active" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                            <label for="edit_is_active" class="text-sm text-gray-700">Activa</label>
+                        </div>
+                        <div class="flex justify-end gap-3 pt-2">
+                            <button type="button" @click="showModal = false" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancelar</button>
+                            <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Guardar</button>
+                        </div>
+                    </form>
+                </template>
             </div>
-
-            {{-- Formulario crear --}}
-            <template x-if="!editingId">
-                <form method="POST" action="{{ route('purchase-perceptions.store') }}" class="px-6 py-5 space-y-4">
-                    @csrf
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre <span class="text-red-500">*</span></label>
-                        <input type="text" name="name" x-model="form.name" required maxlength="100" class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Jurisdicción</label>
-                        <input type="text" name="jurisdiction" x-model="form.jurisdiction" maxlength="100" placeholder="ej: Neuquén, CABA" class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Alícuota %</label>
-                            <input type="number" name="rate" x-model="form.rate" step="0.01" min="0" class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Orden</label>
-                            <input type="number" name="sort_order" x-model="form.sort_order" min="0" class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Cuenta contable <span class="text-red-500">*</span></label>
-                        <select name="accounting_account_id" x-model="form.accounting_account_id" required class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="">Seleccionar cuenta...</option>
-                            @foreach($accounts as $account)
-                                <option value="{{ $account->id }}">{{ $account->code }} — {{ $account->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" name="is_active" id="create_is_active" value="1" x-model="form.is_active" checked class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                        <label for="create_is_active" class="text-sm text-gray-700">Activa</label>
-                    </div>
-                    <div class="flex justify-end gap-3 pt-2">
-                        <button type="button" @click="showModal = false" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancelar</button>
-                        <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Guardar</button>
-                    </div>
-                </form>
-            </template>
-
-            {{-- Formulario editar (genera la URL dinámica con JS) --}}
-            <template x-if="editingId">
-                <form method="POST" :action="`/purchase-perceptions/${editingId}`" class="px-6 py-5 space-y-4">
-                    @csrf @method('PUT')
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre <span class="text-red-500">*</span></label>
-                        <input type="text" name="name" x-model="form.name" required maxlength="100" class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Jurisdicción</label>
-                        <input type="text" name="jurisdiction" x-model="form.jurisdiction" maxlength="100" placeholder="ej: Neuquén, CABA" class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Alícuota %</label>
-                            <input type="number" name="rate" x-model="form.rate" step="0.01" min="0" class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Orden</label>
-                            <input type="number" name="sort_order" x-model="form.sort_order" min="0" class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Cuenta contable <span class="text-red-500">*</span></label>
-                        <select name="accounting_account_id" x-model="form.accounting_account_id" required class="w-full rounded-lg border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="">Seleccionar cuenta...</option>
-                            @foreach($accounts as $account)
-                                <option value="{{ $account->id }}">{{ $account->code }} — {{ $account->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" name="is_active" id="edit_is_active" value="1" x-model="form.is_active" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                        <label for="edit_is_active" class="text-sm text-gray-700">Activa</label>
-                    </div>
-                    <div class="flex justify-end gap-3 pt-2">
-                        <button type="button" @click="showModal = false" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancelar</button>
-                        <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Guardar</button>
-                    </div>
-                </form>
-            </template>
         </div>
     </div>
 </x-admin-layout>
