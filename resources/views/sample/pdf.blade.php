@@ -203,22 +203,6 @@
             vertical-align: middle;
         }
         
-        /* Observations */
-        .observations-block {
-            margin: 15px 0;
-            padding: 10px 15px;
-            background-color: #fffde7;
-            border-left: 3px solid #ffc107;
-            font-size: 11px;
-        }
-        
-        .observations-title {
-            font-weight: bold;
-            color: #00a0b0;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-        
         /* Conclusion Block */
         .conclusion-block {
             margin: 20px 0;
@@ -495,14 +479,6 @@
                     </div>
                     @endif
                 @endif
-                
-                {{-- Observaciones de la determinación --}}
-                @if($det->observations)
-                <div class="det-data-row" style="margin-top: 2px;">
-                    <span class="det-label"></span>
-                    <span class="det-value" style="font-style: italic; color: #666;">{{ $det->observations }}</span>
-                </div>
-                @endif
             </div>
         @endforeach
         
@@ -711,14 +687,6 @@
             @endif
         </div>
 
-        <!-- General Observations -->
-        @if($sample->observations)
-        <div class="observations-block">
-            <div class="observations-title">OBSERVACIONES</div>
-            <p>{{ $sample->observations }}</p>
-        </div>
-        @endif
-        
         <!-- Validation Footer -->
         <div class="validation-section">
             <div class="validation-row">
