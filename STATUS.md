@@ -9,8 +9,8 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | Último tag **v1.73.0** en `develop` (enviado muestras); producción puede seguir en **v1.75.1** hasta próximo release |
-| **Última en master** | Release 2026-05-06: **v1.75.1** (merge `develop` → `master`); **develop** va por delante con **v1.73.0** pendiente de release |
+| **Versión actual (línea v1.x)** | Tags recientes: **v1.75.1**, **v1.73.0**; línea `develop` ≈ `master` tras último release |
+| **Última en master** | Release 2026-05-07: merge `develop` → `master` (**v1.73.0** estado enviado muestras + docs alineados) |
 | **Última completada (cola agente)** | **v1.73.0** — Estado enviado en protocolos de muestras (`sent_at`, badge Enviado, base para v1.74.0) |
 | **En proceso** | — |
 | **Próxima recomendada** | v1.64.0 — Declaraciones de impuestos e imputación de anticipos (requiere Designer previo) |
