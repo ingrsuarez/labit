@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\AdmissionResultMail;
 use App\Enums\DeterminationProfileLabType;
+use App\Mail\AdmissionResultMail;
 use App\Models\Admission;
 use App\Models\AdmissionTest;
 use App\Models\DeterminationProfile;
