@@ -357,7 +357,7 @@ class AccountingEntryService
      */
     public function fromPurchaseCreditNote(PurchaseCreditNote $creditNote): ?JournalEntry
     {
-        $creditNote->loadMissing(['items', 'supplier']);
+        $creditNote->loadMissing(['items', 'supplier', 'perceptions.accountingAccount']);
 
         $itemsWithSupply = $creditNote->items->whereNotNull('supply_id');
         $itemsWithoutSupply = $creditNote->items->whereNull('supply_id');
@@ -370,11 +370,19 @@ class AccountingEntryService
             2
         );
         $totalBruto = round((float) $creditNote->total, 2);
-        $percOtros = round((float) $creditNote->percepciones + (float) $creditNote->otros_impuestos, 2);
+
+        $otrosImp = round((float) $creditNote->otros_impuestos, 2);
 
         $lines = [];
 
-        $netoServiciosPlus = $netoServicios + $percOtros;
+        $lines[] = [
+            'account_code' => '2.1.01',
+            'debit' => $totalBruto,
+            'credit' => 0,
+            'description' => 'Reduce deuda '.($creditNote->supplier->name ?? '').' — NC '.$creditNote->full_number,
+        ];
+
+        $netoServiciosPlus = $netoServicios + $otrosImp;
 
         if ($netoInsumos > 0) {
             $lines[] = [
@@ -403,12 +411,20 @@ class AccountingEntryService
             ];
         }
 
-        $lines[] = [
-            'account_code' => '2.1.01',
-            'debit' => $totalBruto,
-            'credit' => 0,
-            'description' => 'Reduce deuda '.($creditNote->supplier->name ?? '').' — NC '.$creditNote->full_number,
-        ];
+        foreach ($creditNote->perceptions as $perception) {
+            $amt = round((float) $perception->amount, 2);
+            if ($amt <= 0 || ! $perception->accountingAccount) {
+                continue;
+            }
+            $lines[] = [
+                'account_code' => $perception->accountingAccount->code,
+                'debit' => 0,
+                'credit' => $amt,
+                'description' => 'Reversión percepción '.$perception->name_snapshot
+                    .($perception->jurisdiction_snapshot ? ' ('.$perception->jurisdiction_snapshot.')' : '')
+                    .' — NC '.$creditNote->full_number,
+            ];
+        }
 
         return $this->createEntry(
             (int) $creditNote->company_id,
