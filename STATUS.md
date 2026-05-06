@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-06 (v1.75.0 — PDF sin observaciones internas)
+> Última actualización: 2026-05-06 (v1.75.1 — hotfix otros valores de referencia en PDF)
 
 ---
 
@@ -9,9 +9,9 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | Último tag **v1.75.0**; develop incluye también **v1.63.1**, **v1.72.0**, etc. |
-| **Última en master** | Release 2026-05-06: **v1.63.1**, **v1.75.0** (merge `develop` → `master`) |
-| **Última completada (cola agente)** | v1.75.0 — PDF sin observaciones internas (lab / vet / muestras) |
+| **Versión actual (línea v1.x)** | Último tag **v1.75.1** (hotfix PDF ref.); previo **v1.75.0**, **v1.63.1**, etc. |
+| **Última en master** | Release 2026-05-06: **v1.75.1** hotfix → master (`develop` → `master`) |
+| **Última completada (cola agente)** | v1.75.0 — PDF sin observaciones internas (lab / vet / muestras); hotfix **v1.75.1** sin prompt |
 | **En proceso** | — |
 | **Próxima recomendada** | v1.64.0 — Declaraciones de impuestos e imputación de anticipos (requiere Designer previo) |
 | **Pendientes en cola** | 5 (archivos `v*.md` en `pendientes/`) |
@@ -40,6 +40,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.75.1 | Hotfix: otros valores de referencia visibles en PDF (clínico, vet, muestras) | 2026-05-06 | v1.75.1 |
 | v1.75.0 | PDF de protocolos sin observaciones internas (lab, vet, muestras) | 2026-05-06 | v1.75.0 |
 | v1.63.1 | Percepciones en NC de proveedor (pivote + asientos + balances) | 2026-05-06 | v1.63.1 |
 | v1.72.0 | Editar protocolo veterinario con auditoría de cambios | 2026-05-05 | v1.72.0 |
