@@ -119,7 +119,7 @@
             @can('compras.section')
             <a href="{{ route('purchases.section') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('purchases.*') || request()->routeIs('suppliers.*') || request()->routeIs('supplies.*') || request()->routeIs('supply-categories.*') || request()->routeIs('purchase-service-categories.*') || request()->routeIs('purchase-services.*') || request()->routeIs('stock-movements.*') || request()->routeIs('purchase-quotation-requests.*') || request()->routeIs('purchase-orders.*') || request()->routeIs('delivery-notes.*') || request()->routeIs('purchase-invoices.*') || request()->routeIs('purchase-credit-notes.*') || request()->routeIs('payment-orders.*')
+                {{ request()->routeIs('purchases.*') || request()->routeIs('suppliers.*') || request()->routeIs('supplies.*') || request()->routeIs('supply-categories.*') || request()->routeIs('purchase-service-categories.*') || request()->routeIs('purchase-services.*') || request()->routeIs('stock-movements.*') || request()->routeIs('purchase-quotation-requests.*') || request()->routeIs('purchase-orders.*') || request()->routeIs('delivery-notes.*') || request()->routeIs('purchase-invoices.*') || request()->routeIs('purchase-credit-notes.*') || request()->routeIs('payment-orders.*') || request()->routeIs('purchase-perceptions.*')
                     ? 'bg-zinc-700 text-white'
                     : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,6 +135,14 @@
                 </svg>
                 Cta. Cte. Proveedores
             </a>
+            @can('purchase-perceptions.index')
+            <a href="{{ route('purchase-perceptions.index') }}"
+               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                {{ request()->routeIs('purchase-perceptions.*') ? 'bg-zinc-700 text-white' : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
+                <i class="bi bi-percent w-5 h-5 mr-3 text-base flex-shrink-0"></i>
+                Percepciones
+            </a>
+            @endcan
             @endcan
 
             <!-- Ventas -->

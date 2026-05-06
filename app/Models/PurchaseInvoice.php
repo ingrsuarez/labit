@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseInvoice extends Model
@@ -89,6 +90,11 @@ class PurchaseInvoice extends Model
         return $this->hasMany(PurchaseCreditNote::class);
     }
 
+    public function perceptions(): HasMany
+    {
+        return $this->hasMany(PurchaseInvoicePerception::class)->orderBy('sort_order');
+    }
+
     public function recalculate(): void
     {
         // Subtotal = neto gravado. `items.total` ya incluye IVA por línea (misma convención que ventas).
@@ -100,7 +106,15 @@ class PurchaseInvoice extends Model
         $this->iva_21 = $ivaByRate[21.00] ?? $ivaByRate['21.00'] ?? 0;
         $this->iva_10_5 = $ivaByRate[10.50] ?? $ivaByRate['10.50'] ?? 0;
         $this->iva_27 = $ivaByRate[27.00] ?? $ivaByRate['27.00'] ?? 0;
-        $this->total = $this->subtotal + $this->iva_21 + $this->iva_10_5 + $this->iva_27 + $this->percepciones + $this->otros_impuestos;
+
+        // Percepciones desde la pivote (cache)
+        $this->percepciones = round((float) $this->perceptions()->sum('amount'), 2);
+
+        $this->total = round(
+            (float) $this->subtotal + (float) $this->iva_21 + (float) $this->iva_10_5
+            + (float) $this->iva_27 + (float) $this->percepciones + (float) $this->otros_impuestos,
+            2
+        );
         $this->balance = $this->total - $this->amount_paid;
         $this->save();
     }
