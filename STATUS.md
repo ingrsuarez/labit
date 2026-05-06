@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-06 (v1.63.1 — Percepciones en NC de proveedor)
+> Última actualización: 2026-05-06 (v1.75.0 — PDF sin observaciones internas)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **v1.72.0** (último tag mayor en repo); develop incluye además **v1.63.1** |
+| **Versión actual (línea v1.x)** | Último tag **v1.75.0**; develop incluye también **v1.63.1**, **v1.72.0**, etc. |
 | **Última en master** | v1.67.3 (Hotfix orden determinaciones en email veterinario) |
-| **Última completada (cola agente)** | v1.63.1 — Percepciones en NC de proveedor (espejo v1.63.0) |
+| **Última completada (cola agente)** | v1.75.0 — PDF sin observaciones internas (lab / vet / muestras) |
 | **En proceso** | — |
 | **Próxima recomendada** | v1.64.0 — Declaraciones de impuestos e imputación de anticipos (requiere Designer previo) |
-| **Pendientes en cola** | 6 (archivos `v*.md` en `pendientes/`) |
-| **Completadas** | 129 |
+| **Pendientes en cola** | 5 (archivos `v*.md` en `pendientes/`) |
+| **Completadas** | 130 |
 
 ---
 
@@ -28,10 +28,9 @@
 | 1 | v1.64.0 | Declaraciones de impuestos e imputación de anticipos | Designer primero; depende de v1.63.0 ✓ |
 | 2 | v1.73.0 | Estado "enviado" en protocolos de muestras | |
 | 3 | v1.74.0 | Envío masivo de protocolos de muestras por email | |
-| 4 | v1.75.0 | PDF de protocolos sin observaciones internas | |
-| 5 | v1.76.0 | Marcar determinaciones ratificadas | ROADMAP vigente |
+| 4 | v1.76.0 | Marcar determinaciones ratificadas | ROADMAP vigente |
 
-> v1.63.1 completado 2026-05-06. Bloque impuestos: sigue v1.64.0 cuando corresponda la sesión Designer.
+> v1.75.0 completado 2026-05-06 (PDF sin observaciones en informes al cliente). Bloque impuestos: sigue v1.64.0 cuando corresponda la sesión Designer.
 
 ### En proceso (0)
 
@@ -41,6 +40,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.75.0 | PDF de protocolos sin observaciones internas (lab, vet, muestras) | 2026-05-06 | v1.75.0 |
 | v1.63.1 | Percepciones en NC de proveedor (pivote + asientos + balances) | 2026-05-06 | v1.63.1 |
 | v1.72.0 | Editar protocolo veterinario con auditoría de cambios | 2026-05-05 | v1.72.0 |
 | v1.71.0 | Fix búsqueda y selección de determinaciones hijas en protocolos | 2026-05-05 | v1.71.0 |
