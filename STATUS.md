@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-06 (v1.75.1 — hotfix otros valores de referencia en PDF)
+> Última actualización: 2026-05-07 (v1.73.0 — estado enviado en protocolos de muestras)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | Último tag **v1.75.1** (hotfix PDF ref.); previo **v1.75.0**, **v1.63.1**, etc. |
-| **Última en master** | Release 2026-05-06: **v1.75.1** hotfix → master (`develop` → `master`) |
-| **Última completada (cola agente)** | v1.75.0 — PDF sin observaciones internas (lab / vet / muestras); hotfix **v1.75.1** sin prompt |
+| **Versión actual (línea v1.x)** | Último tag **v1.73.0** en `develop` (enviado muestras); producción puede seguir en **v1.75.1** hasta próximo release |
+| **Última en master** | Release 2026-05-06: **v1.75.1** (merge `develop` → `master`); **develop** va por delante con **v1.73.0** pendiente de release |
+| **Última completada (cola agente)** | **v1.73.0** — Estado enviado en protocolos de muestras (`sent_at`, badge Enviado, base para v1.74.0) |
 | **En proceso** | — |
 | **Próxima recomendada** | v1.64.0 — Declaraciones de impuestos e imputación de anticipos (requiere Designer previo) |
-| **Pendientes en cola** | 5 (archivos `v*.md` en `pendientes/`) |
-| **Completadas** | 130 |
+| **Pendientes en cola** | 4 (archivos `v*.md` en `pendientes/`) |
+| **Completadas** | 131 |
 
 ---
 
@@ -26,9 +26,8 @@
 | # | Versión | Nombre | Notas |
 |---|---|---|---|
 | 1 | v1.64.0 | Declaraciones de impuestos e imputación de anticipos | Designer primero; depende de v1.63.0 ✓ |
-| 2 | v1.73.0 | Estado "enviado" en protocolos de muestras | |
-| 3 | v1.74.0 | Envío masivo de protocolos de muestras por email | |
-| 4 | v1.76.0 | Marcar determinaciones ratificadas | ROADMAP vigente |
+| 2 | v1.74.0 | Envío masivo de protocolos de muestras por email | Depende de v1.73.0 ✓ |
+| 3 | v1.76.0 | Marcar determinaciones ratificadas | ROADMAP vigente |
 
 > v1.75.0 completado 2026-05-06 (PDF sin observaciones en informes al cliente). Bloque impuestos: sigue v1.64.0 cuando corresponda la sesión Designer.
 
@@ -40,6 +39,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.73.0 | Estado "enviado" en protocolos de muestras (`sent_at`, informe email/PDF) | 2026-05-07 | v1.73.0 |
 | v1.75.1 | Hotfix: otros valores de referencia visibles en PDF (clínico, vet, muestras) | 2026-05-06 | v1.75.1 |
 | v1.75.0 | PDF de protocolos sin observaciones internas (lab, vet, muestras) | 2026-05-06 | v1.75.0 |
 | v1.63.1 | Percepciones en NC de proveedor (pivote + asientos + balances) | 2026-05-06 | v1.63.1 |

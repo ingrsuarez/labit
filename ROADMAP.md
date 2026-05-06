@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-06 (v1.76.0 — Determinaciones ratificadas)
+> Última actualización: 2026-05-07 (v1.73.0 — Estado enviado en muestras)
 
 ---
 
@@ -150,7 +150,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 | v1.76.0 | Marcar determinaciones como ratificadas (valores anormales controlados) | Pendiente | `pendientes/v1.76.0-marcar-determinaciones-ratificadas.md` |
 | v1.75.0 | PDF de protocolos sin observaciones internas | Pendiente | `pendientes/v1.75.0-pdf-sin-observaciones-internas-protocolos.md` |
 | v1.74.0 | Envío masivo de protocolos de muestras por email | Pendiente | `pendientes/v1.74.0-envio-masivo-protocolos-muestras.md` |
-| v1.73.0 | Estado "enviado" en protocolos de muestras | Pendiente | `pendientes/v1.73.0-estado-enviado-protocolos-muestras.md` |
+| v1.73.0 | Estado "enviado" en protocolos de muestras | ✅ Completada (2026-05-07) | `completados/v1.73.0-estado-enviado-protocolos-muestras.md` |
 | v1.70.0 | Sección Pacientes en lab clínico (lista + sidebar) | Pendiente | `pendientes/v1.70.0-seccion-pacientes-lab-clinico.md` |
 | v1.69.0 | Estado protocolo clínico: columna, filtro y sync automático | Pendiente | `pendientes/v1.69.0-estado-protocolo-clinico-listado-filtro.md` |
 | v1.68.0 | Editar protocolo veterinario con auditoría | Pendiente | `pendientes/v1.68.0-editar-protocolo-veterinario-auditoria.md` |
