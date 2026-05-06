@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-05 (v1.73.0 y v1.74.0 — Envío masivo protocolos muestras)
+> Última actualización: 2026-05-06 (v1.75.0 — PDF protocolos sin observaciones internas)
 
 ---
 
@@ -147,6 +147,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
+| v1.75.0 | PDF de protocolos sin observaciones internas | Pendiente | `pendientes/v1.75.0-pdf-sin-observaciones-internas-protocolos.md` |
 | v1.74.0 | Envío masivo de protocolos de muestras por email | Pendiente | `pendientes/v1.74.0-envio-masivo-protocolos-muestras.md` |
 | v1.73.0 | Estado "enviado" en protocolos de muestras | Pendiente | `pendientes/v1.73.0-estado-enviado-protocolos-muestras.md` |
 | v1.70.0 | Sección Pacientes en lab clínico (lista + sidebar) | Pendiente | `pendientes/v1.70.0-seccion-pacientes-lab-clinico.md` |
