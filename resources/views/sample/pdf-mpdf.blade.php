@@ -472,7 +472,7 @@
                     <td style="padding-left: {{ $indent }}px;">{{ ucfirst($det->test->name ?? 'N/A') }}</td>
                     <td class="det-result">{{ $det->result ?? '-' }}</td>
                     <td class="det-unit">{{ $det->unit ?? '' }}</td>
-                    <td class="det-ref">{{ ($det->reference_value !== null && $det->reference_value !== '') ? $det->reference_value : ($det->test->other_reference ?? '') }}</td>
+                    <td class="det-ref">{{ \App\Support\ProtocolReferenceDisplay::line($det->reference_value, $det->test->other_reference ?? null) }}</td>
                 </tr>
                 @if($det->method)
                     <tr class="det-method">
@@ -484,7 +484,7 @@
                     <td>{{ ucfirst($det->test->name ?? 'N/A') }}</td>
                     <td class="det-result">{{ $det->result ?? '-' }}</td>
                     <td class="det-unit">{{ $det->unit ?? '' }}</td>
-                    <td class="det-ref">{{ ($det->reference_value !== null && $det->reference_value !== '') ? $det->reference_value : ($det->test->other_reference ?? '') }}</td>
+                    <td class="det-ref">{{ \App\Support\ProtocolReferenceDisplay::line($det->reference_value, $det->test->other_reference ?? null) }}</td>
                 </tr>
                 @if($det->method)
                     <tr class="det-method">
