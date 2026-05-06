@@ -10,7 +10,7 @@
 | Campo | Valor |
 |---|---|
 | **Versión actual (línea v1.x)** | Último tag **v1.75.0**; develop incluye también **v1.63.1**, **v1.72.0**, etc. |
-| **Última en master** | v1.67.3 (Hotfix orden determinaciones en email veterinario) |
+| **Última en master** | Release 2026-05-06: **v1.63.1**, **v1.75.0** (merge `develop` → `master`) |
 | **Última completada (cola agente)** | v1.75.0 — PDF sin observaciones internas (lab / vet / muestras) |
 | **En proceso** | — |
 | **Próxima recomendada** | v1.64.0 — Declaraciones de impuestos e imputación de anticipos (requiere Designer previo) |
