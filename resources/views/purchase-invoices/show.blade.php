@@ -244,7 +244,23 @@
                                 <dd class="font-medium text-gray-800">${{ number_format($invoice->iva_27, 2, ',', '.') }}</dd>
                             </div>
                         @endif
-                        @if($invoice->percepciones > 0)
+                        @if($invoice->perceptions->isNotEmpty())
+                            <div class="text-sm mb-1">
+                                <dt class="text-gray-600 font-medium mb-1">Percepciones</dt>
+                                @foreach($invoice->perceptions as $p)
+                                    <div class="flex justify-between pl-3">
+                                        <span class="text-gray-700">{{ $p->name_snapshot }}{{ $p->jurisdiction_snapshot ? ' ('.$p->jurisdiction_snapshot.')' : '' }}
+                                            @if($p->rate_snapshot > 0)<span class="text-gray-400 text-xs ml-1">{{ $p->rate_snapshot }}%</span>@endif
+                                        </span>
+                                        <span class="font-medium text-gray-800">${{ number_format($p->amount, 2, ',', '.') }}</span>
+                                    </div>
+                                @endforeach
+                                <div class="flex justify-between pl-3 border-t border-gray-200 pt-1 mt-1 font-semibold text-gray-800 text-sm">
+                                    <span>Total</span>
+                                    <span>${{ number_format($invoice->percepciones, 2, ',', '.') }}</span>
+                                </div>
+                            </div>
+                        @elseif($invoice->percepciones > 0)
                             <div class="flex justify-between text-sm">
                                 <dt class="text-gray-600">Percepciones</dt>
                                 <dd class="font-medium text-gray-800">${{ number_format($invoice->percepciones, 2, ',', '.') }}</dd>

@@ -2,7 +2,7 @@
 
 > Arquitectura técnica, estructura del proyecto y decisiones de diseño.
 > Fuente de verdad para el Agente CTO y cualquier agente que necesite contexto técnico.
-> Última actualización: 2026-04-27 (DD-009 facturación masiva: borrador editable + envío AFIP separado, líneas libres, filtro "Borradores AFIP")
+> Última actualización: 2026-05-05 (DD-010 percepciones de compra: tabla pivote por factura, catálogo multi-empresa, asiento granular por cuenta)
 
 ---
 
@@ -183,9 +183,15 @@ Los permisos se gestionan con Spatie Laravel Permission y se asignan por secció
 - **Razón:** Caso pedido por el cliente: necesita poder agregar líneas extras (toma de muestra, flete, descuentos) y revisar/quitar items antes de obtener el CAE. Emitir directamente desde el preview impedía cualquier ajuste, obligando a anular y rehacer ante el menor cambio. Reusar `edit` + `retry-afip` evita duplicar UI/endpoints y mantiene una sola pantalla de edición de facturas. El filtro del listado da visibilidad operativa de borradores pendientes para que no queden olvidados sin enviar a AFIP. La relajación de `invoice_number` permite que coexistan múltiples borradores con el placeholder mientras esperan CAE.
 - **Consecuencia:** Cambio de UX percibible (paso adicional). El banner amarillo "BORRADOR — pendiente de envío a AFIP" en `edit.blade.php` y el texto del botón "Crear borrador" en `batch-preview` lo comunican al usuario. El `invoice_number` solo se materializa con número AFIP cuando `retryAfip` recibe un CAE válido. Tests existentes que esperaban redirect a `show` con CAE inmediato deben ajustarse a la nueva semántica (el flujo masivo ya no emite en línea). Cualquier nueva regla de negocio sobre borradores AFIP debe consultarse contra el scope `afipDraft()` para mantener consistencia con el filtro y el badge del sidebar de facturas.
 
+### DD-010: Percepciones de compra — tabla pivote por factura con catálogo multi-empresa
+
+- **Decisión:** Las percepciones de compra se modelan con dos tablas nuevas: `purchase_perceptions` (catálogo por empresa, con `accounting_account_id`, `jurisdiction`, `rate`) y `purchase_invoice_perceptions` (pivote por factura, con snapshots de nombre/jurisdicción/tasa y `amount`). El campo `percepciones` de `purchase_invoices` se mantiene como cache agregado calculado por `recalculate()` a partir de la suma de la pivote. El `AccountingEntryService::fromPurchaseInvoice` genera una línea de débito individual por cada percepción usando su `accounting_account_id` snapshot, en lugar de una línea única genérica. Para facturas legacy sin pivote (`perceptions->isEmpty() && percepciones > 0`) se genera una línea genérica en cuenta `5.1.02` preservando compatibilidad.
+- **Razón:** El campo numérico único `percepciones` no permitía discriminar origen (IIBB Neuquén, IVA RG, ARBA, etc.) ni cuenta contable específica, impidiendo hacer un seguimiento preciso de anticipos para compensar contra DDJJ. La pivote con snapshots permite historial inmutable incluso si el catálogo cambia, y permite calcular el balance por tipo de percepción en el reporte `/purchase-perceptions/balances`.
+- **Consecuencia:** El bloque de percepciones en `create/edit` de facturas de compra es ahora multi-línea (Alpine.js) en lugar de un input numérico único. Los asientos de compra generados a partir de esta versión debitan cada percepción en su cuenta contable individual. El reporte de balances (`PurchasePerceptionBalanceService`) cruza los anticipos cargados en facturas con el saldo real de la cuenta contable en el período, mostrando la diferencia como `OK | diferencia`. Permisos nuevos: `purchase-perceptions.{index,create,edit,destroy,balances}`.
+
 ---
 
-## Integraciones externas
+
 
 | Integración | Tipo | Auth | Notas |
 |---|---|---|---|
