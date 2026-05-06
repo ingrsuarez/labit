@@ -5,6 +5,18 @@
 
 ---
 
+## [v1.73.0] — 2026-05-07 — Estado “enviado” en protocolos de muestras
+
+### Agregado
+- Columna `samples.sent_at`: al enviar por email o descargar PDF un protocolo **completamente validado**, se registra timestamp y el estado calculado pasa a **Enviado** (prioridad sobre “Validado”).
+- Filtro **Enviado** en el listado de protocolos de muestras; badge celeste (`sky`).
+- `Sample::isSent()` y limpieza de `sent_at` al revertir validación del protocolo.
+
+### Notas técnicas
+- Migración obligatoria en deploy: `php artisan migrate`.
+
+---
+
 ## [v1.75.1] — 2026-05-06 — Hotfix: “Otros valores de referencia” en informes PDF
 
 ### Corregido
