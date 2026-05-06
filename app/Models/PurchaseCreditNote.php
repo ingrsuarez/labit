@@ -57,6 +57,11 @@ class PurchaseCreditNote extends Model
         return $this->hasMany(PurchaseCreditNoteItem::class);
     }
 
+    public function perceptions(): HasMany
+    {
+        return $this->hasMany(PurchaseCreditNotePerception::class)->orderBy('sort_order');
+    }
+
     public function recalculate(): void
     {
         $this->subtotal = round((float) $this->items()->reorder()->sum(DB::raw('quantity * unit_price')), 2);
@@ -67,6 +72,9 @@ class PurchaseCreditNote extends Model
         $this->iva_21 = $ivaByRate[21.00] ?? $ivaByRate['21.00'] ?? 0;
         $this->iva_10_5 = $ivaByRate[10.50] ?? $ivaByRate['10.50'] ?? 0;
         $this->iva_27 = $ivaByRate[27.00] ?? $ivaByRate['27.00'] ?? 0;
+
+        $this->percepciones = round((float) $this->perceptions()->sum('amount'), 2);
+
         $this->total = round(
             (float) $this->subtotal + (float) $this->iva_21 + (float) $this->iva_10_5 + (float) $this->iva_27
             + (float) $this->percepciones + (float) $this->otros_impuestos,

@@ -134,13 +134,84 @@
             </div>
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">
+                    Percepciones <span class="text-xs font-normal text-gray-400">(opcional)</span>
+                </h3>
+                @if(isset($perceptionTypes) && $perceptionTypes->isNotEmpty())
+                    <div x-show="perceptionLines.length > 0" x-cloak class="overflow-x-auto mb-3">
+                        <table class="min-w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="pb-2 text-left text-xs font-medium text-gray-500 uppercase">Tipo de percepción</th>
+                                    <th class="pb-2 text-left text-xs font-medium text-gray-500 uppercase w-24">Alícuota</th>
+                                    <th class="pb-2 text-right text-xs font-medium text-gray-500 uppercase w-36">Monto</th>
+                                    <th class="pb-2 w-10"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="(line, idx) in perceptionLines" :key="idx">
+                                    <tr class="border-b border-gray-100">
+                                        <td class="py-2 pr-3">
+                                            <select x-model="line.purchase_perception_id" @change="onPerceptionSelect(idx)"
+                                                class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                                <option value="">Seleccionar...</option>
+                                                @foreach($perceptionTypes as $pt)
+                                                    <option value="{{ $pt->id }}"
+                                                        data-name="{{ $pt->name }}"
+                                                        data-jurisdiction="{{ $pt->jurisdiction }}"
+                                                        data-rate="{{ $pt->rate }}"
+                                                        data-account="{{ $pt->accounting_account_id }}">
+                                                        {{ $pt->name }}{{ $pt->jurisdiction ? ' ('.$pt->jurisdiction.')' : '' }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <input type="hidden" :name="'perceptions[' + idx + '][purchase_perception_id]'" :value="line.purchase_perception_id || ''">
+                                            <input type="hidden" :name="'perceptions[' + idx + '][name_snapshot]'" :value="line.name_snapshot">
+                                            <input type="hidden" :name="'perceptions[' + idx + '][jurisdiction_snapshot]'" :value="line.jurisdiction_snapshot">
+                                            <input type="hidden" :name="'perceptions[' + idx + '][rate_snapshot]'" :value="line.rate_snapshot">
+                                            <input type="hidden" :name="'perceptions[' + idx + '][accounting_account_id]'" :value="line.accounting_account_id">
+                                        </td>
+                                        <td class="py-2 pr-3 text-sm text-gray-600" x-text="line.rate_snapshot > 0 ? line.rate_snapshot + '%' : '—'"></td>
+                                        <td class="py-2 pr-3">
+                                            <input type="number" step="0.01" min="0"
+                                                :name="'perceptions[' + idx + '][amount]'"
+                                                x-model.number="line.amount"
+                                                class="w-full rounded-lg border-gray-300 text-sm text-right focus:border-zinc-500 focus:ring-zinc-500"
+                                                placeholder="0.00">
+                                        </td>
+                                        <td class="py-2">
+                                            <button type="button" @click="removePerception(idx)"
+                                                class="text-red-400 hover:text-red-600 transition-colors">
+                                                <i class="bi bi-x-lg text-sm"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <button type="button" @click="addPerception()"
+                            class="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-800 transition-colors">
+                            <i class="bi bi-plus me-1"></i> Agregar percepción
+                        </button>
+                        <span x-show="perceptionsTotal > 0" x-cloak class="text-sm font-medium text-gray-700">
+                            Total percepciones: $<span x-text="formatMoney(perceptionsTotal)"></span>
+                        </span>
+                    </div>
+                @else
+                    <p class="text-sm text-gray-500">
+                        No hay percepciones configuradas para esta empresa.
+                        @can('purchase-perceptions.create')
+                            <a href="{{ route('purchase-perceptions.index') }}" class="text-indigo-600 hover:underline ml-1">Configurar →</a>
+                        @endcan
+                    </p>
+                @endif
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">Otros importes</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Percepciones</label>
-                        <input type="number" step="0.01" min="0" name="percepciones" x-model.number="percepciones"
-                               class="w-full rounded-lg border-gray-300 text-sm">
-                    </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Otros impuestos</label>
                         <input type="number" step="0.01" min="0" name="otros_impuestos" x-model.number="otros_impuestos"
@@ -166,6 +237,16 @@
         </form>
     </div>
 
+    @php
+        $perceptionCatalogJsonNc = ($perceptionTypes ?? collect())->map(fn ($p) => [
+            'id' => $p->id,
+            'name' => $p->name,
+            'jurisdiction' => $p->jurisdiction,
+            'rate' => $p->rate,
+            'accounting_account_id' => $p->accounting_account_id,
+        ])->values();
+    @endphp
+
     <script>
         function ncForm() {
             return {
@@ -178,8 +259,9 @@
                 selectedPiPreset: @json($selectedPurchaseInvoiceId ? (string) $selectedPurchaseInvoiceId : ''),
                 purchaseInvoices: [],
                 duplicateWarning: false,
-                percepciones: 0,
                 otros_impuestos: 0,
+                perceptionLines: @json($perceptionLines ?? []),
+                perceptionCatalog: @json($perceptionCatalogJsonNc),
                 items: [{ description: '', quantity: 1, unit_price: 0, iva_rate: '21' }],
 
                 init() {
@@ -267,7 +349,35 @@
                 },
 
                 get grandTotal() {
-                    return this.subtotal + this.totalIva + parseFloat(this.percepciones || 0) + parseFloat(this.otros_impuestos || 0);
+                    return this.subtotal + this.totalIva + this.perceptionsTotal + parseFloat(this.otros_impuestos || 0);
+                },
+
+                get perceptionsTotal() {
+                    return this.perceptionLines.reduce((sum, l) => sum + (parseFloat(l.amount) || 0), 0);
+                },
+
+                addPerception() {
+                    this.perceptionLines.push({ purchase_perception_id: '', name_snapshot: '', jurisdiction_snapshot: '', rate_snapshot: 0, accounting_account_id: '', amount: 0 });
+                },
+
+                removePerception(idx) {
+                    this.perceptionLines.splice(idx, 1);
+                },
+
+                onPerceptionSelect(idx) {
+                    const line = this.perceptionLines[idx];
+                    const found = this.perceptionCatalog.find(p => p.id == line.purchase_perception_id);
+                    if (found) {
+                        line.name_snapshot = found.name;
+                        line.jurisdiction_snapshot = found.jurisdiction || '';
+                        line.rate_snapshot = found.rate;
+                        line.accounting_account_id = found.accounting_account_id;
+                    } else {
+                        line.name_snapshot = '';
+                        line.jurisdiction_snapshot = '';
+                        line.rate_snapshot = 0;
+                        line.accounting_account_id = '';
+                    }
                 },
 
                 formatMoney(val) {
