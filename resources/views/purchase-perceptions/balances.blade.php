@@ -49,6 +49,8 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jurisdicción</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cuenta contable</th>
                                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Anticipos cargados</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Imputado (DDJJ)</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Disponible</th>
                                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Saldo en cuenta (Libro Mayor)
                                     <span class="ml-1 text-gray-400" title="Calculado desde asientos contables del período seleccionado.">
@@ -59,10 +61,12 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @php $totalAnticipos = 0; $totalSaldo = 0; @endphp
+                            @php $totalAnticipos = 0; $totalImputado = 0; $totalDisponible = 0; $totalSaldo = 0; @endphp
                             @foreach($balances as $row)
                                 @php
                                     $totalAnticipos += $row['anticipos_cargados'];
+                                    $totalImputado += $row['imputado'];
+                                    $totalDisponible += $row['disponible'];
                                     $totalSaldo += $row['saldo_cuenta'];
                                     $esCero = abs($row['diferencia']) < 0.01;
                                 @endphp
@@ -79,6 +83,12 @@
                                     </td>
                                     <td class="px-6 py-4 text-sm text-right font-medium text-gray-800">
                                         ${{ number_format($row['anticipos_cargados'], 2, ',', '.') }}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-right font-medium text-gray-800">
+                                        ${{ number_format($row['imputado'], 2, ',', '.') }}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-right font-medium text-gray-800">
+                                        ${{ number_format($row['disponible'], 2, ',', '.') }}
                                     </td>
                                     <td class="px-6 py-4 text-sm text-right font-medium text-gray-800">
                                         ${{ number_format($row['saldo_cuenta'], 2, ',', '.') }}
@@ -101,6 +111,12 @@
                                 <td colspan="3" class="px-6 py-3 text-sm font-semibold text-gray-700">Totales</td>
                                 <td class="px-6 py-3 text-sm text-right font-bold text-gray-900">
                                     ${{ number_format($totalAnticipos, 2, ',', '.') }}
+                                </td>
+                                <td class="px-6 py-3 text-sm text-right font-bold text-gray-900">
+                                    ${{ number_format($totalImputado, 2, ',', '.') }}
+                                </td>
+                                <td class="px-6 py-3 text-sm text-right font-bold text-gray-900">
+                                    ${{ number_format($totalDisponible, 2, ',', '.') }}
                                 </td>
                                 <td class="px-6 py-3 text-sm text-right font-bold text-gray-900">
                                     ${{ number_format($totalSaldo, 2, ',', '.') }}

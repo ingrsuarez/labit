@@ -2,7 +2,7 @@
 
 > Arquitectura técnica, estructura del proyecto y decisiones de diseño.
 > Fuente de verdad para el Agente CTO y cualquier agente que necesite contexto técnico.
-> Última actualización: 2026-05-05 (DD-010 percepciones de compra: tabla pivote por factura, catálogo multi-empresa, asiento granular por cuenta)
+> Última actualización: 2026-05-06 (DD-011 declaraciones juradas de impuestos e imputación de anticipos)
 
 ---
 
@@ -189,6 +189,12 @@ Los permisos se gestionan con Spatie Laravel Permission y se asignan por secció
 - **Razón:** El campo numérico único `percepciones` no permitía discriminar origen (IIBB Neuquén, IVA RG, ARBA, etc.) ni cuenta contable específica, impidiendo hacer un seguimiento preciso de anticipos para compensar contra DDJJ. La pivote con snapshots permite historial inmutable incluso si el catálogo cambia, y permite calcular el balance por tipo de percepción en el reporte `/purchase-perceptions/balances`.
 - **Consecuencia:** El bloque de percepciones en `create/edit` de facturas de compra es ahora multi-línea (Alpine.js) en lugar de un input numérico único. Los asientos de compra generados a partir de esta versión debitan cada percepción en su cuenta contable individual. El reporte de balances (`PurchasePerceptionBalanceService`) cruza los anticipos cargados en facturas con el saldo real de la cuenta contable en el período, mostrando la diferencia como `OK | diferencia`. Permisos nuevos: `purchase-perceptions.{index,create,edit,destroy,balances}`.
 - **Extensión v1.63.1:** El mismo patrón de pivote aplica a **notas de crédito de proveedor** (`purchase_credit_note_perceptions` → modelo `PurchaseCreditNotePerception`). El campo cache `percepciones` en `purchase_credit_notes` se recalcula desde la pivote. En `AccountingEntryService::fromPurchaseCreditNote`, cada percepción genera un **crédito** en la cuenta snapshot (revierte el débito que hizo la FC). El reporte de balances resta los montos de NC del total de anticipos cargados para la misma `purchase_perception_id`.
+
+### DD-011: Declaraciones juradas de impuestos e imputación de anticipos sufridos (v1.64.0)
+
+- **Decisión:** Catálogo `Tax` por empresa con cuenta de pasivo (`liability_account_id`) y periodicidad (`monthly` / `quarterly` / `annual`). Las percepciones del catálogo (`purchase_perceptions.tax_id`) agrupan anticipos bajo el mismo impuesto. Las DDJJ se modelan como `TaxReturn` (estados `draft` / `confirmed` / `cancelled`) con líneas explícitas `TaxReturnApplication` que referencian `purchase_invoice_perceptions` y/o `purchase_credit_note_perceptions`. Al **confirmar**, `TaxReturnService::confirm` genera un asiento automático vía `AccountingEntryService::createEntryForSource`: créditos en cuentas de anticipo por FC, débitos por NC, débito en pasivo por monto declarado y líneas de ajuste en la misma cuenta de pasivo para saldo a pagar o saldo a favor. La **anulación** crea un asiento reverso (`cancel`) y libera anticipos para nuevas DDJJ. El reporte de saldos suma columna **imputado** desde aplicaciones en declaraciones confirmadas y **disponible** = anticipos del período − imputado.
+- **Razón:** Los anticipos cargados en percepciones (v1.63.x) necesitan un circuito contable de cierre contra obligación fiscal sin duplicar líneas en FC; la DDJJ formaliza el período y permite auditar qué anticipos se compensaron.
+- **Consecuencia:** Permisos `taxes.manage` y `tax-returns.manage` (admin + contador vía `TaxDeclarationsPermissionsSeeder`). El pago en efectivo del saldo a pagar sigue siendo asiento manual en Libro Diario (v3.4.0). Restricción MySQL: FKs en `tax_return_applications` usan nombres cortos (`tra_applications_*_fk`) por límite de longitud de identificadores.
 
 ---
 
