@@ -105,6 +105,11 @@ class Admission extends Model
         return $this->hasMany(AdmissionTest::class);
     }
 
+    public function determinationProfileApplications()
+    {
+        return $this->morphMany(DeterminationProfileApplication::class, 'applicable')->latest();
+    }
+
     /**
      * Relación con las prácticas (alias para compatibilidad)
      */

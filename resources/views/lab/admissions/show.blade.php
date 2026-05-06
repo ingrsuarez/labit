@@ -206,6 +206,68 @@
                         </div>
                     </div>
 
+                    @can('lab-admissions.edit')
+                        @if(($clinicalProfiles ?? collect())->isNotEmpty())
+                            @php
+                                $withResultsBanner = $admission->admissionTests->filter(fn ($at) => $at->result !== null && $at->result !== '')->count() > 0;
+                            @endphp
+                            @if($withResultsBanner)
+                                <div class="mx-6 mt-4 p-3 bg-blue-50 border-l-4 border-blue-400 text-sm text-blue-900 rounded">
+                                    Podés aplicar perfiles guardados: solo se <strong>agregan</strong> prácticas nuevas; no se modifican resultados existentes.
+                                </div>
+                            @endif
+                            <div class="mx-6 mt-4 mb-2 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                                <h3 class="text-sm font-semibold text-gray-800 mb-2">Aplicar perfiles guardados</h3>
+                                <p class="text-xs text-gray-600 mb-3">Las prácticas ya cargadas no se duplican. Respeta cobertura / nomenclador de la obra social.</p>
+                                <form action="{{ route('lab.admissions.determination-profiles.apply', $admission) }}" method="POST" class="flex flex-col sm:flex-row gap-3 sm:items-end">
+                                    @csrf
+                                    <div class="flex-1 min-w-[200px]">
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Perfiles (uno o varios con Ctrl/Cmd)</label>
+                                        <select name="profile_ids[]" multiple required size="4"
+                                                class="w-full rounded-lg border-gray-300 text-sm">
+                                            @foreach($clinicalProfiles as $p)
+                                                <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 whitespace-nowrap">
+                                        Aplicar perfiles
+                                    </button>
+                                </form>
+                                @can('determination-profiles.manage')
+                                    <a href="{{ route('determination-profiles.index') }}" class="inline-block mt-2 text-xs text-teal-600 hover:underline">Gestionar perfiles</a>
+                                @endcan
+                            </div>
+                        @else
+                            <div class="mx-6 mt-4 text-sm text-gray-500">
+                                No hay perfiles configurados para laboratorio clínico.
+                                @can('determination-profiles.manage')
+                                    <a href="{{ route('determination-profiles.create') }}" class="text-teal-600 hover:underline">Crear perfil</a>
+                                @endcan
+                            </div>
+                        @endif
+                    @endcan
+
+                    @if($admission->determinationProfileApplications->isNotEmpty())
+                        <div class="mx-6 mt-4 border-t border-gray-100 pt-4">
+                            <h3 class="text-sm font-semibold text-gray-800 mb-2">Perfiles aplicados (historial)</h3>
+                            <ul class="text-sm text-gray-700 space-y-2">
+                                @foreach($admission->determinationProfileApplications as $app)
+                                    <li class="flex flex-wrap gap-x-4 gap-y-1 border-b border-gray-50 pb-2">
+                                        <span class="text-gray-500">{{ $app->created_at->format('d/m/Y H:i') }}</span>
+                                        <span>{{ $app->user?->name ?? '—' }}</span>
+                                        <span>
+                                            @foreach($app->profiles_snapshot ?? [] as $snap)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-xs font-mono mr-1" title="ID {{ $snap['id'] ?? '' }}">{{ $snap['name'] ?? '' }}</span>
+                                            @endforeach
+                                        </span>
+                                        <span class="text-xs text-gray-500">+{{ $app->tests_added_count }} / omitidas {{ $app->tests_skipped_duplicate_count }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     @if($admission->admissionTests->count() > 0)
                         @php
                             $allProtocolTestIds = $admission->admissionTests->pluck('test_id')->toArray();

@@ -245,6 +245,49 @@
                         </div>
                     </div>
 
+                    @can('samples.edit')
+                        @if(($sampleProfiles ?? collect())->isNotEmpty())
+                            <div class="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                                <h3 class="text-sm font-semibold text-gray-800 mb-2">Aplicar perfiles guardados</h3>
+                                <p class="text-xs text-gray-600 mb-3">Las determinaciones ya cargadas no se duplican.</p>
+                                <form action="{{ route('sample.determination-profiles.apply', $sample) }}" method="POST" class="flex flex-col sm:flex-row gap-3 sm:items-end">
+                                    @csrf
+                                    <div class="flex-1">
+                                        <select name="profile_ids[]" multiple required size="4" class="w-full rounded-lg border-gray-300 text-sm">
+                                            @foreach($sampleProfiles as $p)
+                                                <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700">Aplicar perfiles</button>
+                                </form>
+                                @can('determination-profiles.manage')
+                                    <a href="{{ route('determination-profiles.index') }}" class="inline-block mt-2 text-xs text-teal-600 hover:underline">Gestionar perfiles</a>
+                                @endcan
+                            </div>
+                        @endif
+                    @endcan
+
+                    @if($sample->determinationProfileApplications->isNotEmpty())
+                        <div class="mb-4 border-t border-gray-100 pt-4">
+                            <h3 class="text-sm font-semibold text-gray-800 mb-2">Perfiles aplicados</h3>
+                            <ul class="text-sm text-gray-700 space-y-2">
+                                @foreach($sample->determinationProfileApplications as $app)
+                                    <li class="flex flex-wrap gap-x-4 gap-y-1 text-xs border-b border-gray-50 pb-2">
+                                        <span class="text-gray-500">{{ $app->created_at->format('d/m/Y H:i') }}</span>
+                                        <span>{{ $app->user?->name ?? '—' }}</span>
+                                        <span>
+                                            @foreach($app->profiles_snapshot ?? [] as $snap)
+                                                <span class="inline-flex px-2 py-0.5 rounded bg-gray-100 font-mono mr-1" title="ID {{ $snap['id'] ?? '' }}">{{ $snap['name'] ?? '' }}</span>
+                                            @endforeach
+                                        </span>
+                                        <span class="text-gray-500">+{{ $app->tests_added_count }} / omitidas {{ $app->tests_skipped_duplicate_count }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     @php
                         $allSampleTestIds = $sample->determinations->pluck('test_id')->toArray();
 

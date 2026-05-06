@@ -50,6 +50,11 @@ class VetAdmission extends Model
         return $this->hasMany(VetAdmissionTest::class);
     }
 
+    public function determinationProfileApplications()
+    {
+        return $this->morphMany(DeterminationProfileApplication::class, 'applicable')->latest();
+    }
+
     /**
      * Determinaciones en orden de informe (jerarquía + sort_order), todas las filas.
      *
