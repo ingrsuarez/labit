@@ -5,6 +5,18 @@
 
 ---
 
+## [v1.75.1] — 2026-05-06 — Hotfix: “Otros valores de referencia” en informes PDF
+
+### Corregido
+- **Laboratorio clínico, muestras y veterinario:** la columna de valores de referencia en los PDF (mPDF) ahora muestra correctamente el texto de **Otros valores de referencia** del catálogo cuando corresponde, incluyendo combinación con rangos numéricos (`App\Support\ProtocolReferenceDisplay`).
+- **Veterinario:** el PDF solo imprimía `reference_value`; se unifica el criterio con clínico/muestras usando el mismo helper y `tests.other_reference`.
+- **Carga de resultados (lab clínico):** la fila de valor de referencia en pantalla y el valor enviado al guardar incluyen `other_reference`, evitando “Sin ref.” cuando solo está cargado ahí.
+
+### Notas técnicas
+- Sin migraciones. Solo `git pull` en producción.
+
+---
+
 ## [v1.67.3] — 2026-05-04 — Hotfix: orden de determinaciones en email veterinario
 
 ### Corregido

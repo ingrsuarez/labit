@@ -330,17 +330,19 @@
                                                 $needsConfig = false;
                                                 if (!$hasChildren) {
                                                     $testUnit = $admissionTest->test->unit;
+                                                    $primaryRef = null;
                                                     $defaultRef = $admissionTest->test->referenceValues->where('is_default', true)->first();
                                                     if ($defaultRef) {
                                                         if ($defaultRef->min_value !== null && $defaultRef->max_value !== null) {
-                                                            $refValue = $defaultRef->min_value . ' - ' . $defaultRef->max_value;
+                                                            $primaryRef = $defaultRef->min_value . ' - ' . $defaultRef->max_value;
                                                         } elseif ($defaultRef->value) {
-                                                            $refValue = $defaultRef->value;
+                                                            $primaryRef = $defaultRef->value;
                                                         }
                                                     } elseif ($admissionTest->test->low !== null && $admissionTest->test->high !== null) {
-                                                        $refValue = $admissionTest->test->low . ' - ' . $admissionTest->test->high;
+                                                        $primaryRef = $admissionTest->test->low . ' - ' . $admissionTest->test->high;
                                                     }
-                                                    $needsConfig = empty($testUnit) || empty($refValue);
+                                                    $refValue = \App\Support\ProtocolReferenceDisplay::line($primaryRef, $admissionTest->test->other_reference ?? null);
+                                                    $needsConfig = empty($testUnit) || $refValue === '';
                                                 }
                                             @endphp
                                             <tr class="{{ $hasChildren ? 'bg-teal-50' . ($level === 0 ? ' border-l-4 border-teal-500' : ' border-l-4 border-teal-300') : 'hover:bg-gray-50' }} {{ $isChild && !$hasChildren ? 'bg-gray-50/50' : '' }} {{ $admissionTest->is_validated ? 'bg-green-50' : '' }}">

@@ -279,14 +279,14 @@
                     <td style="padding-left: {{ $indent }}px;">{{ ucfirst($vt->test->name ?? 'N/A') }}</td>
                     <td class="det-result">{{ $vt->result ?? '-' }}</td>
                     <td class="det-unit">{{ $vt->unit ?? $vt->test->unit ?? '' }}</td>
-                    <td class="det-ref">{{ $vt->reference_value ?? '' }}</td>
+                    <td class="det-ref">{{ \App\Support\ProtocolReferenceDisplay::line($vt->reference_value, $vt->test->other_reference ?? null) }}</td>
                 </tr>
             @else
                 <tr class="det-standalone">
                     <td>{{ ucfirst($vt->test->name ?? 'N/A') }}</td>
                     <td class="det-result">{{ $vt->result ?? '-' }}</td>
                     <td class="det-unit">{{ $vt->unit ?? $vt->test->unit ?? '' }}</td>
-                    <td class="det-ref">{{ $vt->reference_value ?? '' }}</td>
+                    <td class="det-ref">{{ \App\Support\ProtocolReferenceDisplay::line($vt->reference_value, $vt->test->other_reference ?? null) }}</td>
                 </tr>
             @endif
         @endforeach
