@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-05 (v1.72.0 — Editar protocolo veterinario con auditoría)
+> Última actualización: 2026-05-06 (v1.63.1 — Percepciones en NC de proveedor)
 
 ---
 
@@ -9,38 +9,39 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual** | **v1.72.0** en **develop** |
+| **Versión actual (línea v1.x)** | **v1.72.0** (último tag mayor en repo); develop incluye además **v1.63.1** |
 | **Última en master** | v1.67.3 (Hotfix orden determinaciones en email veterinario) |
-| **Última completada** | v1.72.0 — Editar protocolo veterinario con auditoría |
+| **Última completada (cola agente)** | v1.63.1 — Percepciones en NC de proveedor (espejo v1.63.0) |
 | **En proceso** | — |
-| **Próxima recomendada** | v1.63.1 — Percepciones en NC de proveedor |
-| **Pendientes en cola** | 2 |
-| **Completadas** | 128 |
+| **Próxima recomendada** | v1.64.0 — Declaraciones de impuestos e imputación de anticipos (requiere Designer previo) |
+| **Pendientes en cola** | 6 (archivos `v*.md` en `pendientes/`) |
+| **Completadas** | 129 |
 
 ---
 
 ## Cola de prompts
 
-### Pendientes (2) — orden de ejecución recomendado por PM
+### Pendientes — próximo por orden de versión (`ls pendientes \| sort`)
 
-| # | Versión | Nombre | Designer | Prompt |
-|---|---|---|---|---|
-| 1 | v1.63.1 | Percepciones en NC de proveedor (espejo de v1.63.0) | — | `pendientes/v1.63.1-percepciones-nc-proveedor.md` |
-| 2 | v1.64.0 | Declaraciones de impuestos e imputación de anticipos sufridos | Sí | `pendientes/v1.64.0-declaraciones-impuestos-imputacion-anticipos.md` |
+| # | Versión | Nombre | Notas |
+|---|---|---|---|
+| 1 | v1.64.0 | Declaraciones de impuestos e imputación de anticipos | Designer primero; depende de v1.63.0 ✓ |
+| 2 | v1.73.0 | Estado "enviado" en protocolos de muestras | |
+| 3 | v1.74.0 | Envío masivo de protocolos de muestras por email | |
+| 4 | v1.75.0 | PDF de protocolos sin observaciones internas | |
+| 5 | v1.76.0 | Marcar determinaciones ratificadas | ROADMAP vigente |
 
-> **Razonamiento del orden** (sesión PM/Dev 2026-05-05):
-> 1. v1.71.0 — Fix determinaciones hijas completado ✓
-> 2. v1.72.0 — Editar protocolo vet con auditoría completado ✓
-> 3-4. Bloque temático de impuestos (v1.63.1 → v1.64.0, requieren v1.63.0 bloqueado por Designer)
+> v1.63.1 completado 2026-05-06. Bloque impuestos: sigue v1.64.0 cuando corresponda la sesión Designer.
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (107)
+### Completados (108+)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.63.1 | Percepciones en NC de proveedor (pivote + asientos + balances) | 2026-05-06 | v1.63.1 |
 | v1.72.0 | Editar protocolo veterinario con auditoría de cambios | 2026-05-05 | v1.72.0 |
 | v1.71.0 | Fix búsqueda y selección de determinaciones hijas en protocolos | 2026-05-05 | v1.71.0 |
 | v1.70.0 | Sección Pacientes en lab clínico (lista + sidebar) | 2026-05-05 | v1.70.0 |
@@ -251,10 +252,9 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-**v1.72.0 completada y mergeada a develop (2026-05-05).** Cola priorizada con 2 pendientes:
+**v1.63.1 completada y mergeada a develop (2026-05-06).** Tag `v1.63.1`. Próximo prompt disponible por versión mínima: **v1.64.0** (declaraciones + imputación; conviene validar handoff Designer antes de ejecutar).
 
-1. **v1.63.1** — Percepciones en NC de proveedor (sin Designer, ~1 día) — depende de v1.63.0
-2. **v1.64.0** — DDJJ + imputación de anticipos (Designer primero, ~2 días) — depende de v1.63.0
+Pendientes adicionales en cola: **v1.73.0** … **v1.76.0** (cadena muestras / PDF / ratificación — ver `pendientes/`).
 
 **Cadena LISCOM↔labit:** completada en labit (v1.46.0, v1.47.0, v1.48.5, v1.51.0, v1.53.0).
 Pendientes en repo `interfases` (Django): v1.48.0, v1.49.0, v1.50.0, v1.52.0.
