@@ -166,6 +166,9 @@ class PurchaseInvoiceController extends Controller
             'selectedSupplierId' => $request->supplier_id,
             'branches' => $branches,
             'purchaseServiceCatalog' => PurchaseService::catalogGroupsForCompany(active_company_id()),
+            'perceptionTypes' => \App\Models\PurchasePerception::where('company_id', active_company_id())
+                ->active()->with('accountingAccount')->orderBy('sort_order')->orderBy('name')->get(),
+            'perceptionLines' => [],
         ]);
     }
 
@@ -195,6 +198,9 @@ class PurchaseInvoiceController extends Controller
             'cae' => 'nullable|string|max:20',
             'cuit_emisor' => 'nullable|string|max:13',
             'qr_data' => 'nullable|string',
+            'perceptions' => 'nullable|array',
+            'perceptions.*.accounting_account_id' => 'nullable|exists:accounting_accounts,id',
+            'perceptions.*.amount' => 'nullable|numeric|min:0',
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string',
             'items.*.supply_id' => 'nullable|exists:supplies,id',
@@ -293,6 +299,22 @@ class PurchaseInvoiceController extends Controller
             ]);
         }
 
+        // Procesar líneas de percepción
+        $invoice->perceptions()->delete();
+        foreach ($request->input('perceptions', []) as $idx => $line) {
+            if (! empty($line['accounting_account_id']) && (float) ($line['amount'] ?? 0) > 0) {
+                $invoice->perceptions()->create([
+                    'purchase_perception_id' => $line['purchase_perception_id'] ?: null,
+                    'accounting_account_id' => $line['accounting_account_id'],
+                    'name_snapshot' => $line['name_snapshot'] ?? '',
+                    'jurisdiction_snapshot' => $line['jurisdiction_snapshot'] ?? null,
+                    'rate_snapshot' => $line['rate_snapshot'] ?? 0,
+                    'amount' => $line['amount'],
+                    'sort_order' => $idx,
+                ]);
+            }
+        }
+
         $invoice->recalculate();
 
         $stockItems = $invoice->items()->whereNotNull('supply_id')->where('updates_stock', true)->get();
@@ -344,7 +366,7 @@ class PurchaseInvoiceController extends Controller
         $purchaseInvoice->load([
             'supplier', 'deliveryNotes', 'purchaseOrder', 'creator',
             'items.supply', 'items.purchaseService.category', 'paymentOrderItems.paymentOrder',
-            'purchaseCreditNotes',
+            'purchaseCreditNotes', 'perceptions.accountingAccount',
         ]);
 
         return view('purchase-invoices.show', ['invoice' => $purchaseInvoice]);
@@ -361,7 +383,7 @@ class PurchaseInvoiceController extends Controller
                 ->with('error', 'Solo se pueden editar facturas en estado pendiente.');
         }
 
-        $purchaseInvoice->load(['items.supply', 'deliveryNotes']);
+        $purchaseInvoice->load(['items.supply', 'deliveryNotes', 'perceptions']);
         $suppliers = Supplier::active()->orderBy('name')->get();
         $branches = LabBranchResolver::activeBranchesForForms();
         $companies = auth()->user()->companies()->orderBy('name')->get();
@@ -372,6 +394,16 @@ class PurchaseInvoiceController extends Controller
             'branches' => $branches,
             'companies' => $companies,
             'purchaseServiceCatalog' => PurchaseService::catalogGroupsForCompany((int) $purchaseInvoice->company_id),
+            'perceptionTypes' => \App\Models\PurchasePerception::where('company_id', (int) $purchaseInvoice->company_id)
+                ->active()->with('accountingAccount')->orderBy('sort_order')->orderBy('name')->get(),
+            'perceptionLines' => $purchaseInvoice->perceptions->map(fn ($p) => [
+                'purchase_perception_id' => $p->purchase_perception_id,
+                'name_snapshot' => $p->name_snapshot,
+                'jurisdiction_snapshot' => $p->jurisdiction_snapshot,
+                'rate_snapshot' => $p->rate_snapshot,
+                'accounting_account_id' => $p->accounting_account_id,
+                'amount' => $p->amount,
+            ])->toArray(),
         ]);
     }
 
@@ -420,6 +452,9 @@ class PurchaseInvoiceController extends Controller
             'cae' => 'nullable|string|max:20',
             'cuit_emisor' => 'nullable|string|max:13',
             'qr_data' => 'nullable|string',
+            'perceptions' => 'nullable|array',
+            'perceptions.*.accounting_account_id' => 'nullable|exists:accounting_accounts,id',
+            'perceptions.*.amount' => 'nullable|numeric|min:0',
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string',
             'items.*.supply_id' => 'nullable|exists:supplies,id',
@@ -516,6 +551,22 @@ class PurchaseInvoiceController extends Controller
                 'expiration_date' => $purchaseServiceId ? null : ($itemData['expiration_date'] ?? null),
                 'updates_stock' => $updatesStock,
             ]);
+        }
+
+        // Procesar líneas de percepción
+        $purchaseInvoice->perceptions()->delete();
+        foreach ($request->input('perceptions', []) as $idx => $line) {
+            if (! empty($line['accounting_account_id']) && (float) ($line['amount'] ?? 0) > 0) {
+                $purchaseInvoice->perceptions()->create([
+                    'purchase_perception_id' => $line['purchase_perception_id'] ?: null,
+                    'accounting_account_id' => $line['accounting_account_id'],
+                    'name_snapshot' => $line['name_snapshot'] ?? '',
+                    'jurisdiction_snapshot' => $line['jurisdiction_snapshot'] ?? null,
+                    'rate_snapshot' => $line['rate_snapshot'] ?? 0,
+                    'amount' => $line['amount'],
+                    'sort_order' => $idx,
+                ]);
+            }
         }
 
         $purchaseInvoice->recalculate();

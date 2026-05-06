@@ -264,7 +264,7 @@ class AccountingEntryService
 
     public function fromPurchaseInvoice(PurchaseInvoice $invoice): ?JournalEntry
     {
-        $invoice->loadMissing(['items', 'supplier']);
+        $invoice->loadMissing(['items', 'supplier', 'perceptions.accountingAccount']);
 
         $itemsWithSupply = $invoice->items->whereNotNull('supply_id');
         $itemsWithoutSupply = $invoice->items->whereNull('supply_id');
@@ -277,8 +277,7 @@ class AccountingEntryService
             2
         );
         $totalBruto = round((float) $invoice->total, 2);
-
-        $percOtros = round((float) $invoice->percepciones + (float) $invoice->otros_impuestos, 2);
+        $otrosImp = round((float) $invoice->otros_impuestos, 2);
 
         $lines = [];
 
@@ -291,7 +290,8 @@ class AccountingEntryService
             ];
         }
 
-        $netoServiciosPlus = $netoServicios + $percOtros;
+        // Servicios + otros_impuestos (percepciones van a sus cuentas individuales)
+        $netoServiciosPlus = $netoServicios + $otrosImp;
         if ($netoServiciosPlus > 0) {
             $lines[] = [
                 'account_code' => '5.1.02',
@@ -307,6 +307,32 @@ class AccountingEntryService
                 'debit' => $totalIva,
                 'credit' => 0,
                 'description' => 'IVA crédito fiscal',
+            ];
+        }
+
+        // Una línea DB por cada percepción (anticipo sufrido → activo corriente)
+        foreach ($invoice->perceptions as $perception) {
+            $amt = round((float) $perception->amount, 2);
+            if ($amt <= 0 || ! $perception->accountingAccount) {
+                continue;
+            }
+            $lines[] = [
+                'account_code' => $perception->accountingAccount->code,
+                'debit' => $amt,
+                'credit' => 0,
+                'description' => 'Anticipo '.$perception->name_snapshot
+                    .($perception->jurisdiction_snapshot ? ' ('.$perception->jurisdiction_snapshot.')' : '')
+                    .' — FC '.$invoice->full_number,
+            ];
+        }
+
+        // FC legado: percepciones > 0 sin pivote → usar cuenta genérica para no romper balance
+        if ($invoice->perceptions->isEmpty() && (float) $invoice->percepciones > 0) {
+            $lines[] = [
+                'account_code' => '5.1.02',
+                'debit' => round((float) $invoice->percepciones, 2),
+                'credit' => 0,
+                'description' => 'Percepciones (legacy) — FC '.$invoice->full_number,
             ];
         }
 

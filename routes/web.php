@@ -368,6 +368,13 @@ Route::middleware([
         // SUPPLY CATEGORIES (Categorías de Insumos)
         Route::resource('supply-categories', App\Http\Controllers\SupplyCategoryController::class)->except(['show']);
 
+        // PERCEPCIONES DE COMPRA
+        Route::get('purchase-perceptions/balances', [App\Http\Controllers\PurchasePerceptionController::class, 'balances'])
+            ->name('purchase-perceptions.balances');
+        Route::patch('purchase-perceptions/{purchasePerception}/toggle-active', [App\Http\Controllers\PurchasePerceptionController::class, 'toggleActive'])
+            ->name('purchase-perceptions.toggle-active');
+        Route::resource('purchase-perceptions', App\Http\Controllers\PurchasePerceptionController::class)->except(['show']);
+
         // SERVICIOS DE COMPRA (derivaciones, alquileres, etc.)
         Route::get('purchase-services/statistics', [App\Http\Controllers\PurchaseServiceStatisticsController::class, 'index'])
             ->name('purchase-services.statistics');
