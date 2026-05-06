@@ -123,21 +123,6 @@
             text-align: right;
         }
 
-        .observations-block {
-            margin: 15px 0;
-            padding: 10px 15px;
-            background-color: #fffde7;
-            border-left: 3px solid #ffc107;
-            font-size: 11px;
-        }
-        
-        .observations-title {
-            font-weight: bold;
-            color: #00a0b0;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-        
         .validation-section {
             margin-top: 30px;
             padding-top: 15px;
@@ -418,14 +403,6 @@
         @endforeach
     </table>
 
-    <!-- Observations -->
-    @if($admission->observations)
-    <div class="observations-block">
-        <div class="observations-title">OBSERVACIONES</div>
-        <p>{{ $admission->observations }}</p>
-    </div>
-    @endif
-    
     <!-- Validation Section -->
     <div class="validation-section">
         <table width="100%">

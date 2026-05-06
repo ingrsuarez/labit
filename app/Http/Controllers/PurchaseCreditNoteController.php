@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\JournalEntry;
 use App\Models\PurchaseCreditNote;
 use App\Models\PurchaseInvoice;
+use App\Models\PurchasePerception;
 use App\Models\PurchaseService;
 use App\Models\Supplier;
 use App\Services\AccountingEntryService;
@@ -112,12 +113,21 @@ class PurchaseCreditNoteController extends Controller
         $selectedSupplierId = $request->get('supplier_id');
         $selectedPurchaseInvoiceId = $request->get('purchase_invoice_id');
 
+        $perceptionTypes = PurchasePerception::query()
+            ->where('company_id', active_company_id())
+            ->active()
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
         return view('purchase-credit-notes.create', [
             'suppliers' => $suppliers,
             'branches' => $branches,
             'selectedSupplierId' => $selectedSupplierId,
             'selectedPurchaseInvoiceId' => $selectedPurchaseInvoiceId,
             'purchaseServiceCatalog' => PurchaseService::catalogGroupsForCompany(active_company_id()),
+            'perceptionTypes' => $perceptionTypes,
+            'perceptionLines' => [],
         ]);
     }
 
@@ -141,9 +151,11 @@ class PurchaseCreditNoteController extends Controller
             ],
             'purchase_invoice_id' => 'nullable|exists:purchase_invoices,id',
             'issue_date' => 'required|date',
-            'percepciones' => 'nullable|numeric|min:0',
             'otros_impuestos' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
+            'perceptions' => 'nullable|array',
+            'perceptions.*.accounting_account_id' => 'nullable|exists:accounting_accounts,id',
+            'perceptions.*.amount' => 'nullable|numeric|min:0',
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string',
             'items.*.supply_id' => 'nullable|exists:supplies,id',
@@ -190,7 +202,7 @@ class PurchaseCreditNoteController extends Controller
             }
         }
 
-        $creditNote = DB::transaction(function () use ($validated, $pv, $purchaseInvoice) {
+        $creditNote = DB::transaction(function () use ($request, $validated, $pv, $purchaseInvoice) {
             $cn = PurchaseCreditNote::create([
                 'company_id' => active_company_id(),
                 'lab_branch_id' => (int) $validated['lab_branch_id'],
@@ -200,7 +212,7 @@ class PurchaseCreditNoteController extends Controller
                 'voucher_type' => $validated['voucher_type'],
                 'point_of_sale' => $pv,
                 'issue_date' => $validated['issue_date'],
-                'percepciones' => $validated['percepciones'] ?? 0,
+                'percepciones' => 0,
                 'otros_impuestos' => $validated['otros_impuestos'] ?? 0,
                 'notes' => $validated['notes'] ?? null,
                 'created_by' => auth()->id(),
@@ -223,6 +235,21 @@ class PurchaseCreditNoteController extends Controller
                     'iva_amount' => $ivaAmount,
                     'total' => $total,
                 ]);
+            }
+
+            $cn->perceptions()->delete();
+            foreach ($request->input('perceptions', []) as $idx => $line) {
+                if (! empty($line['accounting_account_id']) && (float) ($line['amount'] ?? 0) > 0) {
+                    $cn->perceptions()->create([
+                        'purchase_perception_id' => $line['purchase_perception_id'] ?: null,
+                        'accounting_account_id' => $line['accounting_account_id'],
+                        'name_snapshot' => $line['name_snapshot'] ?? '',
+                        'jurisdiction_snapshot' => $line['jurisdiction_snapshot'] ?? null,
+                        'rate_snapshot' => $line['rate_snapshot'] ?? 0,
+                        'amount' => $line['amount'],
+                        'sort_order' => $idx,
+                    ]);
+                }
             }
 
             $cn->recalculate();
@@ -259,7 +286,7 @@ class PurchaseCreditNoteController extends Controller
 
         $this->authorize('purchase-credit-notes.index');
 
-        $purchaseCreditNote->load(['supplier', 'purchaseInvoice', 'labBranch', 'items.supply', 'items.purchaseService', 'creator']);
+        $purchaseCreditNote->load(['supplier', 'purchaseInvoice', 'labBranch', 'items.supply', 'items.purchaseService', 'creator', 'perceptions.accountingAccount']);
 
         return view('purchase-credit-notes.show', ['creditNote' => $purchaseCreditNote]);
     }

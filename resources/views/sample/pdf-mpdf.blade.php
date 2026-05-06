@@ -126,22 +126,6 @@
             text-align: right;
         }
 
-        /* Observations */
-        .observations-block {
-            margin: 15px 0;
-            padding: 10px 15px;
-            background-color: #fffde7;
-            border-left: 3px solid #ffc107;
-            font-size: 11px;
-        }
-        
-        .observations-title {
-            font-weight: bold;
-            color: #00a0b0;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-        
         /* Conclusion Block */
         .conclusion-block {
             margin: 20px 0;
@@ -508,14 +492,6 @@
                     </tr>
                 @endif
             @endif
-
-            @if($det->observations)
-                <tr>
-                    <td colspan="4" style="font-size: 8pt; font-style: italic; color: #666; padding: 0 4px 4px {{ $indent + 12 }}px;">
-                        {{ $det->observations }}
-                    </td>
-                </tr>
-            @endif
         @endforeach
     </table>
     
@@ -683,14 +659,6 @@
         @endif
     </div>
 
-    <!-- Observations -->
-    @if($sample->observations)
-    <div class="observations-block">
-        <div class="observations-title">OBSERVACIONES</div>
-        <p>{{ $sample->observations }}</p>
-    </div>
-    @endif
-    
     <!-- Validation Section -->
     <div class="validation-section">
         <table width="100%">
