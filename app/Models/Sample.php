@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Sample extends Model
 {
-    use Auditable, HasFactory, GeneratesProtocolNumber;
+    use Auditable, GeneratesProtocolNumber, HasFactory;
 
     protected $fillable = [
         'protocol_number',
@@ -25,6 +25,7 @@ class Sample extends Model
         'validation_status',
         'validated_by',
         'validated_at',
+        'sent_at',
         'validator_notes',
         'observations',
         'created_by',
@@ -35,6 +36,7 @@ class Sample extends Model
         'entry_date' => 'date',
         'sampling_date' => 'date',
         'validated_at' => 'datetime',
+        'sent_at' => 'datetime',
     ];
 
     /**
@@ -98,6 +100,10 @@ class Sample extends Model
      */
     public function getCalculatedStatusAttribute(): string
     {
+        if ($this->sent_at !== null && $this->validation_status === 'validated') {
+            return 'enviado';
+        }
+
         $total = $this->determinations->count();
         if ($total === 0) {
             return 'pending';
@@ -126,8 +132,9 @@ class Sample extends Model
     public function getStatusLabelAttribute(): string
     {
         $calculated = $this->calculated_status;
-        
-        return match($calculated) {
+
+        return match ($calculated) {
+            'enviado' => 'Enviado',
             'validated' => 'Validado',
             'completed' => 'Completo',
             'incomplete' => 'Incompleto',
@@ -144,8 +151,9 @@ class Sample extends Model
     public function getStatusColorAttribute(): string
     {
         $calculated = $this->calculated_status;
-        
-        return match($calculated) {
+
+        return match ($calculated) {
+            'enviado' => 'sky',
             'validated' => 'green',
             'completed' => 'blue',
             'incomplete' => 'yellow',
@@ -169,7 +177,7 @@ class Sample extends Model
      */
     public function getValidationStatusLabelAttribute(): string
     {
-        return match($this->validation_status) {
+        return match ($this->validation_status) {
             'pending' => 'Sin validar',
             'partial' => 'Parcialmente validado',
             'validated' => 'Validado',
@@ -183,7 +191,7 @@ class Sample extends Model
      */
     public function getValidationStatusColorAttribute(): string
     {
-        return match($this->validation_status) {
+        return match ($this->validation_status) {
             'pending' => 'gray',
             'partial' => 'blue',
             'validated' => 'green',
@@ -200,6 +208,11 @@ class Sample extends Model
         return $this->validation_status === 'validated';
     }
 
+    public function isSent(): bool
+    {
+        return $this->sent_at !== null;
+    }
+
     /**
      * Verifica si tiene al menos una determinación validada
      */
@@ -214,9 +227,9 @@ class Sample extends Model
     public function canBeValidated(): bool
     {
         // Solo se puede validar si todas las determinaciones están completadas
-        return $this->status === 'completed' 
+        return $this->status === 'completed'
             && $this->validation_status === 'pending'
-            && $this->determinations->every(fn($d) => $d->status === 'completed');
+            && $this->determinations->every(fn ($d) => $d->status === 'completed');
     }
 
     /**

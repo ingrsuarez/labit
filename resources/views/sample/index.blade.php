@@ -46,6 +46,7 @@
                     <select x-model="filterStatus" class="rounded-lg border-gray-300 shadow-sm text-sm focus:ring-teal-500 focus:border-teal-500">
                         <option value="">Todos los estados</option>
                         <option value="validated">Validado</option>
+                        <option value="enviado">Enviado</option>
                         <option value="completed">Completado</option>
                         <option value="incomplete">Incompleto</option>
                         <option value="pending">Pendiente</option>
@@ -155,6 +156,7 @@
                             <td class="px-2 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                     @switch($calcStatus)
+                                        @case('enviado') bg-sky-100 text-sky-800 @break
                                         @case('validated') bg-green-100 text-green-800 @break
                                         @case('completed') bg-blue-100 text-blue-800 @break
                                         @case('incomplete') bg-yellow-100 text-yellow-800 @break
