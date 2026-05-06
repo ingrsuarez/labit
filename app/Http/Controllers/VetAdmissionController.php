@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\DeterminationProfileLabType;
 use App\Mail\VetAdmissionResultMail;
 use App\Models\Customer;
+use App\Models\DeterminationProfile;
 use App\Models\LabSetting;
 use App\Models\Species;
 use App\Models\Test;
@@ -93,7 +95,12 @@ class VetAdmissionController extends Controller
             $c->id => (float) $c->veterinaryNbuRate(),
         ])->all();
 
-        return view('vet.admissions.create', compact('customers', 'species', 'branches', 'customerNbuValues'));
+        $vetProfiles = DeterminationProfile::active()
+            ->forLabType(DeterminationProfileLabType::Veterinario)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('vet.admissions.create', compact('customers', 'species', 'branches', 'customerNbuValues', 'vetProfiles'));
     }
 
     public function edit(VetAdmission $vetAdmission)
@@ -330,9 +337,15 @@ class VetAdmissionController extends Controller
             'vetTests.test.parentTests',
             'vetTests.test.materialRelation',
             'creator', 'labBranch',
+            'determinationProfileApplications.user',
         ]);
 
-        return view('vet.admissions.show', compact('vetAdmission'));
+        $vetProfiles = DeterminationProfile::active()
+            ->forLabType(DeterminationProfileLabType::Veterinario)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('vet.admissions.show', compact('vetAdmission', 'vetProfiles'));
     }
 
     public function loadResults(Request $request, VetAdmission $vetAdmission)

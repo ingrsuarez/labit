@@ -84,6 +84,49 @@
             <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">{{ session('error') }}</div>
         @endif
 
+        @can('vet-admissions.edit')
+            @if(($vetProfiles ?? collect())->isNotEmpty())
+                <div class="mb-6 p-4 bg-white border border-amber-200 rounded-xl shadow-sm">
+                    <h3 class="text-sm font-semibold text-amber-900 mb-2">Aplicar perfiles guardados</h3>
+                    <p class="text-xs text-gray-600 mb-3">Las determinaciones ya cargadas no se duplican.</p>
+                    <form action="{{ route('vet.admissions.determination-profiles.apply', $vetAdmission) }}" method="POST" class="flex flex-col sm:flex-row gap-3 sm:items-end">
+                        @csrf
+                        <div class="flex-1">
+                            <select name="profile_ids[]" multiple required size="4" class="w-full rounded-lg border-gray-300 text-sm">
+                                @foreach($vetProfiles as $p)
+                                    <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700">Aplicar perfiles</button>
+                    </form>
+                    @can('determination-profiles.manage')
+                        <a href="{{ route('determination-profiles.index') }}" class="inline-block mt-2 text-xs text-amber-700 hover:underline">Gestionar perfiles</a>
+                    @endcan
+                </div>
+            @endif
+        @endcan
+
+        @if($vetAdmission->determinationProfileApplications->isNotEmpty())
+            <div class="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <h3 class="text-sm font-semibold text-gray-800 mb-2">Perfiles aplicados</h3>
+                <ul class="text-sm space-y-2">
+                    @foreach($vetAdmission->determinationProfileApplications as $app)
+                        <li class="flex flex-wrap gap-x-4 text-xs text-gray-700 border-b border-gray-100 pb-2">
+                            <span class="text-gray-500">{{ $app->created_at->format('d/m/Y H:i') }}</span>
+                            <span>{{ $app->user?->name ?? '—' }}</span>
+                            <span>
+                                @foreach($app->profiles_snapshot ?? [] as $snap)
+                                    <span class="inline-flex px-2 py-0.5 rounded bg-white border font-mono mr-1">{{ $snap['name'] ?? '' }}</span>
+                                @endforeach
+                            </span>
+                            <span class="text-gray-500">+{{ $app->tests_added_count }} / omitidas {{ $app->tests_skipped_duplicate_count }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         {{-- Info del protocolo --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
