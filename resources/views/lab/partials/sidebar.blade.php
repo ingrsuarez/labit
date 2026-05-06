@@ -138,9 +138,22 @@
                 Sedes
             </a>
 
+            @can('determination-profiles.index')
+            <a href="{{ route('determination-profiles.index') }}"
+               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                {{ request()->routeIs('determination-profiles.*')
+                    ? 'bg-teal-600 text-white'
+                    : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                </svg>
+                Perfiles determinaciones
+            </a>
+            @endcan
+
             <a href="{{ route('lab.section.configuracion') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('lab.section.configuracion') || request()->routeIs('tests.*') || request()->routeIs('reference-categories.*') || request()->routeIs('materials.*') || request()->routeIs('services.*') || request()->routeIs('nomenclator.*')
+                {{ request()->routeIs('lab.section.configuracion') || request()->routeIs('tests.*') || request()->routeIs('reference-categories.*') || request()->routeIs('materials.*') || request()->routeIs('services.*') || request()->routeIs('nomenclator.*') || request()->routeIs('determination-profiles.*')
                     ? 'bg-teal-600 text-white'
                     : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

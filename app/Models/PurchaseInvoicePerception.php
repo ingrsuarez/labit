@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PurchaseInvoicePerception extends Model
 {
@@ -40,5 +41,10 @@ class PurchaseInvoicePerception extends Model
     public function accountingAccount(): BelongsTo
     {
         return $this->belongsTo(AccountingAccount::class);
+    }
+
+    public function taxReturnApplications(): HasMany
+    {
+        return $this->hasMany(TaxReturnApplication::class, 'purchase_invoice_perception_id');
     }
 }

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\DeterminationProfileLabType;
 use App\Mail\SampleResultMail;
 use App\Models\Customer;
+use App\Models\DeterminationProfile;
 use App\Models\LabSetting;
 use App\Models\Sample;
 use App\Models\SampleDetermination;
@@ -60,8 +62,12 @@ class SampleController extends Controller
             });
 
         $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
+        $sampleProfiles = DeterminationProfile::active()
+            ->forLabType(DeterminationProfileLabType::AguasAlimentos)
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
-        return view('sample.create', compact('customers', 'tests', 'branches'));
+        return view('sample.create', compact('customers', 'tests', 'branches', 'sampleProfiles'));
     }
 
     /**
@@ -159,6 +165,7 @@ class SampleController extends Controller
             'creator',
             'validator',
             'auditLogs',
+            'determinationProfileApplications.user',
         ]);
 
         $testIdsInProtocol = $sample->determinations->pluck('test_id')->toArray();
@@ -194,7 +201,12 @@ class SampleController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('sample.show', compact('sample', 'labelMaterials', 'availableTests'));
+        $sampleProfiles = DeterminationProfile::active()
+            ->forLabType(DeterminationProfileLabType::AguasAlimentos)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('sample.show', compact('sample', 'labelMaterials', 'availableTests', 'sampleProfiles'));
     }
 
     /**

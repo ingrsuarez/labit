@@ -173,6 +173,13 @@ Route::middleware([
         Route::get('lab/configuracion/correos', [App\Http\Controllers\LabEmailSettingsController::class, 'edit'])->name('lab.email-settings.edit');
         Route::put('lab/configuracion/correos', [App\Http\Controllers\LabEmailSettingsController::class, 'update'])->name('lab.email-settings.update');
 
+        // PERFILES DE DETERMINACIONES (ABM + previews)
+        Route::get('lab/determination-profiles/search-tests', [App\Http\Controllers\DeterminationProfileController::class, 'searchTests'])->name('determination-profiles.search-tests');
+        Route::get('lab/determination-profiles/for-select', [App\Http\Controllers\DeterminationProfileController::class, 'forSelect'])->name('determination-profiles.for-select');
+        Route::post('lab/determination-profiles/preview/admission', [App\Http\Controllers\DeterminationProfileController::class, 'previewAdmission'])->name('determination-profiles.preview.admission');
+        Route::post('lab/determination-profiles/preview/sample', [App\Http\Controllers\DeterminationProfileController::class, 'previewSample'])->name('determination-profiles.preview.sample');
+        Route::resource('lab/determination-profiles', App\Http\Controllers\DeterminationProfileController::class)->except(['show']);
+
         // SEDES DE LABORATORIO
         Route::get('lab-branches/assign-orphans', [App\Http\Controllers\LabBranchController::class, 'assignOrphans'])
             ->name('lab-branches.assign-orphans');
@@ -206,6 +213,7 @@ Route::middleware([
         Route::get('lab/admissions/{admission}', [App\Http\Controllers\LabAdmissionController::class, 'show'])->name('lab.admissions.show');
         Route::get('lab/admissions/{admission}/edit', [App\Http\Controllers\LabAdmissionController::class, 'edit'])->name('lab.admissions.edit');
         Route::put('lab/admissions/{admission}', [App\Http\Controllers\LabAdmissionController::class, 'update'])->name('lab.admissions.update');
+        Route::post('lab/admissions/{admission}/determination-profiles/apply', [App\Http\Controllers\DeterminationProfileController::class, 'applyAdmission'])->name('lab.admissions.determination-profiles.apply');
         Route::post('lab/admissions/{admission}/test', [App\Http\Controllers\LabAdmissionController::class, 'addTest'])->name('lab.admissions.addTest');
         Route::put('lab/admissions/{admission}/test/{test}', [App\Http\Controllers\LabAdmissionController::class, 'updateTest'])->name('lab.admissions.updateTest');
         Route::delete('lab/admissions/{admission}/test/{test}', [App\Http\Controllers\LabAdmissionController::class, 'removeTest'])->name('lab.admissions.removeTest');
@@ -259,6 +267,7 @@ Route::middleware([
     Route::prefix('vet')->group(function () {
         Route::get('admissions', [App\Http\Controllers\VetAdmissionController::class, 'index'])->name('vet.admissions.index');
         Route::get('admissions/create', [App\Http\Controllers\VetAdmissionController::class, 'create'])->name('vet.admissions.create');
+        Route::post('determination-profiles/preview', [App\Http\Controllers\DeterminationProfileController::class, 'previewVet'])->name('vet.determination-profiles.preview');
         Route::get('admissions/search-tests', [App\Http\Controllers\VetAdmissionController::class, 'searchTests'])->name('vet.admissions.searchTests');
         Route::post('admissions', [App\Http\Controllers\VetAdmissionController::class, 'store'])->name('vet.admissions.store');
         Route::get('admissions/{vetAdmission}', [App\Http\Controllers\VetAdmissionController::class, 'show'])->name('vet.admissions.show');
@@ -266,6 +275,7 @@ Route::middleware([
         Route::put('admissions/{vetAdmission}', [App\Http\Controllers\VetAdmissionController::class, 'update'])->name('vet.admissions.update');
 
         Route::post('admissions/{vetAdmission}/results', [App\Http\Controllers\VetAdmissionController::class, 'loadResults'])->name('vet.admissions.loadResults');
+        Route::post('admissions/{vetAdmission}/determination-profiles/apply', [App\Http\Controllers\DeterminationProfileController::class, 'applyVet'])->name('vet.admissions.determination-profiles.apply');
         Route::post('admissions/{vetAdmission}/add-tests', [App\Http\Controllers\VetAdmissionController::class, 'addTests'])->name('vet.admissions.addTests');
         Route::delete('admissions/{vetAdmission}/remove-test/{vetAdmissionTest}', [App\Http\Controllers\VetAdmissionController::class, 'removeTest'])->name('vet.admissions.removeTest');
         Route::get('admissions/{vetAdmission}/pdf', [App\Http\Controllers\VetAdmissionController::class, 'downloadPdf'])->name('vet.admissions.downloadPdf');
@@ -309,6 +319,7 @@ Route::middleware([
         Route::get('sample/{sample}', [App\Http\Controllers\SampleController::class, 'show'])->name('sample.show');
         Route::get('sample/{sample}/edit', [App\Http\Controllers\SampleController::class, 'edit'])->name('sample.edit');
         Route::put('sample/{sample}', [App\Http\Controllers\SampleController::class, 'update'])->name('sample.update');
+        Route::post('sample/{sample}/determination-profiles/apply', [App\Http\Controllers\DeterminationProfileController::class, 'applySample'])->name('sample.determination-profiles.apply');
         Route::post('sample/{sample}/determination', [App\Http\Controllers\SampleController::class, 'addDetermination'])->name('sample.addDetermination');
         Route::delete('sample/{sample}/determination/{determination}', [App\Http\Controllers\SampleController::class, 'removeDetermination'])->name('sample.removeDetermination');
         Route::put('sample/determination/{determination}', [App\Http\Controllers\SampleController::class, 'updateDetermination'])->name('sample.updateDetermination');
@@ -374,6 +385,21 @@ Route::middleware([
         Route::patch('purchase-perceptions/{purchasePerception}/toggle-active', [App\Http\Controllers\PurchasePerceptionController::class, 'toggleActive'])
             ->name('purchase-perceptions.toggle-active');
         Route::resource('purchase-perceptions', App\Http\Controllers\PurchasePerceptionController::class)->except(['show']);
+
+        // IMPUESTOS — DDJJ (anticipos sufridos)
+        Route::get('tax-returns/available-advances', [App\Http\Controllers\TaxReturnController::class, 'availableAdvances'])
+            ->name('tax-returns.available-advances')
+            ->middleware('permission:tax-returns.manage');
+        Route::post('tax-returns/{tax_return}/confirm', [App\Http\Controllers\TaxReturnController::class, 'confirm'])
+            ->name('tax-returns.confirm')
+            ->middleware('permission:tax-returns.manage');
+        Route::post('tax-returns/{tax_return}/cancel', [App\Http\Controllers\TaxReturnController::class, 'cancel'])
+            ->name('tax-returns.cancel')
+            ->middleware('permission:tax-returns.manage');
+        Route::resource('taxes', App\Http\Controllers\TaxController::class)
+            ->middleware('permission:taxes.manage');
+        Route::resource('tax-returns', App\Http\Controllers\TaxReturnController::class)
+            ->middleware('permission:tax-returns.manage');
 
         // SERVICIOS DE COMPRA (derivaciones, alquileres, etc.)
         Route::get('purchase-services/statistics', [App\Http\Controllers\PurchaseServiceStatisticsController::class, 'index'])

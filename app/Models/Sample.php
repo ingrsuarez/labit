@@ -63,6 +63,11 @@ class Sample extends Model
         return $this->hasMany(SampleDetermination::class);
     }
 
+    public function determinationProfileApplications()
+    {
+        return $this->morphMany(DeterminationProfileApplication::class, 'applicable')->latest();
+    }
+
     /**
      * Relación con el usuario que creó la muestra
      */

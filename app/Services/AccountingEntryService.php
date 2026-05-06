@@ -26,6 +26,21 @@ class AccountingEntryService
         return AccountingAccount::where('code', $code)->where('is_active', true)->first();
     }
 
+    /**
+     * Crea un asiento manual/automático desde cualquier modelo fuente (p.ej. DDJJ de impuestos).
+     *
+     * @param  array<int, array{account_code: string, debit: float|int, credit: float|int, description?: string|null}>  $lines
+     */
+    public function createEntryForSource(
+        int $companyId,
+        Carbon $date,
+        string $description,
+        Model $source,
+        array $lines
+    ): ?JournalEntry {
+        return $this->createEntry($companyId, $date, $description, $source, $lines);
+    }
+
     private function createEntry(
         int $companyId,
         Carbon $date,

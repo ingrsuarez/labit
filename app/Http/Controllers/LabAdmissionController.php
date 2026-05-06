@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\DeterminationProfileLabType;
 use App\Mail\AdmissionResultMail;
 use App\Models\Admission;
 use App\Models\AdmissionTest;
+use App\Models\DeterminationProfile;
 use App\Models\Insurance;
 use App\Models\InsuranceTest;
 use App\Models\LabSetting;
@@ -99,8 +101,12 @@ class LabAdmissionController extends Controller
             ->get();
         $tests = Test::whereNull('parent')->orderBy('code')->get(['id', 'code', 'name', 'nbu', 'price']);
         $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
+        $clinicalProfiles = DeterminationProfile::active()
+            ->forLabType(DeterminationProfileLabType::Clinico)
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
-        return view('lab.admissions.create', compact('patient', 'insurances', 'tests', 'branches'));
+        return view('lab.admissions.create', compact('patient', 'insurances', 'tests', 'branches', 'clinicalProfiles'));
     }
 
     /**
@@ -324,6 +330,7 @@ class LabAdmissionController extends Controller
             'admissionTests.test.referenceValues.category',
             'creator',
             'auditLogs',
+            'determinationProfileApplications.user',
         ]);
 
         // Tests disponibles para agregar al protocolo
@@ -331,7 +338,12 @@ class LabAdmissionController extends Controller
             ->orderBy('code')
             ->get(['id', 'code', 'name', 'nbu', 'price']);
 
-        return view('lab.admissions.show', compact('admission', 'availableTests'));
+        $clinicalProfiles = DeterminationProfile::active()
+            ->forLabType(DeterminationProfileLabType::Clinico)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('lab.admissions.show', compact('admission', 'availableTests', 'clinicalProfiles'));
     }
 
     /**

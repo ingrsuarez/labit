@@ -192,6 +192,36 @@
             <!-- Sección: Prácticas -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">Prácticas / Análisis</h2>
+
+                @if(isset($clinicalProfiles) && $clinicalProfiles->isNotEmpty())
+                <div class="mb-4 p-4 bg-slate-50 border border-slate-200 rounded-lg" x-show="insuranceId" x-cloak>
+                    <h3 class="text-sm font-semibold text-gray-800 mb-1">Aplicar perfiles guardados</h3>
+                    <p class="text-xs text-gray-600 mb-3">Las prácticas ya cargadas no se duplican.</p>
+                    <div class="flex flex-col sm:flex-row gap-3 sm:items-end">
+                        <div class="flex-1">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Perfiles (Ctrl/Cmd para varios)</label>
+                            <select multiple size="3" class="w-full rounded-lg border-gray-300 text-sm"
+                                    @change="profileIdsForApply = Array.from($event.target.selectedOptions).map(o => parseInt(o.value, 10))">
+                                @foreach($clinicalProfiles as $p)
+                                    <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button type="button" @click="applyProfilesFromApi()"
+                                class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700">
+                            Aplicar perfiles
+                        </button>
+                    </div>
+                    @can('determination-profiles.manage')
+                        <a href="{{ route('determination-profiles.index') }}" class="inline-block mt-2 text-xs text-teal-600 hover:underline">Gestionar perfiles</a>
+                    @endcan
+                    <template x-if="profileApplyMessage">
+                        <div class="mt-3 text-sm p-3 rounded border"
+                             :class="profileApplyTone === 'warn' ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-green-50 border-green-200 text-green-900'"
+                             x-text="profileApplyMessage"></div>
+                    </template>
+                </div>
+                @endif
                 
                 <!-- Buscador de prácticas -->
                 <div class="mb-4 relative" x-show="insuranceId">
@@ -401,6 +431,10 @@
                 selectedTests: [],
                 allTests: @json($tests),
 
+                profileIdsForApply: [],
+                profileApplyMessage: '',
+                profileApplyTone: 'ok',
+
                 // Totales
                 totalInsurance: 0,
                 totalPatient: 0,
@@ -560,7 +594,59 @@
                         return false;
                     }
                     return true;
-                }
+                },
+
+                async applyProfilesFromApi() {
+                    if (!this.insuranceId || !this.profileIdsForApply?.length) {
+                        this.profileApplyTone = 'warn';
+                        this.profileApplyMessage = 'Seleccioná obra social y al menos un perfil.';
+                        return;
+                    }
+                    try {
+                        const res = await fetch('{{ route('determination-profiles.preview.admission') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                insurance_id: parseInt(this.insuranceId, 10),
+                                profile_ids: this.profileIdsForApply,
+                                existing_test_ids: this.selectedTests.map(t => t.id),
+                            }),
+                        });
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.message || 'Error al aplicar perfiles');
+                        let added = 0;
+                        let skipped = data.tests_skipped_duplicate_count || 0;
+                        for (const row of data.admission_rows || []) {
+                            if (!this.selectedTests.find(t => t.id === row.id)) {
+                                this.selectedTests.push({
+                                    id: row.id,
+                                    code: row.code,
+                                    name: row.name,
+                                    price: row.calculated_price ?? row.price ?? 0,
+                                    authorization_status: row.authorization_status || 'not_required',
+                                    paid_by_patient: false,
+                                    copago: row.copago || 0,
+                                });
+                                added++;
+                            }
+                        }
+                        this.calculateTotals();
+                        if (added === 0 && skipped > 0) {
+                            this.profileApplyTone = 'warn';
+                            this.profileApplyMessage = 'Todas las prácticas de estos perfiles ya estaban cargadas (' + skipped + ' omitidas).';
+                        } else {
+                            this.profileApplyTone = 'ok';
+                            this.profileApplyMessage = 'Se agregaron ' + added + ' prácticas. ' + skipped + ' ya estaban en el pedido.';
+                        }
+                    } catch (e) {
+                        this.profileApplyTone = 'warn';
+                        this.profileApplyMessage = e.message || 'No se pudo aplicar.';
+                    }
+                },
             }
         }
     </script>

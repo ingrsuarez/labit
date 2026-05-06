@@ -10,6 +10,7 @@ use App\Models\JournalEntryLine;
 use App\Models\PaymentOrder;
 use App\Models\PurchaseInvoice;
 use App\Models\SalesInvoice;
+use App\Models\TaxReturn;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -45,6 +46,7 @@ class JournalEntryController extends Controller
             CollectionReceipt::class => ['label' => 'Recibo de cobro', 'url' => route('collection-receipts.show', $sourceId)],
             CreditNote::class => ['label' => 'Nota de crédito', 'url' => route('credit-notes.show', $sourceId)],
             PaymentOrder::class => ['label' => 'Orden de pago', 'url' => route('payment-orders.show', $sourceId)],
+            TaxReturn::class => ['label' => 'DDJJ impuesto', 'url' => route('tax-returns.show', $sourceId)],
             default => ['label' => class_basename($sourceType).' #'.$sourceId, 'url' => null],
         };
     }
