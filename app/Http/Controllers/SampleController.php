@@ -789,6 +789,7 @@ class SampleController extends Controller
             'validation_status' => 'pending',
             'validated_by' => null,
             'validated_at' => null,
+            'sent_at' => null,
             'validator_notes' => null,
         ]);
 
@@ -831,6 +832,10 @@ class SampleController extends Controller
         ]);
 
         $sample->logAudit('pdf_generated', 'Generó PDF del protocolo Nº '.$sample->protocol_number);
+
+        if ($sample->isValidated()) {
+            $sample->update(['sent_at' => now()]);
+        }
 
         return $pdf->download($this->generatePdfFilename($sample));
     }
@@ -899,6 +904,10 @@ class SampleController extends Controller
             );
 
         $sample->logAudit('email_sent', 'Envió resultados por email a '.$validated['email']);
+
+        if ($sample->isValidated()) {
+            $sample->update(['sent_at' => now()]);
+        }
 
         return back()->with('success', 'Protocolo enviado correctamente a '.$validated['email']);
     }
