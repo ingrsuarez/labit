@@ -816,18 +816,44 @@ class LabAdmissionController extends Controller
             'result' => 'nullable|string|max:255',
             'unit' => 'nullable|string|max:50',
             'reference_value' => 'nullable|string|max:255',
+            'is_ratified' => 'nullable|boolean',
         ]);
 
-        $admissionTest->update([
-            'result' => $request->result,
-            'unit' => $request->unit,
-            'reference_value' => $request->reference_value,
-        ]);
+        $update = [];
+        if (! $admissionTest->is_validated) {
+            $update['result'] = $request->result;
+            $update['unit'] = $request->unit;
+            $update['reference_value'] = $request->reference_value;
+        }
+
+        if ($request->has('is_ratified') && auth()->user()->can('lab-results.validate')) {
+            $this->applyRatifiedFlag($update, $request->boolean('is_ratified'));
+        }
+
+        if (! empty($update)) {
+            $admissionTest->update($update);
+        }
 
         $admission->load('admissionTests');
         $admission->update(['status' => $admission->calculated_status]);
 
         return redirect()->back()->with('success', 'Resultado guardado correctamente.');
+    }
+
+    /**
+     * Mezcla los campos de ratificación según el valor del checkbox.
+     */
+    private function applyRatifiedFlag(array &$payload, bool $ratified): void
+    {
+        if ($ratified) {
+            $payload['is_ratified'] = true;
+            $payload['ratified_at'] = now();
+            $payload['ratified_by'] = auth()->id();
+        } else {
+            $payload['is_ratified'] = false;
+            $payload['ratified_at'] = null;
+            $payload['ratified_by'] = null;
+        }
     }
 
     /**
@@ -842,16 +868,30 @@ class LabAdmissionController extends Controller
             'results.*.result' => 'nullable|string|max:255',
             'results.*.unit' => 'nullable|string|max:50',
             'results.*.reference_value' => 'nullable|string|max:255',
+            'results.*.is_ratified' => 'nullable|boolean',
         ]);
+
+        $canRatify = auth()->user()->can('lab-results.validate');
 
         foreach ($request->results as $data) {
             $admissionTest = AdmissionTest::find($data['id']);
-            if ($admissionTest && $admissionTest->admission_id === $admission->id && ! $admissionTest->is_validated) {
-                $admissionTest->update([
-                    'result' => $data['result'] ?? null,
-                    'unit' => $data['unit'] ?? null,
-                    'reference_value' => $data['reference_value'] ?? null,
-                ]);
+            if (! $admissionTest || $admissionTest->admission_id !== $admission->id) {
+                continue;
+            }
+
+            $update = [];
+            if (! $admissionTest->is_validated) {
+                $update['result'] = $data['result'] ?? null;
+                $update['unit'] = $data['unit'] ?? null;
+                $update['reference_value'] = $data['reference_value'] ?? null;
+            }
+
+            if ($canRatify && array_key_exists('is_ratified', $data)) {
+                $this->applyRatifiedFlag($update, filter_var($data['is_ratified'], FILTER_VALIDATE_BOOLEAN));
+            }
+
+            if (! empty($update)) {
+                $admissionTest->update($update);
             }
         }
 
@@ -897,6 +937,9 @@ class LabAdmissionController extends Controller
             'is_validated' => false,
             'validated_by' => null,
             'validated_at' => null,
+            'is_ratified' => false,
+            'ratified_at' => null,
+            'ratified_by' => null,
         ]);
 
         $admission->logAudit('unvalidated', 'Desvalidó práctica '.$admissionTest->test->name.' en admisión Nº '.$admission->protocol_number);

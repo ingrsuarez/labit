@@ -388,20 +388,27 @@
             @elseif($isChild)
                 <tr class="det-child">
                     <td style="padding-left: {{ $indent }}px;">{{ ucfirst($at->test->name ?? 'N/A') }}</td>
-                    <td class="det-result">{{ $at->result ?? '-' }}</td>
+                    <td class="det-result">{{ $at->result ?? '-' }}@if($at->is_ratified)<span style="font-weight:bold;"> *</span>@endif</td>
                     <td class="det-unit">{{ $at->unit ?? $at->test->unit ?? '' }}</td>
                     <td class="det-ref">{{ \App\Support\ProtocolReferenceDisplay::line($at->reference_value, $at->test->other_reference ?? null) }}</td>
                 </tr>
             @else
                 <tr class="det-standalone">
                     <td>{{ ucfirst($at->test->name ?? 'N/A') }}</td>
-                    <td class="det-result">{{ $at->result ?? '-' }}</td>
+                    <td class="det-result">{{ $at->result ?? '-' }}@if($at->is_ratified)<span style="font-weight:bold;"> *</span>@endif</td>
                     <td class="det-unit">{{ $at->unit ?? $at->test->unit ?? '' }}</td>
                     <td class="det-ref">{{ \App\Support\ProtocolReferenceDisplay::line($at->reference_value, $at->test->other_reference ?? null) }}</td>
                 </tr>
             @endif
         @endforeach
     </table>
+
+    @php $hasRatified = $orderedTests->contains(fn ($e) => ($e['at']->is_ratified ?? false)); @endphp
+    @if($hasRatified)
+        <p style="margin-top:6px; font-size:9pt; color:#555;">
+            <strong>*</strong> Resultados marcados fueron revisados por el bioquímico ante valores atípicos.
+        </p>
+    @endif
 
     <!-- Validation Section -->
     <div class="validation-section">

@@ -25,6 +25,9 @@ class AdmissionTest extends Model
         'is_validated',
         'validated_by',
         'validated_at',
+        'is_ratified',
+        'ratified_at',
+        'ratified_by',
     ];
 
     protected $casts = [
@@ -34,6 +37,8 @@ class AdmissionTest extends Model
         'copago' => 'decimal:2',
         'is_validated' => 'boolean',
         'validated_at' => 'datetime',
+        'is_ratified' => 'boolean',
+        'ratified_at' => 'datetime',
     ];
 
     /**
@@ -66,6 +71,14 @@ class AdmissionTest extends Model
     public function validator()
     {
         return $this->belongsTo(\App\Models\User::class, 'validated_by');
+    }
+
+    /**
+     * Relación con el usuario que ratificó la determinación.
+     */
+    public function ratifier()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'ratified_by');
     }
 
     /**

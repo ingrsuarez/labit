@@ -217,6 +217,7 @@
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-24">Unidad</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-40">Val. Referencia</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-28">Método</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-20" title="Ratificado: valor anormal/atípico verificado por bioquímico">Ratif.</th>
                                 <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-24">Estado</th>
                                 <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-24">Validar</th>
                                 <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">Quitar</th>
@@ -261,6 +262,17 @@
                                         <input type="text" name="results[{{ $idx }}][method]" value="{{ $vt->method }}"
                                                class="w-full border-gray-300 rounded text-sm {{ $disabled ? 'bg-gray-100' : '' }}"
                                                {{ $disabled ? 'disabled' : '' }}>
+                                    </td>
+                                    <td class="px-4 py-2 text-center">
+                                        @if(! $isParentHeader)
+                                            <input type="hidden" name="results[{{ $idx }}][is_ratified]" value="0">
+                                            <input type="checkbox"
+                                                   name="results[{{ $idx }}][is_ratified]"
+                                                   value="1"
+                                                   {{ $vt->is_ratified ? 'checked' : '' }}
+                                                   title="Valor anormal/atípico — verificado por bioquímico (editable también después de validar)"
+                                                   class="h-4 w-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 cursor-pointer">
+                                        @endif
                                     </td>
                                     <td class="px-4 py-2 text-center">
                                         @if($vt->is_validated)
