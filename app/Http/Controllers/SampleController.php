@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\DeterminationProfileLabType;
+use App\Mail\SampleBatchMail;
 use App\Mail\SampleResultMail;
 use App\Models\Customer;
 use App\Models\DeterminationProfile;
@@ -922,6 +923,100 @@ class SampleController extends Controller
         }
 
         return back()->with('success', 'Protocolo enviado correctamente a '.$validated['email']);
+    }
+
+    /**
+     * Envío masivo de protocolos validados por email (agrupados por cliente).
+     */
+    public function batchEmail(Request $request)
+    {
+        $this->authorize('samples-reports.send');
+
+        $validated = $request->validate([
+            'sample_ids' => 'required|array|min:1',
+            'sample_ids.*' => 'integer|exists:samples,id',
+            'email_overrides' => 'nullable|array',
+            'email_overrides.*' => 'nullable|email',
+        ]);
+
+        $fromEmail = LabSetting::get('results_email', config('mail.from.address'));
+        $fromName = LabSetting::get('results_from_name', config('mail.from.name'));
+
+        $query = Sample::with(['customer', 'determinations'])
+            ->whereIn('id', $validated['sample_ids']);
+
+        if ($activeBranch = active_lab_branch_id()) {
+            $query->where(function ($q) use ($activeBranch) {
+                $q->where('lab_branch_id', $activeBranch)
+                    ->orWhereNull('lab_branch_id');
+            });
+        }
+
+        $samples = $query->get();
+
+        $requestedIds = collect($validated['sample_ids']);
+        $foundIds = $samples->pluck('id');
+        $missingIds = $requestedIds->diff($foundIds);
+
+        $results = [
+            'sent' => [],
+            'skipped' => [],
+            'errors' => [],
+        ];
+
+        foreach ($missingIds as $mid) {
+            $orphan = Sample::find($mid);
+            $results['skipped'][] = ($orphan?->protocol_number ?? "#{$mid}").' (sin acceso o sede)';
+        }
+
+        $validatedSamples = $samples->filter(fn (Sample $s) => $s->isValidated());
+
+        $notValidated = $samples->filter(fn (Sample $s) => ! $s->isValidated());
+        foreach ($notValidated as $s) {
+            $results['skipped'][] = $s->protocol_number.' (no validado)';
+        }
+
+        $grouped = $validatedSamples->groupBy('customer_id');
+
+        $emailOverrides = $validated['email_overrides'] ?? [];
+
+        foreach ($grouped as $customerId => $customerSamples) {
+            $customer = $customerSamples->first()->customer;
+
+            $toEmail = $emailOverrides[$customerId]
+                ?? $emailOverrides[(string) $customerId]
+                ?? $customer?->email
+                ?? null;
+
+            if (! $toEmail) {
+                foreach ($customerSamples as $s) {
+                    $results['skipped'][] = $s->protocol_number.' (sin email del cliente)';
+                }
+
+                continue;
+            }
+
+            try {
+                Mail::mailer('smtp')
+                    ->to($toEmail)
+                    ->send(
+                        (new SampleBatchMail($customerSamples))
+                            ->from($fromEmail, $fromName)
+                    );
+
+                foreach ($customerSamples as $s) {
+                    $s->update(['sent_at' => now()]);
+                    $s->logAudit('email_sent', "Enviado en lote a {$toEmail}");
+                    $results['sent'][] = $s->protocol_number;
+                }
+            } catch (\Exception $e) {
+                foreach ($customerSamples as $s) {
+                    $results['errors'][] = $s->protocol_number.' (error: '.$e->getMessage().')';
+                }
+            }
+        }
+
+        return response()->json($results);
     }
 
     /**
