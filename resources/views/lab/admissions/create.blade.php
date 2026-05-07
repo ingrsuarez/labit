@@ -130,10 +130,10 @@
                             <input type="text"
                                    x-model="insuranceSearch"
                                    @focus="showInsuranceDropdown = true"
-                                   @input="showInsuranceDropdown = true"
-                                   @keydown.enter.prevent="if (filteredInsurances.length > 0) selectInsurance(filteredInsurances[0])"
+                                   @input="showInsuranceDropdown = true; unlinkedNotice = ''"
+                                   @keydown.enter.prevent="if (filteredPickerItems.length > 0) selectPickerRow(filteredPickerItems[0])"
                                    @keydown.escape="showInsuranceDropdown = false"
-                                   placeholder="Buscar obra social..."
+                                   placeholder="Obra social o cliente (nombre/CUIT)..."
                                    class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500">
                             <input type="hidden" name="insurance_id" :value="insuranceId" required>
                             <button type="button" x-show="insuranceId" @click="clearInsurance()"
@@ -141,19 +141,27 @@
                                 ✕
                             </button>
                         </div>
-                        <div x-show="showInsuranceDropdown && filteredInsurances.length > 0" x-cloak
+                        <div x-show="unlinkedNotice" class="mt-2 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                            <span x-text="unlinkedNotice"></span>
+                            <a href="{{ route('insurance.index') }}" class="ml-1 font-medium text-teal-700 hover:underline">Obras sociales</a>
+                        </div>
+                        <div x-show="showInsuranceDropdown && filteredPickerItems.length > 0" x-cloak
                              class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                            <template x-for="ins in filteredInsurances" :key="ins.id">
-                                <div @click="selectInsurance(ins)"
-                                     class="px-3 py-2 cursor-pointer hover:bg-teal-50 text-sm"
-                                     :class="{ 'bg-teal-100 font-medium': insuranceId == ins.id }">
-                                    <span x-text="ins.name"></span>
+                            <template x-for="row in filteredPickerItems" :key="row.kind + '-' + (row.id ?? row.customer_id)">
+                                <div @click="selectPickerRow(row)"
+                                     class="px-3 py-2 cursor-pointer hover:bg-teal-50 text-sm flex items-center justify-between gap-2"
+                                     :class="{
+                                         'bg-teal-100 font-medium': row.kind === 'insurance' && insuranceId == row.id,
+                                         'bg-slate-50': row.kind === 'unlinked_customer'
+                                     }">
+                                    <span x-text="row.name"></span>
+                                    <span x-show="row.kind === 'unlinked_customer'" class="text-xs shrink-0 text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">Sin OS en lab</span>
                                 </div>
                             </template>
                         </div>
-                        <div x-show="showInsuranceDropdown && insuranceSearch && filteredInsurances.length === 0" x-cloak
+                        <div x-show="showInsuranceDropdown && insuranceSearch && filteredPickerItems.length === 0" x-cloak
                              class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm text-gray-500">
-                            No se encontraron resultados
+                            No se encontraron resultados (obras sociales ni clientes que coincidan)
                         </div>
                     </div>
 
@@ -414,12 +422,18 @@
                 isParticular: false,
                 insuranceSearch: '',
                 showInsuranceDropdown: false,
-                insuranceItems: @json($insurances->map(fn($ins) => ['id' => $ins->id, 'name' => strtoupper($ins->name), 'type' => $ins->type])),
+                pickerItems: @json($coveragePickerItems),
+                unlinkedNotice: '',
 
-                get filteredInsurances() {
-                    if (!this.insuranceSearch || this.insuranceSearch === this._selectedInsuranceName) return this.insuranceItems;
-                    const q = this.insuranceSearch.toLowerCase();
-                    return this.insuranceItems.filter(i => i.name.toLowerCase().includes(q));
+                get filteredPickerItems() {
+                    const q = (this.insuranceSearch || '').toLowerCase().trim();
+                    const keepSelected = this.insuranceSearch === this._selectedInsuranceName;
+                    if (!this.insuranceSearch || keepSelected) {
+                        return this.pickerItems.filter(i => i.kind === 'insurance');
+                    }
+                    return this.pickerItems.filter(i =>
+                        Array.isArray(i.variants) && i.variants.some(v => String(v).toLowerCase().includes(q))
+                    );
                 },
 
                 _selectedInsuranceName: '',
@@ -447,7 +461,7 @@
                 init() {
                     if (this.insuranceId) {
                         this.isParticular = this.insuranceTypes[this.insuranceId] === 'particular';
-                        const found = this.insuranceItems.find(i => i.id == this.insuranceId);
+                        const found = this.pickerItems.find(i => i.kind === 'insurance' && i.id == this.insuranceId);
                         if (found) {
                             this.insuranceSearch = found.name;
                             this._selectedInsuranceName = found.name;
@@ -455,10 +469,17 @@
                     }
                 },
 
-                selectInsurance(ins) {
-                    this.insuranceId = ins.id;
-                    this.insuranceSearch = ins.name;
-                    this._selectedInsuranceName = ins.name;
+                selectPickerRow(row) {
+                    this.unlinkedNotice = '';
+                    if (row.kind === 'unlinked_customer') {
+                        const tid = row.tax_id ? ' CUIT ' + row.tax_id + '.' : '';
+                        this.unlinkedNotice = 'Este cliente no tiene una obra social del laboratorio con el mismo nombre o CUIT.' + tid + ' Creá o editá la cobertura en Obras sociales y replicá CUIT/nombre, o vinculá los datos.';
+                        this.showInsuranceDropdown = false;
+                        return;
+                    }
+                    this.insuranceId = row.id;
+                    this.insuranceSearch = row.name;
+                    this._selectedInsuranceName = row.name;
                     this.showInsuranceDropdown = false;
                     this.onInsuranceChange();
                 },
@@ -467,6 +488,7 @@
                     this.insuranceId = '';
                     this.insuranceSearch = '';
                     this._selectedInsuranceName = '';
+                    this.unlinkedNotice = '';
                     this.onInsuranceChange();
                 },
 

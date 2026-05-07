@@ -6,6 +6,7 @@ use App\Enums\DeterminationProfileLabType;
 use App\Mail\AdmissionResultMail;
 use App\Models\Admission;
 use App\Models\AdmissionTest;
+use App\Models\Customer;
 use App\Models\DeterminationProfile;
 use App\Models\Insurance;
 use App\Models\InsuranceTest;
@@ -106,7 +107,142 @@ class LabAdmissionController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        return view('lab.admissions.create', compact('patient', 'insurances', 'tests', 'branches', 'clinicalProfiles'));
+        $coveragePickerItems = $this->labAdmissionCoveragePickerItems($insurances);
+
+        return view('lab.admissions.create', compact('patient', 'insurances', 'coveragePickerItems', 'tests', 'branches', 'clinicalProfiles'));
+    }
+
+    /**
+     * Opciones del buscador de cobertura: obras sociales + variantes de nombre desde clientes
+     * (mismo CUIT o mismo nombre) y clientes activos sin vínculo para mostrar aviso.
+     *
+     * @param  \Illuminate\Database\Eloquent\Collection<int, Insurance>  $insurances
+     * @return list<array<string, mixed>>
+     */
+    protected function labAdmissionCoveragePickerItems($insurances): array
+    {
+        $customerTypes = ['obra_social', 'laborales', 'clinico'];
+        $customers = Customer::query()
+            ->where('status', 'activo')
+            ->where(function ($q) use ($customerTypes) {
+                foreach ($customerTypes as $t) {
+                    $q->orWhereJsonContains('type', $t);
+                }
+            })
+            ->get(['id', 'name', 'taxId']);
+
+        $linkedInsuranceIdByCustomerId = [];
+        foreach ($customers as $customer) {
+            $linkedInsuranceIdByCustomerId[$customer->id] = $this->resolveCustomerToInsuranceId($customer, $insurances);
+        }
+
+        $variantsByInsuranceId = [];
+        foreach ($insurances as $ins) {
+            $variantsByInsuranceId[$ins->id] = $this->searchVariantsForStrings([
+                $ins->name,
+                mb_strtoupper((string) $ins->name),
+            ]);
+        }
+
+        foreach ($customers as $customer) {
+            $iid = $linkedInsuranceIdByCustomerId[$customer->id];
+            if ($iid !== null && isset($variantsByInsuranceId[$iid])) {
+                foreach ($this->searchVariantsForStrings([$customer->name]) as $v) {
+                    $variantsByInsuranceId[$iid][] = $v;
+                }
+                $variantsByInsuranceId[$iid] = array_values(array_unique($variantsByInsuranceId[$iid]));
+            }
+        }
+
+        $pickerItems = [];
+        foreach ($insurances as $ins) {
+            $pickerItems[] = [
+                'kind' => 'insurance',
+                'id' => $ins->id,
+                'name' => mb_strtoupper((string) $ins->name),
+                'type' => $ins->type,
+                'variants' => $variantsByInsuranceId[$ins->id] ?? [],
+            ];
+        }
+
+        foreach ($customers as $customer) {
+            if ($linkedInsuranceIdByCustomerId[$customer->id] !== null) {
+                continue;
+            }
+            $pickerItems[] = [
+                'kind' => 'unlinked_customer',
+                'customer_id' => $customer->id,
+                'name' => mb_strtoupper((string) $customer->name),
+                'tax_id' => $customer->taxId,
+                'variants' => $this->searchVariantsForStrings([$customer->name, $customer->taxId ?? '']),
+            ];
+        }
+
+        return $pickerItems;
+    }
+
+    /**
+     * Resuelve un cliente de facturación a una obra social del laboratorio por CUIT o nombre exacto (normalizado).
+     *
+     * @param  \Illuminate\Database\Eloquent\Collection<int, Insurance>  $insurances
+     */
+    protected function resolveCustomerToInsuranceId(Customer $customer, $insurances): ?int
+    {
+        $cuit = $this->normalizeTaxDigits($customer->taxId ?? '');
+        if ($cuit !== '') {
+            foreach ($insurances as $ins) {
+                if ($this->normalizeTaxDigits($ins->tax_id ?? '') === $cuit) {
+                    return $ins->id;
+                }
+            }
+        }
+        $nName = $this->normalizeComparableName($customer->name);
+        if ($nName !== '') {
+            foreach ($insurances as $ins) {
+                if ($this->normalizeComparableName($ins->name) === $nName) {
+                    return $ins->id;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    protected function normalizeTaxDigits(?string $tax): string
+    {
+        if ($tax === null || $tax === '') {
+            return '';
+        }
+
+        return preg_replace('/\D/', '', $tax) ?? '';
+    }
+
+    protected function normalizeComparableName(?string $name): string
+    {
+        if ($name === null || $name === '') {
+            return '';
+        }
+        $collapsed = preg_replace('/\s+/', ' ', trim($name));
+
+        return mb_strtoupper($collapsed);
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function searchVariantsForStrings(array $strings): array
+    {
+        $out = [];
+        foreach ($strings as $s) {
+            if ($s === null || $s === '') {
+                continue;
+            }
+            $out[] = (string) $s;
+            $out[] = mb_strtoupper((string) $s);
+            $out[] = mb_strtolower((string) $s);
+        }
+
+        return array_values(array_unique($out));
     }
 
     /**
