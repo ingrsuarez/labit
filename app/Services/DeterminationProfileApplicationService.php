@@ -93,7 +93,7 @@ class DeterminationProfileApplicationService
             }
 
             $pricing = AdmissionInsuranceTestPricing::resolve($insurance, $test);
-            if (! $pricing['in_nomenclator'] && $insurance->type !== 'particular') {
+            if (! $pricing['in_nomenclator'] && ! $this->allowsClinicalFallbackPricing($insurance)) {
                 $skippedNomenclator[$testId] = $test->code.' — '.$test->name;
 
                 continue;
@@ -167,7 +167,7 @@ class DeterminationProfileApplicationService
                 }
 
                 $pricing = AdmissionInsuranceTestPricing::resolve($insurance, $test);
-                if (! $pricing['in_nomenclator'] && $insurance->type !== 'particular') {
+                if (! $pricing['in_nomenclator'] && ! $this->allowsClinicalFallbackPricing($insurance)) {
                     $skippedNomenclator[$testId] = $test->code.' — '.$test->name;
 
                     continue;
@@ -522,6 +522,15 @@ class DeterminationProfileApplicationService
             'tests_skipped_duplicate_count' => $skippedDup,
             'skipped_details' => $skippedDetails !== [] ? $skippedDetails : null,
         ]);
+    }
+
+    private function allowsClinicalFallbackPricing(Insurance $insurance): bool
+    {
+        if ($insurance->type === 'particular') {
+            return true;
+        }
+
+        return $insurance->type === 'laborales' && empty($insurance->nomenclator_id);
     }
 
     /**
