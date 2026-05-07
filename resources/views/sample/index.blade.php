@@ -75,11 +75,27 @@
             </p>
         </div>
 
+        <div x-show="selectedIds.length > 0" x-cloak
+             class="fixed bottom-6 right-6 z-50">
+            <button type="button" @click="openBatchModal()"
+                    class="inline-flex items-center px-5 py-3 bg-teal-600 text-white rounded-xl shadow-lg hover:bg-teal-700 transition-colors font-medium text-sm">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                Enviar <span x-text="selectedIds.length"></span> seleccionado(s)
+            </button>
+        </div>
+
         <!-- Tabla de Protocolos -->
         <div class="bg-white rounded-lg shadow-sm overflow-hidden">
             <table class="w-full table-fixed divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
+                        <th class="w-[4%] px-3 py-3">
+                            <input type="checkbox" x-model="selectAll" @change="toggleAll()"
+                                   class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        </th>
                         <th class="w-[10%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Protocolo</th>
                         <th class="w-[6%] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
                         <th class="w-[16%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lugar</th>
@@ -106,6 +122,12 @@
                                 '{{ strtolower($calcStatus) }}',
                                 '{{ $sample->lab_branch_id }}'
                             )">
+                            <td class="px-3 py-4">
+                                <input type="checkbox" :value="{{ $sample->id }}"
+                                       x-model="selectedIds"
+                                       @if($calcStatus !== 'validated' && $calcStatus !== 'enviado') disabled @endif
+                                       class="rounded border-gray-300 text-teal-600 focus:ring-teal-500 disabled:opacity-30">
+                            </td>
                             <td class="px-3 py-4 whitespace-nowrap">
                                 <a href="{{ route('sample.show', $sample) }}" class="text-teal-600 hover:text-teal-800 font-medium">
                                     {{ $sample->protocol_number }}
@@ -182,7 +204,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-6 py-12 text-center text-gray-500">
+                            <td colspan="9" class="px-6 py-12 text-center text-gray-500">
                                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                                 </svg>
@@ -196,6 +218,93 @@
                 </tbody>
             </table>
         </div>
+
+        <div x-show="showBatchModal" x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">Enviar protocolos por email</h3>
+                    <button type="button" @click="showBatchModal = false" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <template x-if="batchData.skipped.length > 0">
+                    <div class="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <p class="text-sm font-medium text-yellow-800 mb-1">
+                            Los siguientes protocolos no están validados y no se enviarán:
+                        </p>
+                        <ul class="text-sm text-yellow-700 list-disc list-inside">
+                            <template x-for="p in batchData.skipped" :key="p.id">
+                                <li x-text="p.protocol_number + ' — ' + p.customer_name"></li>
+                            </template>
+                        </ul>
+                    </div>
+                </template>
+
+                <template x-for="group in batchData.groups" :key="group.customer_id">
+                    <div class="mb-4 border border-gray-200 rounded-lg p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <p class="font-medium text-gray-800" x-text="group.customer_name"></p>
+                                <p class="text-xs text-gray-500" x-text="group.samples.length + ' protocolo(s)'"></p>
+                            </div>
+                            <label class="flex items-center gap-2 text-sm text-gray-600">
+                                <input type="checkbox" x-model="group.skip"
+                                       class="rounded border-gray-300 text-gray-400">
+                                Saltear
+                            </label>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                Email destinatario
+                                <template x-if="!group.has_email">
+                                    <span class="text-red-500 ml-1">⚠ Cliente sin email registrado</span>
+                                </template>
+                            </label>
+                            <input type="email" x-model="group.email" :disabled="group.skip"
+                                   class="w-full text-sm border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 disabled:bg-gray-50 disabled:text-gray-400"
+                                   placeholder="email@ejemplo.com">
+                        </div>
+
+                        <ul class="text-xs text-gray-500 list-disc list-inside">
+                            <template x-for="s in group.samples" :key="s.id">
+                                <li x-text="s.protocol_number"></li>
+                            </template>
+                        </ul>
+                    </div>
+                </template>
+
+                <div class="flex justify-end gap-3 mt-4">
+                    <button type="button" @click="showBatchModal = false"
+                            class="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                        Cancelar
+                    </button>
+                    <button type="button" @click="sendBatch()" :disabled="batchSending"
+                            class="px-4 py-2 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50">
+                        <span x-show="!batchSending">Enviar</span>
+                        <span x-show="batchSending">Enviando...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="batchResult" x-cloak
+             class="fixed bottom-6 left-6 z-50 bg-white border border-gray-200 rounded-xl shadow-lg p-4 max-w-sm">
+            <p class="text-sm font-medium text-gray-800 mb-1">Resultado del envío masivo</p>
+            <p x-show="batchResult && batchResult.sent.length > 0" class="text-sm text-green-600"
+               x-text="'Enviados: ' + batchResult.sent.join(', ')"></p>
+            <p x-show="batchResult && batchResult.skipped.length > 0" class="text-sm text-yellow-600"
+               x-text="'Salteados: ' + batchResult.skipped.join(', ')"></p>
+            <p x-show="batchResult && batchResult.errors.length > 0" class="text-sm text-red-600"
+               x-text="'Errores: ' + batchResult.errors.join(', ')"></p>
+            <button type="button" @click="batchResult = null; window.location.reload()" class="mt-2 text-xs text-teal-600 hover:underline">
+                Cerrar y actualizar
+            </button>
+        </div>
     </div>
 
     <script>
@@ -206,6 +315,22 @@
                 filterStatus: '',
                 filterBranch: '',
                 visibleCount: {{ $samples->count() }},
+
+                selectedIds: [],
+                selectAll: false,
+                showBatchModal: false,
+                batchData: { groups: [], skipped: [] },
+                batchSending: false,
+                batchResult: null,
+
+                sampleMeta: @json($samples->map(fn ($s) => [
+                    'id' => $s->id,
+                    'protocol_number' => $s->protocol_number,
+                    'customer_id' => $s->customer_id,
+                    'customer_name' => $s->customer?->name ?? 'N/A',
+                    'customer_email' => $s->customer?->email ?? null,
+                    'is_validated' => $s->isValidated(),
+                ])->values()),
 
                 matchesFilter(protocol, customer, place, type, status, branchId) {
                     const q = this.search.toLowerCase().trim();
@@ -226,7 +351,89 @@
                     let count = 0;
                     rows.forEach(r => { if (r.style.display !== 'none') count++; });
                     this.visibleCount = count;
-                }
+                },
+
+                toggleAll() {
+                    if (this.selectAll) {
+                        this.selectedIds = this.sampleMeta
+                            .filter(s => s.is_validated)
+                            .map(s => s.id);
+                    } else {
+                        this.selectedIds = [];
+                    }
+                },
+
+                openBatchModal() {
+                    const selected = this.sampleMeta.filter(s => this.selectedIds.includes(s.id));
+                    const validated = selected.filter(s => s.is_validated);
+                    const skipped = selected.filter(s => !s.is_validated);
+
+                    const groups = {};
+                    for (const s of validated) {
+                        if (!groups[s.customer_id]) {
+                            groups[s.customer_id] = {
+                                customer_id: s.customer_id,
+                                customer_name: s.customer_name,
+                                email: s.customer_email || '',
+                                has_email: !!s.customer_email,
+                                skip: false,
+                                samples: [],
+                            };
+                        }
+                        groups[s.customer_id].samples.push(s);
+                    }
+
+                    this.batchData = {
+                        groups: Object.values(groups),
+                        skipped: skipped,
+                    };
+                    this.showBatchModal = true;
+                },
+
+                async sendBatch() {
+                    const emailOverrides = {};
+                    const sampleIds = [];
+
+                    for (const group of this.batchData.groups) {
+                        if (group.skip) {
+                            continue;
+                        }
+                        for (const s of group.samples) {
+                            sampleIds.push(s.id);
+                        }
+                        emailOverrides[group.customer_id] = group.email;
+                    }
+
+                    if (sampleIds.length === 0) {
+                        alert('No hay protocolos para enviar (revisá los grupos marcados como Saltear).');
+                        return;
+                    }
+
+                    this.batchSending = true;
+
+                    try {
+                        const res = await fetch(@json(route('sample.batch-email')), {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                sample_ids: sampleIds,
+                                email_overrides: emailOverrides,
+                            }),
+                        });
+                        this.batchResult = await res.json();
+                    } catch (e) {
+                        this.batchResult = { sent: [], skipped: [], errors: ['Error de red'] };
+                    }
+
+                    this.batchSending = false;
+                    this.showBatchModal = false;
+                    this.selectedIds = [];
+                    this.selectAll = false;
+                },
             }
         }
     </script>
