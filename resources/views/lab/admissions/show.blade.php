@@ -371,6 +371,7 @@
                                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-40">Resultado</th>
                                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-24">Unidad</th>
                                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-40">Valor Ref.</th>
+                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-20" title="Ratificado: valor anormal/atípico verificado por bioquímico">Ratif.</th>
                                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-28">Estado</th>
                                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-24">Acciones</th>
                                         </tr>
@@ -441,7 +442,7 @@
                                                     </div>
                                                 </td>
                                                 @if($hasChildren)
-                                                    <td class="px-4 py-2 text-center text-xs text-gray-400" colspan="3">
+                                                    <td class="px-4 py-2 text-center text-xs text-gray-400" colspan="4">
                                                         Cargar resultados en las determinaciones ↓
                                                     </td>
                                                 @else
@@ -468,6 +469,19 @@
                                                         @else
                                                             <span class="text-xs text-orange-500">Sin ref.</span>
                                                         @endif
+                                                    </td>
+                                                    <td class="px-4 py-1 text-center">
+                                                        @php
+                                                            $ratifyDisabled = ! $canValidate;
+                                                        @endphp
+                                                        <input type="hidden" name="results[{{ $formIndex }}][is_ratified]" value="0">
+                                                        <input type="checkbox"
+                                                               name="results[{{ $formIndex }}][is_ratified]"
+                                                               value="1"
+                                                               {{ $admissionTest->is_ratified ? 'checked' : '' }}
+                                                               {{ $ratifyDisabled ? 'disabled' : '' }}
+                                                               title="Valor anormal/atípico — verificado por bioquímico (editable también después de validar)"
+                                                               class="h-4 w-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 {{ $ratifyDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer' }}">
                                                     </td>
                                                 @endif
                                                 <td class="px-4 py-2 text-center">

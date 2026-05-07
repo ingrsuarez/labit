@@ -14,6 +14,7 @@ class VetAdmissionTest extends Model
         'status', 'result', 'unit', 'reference_value', 'method',
         'observations', 'analyzed_by', 'analyzed_at',
         'is_validated', 'validated_by', 'validated_at',
+        'is_ratified', 'ratified_at', 'ratified_by',
     ];
 
     protected $casts = [
@@ -21,6 +22,8 @@ class VetAdmissionTest extends Model
         'is_validated' => 'boolean',
         'analyzed_at' => 'datetime',
         'validated_at' => 'datetime',
+        'is_ratified' => 'boolean',
+        'ratified_at' => 'datetime',
     ];
 
     public function vetAdmission()
@@ -41,6 +44,11 @@ class VetAdmissionTest extends Model
     public function validatorUser()
     {
         return $this->belongsTo(User::class, 'validated_by');
+    }
+
+    public function ratifier()
+    {
+        return $this->belongsTo(User::class, 'ratified_by');
     }
 
     public function getStatusLabelAttribute(): string

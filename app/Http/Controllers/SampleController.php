@@ -433,33 +433,55 @@ class SampleController extends Controller
             'determinations.*.method' => 'nullable|string|max:255',
             'determinations.*.observations' => 'nullable|string',
             'determinations.*.status' => 'required|in:pending,in_progress,completed',
+            'determinations.*.is_ratified' => 'nullable|boolean',
         ]);
+
+        $canRatify = auth()->user()->can('samples.validate');
 
         foreach ($validated['determinations'] as $data) {
             $determination = SampleDetermination::find($data['id']);
 
-            if ($determination->sample_id !== $sample->id || $determination->is_validated) {
+            if (! $determination || $determination->sample_id !== $sample->id) {
                 continue;
             }
 
-            $updateData = [
-                'result' => array_key_exists('result', $data) ? $data['result'] : $determination->result,
-                'reference_value' => array_key_exists('reference_value', $data) ? $data['reference_value'] : $determination->reference_value,
-                'reference_category_id' => array_key_exists('reference_category_id', $data) ? $data['reference_category_id'] : $determination->reference_category_id,
-                'method' => array_key_exists('method', $data) ? $data['method'] : $determination->method,
-                'observations' => array_key_exists('observations', $data) ? $data['observations'] : $determination->observations,
-                'status' => array_key_exists('status', $data) ? $data['status'] : $determination->status,
-            ];
+            $updateData = [];
+            if (! $determination->is_validated) {
+                $updateData = [
+                    'result' => array_key_exists('result', $data) ? $data['result'] : $determination->result,
+                    'reference_value' => array_key_exists('reference_value', $data) ? $data['reference_value'] : $determination->reference_value,
+                    'reference_category_id' => array_key_exists('reference_category_id', $data) ? $data['reference_category_id'] : $determination->reference_category_id,
+                    'method' => array_key_exists('method', $data) ? $data['method'] : $determination->method,
+                    'observations' => array_key_exists('observations', $data) ? $data['observations'] : $determination->observations,
+                    'status' => array_key_exists('status', $data) ? $data['status'] : $determination->status,
+                ];
 
-            if ($data['status'] === 'completed' && ! $determination->analyzed_at) {
-                $updateData['analyzed_at'] = now();
-                $updateData['analyzed_by'] = auth()->id();
+                if ($data['status'] === 'completed' && ! $determination->analyzed_at) {
+                    $updateData['analyzed_at'] = now();
+                    $updateData['analyzed_by'] = auth()->id();
+                }
             }
 
-            $determination->update($updateData);
+            if ($canRatify && array_key_exists('is_ratified', $data)) {
+                $ratified = filter_var($data['is_ratified'], FILTER_VALIDATE_BOOLEAN);
+                if ($ratified) {
+                    $updateData['is_ratified'] = true;
+                    $updateData['ratified_at'] = now();
+                    $updateData['ratified_by'] = auth()->id();
+                } else {
+                    $updateData['is_ratified'] = false;
+                    $updateData['ratified_at'] = null;
+                    $updateData['ratified_by'] = null;
+                }
+            }
 
-            // Si es hijo, actualizar estado del padre
-            $this->updateParentDeterminationStatus($determination, $sample);
+            if (! empty($updateData)) {
+                $determination->update($updateData);
+
+                if (! $determination->is_validated) {
+                    $this->updateParentDeterminationStatus($determination, $sample);
+                }
+            }
         }
 
         // Actualizar estado del protocolo
@@ -644,6 +666,9 @@ class SampleController extends Controller
                     'is_validated' => false,
                     'validated_by' => null,
                     'validated_at' => null,
+                    'is_ratified' => false,
+                    'ratified_at' => null,
+                    'ratified_by' => null,
                 ]);
             }
             $count++;

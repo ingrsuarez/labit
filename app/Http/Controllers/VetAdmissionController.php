@@ -357,14 +357,20 @@ class VetAdmissionController extends Controller
             'results.*.unit' => 'nullable|string|max:50',
             'results.*.reference_value' => 'nullable|string|max:255',
             'results.*.method' => 'nullable|string|max:255',
+            'results.*.is_ratified' => 'nullable|boolean',
         ]);
 
         foreach ($request->results as $data) {
             $vat = VetAdmissionTest::find($data['id']);
-            if ($vat && $vat->vet_admission_id === $vetAdmission->id && ! $vat->is_validated) {
+            if (! $vat || $vat->vet_admission_id !== $vetAdmission->id) {
+                continue;
+            }
+
+            $update = [];
+            if (! $vat->is_validated) {
                 $resultValue = $data['result'] ?? null;
                 $hasResult = $resultValue !== null && $resultValue !== '';
-                $vat->update([
+                $update = [
                     'result' => $resultValue,
                     'unit' => $data['unit'] ?? null,
                     'reference_value' => $data['reference_value'] ?? null,
@@ -372,7 +378,24 @@ class VetAdmissionController extends Controller
                     'status' => $hasResult ? 'completed' : 'pending',
                     'analyzed_by' => $hasResult ? auth()->id() : null,
                     'analyzed_at' => $hasResult ? now() : null,
-                ]);
+                ];
+            }
+
+            if (array_key_exists('is_ratified', $data)) {
+                $ratified = filter_var($data['is_ratified'], FILTER_VALIDATE_BOOLEAN);
+                if ($ratified) {
+                    $update['is_ratified'] = true;
+                    $update['ratified_at'] = now();
+                    $update['ratified_by'] = auth()->id();
+                } else {
+                    $update['is_ratified'] = false;
+                    $update['ratified_at'] = null;
+                    $update['ratified_by'] = null;
+                }
+            }
+
+            if (! empty($update)) {
+                $vat->update($update);
             }
         }
 
@@ -524,6 +547,9 @@ class VetAdmissionController extends Controller
             'validated_by' => null,
             'validated_at' => null,
             'status' => $vetAdmissionTest->hasResult() ? 'completed' : 'pending',
+            'is_ratified' => false,
+            'ratified_at' => null,
+            'ratified_by' => null,
         ]);
 
         $vetAdmission->load(['vetTests.test.childTests']);
