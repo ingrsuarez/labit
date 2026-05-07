@@ -316,6 +316,8 @@ Route::middleware([
         Route::get('sample', [App\Http\Controllers\SampleController::class, 'index'])->name('sample.index');
         Route::get('sample/create', [App\Http\Controllers\SampleController::class, 'create'])->name('sample.create');
         Route::post('sample', [App\Http\Controllers\SampleController::class, 'store'])->name('sample.store');
+        Route::post('sample/batch-email', [App\Http\Controllers\SampleController::class, 'batchEmail'])
+            ->name('sample.batch-email');
         Route::get('sample/{sample}', [App\Http\Controllers\SampleController::class, 'show'])->name('sample.show');
         Route::get('sample/{sample}/edit', [App\Http\Controllers\SampleController::class, 'edit'])->name('sample.edit');
         Route::put('sample/{sample}', [App\Http\Controllers\SampleController::class, 'update'])->name('sample.update');

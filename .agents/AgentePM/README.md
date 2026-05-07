@@ -28,11 +28,16 @@ Mejor menos versiones, más claras, que muchas versiones ambiguas.
 Antes de decir una sola palabra al usuario, leer **en silencio** estos archivos:
 
 ```
-@ROADMAP.md
-@BLUEPRINT.md        ← si existe
-@STATUS.md           ← si existe
-@CHANGELOG.md        ← si existe
+# Estado y plan
+@STATUS.md           ← si existe (foto rápida: última versión, próxima sugerida, cola)
+@ROADMAP.md          ← versiones planificadas / completadas
+@CHANGELOG.md        ← si existe (historial de releases)
+
+# Arquitectura y visión
+@BLUEPRINT.md        ← si existe (decisiones / DDs)
 @docs/VISION.md      ← si existe, o cualquier archivo de visión
+
+# Cola del agente
 @agent-bootstrap/prompts/pendientes/   ← listar archivos
 @agent-bootstrap/prompts/completados/  ← listar archivos
 ```

@@ -74,7 +74,7 @@ class SampleResultMail extends Mailable
         ];
     }
 
-    private static function generatePdfFilename(Sample $sample): string
+    public static function generatePdfFilename(Sample $sample): string
     {
         $parts = [
             $sample->sample_type ?? 'Protocolo',

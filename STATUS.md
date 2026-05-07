@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-06 (v1.64.0 — declaraciones de impuestos e imputación de anticipos)
+> Última actualización: 2026-05-06 (v1.74.0 — envío masivo protocolos muestras por email)
 
 ---
 
@@ -11,11 +11,11 @@
 |---|---|
 | **Versión actual (línea v1.x)** | Tags recientes: **v1.75.1**, **v1.73.0**; línea `develop` ≈ `master` tras último release |
 | **Última en master** | Release 2026-05-07: merge `develop` → `master` (**v1.73.0** estado enviado muestras + docs alineados) |
-| **Última completada (cola agente)** | **v1.64.0** — Declaraciones de impuestos e imputación de anticipos (`Tax`, `TaxReturn`, DDJJ, permisos `taxes.manage` / `tax-returns.manage`) |
+| **Última completada (cola agente)** | **v1.74.0** — Envío masivo de protocolos de muestras por email (`POST /sample/batch-email`, `SampleBatchMail`, listado con selección por cliente) |
 | **En proceso** | — |
-| **Próxima recomendada** | v1.74.0 — Envío masivo de protocolos de muestras por email (depende de v1.73.0 ✓) |
-| **Pendientes en cola** | 3 (`pendientes/` + `DISEÑO_v1.55.0…`; siguiente por orden `v`: **v1.74.0**) |
-| **Completadas** | 132 |
+| **Próxima recomendada** | **v1.76.0** — Marcar determinaciones como ratificadas |
+| **Pendientes en cola** | 2 (`pendientes/` tipo `v*` + `DISEÑO_v1.55.0…`; siguiente por orden `v`: **v1.76.0**) |
+| **Completadas** | 133 |
 
 ---
 
@@ -25,12 +25,11 @@
 
 | # | Versión | Nombre | Notas |
 |---|---|---|---|
-| 1 | v1.74.0 | Envío masivo de protocolos de muestras por email | Depende de v1.73.0 ✓ |
-| 2 | v1.76.0 | Marcar determinaciones ratificadas | ROADMAP vigente |
+| 1 | v1.76.0 | Marcar determinaciones ratificadas | ROADMAP vigente |
 
 Archivo adicional en `pendientes/` (no empieza con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
 
-> v1.64.0 completado 2026-05-06 (DDJJ + imputación anticipos). v1.75.0 completado 2026-05-06 (PDF sin observaciones en informes al cliente).
+> v1.74.0 completado 2026-05-06 (envío masivo muestras por email). v1.64.0 completado 2026-05-06 (DDJJ + imputación anticipos). v1.75.0 completado 2026-05-06 (PDF sin observaciones en informes al cliente).
 
 ### En proceso (0)
 
@@ -40,6 +39,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.74.0 | Envío masivo de protocolos de muestras por email (lote, agrupación por cliente, `sent_at`) | 2026-05-06 | v1.74.0 |
 | v1.64.0 | Declaraciones de impuestos e imputación de anticipos (Tax, TaxReturn, balances) | 2026-05-06 | v1.64.0 |
 | v1.73.0 | Estado "enviado" en protocolos de muestras (`sent_at`, informe email/PDF) | 2026-05-07 | v1.73.0 |
 | v1.75.1 | Hotfix: otros valores de referencia visibles en PDF (clínico, vet, muestras) | 2026-05-06 | v1.75.1 |
@@ -255,9 +255,9 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-**v1.64.0 completada y mergeada a develop (2026-05-06).** Tag `v1.64.0`. Próximo prompt disponible por orden `v*`: **v1.74.0** (envío masivo muestras por email).
+**v1.74.0 completada y mergeada a develop (2026-05-06).** Tag `v1.74.0`. Próximo prompt disponible por orden `v*`: **v1.76.0** (determinaciones ratificadas).
 
-Pendientes en cola: **v1.76.0**, diseño **v1.55.0** (buscador FC); cadena muestras **v1.74.0** … ver `pendientes/`.
+Pendientes en cola: **v1.76.0**, diseño **v1.55.0** (buscador FC); ver `pendientes/`.
 
 **Cadena LISCOM↔labit:** completada en labit (v1.46.0, v1.47.0, v1.48.5, v1.51.0, v1.53.0).
 Pendientes en repo `interfases` (Django): v1.48.0, v1.49.0, v1.50.0, v1.52.0.
