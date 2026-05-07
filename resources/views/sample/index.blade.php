@@ -307,6 +307,18 @@
         </div>
     </div>
 
+    @php
+        $sampleMetaJson = $samples->map(function ($s) {
+            return [
+                'id'              => $s->id,
+                'protocol_number' => $s->protocol_number,
+                'customer_id'     => $s->customer_id,
+                'customer_name'   => $s->customer?->name ?? 'N/A',
+                'customer_email'  => $s->customer?->email ?? null,
+                'is_validated'    => $s->isValidated(),
+            ];
+        })->values();
+    @endphp
     <script>
         function sampleFilter() {
             return {
@@ -323,14 +335,7 @@
                 batchSending: false,
                 batchResult: null,
 
-                sampleMeta: @json($samples->map(fn ($s) => [
-                    'id' => $s->id,
-                    'protocol_number' => $s->protocol_number,
-                    'customer_id' => $s->customer_id,
-                    'customer_name' => $s->customer?->name ?? 'N/A',
-                    'customer_email' => $s->customer?->email ?? null,
-                    'is_validated' => $s->isValidated(),
-                ])->values()),
+                sampleMeta: @json($sampleMetaJson),
 
                 matchesFilter(protocol, customer, place, type, status, branchId) {
                     const q = this.search.toLowerCase().trim();
