@@ -5,6 +5,37 @@
 
 ---
 
+## [v1.76.0] — 2026-05-07 — Marcar determinaciones como ratificadas
+
+### Agregado
+- **Modelo de datos** en `admission_tests`, `vet_admission_tests` y `sample_determinations`:
+  - `is_ratified` (bool, default `false`)
+  - `ratified_at` (timestamp nullable)
+  - `ratified_by` (FK a `users`, `onDelete set null`)
+  - Relación Eloquent `ratifier()` en los tres modelos.
+- **UI**: nueva columna/checkbox **Ratif.** en la tabla de carga de resultados de:
+  - Lab clínico (`lab/admissions/show`)
+  - Lab veterinario (`vet/admissions/show`)
+  - Muestras (`sample/load-results`)
+  Tooltip explicativo: *"Valor anormal/atípico — verificado por bioquímico"*. Solo editable por usuarios con permiso de validar (`lab-results.validate` / `samples.validate`).
+- **PDF de informe y envío por email** (lab, vet, sample): asterisco junto al resultado ratificado y leyenda condicional al pie:
+  *"\* Resultados marcados fueron revisados por el bioquímico ante valores atípicos."*
+- **Tests** (`tests/Feature/RatifiedDeterminationsTest.php`): 5 tests Feature cubriendo persistencia, permisos, limpieza al desvalidar, y los tres módulos.
+
+### UX
+- El checkbox de Ratificado queda **editable también después de validar** la práctica, persistiéndose al hacer "Guardar Resultados" sin reabrir el resultado validado. Esto evita el flujo confuso de "marcar → validar → perder marca".
+
+### Backend
+- `LabAdmissionController::saveResult/saveResults` y `unvalidateTest`: aplican `is_ratified` solo si el usuario puede validar; al desvalidar, limpian la ratificación.
+- `VetAdmissionController::loadResults` y `unvalidateTest`: misma lógica para veterinario.
+- `SampleController::saveResults` y `validateDeterminations` (acción unvalidate): misma lógica para muestras (gated por `samples.validate`).
+
+### Notas técnicas
+- Migración obligatoria en deploy: `php artisan migrate` (SQLite skip de FK por compatibilidad de tests).
+- En MySQL/MariaDB se crea la FK a `users(id)` con `onDelete set null`.
+
+---
+
 ## [v1.73.0] — 2026-05-07 — Estado “enviado” en protocolos de muestras
 
 ### Agregado
