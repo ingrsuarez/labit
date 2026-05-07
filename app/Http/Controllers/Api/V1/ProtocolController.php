@@ -89,10 +89,11 @@ class ProtocolController extends Controller
 
         $client = $request->get('api_client');
         $modelClass = $protocolType->modelClass();
-        $found = $modelClass::query()
-            ->where('id', $id)
-            ->where('lab_branch_id', $client->lab_branch_id)
-            ->first();
+        $query = $modelClass::query()->where('id', $id);
+        if (! $client->isGlobal()) {
+            $query->where('lab_branch_id', $client->lab_branch_id);
+        }
+        $found = $query->first();
 
         if (! $found) {
             return response()->json(['error' => 'Protocol not found'], 404);

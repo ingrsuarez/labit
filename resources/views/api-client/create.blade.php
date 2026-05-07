@@ -37,20 +37,18 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="lab_branch_id" class="block text-sm font-medium text-gray-700 mb-1">
-                            Sede <span class="text-red-500">*</span>
+                            Sede
                         </label>
-                        <select name="lab_branch_id" id="lab_branch_id" required
+                        <select name="lab_branch_id" id="lab_branch_id"
                                 class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="">Seleccionar sede…</option>
+                            <option value="">Sin sede (acceso global)</option>
                             @foreach($branches as $branch)
                                 <option value="{{ $branch->id }}" @selected(old('lab_branch_id') == $branch->id)>
                                     {{ $branch->name }}
                                 </option>
                             @endforeach
                         </select>
-                        <p class="text-xs text-gray-500 mt-1">
-                            La sede no se puede cambiar después de crear la key.
-                        </p>
+                        <p class="text-xs text-gray-400 mt-1">Dejá vacío para que la key tenga acceso a protocolos de todas las sedes.</p>
                         @error('lab_branch_id')
                             <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
                         @enderror

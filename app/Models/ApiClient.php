@@ -87,6 +87,15 @@ class ApiClient extends Model
     }
 
     /**
+     * Indica si esta key tiene acceso a protocolos de todas las sedes.
+     * Sucede cuando lab_branch_id es null.
+     */
+    public function isGlobal(): bool
+    {
+        return $this->lab_branch_id === null;
+    }
+
+    /**
      * Indica si esta key está autorizada a recibir el DNI del paciente
      * en las respuestas de la API. Por defecto es false (level=minimal).
      */
