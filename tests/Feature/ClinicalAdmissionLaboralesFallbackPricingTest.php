@@ -27,15 +27,30 @@ class ClinicalAdmissionLaboralesFallbackPricingTest extends TestCase
 
     public function test_preview_admission_usa_nbu_de_determinacion_para_laborales_sin_nomenclador(): void
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(['lab.section', 'lab-admissions.create']);
-
-        $insurance = Insurance::query()->create([
+        $this->assertClinicalFallbackPricingForInsurance([
             'name' => 'Empresa laboral sin nomenclador',
             'type' => 'laborales',
             'nbu_value' => 100,
             'nomenclator_id' => null,
         ]);
+    }
+
+    public function test_preview_admission_usa_nbu_de_determinacion_para_cobertura_sin_nomenclador_asignado(): void
+    {
+        $this->assertClinicalFallbackPricingForInsurance([
+            'name' => 'Cobertura sin nomenclador',
+            'type' => 'obra_social',
+            'nbu_value' => 100,
+            'nomenclator_id' => null,
+        ]);
+    }
+
+    private function assertClinicalFallbackPricingForInsurance(array $insuranceData): void
+    {
+        $user = User::factory()->create();
+        $user->givePermissionTo(['lab.section', 'lab-admissions.create']);
+
+        $insurance = Insurance::query()->create($insuranceData);
 
         $test = Test::query()->create([
             'code' => 'LABNBU1',

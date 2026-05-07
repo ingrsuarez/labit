@@ -531,7 +531,7 @@ class DeterminationProfileApplicationService
             return true;
         }
 
-        return $insurance->type === 'laborales' && empty($insurance->nomenclator_id);
+        return $insurance->type !== 'nomenclador' && empty($insurance->nomenclator_id);
     }
 
     /**
