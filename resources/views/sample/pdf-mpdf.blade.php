@@ -470,7 +470,7 @@
             @elseif($isChild)
                 <tr class="det-child">
                     <td style="padding-left: {{ $indent }}px;">{{ ucfirst($det->test->name ?? 'N/A') }}</td>
-                    <td class="det-result">{{ $det->result ?? '-' }}</td>
+                    <td class="det-result">{{ $det->result ?? '-' }}@if($det->is_ratified)<span style="font-weight:bold;"> *</span>@endif</td>
                     <td class="det-unit">{{ $det->unit ?? '' }}</td>
                     <td class="det-ref">{{ \App\Support\ProtocolReferenceDisplay::line($det->reference_value, $det->test->other_reference ?? null) }}</td>
                 </tr>
@@ -482,7 +482,7 @@
             @else
                 <tr class="det-standalone">
                     <td>{{ ucfirst($det->test->name ?? 'N/A') }}</td>
-                    <td class="det-result">{{ $det->result ?? '-' }}</td>
+                    <td class="det-result">{{ $det->result ?? '-' }}@if($det->is_ratified)<span style="font-weight:bold;"> *</span>@endif</td>
                     <td class="det-unit">{{ $det->unit ?? '' }}</td>
                     <td class="det-ref">{{ \App\Support\ProtocolReferenceDisplay::line($det->reference_value, $det->test->other_reference ?? null) }}</td>
                 </tr>
@@ -494,7 +494,16 @@
             @endif
         @endforeach
     </table>
-    
+
+    @php
+        $hasRatifiedSample = collect($orderedDeterminations ?? [])->contains(fn ($e) => ($e['det']->is_ratified ?? false));
+    @endphp
+    @if($hasRatifiedSample)
+        <p style="margin-top:6px; font-size:9pt; color:#555;">
+            <strong>*</strong> Resultados marcados fueron revisados por el bioquímico ante valores atípicos.
+        </p>
+    @endif
+
     <!-- Análisis de Cumplimiento -->
     @php
         $categoriesUsed = collect();

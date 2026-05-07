@@ -360,6 +360,25 @@
                                         </select>
                                     </div>
                                 </div>
+
+                                @php
+                                    $canRatifyRow = auth()->user()->can('samples.validate');
+                                    $ratifyDisabled = ! $canRatifyRow;
+                                @endphp
+                                <div class="mt-2 flex items-center gap-2">
+                                    <input type="hidden" name="determinations[{{ $index }}][is_ratified]" value="0">
+                                    <input type="checkbox"
+                                           id="ratified-{{ $index }}"
+                                           name="determinations[{{ $index }}][is_ratified]"
+                                           value="1"
+                                           {{ $det->is_ratified ? 'checked' : '' }}
+                                           {{ $ratifyDisabled ? 'disabled' : '' }}
+                                           class="h-4 w-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 {{ $ratifyDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer' }}">
+                                    <label for="ratified-{{ $index }}" class="text-xs {{ $ratifyDisabled ? 'text-gray-400' : 'text-amber-700' }} cursor-pointer"
+                                           title="Valor anormal/atípico — verificado por bioquímico (editable también después de validar)">
+                                        Ratificado <span class="text-gray-400 font-normal">(valor atípico verificado)</span>
+                                    </label>
+                                </div>
                             @endif
 
                             <!-- Unidad (solo informativo) -->
