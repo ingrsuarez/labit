@@ -604,6 +604,60 @@ class ResultIngestionBatchTest extends TestCase
             ->assertStatus(401);
     }
 
+    // ─── Key global (v1.76.2) ────────────────────────────────────────────────
+
+    public function test_global_key_ingesta_protocolo_de_otra_sede(): void
+    {
+        $globalPlain = ApiClient::generateKey();
+        ApiClient::query()->create([
+            'name' => 'LISCOM Global',
+            'api_key_hash' => ApiClient::hashKey($globalPlain),
+            'key_preview' => ApiClient::buildPreview($globalPlain),
+            'lab_branch_id' => null,
+            'company_id' => $this->company->id,
+            'active' => true,
+            'patient_data_level' => ApiClient::LEVEL_MINIMAL,
+        ]);
+
+        // Protocolo en otherBranch — distinta a la de la key (que es null = global)
+        $admission = $this->makeAdmission(['lab_branch_id' => $this->otherBranch->id]);
+        $test = $this->makeTest();
+        $this->makeAdmissionTest($admission, $test);
+
+        $payload = $this->batchPayload($this->uuid(), [
+            $this->item('ctrl-global-1', $admission->protocol_number, $test->id, '7.2'),
+        ]);
+
+        $this->withHeaders(['X-API-Key' => $globalPlain])
+            ->postJson('/api/v1/results/batch', $payload)
+            ->assertStatus(200)
+            ->assertJsonPath('items.0.status', ApiResultIngestionService::STATUS_INGESTED);
+
+        $this->assertDatabaseHas('admission_tests', [
+            'admission_id' => $admission->id,
+            'test_id' => $test->id,
+            'result' => '7.2',
+        ]);
+    }
+
+    public function test_local_key_sigue_rechazando_protocolo_de_otra_sede(): void
+    {
+        // La key del setUp ya tiene lab_branch_id = $this->branch
+        $admission = $this->makeAdmission(['lab_branch_id' => $this->otherBranch->id]);
+        $test = $this->makeTest();
+        $this->makeAdmissionTest($admission, $test);
+
+        $payload = $this->batchPayload($this->uuid(), [
+            $this->item('ctrl-local-branch-1', $admission->protocol_number, $test->id),
+        ]);
+
+        $this->withHeaders($this->authHeaders())
+            ->postJson('/api/v1/results/batch', $payload)
+            ->assertStatus(200)
+            ->assertJsonPath('items.0.status', ApiResultIngestionService::STATUS_REJECTED)
+            ->assertJsonPath('items.0.reason', ApiResultIngestionService::REASON_PROTOCOL_OUT_OF_BRANCH);
+    }
+
     public function test_api_key_inactiva(): void
     {
         $plain = ApiClient::generateKey();

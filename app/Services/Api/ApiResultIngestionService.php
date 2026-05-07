@@ -125,7 +125,8 @@ class ApiResultIngestionService
             return $this->rejectMessage($client, $batch, $item, self::REASON_PROTOCOL_NOT_FOUND);
         }
 
-        if (isset($protocol['model']->lab_branch_id)
+        if (! $client->isGlobal()
+            && isset($protocol['model']->lab_branch_id)
             && $protocol['model']->lab_branch_id !== $client->lab_branch_id
         ) {
             return $this->rejectMessage($client, $batch, $item, self::REASON_PROTOCOL_OUT_OF_BRANCH);
