@@ -11,11 +11,9 @@ use App\Models\LabBranch;
 use App\Models\Material;
 use App\Models\Patient;
 use App\Models\Sample;
-use App\Models\SampleDetermination;
 use App\Models\Species;
 use App\Models\Test;
 use App\Models\VetAdmission;
-use App\Models\VetAdmissionTest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -24,9 +22,13 @@ class ProtocolApiTest extends TestCase
     use RefreshDatabase;
 
     private LabBranch $branch;
+
     private LabBranch $otherBranch;
+
     private Company $company;
+
     private ApiClient $client;
+
     private string $apiKey;
 
     protected function setUp(): void
@@ -432,5 +434,116 @@ class ProtocolApiTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.determinations.0.status', 'validated')
             ->assertJsonPath('data.determinations.0.has_result', true);
+    }
+
+    public function test_global_key_finds_protocol_from_any_branch_by_barcode(): void
+    {
+        $globalPlain = ApiClient::generateKey();
+        $globalClient = ApiClient::query()->create([
+            'name' => 'LISCOM Global',
+            'api_key_hash' => ApiClient::hashKey($globalPlain),
+            'key_preview' => ApiClient::buildPreview($globalPlain),
+            'lab_branch_id' => null,
+            'company_id' => $this->company->id,
+            'active' => true,
+            'patient_data_level' => ApiClient::LEVEL_MINIMAL,
+        ]);
+
+        // Protocolo en otherBranch (distinta a la del client setUp)
+        $admission = $this->makeAdmission(['lab_branch_id' => $this->otherBranch->id]);
+        $this->makeAdmissionTest($admission);
+
+        // Key global debe encontrarlo
+        $this->withHeaders(['X-API-Key' => $globalPlain])
+            ->getJson('/api/v1/protocols/by-barcode/'.$admission->protocol_number)
+            ->assertOk()
+            ->assertJsonPath('data.protocol_number', $admission->protocol_number);
+
+        // Key local (branch diferente) no debe encontrarlo
+        $this->withHeaders($this->authHeaders())
+            ->getJson('/api/v1/protocols/by-barcode/'.$admission->protocol_number)
+            ->assertStatus(404);
+    }
+
+    public function test_global_key_finds_protocol_from_any_branch_by_show(): void
+    {
+        $globalPlain = ApiClient::generateKey();
+        ApiClient::query()->create([
+            'name' => 'LISCOM Global',
+            'api_key_hash' => ApiClient::hashKey($globalPlain),
+            'key_preview' => ApiClient::buildPreview($globalPlain),
+            'lab_branch_id' => null,
+            'company_id' => $this->company->id,
+            'active' => true,
+            'patient_data_level' => ApiClient::LEVEL_MINIMAL,
+        ]);
+
+        $admission = $this->makeAdmission(['lab_branch_id' => $this->otherBranch->id]);
+        $this->makeAdmissionTest($admission);
+
+        // Key global: show por id debe responder 200
+        $this->withHeaders(['X-API-Key' => $globalPlain])
+            ->getJson("/api/v1/protocols/clinical/{$admission->id}")
+            ->assertOk()
+            ->assertJsonPath('data.id', $admission->id);
+
+        // Key local: show por id de otra sede devuelve 404
+        $this->withHeaders($this->authHeaders())
+            ->getJson("/api/v1/protocols/clinical/{$admission->id}")
+            ->assertStatus(404);
+    }
+
+    public function test_global_key_index_returns_protocols_from_all_branches(): void
+    {
+        $globalPlain = ApiClient::generateKey();
+        ApiClient::query()->create([
+            'name' => 'LISCOM Global',
+            'api_key_hash' => ApiClient::hashKey($globalPlain),
+            'key_preview' => ApiClient::buildPreview($globalPlain),
+            'lab_branch_id' => null,
+            'company_id' => $this->company->id,
+            'active' => true,
+            'patient_data_level' => ApiClient::LEVEL_MINIMAL,
+        ]);
+
+        $sharedTest = $this->makeTest($this->makeMaterial()->id);
+
+        $admissionCentro = $this->makeAdmission(['lab_branch_id' => $this->branch->id]);
+        $this->makeAdmissionTest($admissionCentro, $sharedTest);
+
+        // Paciente distinto para evitar unique constraint en patientId
+        $patientNorte = $this->makePatient(['patientId' => '87654321']);
+        $protoNorte = Admission::generateProtocolNumber();
+        $admissionNorte = Admission::query()->create([
+            'date' => today()->toDateString(),
+            'number' => $protoNorte,
+            'protocol_number' => $protoNorte,
+            'patient_id' => $patientNorte->id,
+            'room' => 0,
+            'institution' => 0,
+            'invoice_date' => today()->toDateString(),
+            'promise_date' => today()->toDateString(),
+            'authorization_code' => 'N/A',
+            'attended_by' => 0,
+            'insurance_price' => 0,
+            'patient_price' => 0,
+            'cash' => 0,
+            'created_by' => 0,
+            'lab_branch_id' => $this->otherBranch->id,
+            'status' => Admission::STATUS_PENDING,
+        ]);
+        $this->makeAdmissionTest($admissionNorte, $sharedTest);
+
+        // Key global ve los 2 protocolos de distintas sedes
+        $this->withHeaders(['X-API-Key' => $globalPlain])
+            ->getJson('/api/v1/protocols?status=pending,in_progress')
+            ->assertOk()
+            ->assertJsonPath('meta.total', 2);
+
+        // Key local sigue viendo solo su sede (1 protocolo)
+        $this->withHeaders($this->authHeaders())
+            ->getJson('/api/v1/protocols?status=pending,in_progress')
+            ->assertOk()
+            ->assertJsonPath('meta.total', 1);
     }
 }

@@ -49,7 +49,7 @@ class ApiClientController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'lab_branch_id' => 'required|exists:lab_branches,id',
+            'lab_branch_id' => 'nullable|exists:lab_branches,id',
             'company_id' => 'required|exists:companies,id',
             'notes' => 'nullable|string|max:2000',
             'active' => 'nullable|boolean',

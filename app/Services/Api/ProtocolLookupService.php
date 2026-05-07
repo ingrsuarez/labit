@@ -40,10 +40,11 @@ class ProtocolLookupService
 
         if ($type) {
             $modelClass = $type->modelClass();
-            $found = $modelClass::query()
-                ->where('protocol_number', $code)
-                ->where('lab_branch_id', $client->lab_branch_id)
-                ->first();
+            $query = $modelClass::query()->where('protocol_number', $code);
+            if (! $client->isGlobal()) {
+                $query->where('lab_branch_id', $client->lab_branch_id);
+            }
+            $found = $query->first();
             if ($found) {
                 return $found;
             }
@@ -54,10 +55,11 @@ class ProtocolLookupService
                 continue;
             }
             $modelClass = $candidate->modelClass();
-            $found = $modelClass::query()
-                ->where('protocol_number', $code)
-                ->where('lab_branch_id', $client->lab_branch_id)
-                ->first();
+            $query = $modelClass::query()->where('protocol_number', $code);
+            if (! $client->isGlobal()) {
+                $query->where('lab_branch_id', $client->lab_branch_id);
+            }
+            $found = $query->first();
             if ($found) {
                 return $found;
             }
@@ -80,8 +82,11 @@ class ProtocolLookupService
         foreach ($types as $type) {
             $modelClass = $type->modelClass();
             $query = $modelClass::query()
-                ->where('lab_branch_id', $client->lab_branch_id)
                 ->with($this->eagerLoadFor($type));
+
+            if (! $client->isGlobal()) {
+                $query->where('lab_branch_id', $client->lab_branch_id);
+            }
 
             $this->applyFilters($query, $filters, $type);
 
