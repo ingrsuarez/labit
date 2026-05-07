@@ -642,6 +642,9 @@
                         if (!res.ok) throw new Error(data.message || 'Error al aplicar perfiles');
                         let added = 0;
                         let skipped = data.tests_skipped_duplicate_count || 0;
+                        const skippedNomenclatorMap = data.skipped_not_in_nomenclator || {};
+                        const skippedNomenclatorList = Object.values(skippedNomenclatorMap);
+                        const invalidProfileIds = data.invalid_profile_ids || [];
                         for (const row of data.admission_rows || []) {
                             if (!this.selectedTests.find(t => t.id === row.id)) {
                                 this.selectedTests.push({
@@ -657,13 +660,20 @@
                             }
                         }
                         this.calculateTotals();
-                        if (added === 0 && skipped > 0) {
-                            this.profileApplyTone = 'warn';
-                            this.profileApplyMessage = 'Todas las prácticas de estos perfiles ya estaban cargadas (' + skipped + ' omitidas).';
-                        } else {
-                            this.profileApplyTone = 'ok';
-                            this.profileApplyMessage = 'Se agregaron ' + added + ' prácticas. ' + skipped + ' ya estaban en el pedido.';
+                        const messages = [];
+                        messages.push('Se agregaron ' + added + ' prácticas.');
+                        if (skipped > 0) messages.push(skipped + ' ya estaban en el pedido.');
+                        if (skippedNomenclatorList.length > 0) {
+                            const sample = skippedNomenclatorList.slice(0, 5).join('; ');
+                            const more = skippedNomenclatorList.length > 5 ? ' (+' + (skippedNomenclatorList.length - 5) + ' más)' : '';
+                            messages.push(skippedNomenclatorList.length + ' no están en el nomenclador de esta obra social: ' + sample + more + '.');
                         }
+                        if (invalidProfileIds.length > 0) {
+                            messages.push(invalidProfileIds.length + ' perfil(es) inválido(s) o inactivo(s) para lab clínico.');
+                        }
+                        const hasIssues = skippedNomenclatorList.length > 0 || invalidProfileIds.length > 0;
+                        this.profileApplyTone = (added === 0 && (hasIssues || skipped > 0)) || hasIssues ? 'warn' : 'ok';
+                        this.profileApplyMessage = messages.join(' ');
                     } catch (e) {
                         this.profileApplyTone = 'warn';
                         this.profileApplyMessage = e.message || 'No se pudo aplicar.';
