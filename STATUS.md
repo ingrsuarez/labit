@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-06 (v1.74.0 — envío masivo protocolos muestras por email)
+> Última actualización: 2026-05-06 (sesión PM: v1.78.0 A25 Biosystems archivos texto planificada)
 
 ---
 
@@ -14,7 +14,7 @@
 | **Última completada (cola agente)** | **v1.74.0** — Envío masivo de protocolos de muestras por email (`POST /sample/batch-email`, `SampleBatchMail`, listado con selección por cliente) |
 | **En proceso** | — |
 | **Próxima recomendada** | **v1.76.0** — Marcar determinaciones como ratificadas |
-| **Pendientes en cola** | 2 (`pendientes/` tipo `v*` + `DISEÑO_v1.55.0…`; siguiente por orden `v`: **v1.76.0**) |
+| **Pendientes en cola** | 3 (`pendientes/` tipo `v*` + `DISEÑO_v1.55.0…`; incluye **v1.78.0** A25; siguiente por orden `v` sugerido: **v1.76.0**) |
 | **Completadas** | 133 |
 
 ---
@@ -25,7 +25,8 @@
 
 | # | Versión | Nombre | Notas |
 |---|---|---|---|
-| 1 | v1.76.0 | Marcar determinaciones ratificadas | ROADMAP vigente |
+| 1 | v1.78.0 | A25 Biosystems: `import.txt` + export resultados (texto plano) | Sin LISCOM; ver `pendientes/v1.78.0-a25-biosystems-interfaz-texto-plano.md` |
+| 2 | v1.76.0 | Marcar determinaciones ratificadas | ROADMAP vigente |
 
 Archivo adicional en `pendientes/` (no empieza con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
 
