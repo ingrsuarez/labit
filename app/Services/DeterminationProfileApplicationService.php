@@ -396,6 +396,7 @@ class DeterminationProfileApplicationService
                 'test_id' => $test->id,
                 'code' => $test->code,
                 'name' => $test->name,
+                'nbu' => $nbu,
                 'price' => $price,
             ];
             $existing[$testId] = true;

@@ -243,7 +243,7 @@ class DeterminationProfileController extends Controller
 
     public function previewVet(Request $request)
     {
-        $this->authorizeVet();
+        // Misma política que vet/admissions/search-tests y store: acceso vía middleware check.access.
 
         $validated = $request->validate([
             'customer_id' => ['required', 'exists:customers,id'],
@@ -287,13 +287,6 @@ class DeterminationProfileController extends Controller
     private function authorizeSample(): void
     {
         if (! auth()->user()->can('samples.create') && ! auth()->user()->can('samples.edit')) {
-            abort(403);
-        }
-    }
-
-    private function authorizeVet(): void
-    {
-        if (! auth()->user()->can('vet-admissions.edit')) {
             abort(403);
         }
     }

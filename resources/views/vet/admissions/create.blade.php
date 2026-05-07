@@ -120,6 +120,36 @@
                         Para buscar y agregar prácticas del <strong>nomenclador veterinario</strong>, primero elegí la <strong>veterinaria</strong> en la sección superior. Luego escribí acá el código o nombre (mínimo 2 caracteres).
                     </p>
 
+                    @if(isset($vetProfiles) && $vetProfiles->isNotEmpty())
+                    <div class="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg" x-show="customerId" x-cloak>
+                        <h3 class="text-sm font-semibold text-amber-900 mb-1">Aplicar perfiles guardados</h3>
+                        <p class="text-xs text-amber-800 mb-3">Las determinaciones ya cargadas no se duplican. Los importes usan el NBU de la veterinaria elegida.</p>
+                        <div class="flex flex-col sm:flex-row gap-3 sm:items-end">
+                            <div class="flex-1">
+                                <label class="block text-xs font-medium text-amber-900 mb-1">Perfiles (Ctrl/Cmd para varios)</label>
+                                <select multiple size="3" class="w-full rounded-lg border-amber-200 text-sm"
+                                        @change="profileIdsForApply = Array.from($event.target.selectedOptions).map(o => parseInt(o.value, 10))">
+                                    @foreach($vetProfiles as $p)
+                                        <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <button type="button" @click="applyProfilesFromVet()"
+                                    class="px-4 py-2 bg-amber-700 text-white text-sm rounded-lg hover:bg-amber-800">
+                                Aplicar perfiles
+                            </button>
+                        </div>
+                        @can('determination-profiles.manage')
+                            <a href="{{ route('determination-profiles.index') }}" class="inline-block mt-2 text-xs text-amber-800 hover:underline">Gestionar perfiles</a>
+                        @endcan
+                        <template x-if="profileApplyMessage">
+                            <div class="mt-3 text-sm p-3 rounded border"
+                                 :class="profileApplyTone === 'warn' ? 'bg-amber-100 border-amber-300 text-amber-950' : 'bg-green-50 border-green-200 text-green-900'"
+                                 x-text="profileApplyMessage"></div>
+                        </template>
+                    </div>
+                    @endif
+
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Fecha *</label>
@@ -247,6 +277,11 @@
                 totalPrice: 0,
                 searchError: '',
 
+                profileIdsForApply: [],
+                profileApplyMessage: '',
+                profileApplyTone: 'ok',
+                previewProfilesUrl: @json(route('vet.determination-profiles.preview')),
+
                 customerNbuRate() {
                     const id = this.customerId;
                     if (!id) return 0;
@@ -364,6 +399,60 @@
                 removeTest(index) {
                     this.testsData.splice(index, 1);
                     this.totalPrice = this.testsData.reduce((sum, t) => sum + t.price, 0);
+                },
+
+                async applyProfilesFromVet() {
+                    if (!this.customerId || !this.profileIdsForApply?.length) {
+                        this.profileApplyTone = 'warn';
+                        this.profileApplyMessage = 'Elegí veterinaria y al menos un perfil.';
+                        return;
+                    }
+                    this.profileApplyMessage = '';
+                    try {
+                        const res = await fetch(this.previewProfilesUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                customer_id: parseInt(this.customerId, 10),
+                                profile_ids: this.profileIdsForApply,
+                                existing_test_ids: this.testsData.map(t => t.test_id),
+                            }),
+                        });
+                        const data = await res.json();
+                        if (!res.ok) {
+                            throw new Error(data.message || data.error || 'Error al aplicar perfiles');
+                        }
+                        let added = 0;
+                        const skipped = data.tests_skipped_duplicate_count || 0;
+                        for (const row of data.vet_rows || []) {
+                            if (this.testsData.find(t => t.test_id === row.test_id)) {
+                                continue;
+                            }
+                            this.testsData.push({
+                                test_id: row.test_id,
+                                code: row.code,
+                                name: row.name,
+                                nbu: parseFloat(row.nbu) || 0,
+                                price: parseFloat(row.price) || 0,
+                            });
+                            added++;
+                        }
+                        this.totalPrice = this.testsData.reduce((sum, t) => sum + t.price, 0);
+                        if (added === 0 && skipped > 0) {
+                            this.profileApplyTone = 'warn';
+                            this.profileApplyMessage = 'Todas las prácticas de estos perfiles ya estaban cargadas (' + skipped + ' omitidas).';
+                        } else {
+                            this.profileApplyTone = 'ok';
+                            this.profileApplyMessage = 'Se agregaron ' + added + ' determinaciones. ' + skipped + ' ya estaban en el pedido.';
+                        }
+                    } catch (e) {
+                        this.profileApplyTone = 'warn';
+                        this.profileApplyMessage = e.message || 'No se pudo aplicar.';
+                    }
                 },
             }
         }
