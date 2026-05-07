@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-07 (sesión Programador: v1.76.0 ratificación determinaciones — completada)
+> Última actualización: 2026-05-07 (v1.76.1 completado — hotfix API key global sin sede para LISCOM)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | Tag más reciente: **v1.76.0**; línea `develop` por delante de `master` (commits del feature recién mergeados) |
-| **Última en master** | Release 2026-05-07: merge `develop` → `master` (**v1.73.0** estado enviado muestras + docs alineados) |
-| **Última completada (cola agente)** | **v1.76.0** — Marcar determinaciones como ratificadas (clínico, vet y muestras: campos `is_ratified` + `ratified_at` + `ratified_by`, checkbox UI, marca `*` y leyenda en PDF de informe y email) |
+| **Versión actual (línea v1.x)** | Tag más reciente: **v1.76.1**; develop y master actualizados (hotfix mergeado a ambos) |
+| **Última en master** | Release 2026-05-07: hotfix `v1.76.1` mergeado a master (API key global sin sede para LISCOM) |
+| **Última completada (cola agente)** | **v1.76.1** — API key global sin sede para LISCOM (`lab_branch_id` nullable, `isGlobal()`, filtro omitido en `ProtocolLookupService` y `ProtocolController`) |
 | **En proceso** | — |
-| **Próxima recomendada** | **v1.77.0** — Perfiles de determinaciones de laboratorio (diseño en `docs/designs/`) **o** **v1.78.0** A25 Biosystems texto plano |
-| **Pendientes en cola** | 2 (`pendientes/` tipo `v*` + `DISEÑO_v1.55.0…`; incluye **v1.78.0** A25) |
-| **Completadas** | 134 |
+| **Próxima recomendada** | **v1.78.0** — A25 Biosystems: `import.txt` + export resultados (texto plano) |
+| **Pendientes en cola** | 2 (`pendientes/`: **v1.78.0** A25 y `DISEÑO_v1.55.0…`) |
+| **Completadas** | 135 |
 
 ---
 
@@ -29,16 +29,17 @@
 
 Archivo adicional en `pendientes/` (no empieza con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
 
-> v1.76.0 completado 2026-05-07 (marca de ratificación en determinaciones, controllers + checkbox UI editable también post-validación + asterisco/leyenda en PDF informe y email). v1.74.0 completado 2026-05-06 (envío masivo muestras por email). v1.64.0 completado 2026-05-06 (DDJJ + imputación anticipos).
+> v1.76.1 completado 2026-05-07 (hotfix: API key global sin sede para LISCOM — `lab_branch_id` nullable, `isGlobal()`, filtro condicional en lookup y show). v1.76.0 completado 2026-05-07 (marca de ratificación en determinaciones). v1.74.0 completado 2026-05-06 (envío masivo muestras por email).
 
 ### En proceso (0)
 
 _Sin prompts en ejecución._
 
-### Completados (108+)
+### Completados (109+)
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.76.1 | API key global sin sede para LISCOM (`lab_branch_id` nullable, `isGlobal()`, filtro condicional en `ProtocolLookupService` y `ProtocolController`, UI campo sede opcional) | 2026-05-07 | v1.76.1 |
 | v1.76.0 | Marcar determinaciones ratificadas (lab/vet/sample): `is_ratified` + `ratified_at` + `ratified_by`, UI checkbox editable post-validación, marca `*` y leyenda en PDF informe + email | 2026-05-07 | v1.76.0 |
 | v1.74.0 | Envío masivo de protocolos de muestras por email (lote, agrupación por cliente, `sent_at`) | 2026-05-06 | v1.74.0 |
 | v1.64.0 | Declaraciones de impuestos e imputación de anticipos (Tax, TaxReturn, balances) | 2026-05-06 | v1.64.0 |
@@ -262,6 +263,8 @@ Pendientes en cola: **v1.76.0**, diseño **v1.55.0** (buscador FC); ver `pendien
 
 **Cadena LISCOM↔labit:** completada en labit (v1.46.0, v1.47.0, v1.48.5, v1.51.0, v1.53.0).
 Pendientes en repo `interfases` (Django): v1.48.0, v1.49.0, v1.50.0, v1.52.0.
+
+**Cadena LISCOM (v1.76.1 hotfix):** `lab_branch_id` nullable en `api_clients`. En producción: editar la `ApiClient` de LISCOM y vaciar su `lab_branch_id` para activar acceso global. Luego desde LISCOM reprocesar protocolo C2605070011 (ResultMessage id 148).
 
 **Para nueva sesión PM** (cuando surjan ideas nuevas):
 ```
