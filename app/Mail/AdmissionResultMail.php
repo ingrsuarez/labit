@@ -48,7 +48,7 @@ class AdmissionResultMail extends Mailable
         $this->admission->load([
             'patient',
             'insuranceRelation',
-            'admissionTests' => fn ($q) => $q->where('is_validated', true),
+            'admissionTests',
             'admissionTests.test.parentTests',
             'admissionTests.test.childTests',
             'admissionTests.test.referenceValues.category',
@@ -56,6 +56,7 @@ class AdmissionResultMail extends Mailable
         ]);
 
         $validatorId = $this->admission->admissionTests
+            ->where('is_validated', true)
             ->pluck('validated_by')
             ->countBy()->sortDesc()->keys()->first();
         $validator = $validatorId ? User::find($validatorId) : null;
