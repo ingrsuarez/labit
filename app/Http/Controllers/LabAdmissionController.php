@@ -72,7 +72,11 @@ class LabAdmissionController extends Controller
         }
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            if ($request->status === 'enviado') {
+                $query->where('status', 'validated')->whereNotNull('sent_at');
+            } else {
+                $query->where('status', $request->status);
+            }
         }
 
         $admissions = $query->paginate(20)->withQueryString();
@@ -1082,6 +1086,10 @@ class LabAdmissionController extends Controller
 
         $admission->logAudit('pdf_generated', 'Generó PDF del protocolo Nº '.$admission->protocol_number);
 
+        if ($admission->status === Admission::STATUS_VALIDATED) {
+            $admission->update(['sent_at' => now()]);
+        }
+
         return $pdf->download($this->generatePdfFilename($admission));
     }
 
@@ -1146,6 +1154,8 @@ class LabAdmissionController extends Controller
             );
 
         $admission->logAudit('email_sent', 'Envió resultados por email a '.$validated['email']);
+
+        $admission->update(['sent_at' => now()]);
 
         return back()->with('success', 'Informe enviado correctamente a '.$validated['email']);
     }
