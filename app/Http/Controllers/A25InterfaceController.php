@@ -19,24 +19,51 @@ class A25InterfaceController extends Controller
     ) {}
 
     /**
-     * Pantalla principal: selección de protocolos para worklist + formulario de importación.
+     * Pantalla principal: lista de protocolos pendiente/en proceso para seleccionar y generar worklist.
      */
     public function index(Request $request): View
     {
         $this->authorize('a25.worklist');
 
         $branches = LabBranch::orderBy('name')->get(['id', 'name']);
+        $branchFilter = $request->input('lab_branch_id');
 
-        // Admisiones con id de equipo asignado y determinaciones pendientes
+        $query = Admission::with(['patient', 'admissionTests.test', 'labBranch'])
+            ->whereIn('status', ['pending', 'in_progress'])
+            ->latest();
+
+        if ($branchFilter) {
+            $query->where('lab_branch_id', $branchFilter);
+        }
+
+        $admissions = $query->paginate(50)->withQueryString();
+
+        return view('lab.a25.index', compact('admissions', 'branches', 'branchFilter'));
+    }
+
+    /**
+     * Genera un preview del worklist sin descargarlo.
+     */
+    public function previewWorklist(Request $request): View|RedirectResponse
+    {
+        $this->authorize('a25.worklist');
+
+        $request->validate([
+            'admission_ids' => 'required|array|min:1',
+            'admission_ids.*' => 'integer|exists:admissions,id',
+            'lab_branch_id' => 'nullable|exists:lab_branches,id',
+        ]);
+
         $admissions = Admission::with(['patient', 'admissionTests.test'])
-            ->whereNotNull('external_equipment_sample_id')
-            ->where('external_equipment_sample_id', '!=', '')
-            ->whereHas('admissionTests', fn ($q) => $q->where('is_validated', false)->whereNull('result'))
-            ->latest()
-            ->paginate(30)
-            ->withQueryString();
+            ->whereIn('id', $request->admission_ids)
+            ->get();
 
-        return view('lab.a25.index', compact('admissions', 'branches'));
+        $labBranchId = $request->lab_branch_id ? (int) $request->lab_branch_id : null;
+        $result = $this->worklistBuilder->build($admissions, $labBranchId);
+
+        $admissionIds = $request->admission_ids;
+
+        return view('lab.a25.worklist-preview', compact('result', 'admissionIds', 'labBranchId'));
     }
 
     /**

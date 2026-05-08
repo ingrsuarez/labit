@@ -33,18 +33,27 @@ class A25WorklistBuilder
      *
      * @param  Collection<int, Admission>  $admissions  Admisiones con eager-load de admissionTests.test
      * @param  int|null  $labBranchId  Para resolver mapeos por sede
-     * @return array{content: string, lines: int, skipped: int}
+     * @return array{content: string, lines: int, skipped: int, detail: array}
      */
     public function build(Collection $admissions, ?int $labBranchId = null): array
     {
         $lines = [];
         $skipped = 0;
+        $detail = [];
 
         foreach ($admissions as $admission) {
             $sampleId = trim((string) ($admission->external_equipment_sample_id ?? ''));
+            $admissionLines = [];
+            $admissionSkipped = 0;
 
             if ($sampleId === '') {
-                $skipped++;
+                $detail[] = [
+                    'admission' => $admission,
+                    'lines' => [],
+                    'skipped' => $admission->admissionTests->count(),
+                    'reason' => 'Sin ID de equipo asignado',
+                ];
+                $skipped += $admission->admissionTests->count();
 
                 continue;
             }
@@ -57,27 +66,31 @@ class A25WorklistBuilder
                 $analyteName = A25AnalyteMapping::resolveAnalyteName($at->test_id, $labBranchId);
 
                 if ($analyteName === null) {
-                    $skipped++;
+                    $admissionSkipped++;
 
                     continue;
                 }
 
                 $materialType = $this->resolveMaterialType($at->test_id, $labBranchId);
-
-                $lines[] = implode("\t", [
-                    self::FLAG,
-                    $materialType,
-                    $sampleId,
-                    $analyteName,
-                    self::SUFFIX,
-                ]);
+                $line = implode("\t", [self::FLAG, $materialType, $sampleId, $analyteName, self::SUFFIX]);
+                $admissionLines[] = $line;
+                $lines[] = $line;
             }
+
+            $skipped += $admissionSkipped;
+            $detail[] = [
+                'admission' => $admission,
+                'lines' => $admissionLines,
+                'skipped' => $admissionSkipped,
+                'reason' => null,
+            ];
         }
 
         return [
             'content' => implode("\r\n", $lines).($lines ? "\r\n" : ''),
             'lines' => count($lines),
             'skipped' => $skipped,
+            'detail' => $detail,
         ];
     }
 

@@ -1,10 +1,12 @@
 <x-lab-layout title="Interfaz Biosystems A25">
     <div class="py-6 px-4 md:px-6 lg:px-8 mt-14 md:mt-0">
+
+        {{-- Header --}}
         <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">Interfaz Biosystems A25</h1>
                 <p class="text-sm text-gray-600 mt-1">
-                    Generá la worklist para enviar al equipo e importá los resultados cuando el equipo termina.
+                    Seleccioná protocolos para generar el worklist y subí los resultados del equipo.
                 </p>
             </div>
             @can('a25.mappings.manage')
@@ -24,33 +26,41 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {{-- Columna izquierda: worklist --}}
+            {{-- Columna izquierda: selección de protocolos para worklist --}}
             <div class="lg:col-span-2 space-y-4">
                 <div class="bg-white rounded-xl shadow overflow-hidden">
                     <div class="px-5 py-4 border-b border-gray-100">
                         <h2 class="text-base font-semibold text-gray-800">1. Generar worklist (import.txt)</h2>
                         <p class="text-xs text-gray-500 mt-1">
-                            Seleccioná los protocolos que querés enviar al equipo. Solo se incluyen
-                            determinaciones pendientes con equivalencia A25 configurada y con ID de equipo asignado.
+                            Se muestran todos los protocolos <strong>Pendiente</strong> y <strong>En Proceso</strong>.
+                            Seleccioná los que querés enviar al A25 y hacé clic en <em>Vista previa</em>.
                         </p>
                     </div>
 
-                    <form action="{{ route('a25.worklist') }}" method="POST" id="worklist-form">
-                        @csrf
+                    {{-- Filtros --}}
+                    <form method="GET" action="{{ route('a25.index') }}" class="px-5 py-3 border-b border-gray-100 flex flex-wrap items-center gap-3">
+                        <select name="lab_branch_id"
+                                onchange="this.form.submit()"
+                                class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-teal-500">
+                            <option value="">Sede: todas</option>
+                            @foreach($branches as $branch)
+                                <option value="{{ $branch->id }}" {{ $branchFilter == $branch->id ? 'selected' : '' }}>
+                                    {{ $branch->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none">
+                            <input type="checkbox" id="select-all" class="h-4 w-4 rounded border-gray-300 text-teal-600">
+                            Seleccionar todos
+                        </label>
+                    </form>
 
-                        <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-3">
-                            <select name="lab_branch_id"
-                                    class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-teal-500">
-                                <option value="">Sede: todas</option>
-                                @foreach($branches as $branch)
-                                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                                @endforeach
-                            </select>
-                            <label class="text-xs text-gray-500">
-                                <input type="checkbox" id="select-all" class="mr-1">
-                                Seleccionar todos
-                            </label>
-                        </div>
+                    {{-- Tabla de protocolos --}}
+                    <form action="{{ route('a25.worklist.preview') }}" method="POST" id="worklist-form">
+                        @csrf
+                        @if($branchFilter)
+                            <input type="hidden" name="lab_branch_id" value="{{ $branchFilter }}">
+                        @endif
 
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-100 text-sm">
@@ -59,6 +69,8 @@
                                         <th class="w-8 px-4 py-2"></th>
                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Protocolo</th>
                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Paciente</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Sede</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ID Equipo</th>
                                         <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Det. pendientes</th>
                                     </tr>
@@ -66,13 +78,18 @@
                                 <tbody class="divide-y divide-gray-100">
                                     @forelse($admissions as $admission)
                                         @php
-                                            $pending = $admission->admissionTests->filter(fn($t) => !$t->is_validated && empty($t->result))->count();
+                                            $pendingCount = $admission->admissionTests
+                                                ->filter(fn($t) => !$t->is_validated && !$t->hasResult())
+                                                ->count();
+                                            $hasExternalId = !empty($admission->external_equipment_sample_id);
                                         @endphp
-                                        <tr class="hover:bg-gray-50">
+                                        <tr class="hover:bg-gray-50 {{ !$hasExternalId ? 'opacity-60' : '' }}">
                                             <td class="px-4 py-2 text-center">
-                                                <input type="checkbox" name="admission_ids[]"
+                                                <input type="checkbox"
+                                                       name="admission_ids[]"
                                                        value="{{ $admission->id }}"
-                                                       class="admission-check h-4 w-4 text-teal-600 border-gray-300 rounded">
+                                                       class="admission-check h-4 w-4 text-teal-600 border-gray-300 rounded"
+                                                       {{ !$hasExternalId ? 'title=Sin ID de equipo asignado' : '' }}>
                                             </td>
                                             <td class="px-4 py-2 font-medium text-teal-700">
                                                 <a href="{{ route('lab.admissions.show', $admission) }}" class="hover:underline">
@@ -80,19 +97,40 @@
                                                 </a>
                                             </td>
                                             <td class="px-4 py-2 text-gray-700">{{ $admission->patient?->full_name ?? '—' }}</td>
-                                            <td class="px-4 py-2 font-mono text-xs text-blue-700">
-                                                {{ $admission->external_equipment_sample_id }}
+                                            <td class="px-4 py-2 text-gray-500 text-xs">{{ $admission->labBranch?->name ?? '—' }}</td>
+                                            <td class="px-4 py-2">
+                                                @if($admission->status === 'pending')
+                                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pendiente</span>
+                                                @elseif($admission->status === 'in_progress')
+                                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">En Proceso</span>
+                                                @endif
+                                            </td>
+                                            <td class="px-4 py-2">
+                                                @if($hasExternalId)
+                                                    <span class="font-mono text-xs text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
+                                                        {{ $admission->external_equipment_sample_id }}
+                                                    </span>
+                                                @else
+                                                    <a href="{{ route('lab.admissions.show', $admission) }}"
+                                                       class="text-xs text-amber-600 hover:underline">
+                                                        ⚠ Asignar ID
+                                                    </a>
+                                                @endif
                                             </td>
                                             <td class="px-4 py-2 text-center">
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                    {{ $pending }}
-                                                </span>
+                                                @if($pendingCount > 0)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                        {{ $pendingCount }}
+                                                    </span>
+                                                @else
+                                                    <span class="text-xs text-gray-400">—</span>
+                                                @endif
                                             </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="5" class="px-4 py-8 text-center text-gray-400 text-sm">
-                                                No hay protocolos con ID de equipo asignado y determinaciones pendientes.
+                                            <td colspan="7" class="px-4 py-8 text-center text-gray-400 text-sm">
+                                                No hay protocolos pendiente o en proceso.
                                             </td>
                                         </tr>
                                     @endforelse
@@ -102,17 +140,20 @@
 
                         @if($admissions->isNotEmpty())
                             <div class="px-5 py-3 border-t border-gray-100 flex justify-between items-center">
-                                <div class="text-xs text-gray-500">{{ $admissions->total() }} protocolos en total</div>
+                                <div class="text-xs text-gray-500">{{ $admissions->total() }} protocolo(s) en total</div>
                                 <button type="submit"
-                                        class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-medium">
-                                    ↓ Descargar import.txt
+                                        class="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-medium">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                    Vista previa del worklist
                                 </button>
                             </div>
                         @endif
                     </form>
                 </div>
 
-                <div class="mt-4">{{ $admissions->links() }}</div>
+                <div class="mt-2">{{ $admissions->links() }}</div>
             </div>
 
             {{-- Columna derecha: importar resultados --}}
@@ -158,10 +199,11 @@
                 <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 space-y-1.5">
                     <p class="font-semibold">ℹ️ Instrucciones de uso</p>
                     <ol class="list-decimal list-inside space-y-1">
-                        <li>Asigná el <strong>ID de equipo</strong> a cada protocolo desde la pantalla de admisión.</li>
-                        <li>Descargá el <code class="bg-amber-100 px-1 rounded">import.txt</code> y copialo en la carpeta del equipo.</li>
-                        <li>Esperá que el A25 procese y exporte el archivo de resultados.</li>
-                        <li>Subí el archivo de resultados aquí para cargarlos en Labit.</li>
+                        <li>Asigná el <strong>ID de equipo</strong> a cada protocolo desde su pantalla de admisión (ícono ⚠ en la tabla).</li>
+                        <li>Seleccioná los protocolos a enviar y hacé clic en <em>Vista previa del worklist</em>.</li>
+                        <li>Revisá el contenido y descargá el <code class="bg-amber-100 px-1 rounded">import.txt</code>.</li>
+                        <li>Copiá el archivo en la carpeta del equipo A25.</li>
+                        <li>Cuando el A25 termine, subí el archivo <code class="bg-amber-100 px-1 rounded">EXP(...).txt</code> en el panel de la derecha.</li>
                     </ol>
                     <p class="mt-2">Configurá las equivalencias en <a href="{{ route('a25.mappings.index') }}" class="underline">⚙ Equivalencias A25 ↔ Labit</a>.</p>
                 </div>
@@ -170,8 +212,11 @@
     </div>
 
     <script>
-        document.getElementById('select-all').addEventListener('change', function() {
-            document.querySelectorAll('.admission-check').forEach(cb => cb.checked = this.checked);
-        });
+        const selectAll = document.getElementById('select-all');
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                document.querySelectorAll('.admission-check').forEach(cb => cb.checked = this.checked);
+            });
+        }
     </script>
 </x-lab-layout>
