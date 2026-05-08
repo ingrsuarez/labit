@@ -30,19 +30,61 @@
                 @error('equipment_analyte_name')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
             </div>
 
-            <div>
+            @php
+                $testsJson = $tests->map(function ($t) {
+                    return ['id' => $t->id, 'label' => ($t->code ? '[' . $t->code . '] ' : '') . $t->name];
+                });
+            @endphp
+            <div x-data="{
+                    query: '',
+                    open: false,
+                    selectedId: '{{ old('test_id') }}',
+                    selectedLabel: '',
+                    tests: {{ Js::from($testsJson) }},
+                    get filtered() {
+                        if (!this.query) return this.tests.slice(0, 80);
+                        const q = this.query.toLowerCase();
+                        return this.tests.filter(t => t.label.toLowerCase().includes(q)).slice(0, 80);
+                    },
+                    select(item) {
+                        this.selectedId = item.id;
+                        this.selectedLabel = item.label;
+                        this.query = item.label;
+                        this.open = false;
+                    },
+                    init() {
+                        if (this.selectedId) {
+                            const found = this.tests.find(t => t.id == this.selectedId);
+                            if (found) { this.selectedLabel = found.label; this.query = found.label; }
+                        }
+                    }
+                }" @click.away="open = false">
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     Determinación en Labit <span class="text-red-500">*</span>
                 </label>
-                <select name="test_id" required
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500">
-                    <option value="">— Seleccionar —</option>
-                    @foreach($tests as $test)
-                        <option value="{{ $test->id }}" {{ old('test_id') == $test->id ? 'selected' : '' }}>
-                            {{ $test->code ? "[{$test->code}] " : '' }}{{ $test->name }}
-                        </option>
-                    @endforeach
-                </select>
+                <div class="relative">
+                    <input type="text"
+                           x-model="query"
+                           @focus="open = true"
+                           @input="open = true; selectedId = ''"
+                           @keydown.escape="open = false"
+                           @keydown.enter.prevent="if(filtered.length) select(filtered[0])"
+                           placeholder="Buscar por código o nombre..."
+                           autocomplete="off"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500">
+                    <input type="hidden" name="test_id" x-model="selectedId" required>
+
+                    <div x-show="open && filtered.length > 0"
+                         x-cloak
+                         class="absolute z-30 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                        <template x-for="item in filtered" :key="item.id">
+                            <div @mousedown.prevent="select(item)"
+                                 class="px-3 py-2 text-sm cursor-pointer hover:bg-teal-50"
+                                 :class="item.id == selectedId ? 'bg-teal-50 font-medium text-teal-700' : 'text-gray-800'"
+                                 x-text="item.label"></div>
+                        </template>
+                    </div>
+                </div>
                 @error('test_id')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
             </div>
 

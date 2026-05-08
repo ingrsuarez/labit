@@ -196,7 +196,9 @@ Route::middleware([
                 'edit' => 'a25.mappings.edit',
                 'update' => 'a25.mappings.update',
                 'destroy' => 'a25.mappings.destroy',
-            ])->except(['show']);
+            ])
+            ->parameters(['a25-mappings' => 'mapping'])
+            ->except(['show']);
 
         // SEDES DE LABORATORIO
         Route::get('lab-branches/assign-orphans', [App\Http\Controllers\LabBranchController::class, 'assignOrphans'])
