@@ -200,6 +200,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'lab-admissions.create',
             'lab-admissions.edit',
             'lab-admissions.show',
+            'lab-admissions.delete',
             'determination-profiles.index',
             'determination-profiles.manage',
             'lab-results.create',
@@ -212,6 +213,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'lab-labels.print',
             'vet-labels.print',
             'vet-admissions.edit',
+            'vet-admissions.delete',
 
             // VENTAS (Módulo de Ventas)
             'ventas.section',
@@ -459,13 +461,16 @@ class RolesAndPermissionsSeeder extends Seeder
             'lab.section',
             'patients.index', 'patients.create', 'patients.edit',
             'lab-admissions.index', 'lab-admissions.create', 'lab-admissions.edit', 'lab-admissions.show',
+            'lab-admissions.delete',
             'determination-profiles.index',
             'determination-profiles.manage',
             'lab-reports.print', 'lab-reports.send',
             'lab-labels.print',
             'vet-labels.print',
+            'vet-admissions.delete',
             // Muestras
             'samples.section', 'samples.index', 'samples.create', 'samples.edit', 'samples.show',
+            'samples.delete',
             'samples-reports.preview', 'samples-reports.print', 'samples-reports.send',
             'samples-labels.print',
             // Facturación desde protocolos
@@ -508,7 +513,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $bioquimicoPermissions = [
             'lab.section',
-            'lab-admissions.index', 'lab-admissions.show',
+            'lab-admissions.index', 'lab-admissions.show', 'lab-admissions.delete',
             'determination-profiles.index',
             'determination-profiles.manage',
             'lab-results.create', 'lab-results.edit', 'lab-results.validate',
@@ -516,8 +521,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'lab-labels.print',
             'vet-labels.print',
             'vet-admissions.edit',
+            'vet-admissions.delete',
             // Muestras
             'samples.section', 'samples.index', 'samples.show',
+            'samples.delete',
             'samples-results.create', 'samples-results.edit', 'samples-results.validate',
             'samples-reports.preview', 'samples-reports.print', 'samples-reports.send',
             'samples-labels.print',

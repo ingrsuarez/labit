@@ -345,7 +345,9 @@ class VetAdmissionController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        return view('vet.admissions.show', compact('vetAdmission', 'vetProfiles'));
+        $isRecepcionLab = auth()->user()->hasRole('recepcion-lab');
+
+        return view('vet.admissions.show', compact('vetAdmission', 'vetProfiles', 'isRecepcionLab'));
     }
 
     public function loadResults(Request $request, VetAdmission $vetAdmission)
@@ -482,6 +484,12 @@ class VetAdmissionController extends Controller
             abort(404);
         }
 
+        if (auth()->user()->hasRole('recepcion-lab')) {
+            if ($vetAdmissionTest->status !== 'pending') {
+                return redirect()->back()->with('error', 'No se puede eliminar una práctica en proceso o validada.');
+            }
+        }
+
         if ($vetAdmissionTest->is_validated) {
             return redirect()->back()->with('error', 'No se puede quitar una pr?ctica ya validada.');
         }
@@ -585,6 +593,26 @@ class VetAdmissionController extends Controller
         return response()->json(
             $customer->veterinarians()->where('is_active', true)->get(['id', 'name', 'matricula'])
         );
+    }
+
+    public function destroy(VetAdmission $vetAdmission)
+    {
+        $this->authorize('vet-admissions.delete');
+
+        if (auth()->user()->hasRole('recepcion-lab')) {
+            $allPending = $vetAdmission->vetTests->every(fn ($t) => $t->status === 'pending');
+            if (! $allPending) {
+                return redirect()->back()
+                    ->with('error', 'Solo se puede eliminar el protocolo si todas las prácticas están pendientes.');
+            }
+        }
+
+        $protocolNumber = $vetAdmission->protocol_number ?? $vetAdmission->id;
+        $vetAdmission->logAudit('deleted', "Protocolo veterinario #{$protocolNumber} eliminado por ".auth()->user()->name);
+        $vetAdmission->delete();
+
+        return redirect()->route('vet.admissions.index')
+            ->with('success', "Protocolo #{$protocolNumber} eliminado correctamente.");
     }
 
     public function downloadPdf(VetAdmission $vetAdmission)

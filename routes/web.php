@@ -212,6 +212,7 @@ Route::middleware([
         Route::get('lab/admissions/test-price', [App\Http\Controllers\LabAdmissionController::class, 'getTestPrice'])->name('lab.admissions.getTestPrice');
         Route::get('lab/admissions/{admission}', [App\Http\Controllers\LabAdmissionController::class, 'show'])->name('lab.admissions.show');
         Route::get('lab/admissions/{admission}/edit', [App\Http\Controllers\LabAdmissionController::class, 'edit'])->name('lab.admissions.edit');
+        Route::delete('lab/admissions/{admission}', [App\Http\Controllers\LabAdmissionController::class, 'destroy'])->name('lab.admissions.destroy');
         Route::put('lab/admissions/{admission}', [App\Http\Controllers\LabAdmissionController::class, 'update'])->name('lab.admissions.update');
         Route::post('lab/admissions/{admission}/determination-profiles/apply', [App\Http\Controllers\DeterminationProfileController::class, 'applyAdmission'])->name('lab.admissions.determination-profiles.apply');
         Route::post('lab/admissions/{admission}/test', [App\Http\Controllers\LabAdmissionController::class, 'addTest'])->name('lab.admissions.addTest');
@@ -272,6 +273,7 @@ Route::middleware([
         Route::post('admissions', [App\Http\Controllers\VetAdmissionController::class, 'store'])->name('vet.admissions.store');
         Route::get('admissions/{vetAdmission}', [App\Http\Controllers\VetAdmissionController::class, 'show'])->name('vet.admissions.show');
         Route::get('admissions/{vetAdmission}/edit', [App\Http\Controllers\VetAdmissionController::class, 'edit'])->name('vet.admissions.edit');
+        Route::delete('admissions/{vetAdmission}', [App\Http\Controllers\VetAdmissionController::class, 'destroy'])->name('vet.admissions.destroy');
         Route::put('admissions/{vetAdmission}', [App\Http\Controllers\VetAdmissionController::class, 'update'])->name('vet.admissions.update');
 
         Route::post('admissions/{vetAdmission}/results', [App\Http\Controllers\VetAdmissionController::class, 'loadResults'])->name('vet.admissions.loadResults');
@@ -320,6 +322,7 @@ Route::middleware([
             ->name('sample.batch-email');
         Route::get('sample/{sample}', [App\Http\Controllers\SampleController::class, 'show'])->name('sample.show');
         Route::get('sample/{sample}/edit', [App\Http\Controllers\SampleController::class, 'edit'])->name('sample.edit');
+        Route::delete('sample/{sample}', [App\Http\Controllers\SampleController::class, 'destroy'])->name('sample.destroy');
         Route::put('sample/{sample}', [App\Http\Controllers\SampleController::class, 'update'])->name('sample.update');
         Route::post('sample/{sample}/determination-profiles/apply', [App\Http\Controllers\DeterminationProfileController::class, 'applySample'])->name('sample.determination-profiles.apply');
         Route::post('sample/{sample}/determination', [App\Http\Controllers\SampleController::class, 'addDetermination'])->name('sample.addDetermination');
