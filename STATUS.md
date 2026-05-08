@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-08 (hotfix vacaciones días corridos — fix cálculo días corridos en licencias vacaciones)
+> Última actualización: 2026-05-08 (hotfix pdf-mail-jerarquia — PDF por mail usa jerarquía idéntica al PDF directo)
 
 ---
 
@@ -9,9 +9,9 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | Tag más reciente: **v1.76.2**; hotfix `vacaciones-dias-corridos` mergeado a develop y master |
-| **Última en master** | Release 2026-05-08: hotfix `vacaciones-dias-corridos` (vacaciones calculan días corridos LCT Art. 150) |
-| **Última completada (cola agente)** | **hotfix/vacaciones-dias-corridos** — Fix cálculo vacaciones: días corridos en lugar de hábiles |
+| **Versión actual (línea v1.x)** | Tag más reciente: **v1.76.2**; hotfix `pdf-mail-jerarquia` mergeado a develop y master |
+| **Última en master** | Release 2026-05-08: hotfix `pdf-mail-jerarquia` (PDF enviado por email genera jerarquía igual al PDF directo) |
+| **Última completada (cola agente)** | **hotfix/pdf-mail-jerarquia** — Fix PDF email: carga todos los admissionTests para jerarquía padre-hijo correcta |
 | **En proceso** | — |
 | **Próxima recomendada** | **v1.77.0** — Vista recepción-lab: leaf determinations + CRUD restringido + eliminar protocolo |
 | **Pendientes en cola** | 3 (`pendientes/`: **v1.77.0** recepcion-lab, **v1.78.0** A25 y `DISEÑO_v1.55.0…`) |
@@ -30,7 +30,7 @@
 
 Archivo adicional en `pendientes/` (no empieza con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
 
-> v1.76.2 completado 2026-05-07 (hotfix: fix ingesta OUT_OF_BRANCH con key global — skip branch check en `ApiResultIngestionService`). v1.76.1 completado 2026-05-07 (hotfix: API key global sin sede para LISCOM). v1.76.0 completado 2026-05-07 (marca de ratificación en determinaciones).
+> v1.76.2 completado 2026-05-07 (hotfix: fix ingesta OUT_OF_BRANCH con key global — skip branch check en `ApiResultIngestionService`). v1.76.1 completado 2026-05-07 (hotfix: API key global sin sede para LISCOM). v1.76.0 completado 2026-05-07 (marca de ratificación en determinaciones). hotfix `pdf-mail-jerarquia` completado 2026-05-08 (fix PDF por mail: jerarquía padre-hijo idéntica al PDF directo).
 
 ### En proceso (0)
 
