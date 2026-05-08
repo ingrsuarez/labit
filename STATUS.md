@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-08 (v1.79.0 — Fix: cambio de sede en protocolos clínico y muestras)
+> Última actualización: 2026-05-08 (hotfix pdf-filename — nombre_paciente-dni-fecha.pdf en email y descarga)
 
 ---
 
@@ -29,7 +29,7 @@
 
 Archivo adicional en `pendientes/` (no empieza con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
 
-> v1.76.2 completado 2026-05-07 (hotfix: fix ingesta OUT_OF_BRANCH con key global — skip branch check en `ApiResultIngestionService`). v1.76.1 completado 2026-05-07 (hotfix: API key global sin sede para LISCOM). v1.76.0 completado 2026-05-07 (marca de ratificación en determinaciones). hotfix `pdf-mail-jerarquia` completado 2026-05-08 (fix PDF por mail: jerarquía padre-hijo idéntica al PDF directo).
+> v1.76.2 completado 2026-05-07 (hotfix: fix ingesta OUT_OF_BRANCH con key global — skip branch check en `ApiResultIngestionService`). v1.76.1 completado 2026-05-07 (hotfix: API key global sin sede para LISCOM). v1.76.0 completado 2026-05-07 (marca de ratificación en determinaciones). hotfix `pdf-mail-jerarquia` completado 2026-05-08 (fix PDF por mail: jerarquía padre-hijo idéntica al PDF directo). hotfix `pdf-filename-paciente-dni-fecha` completado 2026-05-08 (nombre de archivo PDF: nombre_paciente-dni-fecha.pdf en email y descarga manual — lab clínico, vet y muestras).
 
 ### En proceso (0)
 
