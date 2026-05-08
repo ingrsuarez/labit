@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-08 (v1.77.0 — Vista recepcion-lab: leaf determinations + CRUD restringido + eliminar protocolo)
+> Última actualización: 2026-05-08 (v1.78.0 — Interfaz Biosystems A25: worklist + importación resultados)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | Tag más reciente: **v1.77.0** |
-| **Última en master** | Release 2026-05-08: v1.77.0 — Vista recepcion-lab leaf determinations + CRUD restringido |
-| **Última completada (cola agente)** | **v1.77.0** — Vista recepcion-lab: leaf determinations, CRUD restringido por estado, eliminar protocolo 100% pendiente (lab clínico + vet + muestras) |
+| **Versión actual (línea v1.x)** | Tag más reciente: **v1.78.0** |
+| **Última en master** | Release 2026-05-08: v1.77.0 — Vista recepcion-lab (master pendiente de actualizar con v1.78.0) |
+| **Última completada (cola agente)** | **v1.78.0** — Interfaz Biosystems A25: worklist import.txt + importación resultados EXP(..).txt |
 | **En proceso** | — |
-| **Próxima recomendada** | **v1.78.0** — A25 Biosystems: interfaz texto plano |
-| **Pendientes en cola** | 1 (`pendientes/`: **v1.78.0** A25) |
-| **Completadas** | 137 |
+| **Próxima recomendada** | Sin prompts pendientes en cola — planificar nuevas versiones |
+| **Pendientes en cola** | 0 |
+| **Completadas** | 138 |
 
 ---
 
@@ -25,7 +25,7 @@
 
 | # | Versión | Nombre | Notas |
 |---|---|---|---|
-| 1 | v1.78.0 | A25 Biosystems: import.txt + export resultados (texto plano) | Sin LISCOM; ver pendientes/v1.78.0-a25-biosystems-interfaz-texto-plano.md |
+| — | — | Cola vacía | Planificar nuevas versiones |
 
 Archivo adicional en `pendientes/` (no empieza con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
 
