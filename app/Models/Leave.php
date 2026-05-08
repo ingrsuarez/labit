@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Services\WorkingDaysService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Services\WorkingDaysService;
 
 class Leave extends Model
 {
@@ -79,21 +79,15 @@ class Leave extends Model
     }
 
     /**
-     * Obtener días hábiles (solo para vacaciones)
-     * Para otros tipos de licencia, devuelve días corridos
+     * Obtener días corridos de la licencia.
+     * Las vacaciones se toman en días corridos (LCT Art. 150), al igual que otros tipos.
      */
     public function getWorkingDaysAttribute(): int
     {
-        if (!$this->start || !$this->end) {
+        if (! $this->start || ! $this->end) {
             return 0;
         }
 
-        // Solo vacaciones calculan días hábiles
-        if ($this->type === 'vacaciones') {
-            return WorkingDaysService::calculateWorkingDays($this->start, $this->end);
-        }
-
-        // Otros tipos: días corridos
         return $this->start->diffInDays($this->end) + 1;
     }
 
@@ -102,7 +96,7 @@ class Leave extends Model
      */
     public function getDaysDetailAttribute(): array
     {
-        if (!$this->start || !$this->end) {
+        if (! $this->start || ! $this->end) {
             return ['total' => 0, 'working' => 0, 'weekends' => 0, 'holidays' => 0];
         }
 
@@ -110,7 +104,7 @@ class Leave extends Model
     }
 
     /**
-     * Días a usar para cálculos (hábiles para vacaciones, corridos para otros)
+     * Días a usar para cálculos (días corridos para todos los tipos)
      */
     public function getEffectiveDaysAttribute(): int
     {
