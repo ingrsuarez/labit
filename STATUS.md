@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-08 (v1.78.0 — Interfaz Biosystems A25: worklist + importación resultados)
+> Última actualización: 2026-05-08 (v1.79.0 — Fix: cambio de sede en protocolos clínico y muestras)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | Tag más reciente: **v1.78.0** |
-| **Última en master** | Release 2026-05-08: v1.77.0 — Vista recepcion-lab (master pendiente de actualizar con v1.78.0) |
-| **Última completada (cola agente)** | **v1.78.0** — Interfaz Biosystems A25: worklist import.txt + importación resultados EXP(..).txt |
+| **Versión actual (línea v1.x)** | Tag más reciente: **v1.79.0** |
+| **Última en master** | Release 2026-05-08: v1.77.0 — Vista recepcion-lab (master pendiente de actualizar con v1.78.0 y v1.79.0) |
+| **Última completada (cola agente)** | **v1.79.0** — Fix: permitir cambio de sede en protocolos clínico y muestras al editar |
 | **En proceso** | — |
 | **Próxima recomendada** | Sin prompts pendientes en cola — planificar nuevas versiones |
 | **Pendientes en cola** | 0 |
-| **Completadas** | 138 |
+| **Completadas** | 139 |
 
 ---
 
