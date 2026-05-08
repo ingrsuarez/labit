@@ -16,6 +16,7 @@ class Admission extends Model
         'date',
         'number',
         'protocol_number',
+        'external_equipment_sample_id',
         'patient_id',
         'room',
         'bed',

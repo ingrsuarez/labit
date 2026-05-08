@@ -214,6 +214,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'vet-labels.print',
             'vet-admissions.edit',
             'vet-admissions.delete',
+            'a25.worklist',
+            'a25.import',
+            'a25.mappings.manage',
 
             // VENTAS (Módulo de Ventas)
             'ventas.section',
@@ -522,6 +525,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'vet-labels.print',
             'vet-admissions.edit',
             'vet-admissions.delete',
+            'a25.worklist',
+            'a25.import',
+            'a25.mappings.manage',
             // Muestras
             'samples.section', 'samples.index', 'samples.show',
             'samples.delete',

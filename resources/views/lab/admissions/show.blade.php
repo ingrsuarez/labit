@@ -186,6 +186,28 @@
                     @endif
                 </div>
 
+                <!-- ID equipo A25 -->
+                @can('a25.worklist')
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex items-center gap-4">
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-700">ID equipo A25</p>
+                        <p class="text-xs text-gray-500">Identificador de muestra para el analizador Biosystems A25</p>
+                    </div>
+                    <form action="{{ route('a25.assignSampleId', $admission) }}" method="POST" class="flex items-center gap-2">
+                        @csrf
+                        <input type="text" name="external_equipment_sample_id"
+                               value="{{ $admission->external_equipment_sample_id }}"
+                               maxlength="50"
+                               placeholder="ej. C002638S"
+                               class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm w-36 font-mono focus:ring-2 focus:ring-teal-500">
+                        <button type="submit"
+                                class="px-3 py-1.5 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700">
+                            Guardar
+                        </button>
+                    </form>
+                </div>
+                @endcan
+
                 <!-- Prácticas y Resultados -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">

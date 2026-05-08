@@ -512,7 +512,10 @@ class LabAdmissionController extends Controller
             'insurance_id' => 'required|exists:insurances,id',
             'affiliate_number' => 'nullable|string|max:50',
             'requesting_doctor' => 'nullable|string|max:255',
+            'lab_branch_id' => 'nullable|exists:lab_branches,id',
         ]);
+
+        $oldBranchId = $admission->lab_branch_id;
 
         $admission->update([
             'date' => $request->date,
@@ -521,9 +524,16 @@ class LabAdmissionController extends Controller
             'requesting_doctor' => $request->requesting_doctor,
             'diagnosis' => $request->diagnosis,
             'observations' => $request->observations,
+            'lab_branch_id' => $request->lab_branch_id,
         ]);
 
-        $admission->logAudit('updated', 'Editó la admisión Nº '.$admission->protocol_number);
+        $auditMsg = 'Editó la admisión Nº '.$admission->protocol_number;
+        if ((string) $oldBranchId !== (string) $request->lab_branch_id) {
+            $oldName = $oldBranchId ? (\App\Models\LabBranch::find($oldBranchId)?->name ?? $oldBranchId) : 'Sin sede';
+            $newName = $request->lab_branch_id ? (\App\Models\LabBranch::find($request->lab_branch_id)?->name ?? $request->lab_branch_id) : 'Sin sede';
+            $auditMsg .= '. Sede: '.$oldName.' → '.$newName;
+        }
+        $admission->logAudit('updated', $auditMsg);
 
         return redirect()->route('lab.admissions.show', $admission)
             ->with('success', 'Admisión actualizada correctamente.');
