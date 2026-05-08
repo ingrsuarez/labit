@@ -108,6 +108,25 @@
                     Editar
                 </a>
                 @endcan
+                @can('samples.delete')
+                    @php
+                        $allPending = $sample->determinations->every(fn($d) => $d->status === 'pending');
+                    @endphp
+                    @if($allPending)
+                        <form action="{{ route('sample.destroy', $sample) }}" method="POST" class="inline"
+                              onsubmit="return confirm('¿Eliminar este protocolo? Esta acción no se puede deshacer.')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
+                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                Eliminar protocolo
+                            </button>
+                        </form>
+                    @endif
+                @endcan
             </div>
         </div>
 
@@ -403,6 +422,9 @@
                                             $level = $item['level'] ?? 0;
                                             $paddingClass = $level === 0 ? '' : ($level === 1 ? 'pl-8' : 'pl-14');
                                         @endphp
+                                        @if($isRecepcionLab && $isChild && !$isParent)
+                                            @continue
+                                        @endif
                                         <tr class="hover:bg-gray-50 {{ $isChild && !$isSubParent ? 'bg-gray-50' : '' }} {{ $isParent ? 'bg-teal-50' : '' }}" x-data="{ editing: false }">
                                             <td class="px-4 py-3 text-sm text-gray-900 {{ $paddingClass }}">
                                                 @if($isChild && !$isSubParent)
@@ -449,7 +471,9 @@
                                                       onsubmit="return confirm('¿Eliminar esta determinación?')">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-900">Eliminar</button>
+                                                    @if(!$isRecepcionLab || $det->status === 'pending')
+                                                        <button type="submit" class="text-red-600 hover:text-red-900">Eliminar</button>
+                                                    @endif
                                                 </form>
                                             </td>
 

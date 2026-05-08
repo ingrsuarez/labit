@@ -479,7 +479,9 @@ class LabAdmissionController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        return view('lab.admissions.show', compact('admission', 'availableTests', 'clinicalProfiles'));
+        $isRecepcionLab = auth()->user()->hasRole('recepcion-lab');
+
+        return view('lab.admissions.show', compact('admission', 'availableTests', 'clinicalProfiles', 'isRecepcionLab'));
     }
 
     /**
@@ -624,6 +626,12 @@ class LabAdmissionController extends Controller
      */
     public function removeTest(Admission $admission, AdmissionTest $test)
     {
+        if (auth()->user()->hasRole('recepcion-lab')) {
+            if ($test->is_validated || $test->hasResult()) {
+                return redirect()->back()->with('error', 'No se puede eliminar una práctica en proceso o validada.');
+            }
+        }
+
         // Si es una práctica padre (precio > 0), eliminar también sus hijos
         if ($test->price > 0) {
             $parentTest = $test->test;
@@ -1009,6 +1017,26 @@ class LabAdmissionController extends Controller
         }
 
         return redirect()->back()->with('success', "Se sincronizaron {$count} determinaciones.");
+    }
+
+    public function destroy(Admission $admission)
+    {
+        $this->authorize('lab-admissions.delete');
+
+        if (auth()->user()->hasRole('recepcion-lab')) {
+            $hasInProcess = $admission->admissionTests->contains(fn ($t) => $t->is_validated || $t->hasResult());
+            if ($hasInProcess) {
+                return redirect()->back()
+                    ->with('error', 'Solo se puede eliminar el protocolo si todas las prácticas están pendientes.');
+            }
+        }
+
+        $protocolNumber = $admission->protocol_number ?? $admission->id;
+        $admission->logAudit('deleted', "Protocolo clínico #{$protocolNumber} eliminado por ".auth()->user()->name);
+        $admission->delete();
+
+        return redirect()->route('lab.admissions.index')
+            ->with('success', "Protocolo #{$protocolNumber} eliminado correctamente.");
     }
 
     public function downloadPdf(Admission $admission)

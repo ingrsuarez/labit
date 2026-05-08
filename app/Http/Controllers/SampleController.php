@@ -207,7 +207,9 @@ class SampleController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        return view('sample.show', compact('sample', 'labelMaterials', 'availableTests', 'sampleProfiles'));
+        $isRecepcionLab = auth()->user()->hasRole('recepcion-lab');
+
+        return view('sample.show', compact('sample', 'labelMaterials', 'availableTests', 'sampleProfiles', 'isRecepcionLab'));
     }
 
     /**
@@ -340,6 +342,12 @@ class SampleController extends Controller
     {
         if ($determination->sample_id !== $sample->id) {
             abort(403);
+        }
+
+        if (auth()->user()->hasRole('recepcion-lab')) {
+            if ($determination->status !== 'pending') {
+                return redirect()->back()->with('error', 'No se puede eliminar una determinación en proceso o validada.');
+            }
         }
 
         $test = $determination->test;
@@ -834,6 +842,26 @@ class SampleController extends Controller
         $sample->logAudit('unvalidated', 'Revirtió validación del protocolo Nº '.$sample->protocol_number);
 
         return back()->with('success', 'Validaci?n revertida. El protocolo puede ser editado nuevamente.');
+    }
+
+    public function destroy(Sample $sample)
+    {
+        $this->authorize('samples.delete');
+
+        if (auth()->user()->hasRole('recepcion-lab')) {
+            $allPending = $sample->determinations->every(fn ($d) => $d->status === 'pending');
+            if (! $allPending) {
+                return redirect()->back()
+                    ->with('error', 'Solo se puede eliminar el protocolo si todas las determinaciones están pendientes.');
+            }
+        }
+
+        $protocolNumber = $sample->protocol_number ?? $sample->id;
+        $sample->logAudit('deleted', "Protocolo muestras #{$protocolNumber} eliminado por ".auth()->user()->name);
+        $sample->delete();
+
+        return redirect()->route('sample.index')
+            ->with('success', "Protocolo #{$protocolNumber} eliminado correctamente.");
     }
 
     /**
