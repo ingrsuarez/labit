@@ -114,7 +114,7 @@ class ProtocolResource extends JsonResource
 
             return [
                 'id' => $vet->id,
-                'display_name' => trim(($vet->customer?->name ?? $vet->owner_name ?? '').' / '.($vet->animal_name ?? '')),
+                'display_name' => $vet->animal_name ?? $vet->owner_name ?? '',
                 'sex' => null,
                 'age_years' => $vet->age,
                 'species' => $vet->species?->name,
