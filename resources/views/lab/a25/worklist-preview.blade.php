@@ -57,8 +57,8 @@
             <div class="bg-amber-50 border border-amber-300 rounded-xl p-5 text-amber-800 text-sm">
                 <p class="font-semibold mb-1">⚠ El worklist está vacío</p>
                 <ul class="list-disc list-inside space-y-1 text-xs">
-                    <li>Verificá que los protocolos tengan <strong>ID de equipo</strong> asignado.</li>
-                    <li>Verificá que las determinaciones pendientes tengan <strong>equivalencias A25 configuradas</strong>.</li>
+                    <li>Verificá que las determinaciones pendientes tengan <strong>equivalencias A25 configuradas</strong> en <a href="{{ route('a25.mappings.index') }}" class="underline">⚙ Equivalencias A25 ↔ Labit</a>.</li>
+                    <li>Los protocolos seleccionados no tienen determinaciones pendientes sin resultado.</li>
                 </ul>
                 <a href="{{ route('a25.index') }}" class="mt-3 inline-block text-teal-700 underline text-xs">← Volver y revisar</a>
             </div>
@@ -73,9 +73,6 @@
                             <div class="flex items-center gap-3">
                                 <span class="font-medium text-teal-700 text-sm">{{ $admission->protocol_number }}</span>
                                 <span class="text-gray-500 text-xs">{{ $admission->patient?->full_name ?? '—' }}</span>
-                                @if($admission->external_equipment_sample_id)
-                                    <span class="font-mono text-xs text-blue-700 bg-blue-50 px-2 py-0.5 rounded">{{ $admission->external_equipment_sample_id }}</span>
-                                @endif
                             </div>
                             <div class="flex items-center gap-2">
                                 @if(count($item['lines']) > 0)

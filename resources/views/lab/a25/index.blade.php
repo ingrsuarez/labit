@@ -34,6 +34,7 @@
                         <p class="text-xs text-gray-500 mt-1">
                             Se muestran todos los protocolos <strong>Pendiente</strong> y <strong>En Proceso</strong>.
                             Seleccioná los que querés enviar al A25 y hacé clic en <em>Vista previa</em>.
+                            Solo se incluyen determinaciones con equivalencia A25 configurada.
                         </p>
                     </div>
 
@@ -71,65 +72,50 @@
                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Paciente</th>
                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Sede</th>
                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ID Equipo</th>
                                         <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Det. pendientes</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100">
-                                    @forelse($admissions as $admission)
-                                        @php
-                                            $pendingCount = $admission->admissionTests
-                                                ->filter(fn($t) => !$t->is_validated && !$t->hasResult())
-                                                ->count();
-                                            $hasExternalId = !empty($admission->external_equipment_sample_id);
-                                        @endphp
-                                        <tr class="hover:bg-gray-50 {{ !$hasExternalId ? 'opacity-60' : '' }}">
-                                            <td class="px-4 py-2 text-center">
-                                                <input type="checkbox"
-                                                       name="admission_ids[]"
-                                                       value="{{ $admission->id }}"
-                                                       class="admission-check h-4 w-4 text-teal-600 border-gray-300 rounded"
-                                                       {{ !$hasExternalId ? 'title=Sin ID de equipo asignado' : '' }}>
-                                            </td>
-                                            <td class="px-4 py-2 font-medium text-teal-700">
-                                                <a href="{{ route('lab.admissions.show', $admission) }}" class="hover:underline">
-                                                    {{ $admission->protocol_number }}
-                                                </a>
-                                            </td>
-                                            <td class="px-4 py-2 text-gray-700">{{ $admission->patient?->full_name ?? '—' }}</td>
-                                            <td class="px-4 py-2 text-gray-500 text-xs">{{ $admission->labBranch?->name ?? '—' }}</td>
-                                            <td class="px-4 py-2">
-                                                @if($admission->status === 'pending')
-                                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pendiente</span>
-                                                @elseif($admission->status === 'in_progress')
-                                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">En Proceso</span>
-                                                @endif
-                                            </td>
-                                            <td class="px-4 py-2">
-                                                @if($hasExternalId)
-                                                    <span class="font-mono text-xs text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
-                                                        {{ $admission->external_equipment_sample_id }}
-                                                    </span>
-                                                @else
-                                                    <a href="{{ route('lab.admissions.show', $admission) }}"
-                                                       class="text-xs text-amber-600 hover:underline">
-                                                        ⚠ Asignar ID
-                                                    </a>
-                                                @endif
-                                            </td>
-                                            <td class="px-4 py-2 text-center">
-                                                @if($pendingCount > 0)
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                        {{ $pendingCount }}
-                                                    </span>
-                                                @else
-                                                    <span class="text-xs text-gray-400">—</span>
-                                                @endif
-                                            </td>
-                                        </tr>
+                    @forelse($admissions as $admission)
+                        @php
+                            $pendingCount = $admission->admissionTests
+                                ->filter(fn($t) => !$t->is_validated && !$t->hasResult())
+                                ->count();
+                        @endphp
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-2 text-center">
+                                <input type="checkbox"
+                                       name="admission_ids[]"
+                                       value="{{ $admission->id }}"
+                                       class="admission-check h-4 w-4 text-teal-600 border-gray-300 rounded">
+                            </td>
+                            <td class="px-4 py-2 font-medium text-teal-700">
+                                <a href="{{ route('lab.admissions.show', $admission) }}" class="hover:underline">
+                                    {{ $admission->protocol_number }}
+                                </a>
+                            </td>
+                            <td class="px-4 py-2 text-gray-700">{{ $admission->patient?->full_name ?? '—' }}</td>
+                            <td class="px-4 py-2 text-gray-500 text-xs">{{ $admission->labBranch?->name ?? '—' }}</td>
+                            <td class="px-4 py-2">
+                                @if($admission->status === 'pending')
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pendiente</span>
+                                @elseif($admission->status === 'in_progress')
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">En Proceso</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-2 text-center">
+                                @if($pendingCount > 0)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        {{ $pendingCount }}
+                                    </span>
+                                @else
+                                    <span class="text-xs text-gray-400">—</span>
+                                @endif
+                            </td>
+                        </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="7" class="px-4 py-8 text-center text-gray-400 text-sm">
+                                            <td colspan="6" class="px-4 py-8 text-center text-gray-400 text-sm">
                                                 No hay protocolos pendiente o en proceso.
                                             </td>
                                         </tr>
@@ -199,8 +185,7 @@
                 <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 space-y-1.5">
                     <p class="font-semibold">ℹ️ Instrucciones de uso</p>
                     <ol class="list-decimal list-inside space-y-1">
-                        <li>Asigná el <strong>ID de equipo</strong> a cada protocolo desde su pantalla de admisión (ícono ⚠ en la tabla).</li>
-                        <li>Seleccioná los protocolos a enviar y hacé clic en <em>Vista previa del worklist</em>.</li>
+                        <li>Seleccioná los protocolos a enviar al A25 y hacé clic en <em>Vista previa del worklist</em>.</li>
                         <li>Revisá el contenido y descargá el <code class="bg-amber-100 px-1 rounded">import.txt</code>.</li>
                         <li>Copiá el archivo en la carpeta del equipo A25.</li>
                         <li>Cuando el A25 termine, subí el archivo <code class="bg-amber-100 px-1 rounded">EXP(...).txt</code> en el panel de la derecha.</li>

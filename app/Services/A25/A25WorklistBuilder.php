@@ -12,11 +12,10 @@ use Illuminate\Support\Collection;
  * Formato: columnas separadas por TAB, una línea por determinación pendiente.
  * Col 1: N  (flag fijo — indica "Normal request" en protocolo A25)
  * Col 2: SER (tipo de material — fijo o desde el mapeo)
- * Col 3: external_equipment_sample_id de la admisión
+ * Col 3: protocol_number de la admisión (identificador de muestra)
  * Col 4: nombre del analito exactamente como espera el equipo (from A25AnalyteMapping)
  * Col 5: T13 (sufijo fijo — identificador de rack/posición en A25)
  *
- * Solo se incluyen admisiones con external_equipment_sample_id asignado.
  * Solo se incluyen determinaciones sin resultado y no validadas (pendientes).
  * Solo se incluyen determinaciones con un mapeo A25 configurado.
  *
@@ -31,6 +30,8 @@ class A25WorklistBuilder
     /**
      * Genera el contenido del archivo worklist para una colección de admisiones.
      *
+     * Usa protocol_number como identificador de muestra en el equipo A25.
+     *
      * @param  Collection<int, Admission>  $admissions  Admisiones con eager-load de admissionTests.test
      * @param  int|null  $labBranchId  Para resolver mapeos por sede
      * @return array{content: string, lines: int, skipped: int, detail: array}
@@ -42,21 +43,9 @@ class A25WorklistBuilder
         $detail = [];
 
         foreach ($admissions as $admission) {
-            $sampleId = trim((string) ($admission->external_equipment_sample_id ?? ''));
+            $sampleId = $admission->protocol_number;
             $admissionLines = [];
             $admissionSkipped = 0;
-
-            if ($sampleId === '') {
-                $detail[] = [
-                    'admission' => $admission,
-                    'lines' => [],
-                    'skipped' => $admission->admissionTests->count(),
-                    'reason' => 'Sin ID de equipo asignado',
-                ];
-                $skipped += $admission->admissionTests->count();
-
-                continue;
-            }
 
             foreach ($admission->admissionTests as $at) {
                 if ($at->is_validated || $at->hasResult()) {
