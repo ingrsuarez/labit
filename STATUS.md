@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-08 (hotfix pdf-mail-jerarquia — PDF por mail usa jerarquía idéntica al PDF directo)
+> Última actualización: 2026-05-08 (v1.77.0 — Vista recepcion-lab: leaf determinations + CRUD restringido + eliminar protocolo)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | Tag más reciente: **v1.76.2**; hotfix `pdf-mail-jerarquia` mergeado a develop y master |
-| **Última en master** | Release 2026-05-08: hotfix `pdf-mail-jerarquia` (PDF enviado por email genera jerarquía igual al PDF directo) |
-| **Última completada (cola agente)** | **hotfix/pdf-mail-jerarquia** — Fix PDF email: carga todos los admissionTests para jerarquía padre-hijo correcta |
+| **Versión actual (línea v1.x)** | Tag más reciente: **v1.77.0** |
+| **Última en master** | Release 2026-05-08: v1.77.0 — Vista recepcion-lab leaf determinations + CRUD restringido |
+| **Última completada (cola agente)** | **v1.77.0** — Vista recepcion-lab: leaf determinations, CRUD restringido por estado, eliminar protocolo 100% pendiente (lab clínico + vet + muestras) |
 | **En proceso** | — |
-| **Próxima recomendada** | **v1.77.0** — Vista recepción-lab: leaf determinations + CRUD restringido + eliminar protocolo |
-| **Pendientes en cola** | 3 (`pendientes/`: **v1.77.0** recepcion-lab, **v1.78.0** A25 y `DISEÑO_v1.55.0…`) |
-| **Completadas** | 136 |
+| **Próxima recomendada** | **v1.78.0** — A25 Biosystems: interfaz texto plano |
+| **Pendientes en cola** | 1 (`pendientes/`: **v1.78.0** A25) |
+| **Completadas** | 137 |
 
 ---
 
@@ -25,8 +25,7 @@
 
 | # | Versión | Nombre | Notas |
 |---|---|---|---|
-| 1 | v1.77.0 | Vista recepcion-lab: leaf determinations + CRUD restringido + eliminar protocolo 100% pendiente | Lab clinico + vet + muestras; ver pendientes/v1.77.0-vista-recepcion-lab-leaf-crud-restringido.md |
-| 2 | v1.78.0 | A25 Biosystems: import.txt + export resultados (texto plano) | Sin LISCOM; ver pendientes/v1.78.0-a25-biosystems-interfaz-texto-plano.md |
+| 1 | v1.78.0 | A25 Biosystems: import.txt + export resultados (texto plano) | Sin LISCOM; ver pendientes/v1.78.0-a25-biosystems-interfaz-texto-plano.md |
 
 Archivo adicional en `pendientes/` (no empieza con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
 
