@@ -804,10 +804,9 @@ class VetAdmissionController extends Controller
     private function generatePdfFilename(VetAdmission $vetAdmission): string
     {
         $parts = [
-            'LabVeterinario',
-            $vetAdmission->animal_name,
-            $vetAdmission->species->name ?? 'SinEspecie',
-            $vetAdmission->date ? $vetAdmission->date->format('Y-m-d') : now()->format('Y-m-d'),
+            $vetAdmission->animal_name ?: 'SinPaciente',
+            $vetAdmission->owner_name ?: 'SinDuenio',
+            $vetAdmission->date ? $vetAdmission->date->format('d-m-Y') : now()->format('d-m-Y'),
         ];
 
         $sanitized = collect($parts)->map(function ($part) {
@@ -818,7 +817,7 @@ class VetAdmissionController extends Controller
             return trim($clean, '_');
         })->implode('-');
 
-        return $sanitized.'.'.$vetAdmission->protocol_number.'.pdf';
+        return $sanitized.'.pdf';
     }
 
     /**

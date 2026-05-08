@@ -1152,10 +1152,12 @@ class LabAdmissionController extends Controller
 
     private function generatePdfFilename(Admission $admission): string
     {
+        $patient = $admission->patient;
+        $fullName = trim(($patient->name ?? '').' '.($patient->lastName ?? ''));
         $parts = [
-            'LabClinico',
-            $admission->patient?->name ?? 'SinPaciente',
-            $admission->date ? $admission->date->format('Y-m-d') : now()->format('Y-m-d'),
+            $fullName ?: 'SinPaciente',
+            $patient->patientId ?? 'SinDNI',
+            $admission->date ? $admission->date->format('d-m-Y') : now()->format('d-m-Y'),
         ];
 
         $sanitized = collect($parts)->map(function ($part) {
@@ -1166,7 +1168,7 @@ class LabAdmissionController extends Controller
             return trim($clean, '_');
         })->implode('-');
 
-        return $sanitized.'.'.$admission->protocol_number.'.pdf';
+        return $sanitized.'.pdf';
     }
 
     public function labelData(Admission $admission)
