@@ -86,6 +86,19 @@
 
             <div class="my-3 border-t border-gray-200"></div>
 
+            @canany(['a25.worklist', 'a25.import', 'a25.mappings.manage'])
+            <a href="{{ route('a25.index') }}"
+               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                {{ request()->routeIs('a25.*')
+                    ? 'bg-teal-600 text-white'
+                    : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
+                </svg>
+                Interfaz A25
+            </a>
+            @endcanany
+
             <a href="{{ route('worksheets.index') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
                 {{ request()->routeIs('worksheets.*')
