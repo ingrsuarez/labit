@@ -80,6 +80,22 @@
                             </span>
                         @endif
                     @endcan
+                    @can('lab-admissions.delete')
+                        @php
+                            $allPending = $admission->admissionTests->every(fn($t) => !$t->is_validated && !$t->hasResult());
+                        @endphp
+                        @if($allPending)
+                            <button
+                                type="button"
+                                onclick="if(confirm('¿Eliminar este protocolo? Esta acción no se puede deshacer.')) submitAction('{{ route('lab.admissions.destroy', $admission) }}', 'DELETE')"
+                                class="px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium inline-flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                Eliminar protocolo
+                            </button>
+                        @endif
+                    @endcan
                 </div>
             </div>
         </div>
@@ -385,7 +401,11 @@
                                                 $isChild = $item['isChild'];
                                                 $isSubParent = $item['isSubParent'] ?? false;
                                                 $childCount = $item['childCount'] ?? 0;
-
+                                            @endphp
+                                            @if($isRecepcionLab && $isChild && !$hasChildren)
+                                                @continue
+                                            @endif
+                                            @php
                                                 $paddingLeft = $level === 0 ? 'px-4' : ($level === 1 ? 'pl-10 pr-4' : 'pl-16 pr-4');
 
                                                 $testUnit = null;
@@ -516,6 +536,9 @@
                                                             }
                                                         }
                                                         $canDelete = !$admissionTest->is_validated && !$hasValidatedChildren;
+                                                        if ($isRecepcionLab && $admissionTest->hasResult()) {
+                                                            $canDelete = false;
+                                                        }
                                                     @endphp
                                                     <div class="flex items-center justify-center gap-2">
                                                         @if(!$hasChildren && $canValidate)

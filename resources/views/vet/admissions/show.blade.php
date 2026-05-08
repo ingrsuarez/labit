@@ -73,6 +73,22 @@
                             </span>
                         @endif
                     @endcan
+                    @can('vet-admissions.delete')
+                        @php
+                            $allPending = $vetAdmission->vetTests->every(fn($t) => $t->status === 'pending');
+                        @endphp
+                        @if($allPending)
+                            <button
+                                type="button"
+                                onclick="if(confirm('¿Eliminar este protocolo? Esta acción no se puede deshacer.')) vetDeleteAction('{{ route('vet.admissions.destroy', $vetAdmission) }}')"
+                                class="px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium inline-flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                Eliminar protocolo
+                            </button>
+                        @endif
+                    @endcan
                 </div>
             </div>
         </div>
@@ -232,6 +248,9 @@
                                     $isParentHeader = $entry['isParent'] && ! $entry['isSubParent'];
                                     $disabled = $vt->is_validated;
                                 @endphp
+                                @if($isRecepcionLab && $isTreeChild && !$entry['isParent'])
+                                    @continue
+                                @endif
                                 <tr class="{{ $isTreeChild ? 'bg-gray-50/50' : '' }} {{ $vt->is_validated ? 'bg-green-50/40' : '' }}">
                                     <td class="px-4 py-2">
                                         <div class="flex items-start" style="padding-left: {{ $level * 16 }}px">
@@ -295,7 +314,7 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-2 text-center">
-                                        @if(!$vt->is_validated && !$isTreeChild)
+                                        @if(!$vt->is_validated && !$isTreeChild && (!$isRecepcionLab || $vt->status === 'pending'))
                                             <button type="button"
                                                     onclick="if(confirm('¿Quitar esta práctica del protocolo?')) vetDeleteAction('{{ route('vet.admissions.removeTest', [$vetAdmission, $vt]) }}')"
                                                     class="text-red-400 hover:text-red-600 transition-colors" title="Quitar del protocolo">
