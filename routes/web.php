@@ -180,6 +180,23 @@ Route::middleware([
         Route::post('lab/determination-profiles/preview/sample', [App\Http\Controllers\DeterminationProfileController::class, 'previewSample'])->name('determination-profiles.preview.sample');
         Route::resource('lab/determination-profiles', App\Http\Controllers\DeterminationProfileController::class)->except(['show']);
 
+        // INTERFAZ BIOSYSTEMS A25
+        Route::get('lab/a25', [App\Http\Controllers\A25InterfaceController::class, 'index'])->name('a25.index');
+        Route::post('lab/a25/worklist', [App\Http\Controllers\A25InterfaceController::class, 'downloadWorklist'])->name('a25.worklist');
+        Route::post('lab/a25/import', [App\Http\Controllers\A25InterfaceController::class, 'importResults'])->name('a25.import');
+        Route::post('lab/admissions/{admission}/a25-sample-id', [App\Http\Controllers\A25InterfaceController::class, 'assignSampleId'])->name('a25.assignSampleId');
+
+        // EQUIVALENCIAS A25 ↔ LABIT
+        Route::resource('lab/a25-mappings', App\Http\Controllers\A25AnalyteMappingController::class)
+            ->names([
+                'index' => 'a25.mappings.index',
+                'create' => 'a25.mappings.create',
+                'store' => 'a25.mappings.store',
+                'edit' => 'a25.mappings.edit',
+                'update' => 'a25.mappings.update',
+                'destroy' => 'a25.mappings.destroy',
+            ])->except(['show']);
+
         // SEDES DE LABORATORIO
         Route::get('lab-branches/assign-orphans', [App\Http\Controllers\LabBranchController::class, 'assignOrphans'])
             ->name('lab-branches.assign-orphans');
