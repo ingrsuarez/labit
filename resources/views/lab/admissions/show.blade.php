@@ -709,7 +709,15 @@
                     
                     <!-- Estado general -->
                     <div class="mt-4 pt-4 border-t border-gray-200">
-                        @if($validated === $total && $total > 0)
+                        @if($admission->isSent())
+                            <div class="flex items-center gap-2 text-sky-600">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                                </svg>
+                                <span class="font-medium">Enviado el {{ $admission->sent_at->format('d/m/Y H:i') }}</span>
+                            </div>
+                        @elseif($validated === $total && $total > 0)
                             <div class="flex items-center gap-2 text-green-600">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
