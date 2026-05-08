@@ -150,16 +150,9 @@ class VacationController extends Controller
             ])->withInput();
         }
 
-        // Verificar días disponibles del empleado según ley argentina
         $employee = Employee::find($validated['employee_id']);
         $availableDays = $employee->getAvailableVacationDays($start->year);
-        $totalByLaw = $employee->vacation_days_by_law;
-
-        if ($days > $availableDays) {
-            return back()->withErrors([
-                'days' => "El empleado tiene {$availableDays} días disponibles de {$totalByLaw} (antigüedad: {$employee->antiquity_years} años).",
-            ])->withInput();
-        }
+        $exceedsDays = $days > $availableDays;
 
         $existingLeave = Leave::where('employee_id', $validated['employee_id'])
             ->where('type', 'vacaciones')
@@ -202,6 +195,10 @@ class VacationController extends Controller
         $message = $isPastDate
             ? 'Vacaciones registradas y aprobadas automáticamente (fecha pasada).'
             : 'Solicitud de vacaciones creada correctamente.';
+
+        if ($exceedsDays) {
+            $message .= " (Atención: se registraron {$days} días, superando los {$availableDays} días disponibles.)";
+        }
 
         return redirect()->route('vacation.index')
             ->with('success', $message);
