@@ -1080,8 +1080,31 @@
                     @csrf
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Email destinatario *</label>
-                        <input type="email" name="email" required
-                               value="{{ $admission->patient?->email ?? '' }}"
+                        @php
+                            $emailPaciente = $admission->patient?->email ?? '';
+                            $emailOS = $admission->insuranceRelation?->email ?? '';
+                        @endphp
+                        {{-- Accesos rápidos --}}
+                        @if($emailPaciente || $emailOS)
+                            <div class="flex flex-wrap gap-1 mb-2">
+                                @if($emailPaciente)
+                                    <button type="button"
+                                            onclick="document.getElementById('emailInput').value = '{{ $emailPaciente }}'"
+                                            class="text-xs px-2 py-1 rounded-full border border-teal-400 text-teal-700 bg-teal-50 hover:bg-teal-100 truncate max-w-full">
+                                        👤 {{ $emailPaciente }}
+                                    </button>
+                                @endif
+                                @if($emailOS && $emailOS !== $emailPaciente)
+                                    <button type="button"
+                                            onclick="document.getElementById('emailInput').value = '{{ $emailOS }}'"
+                                            class="text-xs px-2 py-1 rounded-full border border-purple-400 text-purple-700 bg-purple-50 hover:bg-purple-100 truncate max-w-full">
+                                        🏥 {{ $emailOS }}
+                                    </button>
+                                @endif
+                            </div>
+                        @endif
+                        <input type="email" name="email" id="emailInput" required
+                               value="{{ $emailPaciente }}"
                                placeholder="paciente@email.com"
                                class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                     </div>
