@@ -258,11 +258,20 @@ class SampleController extends Controller
             'product_name' => 'nullable|string|max:255',
             'observations' => 'nullable|string',
             'status' => 'required|in:pending,in_progress,completed,cancelled',
+            'lab_branch_id' => 'nullable|exists:lab_branches,id',
         ]);
 
+        $oldBranchId = $sample->lab_branch_id;
         $sample->update($validated);
 
-        $sample->logAudit('updated', 'Editó el protocolo Nº '.$sample->protocol_number);
+        $auditMsg = 'Editó el protocolo Nº '.$sample->protocol_number;
+        $newBranchId = $validated['lab_branch_id'] ?? null;
+        if ((string) $oldBranchId !== (string) $newBranchId) {
+            $oldName = $oldBranchId ? (\App\Models\LabBranch::find($oldBranchId)?->name ?? $oldBranchId) : 'Sin sede';
+            $newName = $newBranchId ? (\App\Models\LabBranch::find($newBranchId)?->name ?? $newBranchId) : 'Sin sede';
+            $auditMsg .= '. Sede: '.$oldName.' → '.$newName;
+        }
+        $sample->logAudit('updated', $auditMsg);
 
         return redirect()->route('sample.show', $sample)
             ->with('success', 'Protocolo actualizado correctamente.');
