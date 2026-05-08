@@ -640,6 +640,10 @@ class VetAdmissionController extends Controller
             'margin_right' => 15,
         ]);
 
+        if ($vetAdmission->status === 'validated') {
+            $vetAdmission->update(['sent_at' => now()]);
+        }
+
         return $pdf->download($this->generatePdfFilename($vetAdmission));
     }
 
@@ -692,6 +696,8 @@ class VetAdmissionController extends Controller
                 (new VetAdmissionResultMail($vetAdmission, $validated['message'] ?? null))
                     ->from($fromEmail, $fromName)
             );
+
+        $vetAdmission->update(['sent_at' => now()]);
 
         return back()->with('success', 'Informe enviado correctamente a '.$validated['email']);
     }

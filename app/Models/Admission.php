@@ -41,6 +41,7 @@ class Admission extends Model
         'created_by',
         'lab_branch_id',
         'status',
+        'sent_at',
         'payment_status',
         'payment_method',
         'paid_amount',
@@ -59,6 +60,7 @@ class Admission extends Model
         'patient_price' => 'float',
         'paid_amount' => 'decimal:2',
         'payment_date' => 'datetime',
+        'sent_at' => 'datetime',
     ];
 
     /**
@@ -175,11 +177,20 @@ class Admission extends Model
         return (float) $this->total_insurance + (float) $this->total_patient + (float) $this->total_copago;
     }
 
+    public function isSent(): bool
+    {
+        return $this->sent_at !== null;
+    }
+
     /**
      * Obtiene la etiqueta del estado
      */
     public function getStatusLabelAttribute(): string
     {
+        if ($this->sent_at !== null && $this->status === self::STATUS_VALIDATED) {
+            return 'Enviado';
+        }
+
         return match ($this->status) {
             self::STATUS_PENDING => 'Pendiente',
             self::STATUS_IN_PROGRESS => 'En Proceso',
@@ -195,6 +206,10 @@ class Admission extends Model
      */
     public function getStatusColorAttribute(): string
     {
+        if ($this->sent_at !== null && $this->status === self::STATUS_VALIDATED) {
+            return 'sky';
+        }
+
         return match ($this->status) {
             self::STATUS_PENDING => 'yellow',
             self::STATUS_IN_PROGRESS => 'blue',

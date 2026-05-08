@@ -16,18 +16,24 @@ class VetAdmission extends Model
     protected $fillable = [
         'protocol_number', 'date', 'customer_id', 'veterinarian_id',
         'species_id', 'animal_name', 'owner_name', 'owner_phone', 'owner_email',
-        'breed', 'age', 'status', 'observations', 'total_price', 'created_by',
+        'breed', 'age', 'status', 'sent_at', 'observations', 'total_price', 'created_by',
         'lab_branch_id',
     ];
 
     protected $casts = [
         'date' => 'date',
         'total_price' => 'decimal:2',
+        'sent_at' => 'datetime',
     ];
 
     public static function generateProtocolNumber(): string
     {
         return static::generatePrefixedProtocolNumber('V');
+    }
+
+    public function isSent(): bool
+    {
+        return $this->sent_at !== null;
     }
 
     public function customer()
@@ -77,6 +83,10 @@ class VetAdmission extends Model
 
     public function getStatusLabelAttribute(): string
     {
+        if ($this->sent_at !== null && $this->status === 'validated') {
+            return 'Enviado';
+        }
+
         return match ($this->status) {
             'pending' => 'Pendiente',
             'in_progress' => 'En Proceso',
@@ -89,6 +99,10 @@ class VetAdmission extends Model
 
     public function getStatusColorAttribute(): string
     {
+        if ($this->sent_at !== null && $this->status === 'validated') {
+            return 'sky';
+        }
+
         return match ($this->status) {
             'pending' => 'yellow',
             'in_progress' => 'blue',
