@@ -448,7 +448,7 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            const workingDays = data.data.working;
+                            const workingDays = data.data.total;
                             document.getElementById('days_count').textContent = workingDays;
                             document.getElementById('detail_total').textContent = data.data.total;
                             document.getElementById('detail_weekends').textContent = data.data.weekends;
