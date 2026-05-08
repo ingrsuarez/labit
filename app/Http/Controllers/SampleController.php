@@ -1296,11 +1296,11 @@ class SampleController extends Controller
     private function generatePdfFilename(Sample $sample): string
     {
         $parts = [
-            $sample->sample_type ?? 'Protocolo',
             $sample->customer?->name ?? 'SinCliente',
+            $sample->customer?->taxId ?? 'SinDNI',
             $sample->sampling_date
-                ? \Carbon\Carbon::parse($sample->sampling_date)->format('Y-m-d')
-                : now()->format('Y-m-d'),
+                ? \Carbon\Carbon::parse($sample->sampling_date)->format('d-m-Y')
+                : now()->format('d-m-Y'),
         ];
 
         $sanitized = collect($parts)->map(function ($part) {
@@ -1311,6 +1311,6 @@ class SampleController extends Controller
             return trim($clean, '_');
         })->implode('-');
 
-        return $sanitized.'.'.$sample->protocol_number.'.pdf';
+        return $sanitized.'.pdf';
     }
 }
