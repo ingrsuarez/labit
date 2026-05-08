@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-07 (v1.76.2 completado — fix ingesta: key global omite OUT_OF_BRANCH)
+> Última actualización: 2026-05-08 (hotfix vacaciones días corridos — fix cálculo días corridos en licencias vacaciones)
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | Tag más reciente: **v1.76.2**; develop y master actualizados (hotfix mergeado a ambos) |
-| **Última en master** | Release 2026-05-07: hotfix `v1.76.2` mergeado a master (fix ingesta OUT_OF_BRANCH con key global) |
-| **Última completada (cola agente)** | **v1.76.2** — Fix ingesta: key global omite validación `PROTOCOL_OUT_OF_BRANCH` en `ApiResultIngestionService` |
+| **Versión actual (línea v1.x)** | Tag más reciente: **v1.76.2**; hotfix `vacaciones-dias-corridos` mergeado a develop y master |
+| **Última en master** | Release 2026-05-08: hotfix `vacaciones-dias-corridos` (vacaciones calculan días corridos LCT Art. 150) |
+| **Última completada (cola agente)** | **hotfix/vacaciones-dias-corridos** — Fix cálculo vacaciones: días corridos en lugar de hábiles |
 | **En proceso** | — |
-| **Próxima recomendada** | **v1.78.0** — A25 Biosystems: `import.txt` + export resultados (texto plano) |
-| **Pendientes en cola** | 2 (`pendientes/`: **v1.78.0** A25 y `DISEÑO_v1.55.0…`) |
+| **Próxima recomendada** | **v1.77.0** — Vista recepción-lab: leaf determinations + CRUD restringido + eliminar protocolo |
+| **Pendientes en cola** | 3 (`pendientes/`: **v1.77.0** recepcion-lab, **v1.78.0** A25 y `DISEÑO_v1.55.0…`) |
 | **Completadas** | 136 |
 
 ---
@@ -25,7 +25,8 @@
 
 | # | Versión | Nombre | Notas |
 |---|---|---|---|
-| 1 | v1.78.0 | A25 Biosystems: `import.txt` + export resultados (texto plano) | Sin LISCOM; ver `pendientes/v1.78.0-a25-biosystems-interfaz-texto-plano.md` |
+| 1 | v1.77.0 | Vista recepcion-lab: leaf determinations + CRUD restringido + eliminar protocolo 100% pendiente | Lab clinico + vet + muestras; ver pendientes/v1.77.0-vista-recepcion-lab-leaf-crud-restringido.md |
+| 2 | v1.78.0 | A25 Biosystems: import.txt + export resultados (texto plano) | Sin LISCOM; ver pendientes/v1.78.0-a25-biosystems-interfaz-texto-plano.md |
 
 Archivo adicional en `pendientes/` (no empieza con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
 
