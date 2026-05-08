@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-07 (v1.76.2 completado — fix ingesta OUT_OF_BRANCH con key global)
+> Última actualización: 2026-05-08 (hotfix vacaciones días corridos — LCT Art. 150)
 
 ---
 
@@ -147,6 +147,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
+| v1.77.0 | Vista recepción-lab: determinaciones leaf + CRUD restringido por estado + eliminar protocolo 100% pendiente | Pendiente | `pendientes/v1.77.0-vista-recepcion-lab-leaf-crud-restringido.md` |
 | v1.76.2 | Fix ingesta: key global omite validación OUT_OF_BRANCH en `ApiResultIngestionService` | ✅ Completada (2026-05-07) | `completados/v1.76.2-labit-ingestion-key-global-out-of-branch.md` |
 | v1.76.1 | API key global sin sede para LISCOM — hotfix ORPHAN multi-sede | ✅ Completada (2026-05-07) | `completados/v1.76.1-labit-api-key-global-sin-sede.md` |
 | v1.78.0 | Biosystems A25: worklist `import.txt` + import export; equivalencias nombre A25↔Labit; id muestra sin asumir legado=Labit | Pendiente | `pendientes/v1.78.0-a25-biosystems-interfaz-texto-plano.md` |
