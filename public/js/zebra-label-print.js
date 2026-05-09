@@ -374,9 +374,7 @@ function zebraPrintModal(browserPrintBaseUrl = '') {
                 }
             } catch (e) {
                 this.zebraAvailable = false;
-                if (!this.error) {
-                    this.error = e.message;
-                }
+                // Sin Zebra Browser Print no es error: materiales + impresión vía navegador siguen disponibles.
             } finally {
                 this.loading = false;
             }

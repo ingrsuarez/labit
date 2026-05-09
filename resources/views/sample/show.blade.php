@@ -542,8 +542,7 @@
          @open-label-modal.window="openModal($event.detail.url)"
          x-cloak>
 
-        <template x-if="open">
-            <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center">
                 <div class="fixed inset-0 bg-black/50" @click="closeModal()"></div>
 
                 <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto">
@@ -570,12 +569,9 @@
                     </div>
 
                     <div x-show="!loading" class="space-y-4">
-                        <template x-if="labelRows.length === 0">
-                            <p class="text-sm text-gray-600">No hay materiales para etiquetar en este protocolo.</p>
-                        </template>
+                        <p x-show="labelRows.length === 0" class="text-sm text-gray-600">No hay materiales para etiquetar en este protocolo.</p>
 
-                        <template x-if="labelRows.length > 0">
-                            <div class="space-y-3">
+                        <div x-show="labelRows.length > 0" class="space-y-3">
                                 <div class="flex justify-between items-center gap-2">
                                     <p class="text-sm font-medium text-gray-700">Materiales a imprimir</p>
                                     <div class="text-xs shrink-0 space-x-2">
@@ -598,7 +594,6 @@
                                 </div>
                                 <p x-show="selectedKeys.length === 0" class="text-xs text-red-600">Seleccione al menos un material.</p>
                             </div>
-                        </template>
 
                         <div x-show="zebraAvailable && labelRows.length > 0" class="space-y-4 border-t border-gray-100 pt-4">
                             <div>
@@ -637,17 +632,13 @@
 
                             <button @click="print()" :disabled="printing || !selectedPrinter || selectedKeys.length === 0"
                                     class="w-full inline-flex items-center justify-center px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                                <template x-if="printing">
-                                    <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                                    </svg>
-                                </template>
-                                <template x-if="!printing">
-                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                                    </svg>
-                                </template>
+                                <svg x-show="printing" class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                </svg>
+                                <svg x-show="!printing" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                </svg>
                                 <span x-text="printing ? 'Imprimiendo...' : 'Imprimir'"></span>
                             </button>
                         </div>
@@ -692,7 +683,6 @@
                     </div>
                 </div>
             </div>
-        </template>
     </div>
 
     @if($sample->auditLogs->count() > 0)
