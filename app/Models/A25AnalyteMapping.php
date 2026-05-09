@@ -4,26 +4,34 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * Tabla de equivalencias entre el nombre de analito en el equipo Biosystems A25
- * y la determinación (Test) correspondiente en Labit.
+ * y las determinaciones (Test) correspondientes en Labit.
  *
- * Columna 4 del worklist (import.txt) usa equipment_analyte_name.
- * Al importar el export del equipo, se resuelve test_id por este mapeo.
+ * Un analito del equipo puede mapearse a UNA O MÁS determinaciones de Labit.
+ * Al importar resultados, el valor se aplica a TODAS las determinaciones
+ * mapeadas que estén presentes en el protocolo.
  */
 class A25AnalyteMapping extends Model
 {
     protected $fillable = [
         'equipment_analyte_name',
-        'test_id',
         'lab_branch_id',
         'material_type',
     ];
 
-    public function test(): BelongsTo
+    // ─── Relaciones ──────────────────────────────────────────────────────────
+
+    public function tests(): BelongsToMany
     {
-        return $this->belongsTo(Test::class);
+        return $this->belongsToMany(
+            Test::class,
+            'a25_analyte_mapping_tests',
+            'a25_analyte_mapping_id',
+            'test_id'
+        )->withPivot('sort_order')->orderByPivot('sort_order');
     }
 
     public function labBranch(): BelongsTo
@@ -31,32 +39,43 @@ class A25AnalyteMapping extends Model
         return $this->belongsTo(LabBranch::class);
     }
 
-    /**
-     * Resuelve el test_id para un nombre de analito del equipo.
-     * Primero intenta match por sede; si no hay, cae al global (lab_branch_id null).
-     */
-    public static function resolveTestId(string $analyteName, ?int $labBranchId = null): ?int
-    {
-        $query = self::where('equipment_analyte_name', $analyteName);
+    // ─── Resolvers estáticos ──────────────────────────────────────────────────
 
-        if ($labBranchId) {
-            $mapping = (clone $query)->where('lab_branch_id', $labBranchId)->first();
-            if ($mapping) {
-                return $mapping->test_id;
-            }
+    /**
+     * Devuelve todos los test_ids mapeados para un analito del equipo.
+     * Primero intenta match por sede; si no hay, cae al global (lab_branch_id null).
+     *
+     * @return list<int>
+     */
+    public static function resolveTestIds(string $analyteName, ?int $labBranchId = null): array
+    {
+        $mapping = self::resolveMapping($analyteName, $labBranchId);
+
+        if (! $mapping) {
+            return [];
         }
 
-        // Fallback a global
-        return $query->whereNull('lab_branch_id')->value('test_id');
+        return $mapping->tests()->orderByPivot('sort_order')->pluck('tests.id')->all();
     }
 
     /**
-     * Resuelve el equipment_analyte_name para un test_id.
+     * Devuelve el primer test_id mapeado (compatibilidad con código que espera un único ID).
+     */
+    public static function resolveTestId(string $analyteName, ?int $labBranchId = null): ?int
+    {
+        $ids = self::resolveTestIds($analyteName, $labBranchId);
+
+        return $ids[0] ?? null;
+    }
+
+    /**
+     * Resuelve el equipment_analyte_name para un test_id dado.
+     * Busca en el pivot por test_id.
      * Primero intenta match por sede; si no hay, cae al global.
      */
     public static function resolveAnalyteName(int $testId, ?int $labBranchId = null): ?string
     {
-        $query = self::where('test_id', $testId);
+        $query = self::whereHas('tests', fn ($q) => $q->where('tests.id', $testId));
 
         if ($labBranchId) {
             $mapping = (clone $query)->where('lab_branch_id', $labBranchId)->first();
@@ -66,5 +85,38 @@ class A25AnalyteMapping extends Model
         }
 
         return $query->whereNull('lab_branch_id')->value('equipment_analyte_name');
+    }
+
+    /**
+     * Devuelve el material_type para un test_id dado.
+     */
+    public static function resolveMaterialType(int $testId, ?int $labBranchId = null): ?string
+    {
+        $query = self::whereHas('tests', fn ($q) => $q->where('tests.id', $testId));
+
+        if ($labBranchId) {
+            $mapping = (clone $query)->where('lab_branch_id', $labBranchId)->first();
+            if ($mapping) {
+                return $mapping->material_type ?: 'SER';
+            }
+        }
+
+        return $query->whereNull('lab_branch_id')->value('material_type') ?: 'SER';
+    }
+
+    // ─── Helpers privados ─────────────────────────────────────────────────────
+
+    private static function resolveMapping(string $analyteName, ?int $labBranchId): ?self
+    {
+        $query = self::where('equipment_analyte_name', $analyteName);
+
+        if ($labBranchId) {
+            $mapping = (clone $query)->where('lab_branch_id', $labBranchId)->first();
+            if ($mapping) {
+                return $mapping;
+            }
+        }
+
+        return $query->whereNull('lab_branch_id')->first();
     }
 }

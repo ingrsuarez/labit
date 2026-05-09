@@ -1,4 +1,11 @@
 <x-lab-layout title="Editar equivalencia A25">
+    @php
+        $testsJson = $tests->map(function ($t) {
+            return ['id' => $t->id, 'label' => ($t->code ? '[' . $t->code . '] ' : '') . $t->name];
+        });
+        $currentTestIds = $mapping->tests->pluck('id')->all();
+    @endphp
+
     <div class="py-6 px-4 md:px-6 lg:px-8 mt-14 md:mt-0 max-w-2xl">
         <div class="mb-6">
             <div class="text-sm text-gray-500 mb-1">
@@ -14,7 +21,8 @@
         @endif
 
         <form action="{{ route('a25.mappings.update', $mapping) }}" method="POST"
-              class="bg-white rounded-xl shadow p-6 space-y-5">
+              class="bg-white rounded-xl shadow p-6 space-y-5"
+              x-data="a25MappingForm({{ Js::from($testsJson) }}, {{ Js::from($currentTestIds) }})">
             @csrf
             @method('PUT')
 
@@ -29,62 +37,62 @@
                 @error('equipment_analyte_name')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
             </div>
 
-            @php
-                $testsJson = $tests->map(function ($t) {
-                    return ['id' => $t->id, 'label' => ($t->code ? '[' . $t->code . '] ' : '') . $t->name];
-                });
-            @endphp
-            <div x-data="{
-                    query: '',
-                    open: false,
-                    selectedId: '{{ old('test_id', $mapping->test_id) }}',
-                    selectedLabel: '',
-                    tests: {{ Js::from($testsJson) }},
-                    get filtered() {
-                        if (!this.query) return this.tests.slice(0, 80);
-                        const q = this.query.toLowerCase();
-                        return this.tests.filter(t => t.label.toLowerCase().includes(q)).slice(0, 80);
-                    },
-                    select(item) {
-                        this.selectedId = item.id;
-                        this.selectedLabel = item.label;
-                        this.query = item.label;
-                        this.open = false;
-                    },
-                    init() {
-                        if (this.selectedId) {
-                            const found = this.tests.find(t => t.id == this.selectedId);
-                            if (found) { this.selectedLabel = found.label; this.query = found.label; }
-                        }
-                    }
-                }" @click.away="open = false">
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Determinación en Labit <span class="text-red-500">*</span>
+            {{-- Lista dinámica de determinaciones --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Determinación(es) en Labit <span class="text-red-500">*</span>
                 </label>
-                <div class="relative">
-                    <input type="text"
-                           x-model="query"
-                           @focus="open = true"
-                           @input="open = true; selectedId = ''"
-                           @keydown.escape="open = false"
-                           @keydown.enter.prevent="if(filtered.length) select(filtered[0])"
-                           placeholder="Buscar por código o nombre..."
-                           autocomplete="off"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500">
-                    <input type="hidden" name="test_id" x-model="selectedId" required>
+                <p class="text-xs text-gray-500 mb-3">Podés agregar más de una determinación. El resultado del equipo se aplicará a todas las que estén en el protocolo.</p>
 
-                    <div x-show="open && filtered.length > 0"
-                         x-cloak
-                         class="absolute z-30 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
-                        <template x-for="item in filtered" :key="item.id">
-                            <div @mousedown.prevent="select(item)"
-                                 class="px-3 py-2 text-sm cursor-pointer hover:bg-teal-50"
-                                 :class="item.id == selectedId ? 'bg-teal-50 font-medium text-teal-700' : 'text-gray-800'"
-                                 x-text="item.label"></div>
-                        </template>
-                    </div>
+                <div class="space-y-2">
+                    <template x-for="(row, index) in rows" :key="row.uid">
+                        <div class="flex items-start gap-2" @click.away="row.open = false">
+                            <div class="flex-1 relative">
+                                <input type="text"
+                                       x-model="row.query"
+                                       @focus="row.open = true"
+                                       @input="row.open = true; row.selectedId = null"
+                                       @keydown.escape="row.open = false"
+                                       @keydown.enter.prevent="selectFirst(row)"
+                                       placeholder="Buscar por código o nombre..."
+                                       autocomplete="off"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500">
+                                <input type="hidden"
+                                       :name="'test_ids[' + index + ']'"
+                                       :value="row.selectedId ?? ''">
+
+                                <div x-show="row.open && getFiltered(row).length > 0"
+                                     x-cloak
+                                     class="absolute z-30 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
+                                    <template x-for="item in getFiltered(row)" :key="item.id">
+                                        <div @mousedown.prevent="selectItem(row, item)"
+                                             class="px-3 py-2 text-sm cursor-pointer hover:bg-teal-50"
+                                             :class="item.id == row.selectedId ? 'bg-teal-50 font-medium text-teal-700' : 'text-gray-800'"
+                                             x-text="item.label"></div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <button type="button"
+                                    @click="removeRow(index)"
+                                    x-show="rows.length > 1"
+                                    class="mt-1 p-2 text-red-400 hover:text-red-600 rounded-lg hover:bg-red-50"
+                                    title="Quitar">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    </template>
                 </div>
-                @error('test_id')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+
+                <button type="button"
+                        @click="addRow()"
+                        class="mt-3 inline-flex items-center gap-1 text-sm text-teal-600 hover:text-teal-800 font-medium">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Agregar otra determinación
+                </button>
+
+                @error('test_ids')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                @error('test_ids.*')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
             </div>
 
             <div class="grid grid-cols-2 gap-4">
@@ -111,6 +119,7 @@
 
             <div class="flex gap-3 pt-2">
                 <button type="submit"
+                        @click="prepareSubmit($event)"
                         class="px-5 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-medium">
                     Guardar cambios
                 </button>
@@ -121,4 +130,52 @@
             </div>
         </form>
     </div>
+
+    <script>
+    function a25MappingForm(allTests, initialIds) {
+        return {
+            allTests,
+            rows: initialIds.length
+                ? initialIds.map((id, i) => {
+                    const found = allTests.find(t => t.id == id);
+                    return { uid: i, query: found ? found.label : '', selectedId: id, open: false };
+                  })
+                : [{ uid: 0, query: '', selectedId: null, open: false }],
+            _uid: initialIds.length || 1,
+
+            getFiltered(row) {
+                const q = row.query.toLowerCase();
+                if (!q) return this.allTests.slice(0, 80);
+                return this.allTests.filter(t => t.label.toLowerCase().includes(q)).slice(0, 80);
+            },
+
+            selectItem(row, item) {
+                row.selectedId = item.id;
+                row.query = item.label;
+                row.open = false;
+            },
+
+            selectFirst(row) {
+                const filtered = this.getFiltered(row);
+                if (filtered.length) this.selectItem(row, filtered[0]);
+            },
+
+            addRow() {
+                this.rows.push({ uid: this._uid++, query: '', selectedId: null, open: false });
+            },
+
+            removeRow(index) {
+                if (this.rows.length > 1) this.rows.splice(index, 1);
+            },
+
+            prepareSubmit(event) {
+                const missing = this.rows.filter(r => !r.selectedId);
+                if (missing.length) {
+                    event.preventDefault();
+                    alert('Seleccioná una determinación válida en cada fila antes de guardar.');
+                }
+            },
+        };
+    }
+    </script>
 </x-lab-layout>

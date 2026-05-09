@@ -30,8 +30,6 @@ class A25WorklistBuilder
     /**
      * Genera el contenido del archivo worklist para una colección de admisiones.
      *
-     * Usa protocol_number como identificador de muestra en el equipo A25.
-     *
      * @param  Collection<int, Admission>  $admissions  Admisiones con eager-load de admissionTests.test
      * @param  int|null  $labBranchId  Para resolver mapeos por sede
      * @return array{content: string, lines: int, skipped: int, detail: array}
@@ -60,7 +58,7 @@ class A25WorklistBuilder
                     continue;
                 }
 
-                $materialType = $this->resolveMaterialType($at->test_id, $labBranchId);
+                $materialType = A25AnalyteMapping::resolveMaterialType($at->test_id, $labBranchId);
                 $line = implode("\t", [self::FLAG, $materialType, $sampleId, $analyteName, self::SUFFIX]);
                 $admissionLines[] = $line;
                 $lines[] = $line;
@@ -81,19 +79,5 @@ class A25WorklistBuilder
             'skipped' => $skipped,
             'detail' => $detail,
         ];
-    }
-
-    private function resolveMaterialType(int $testId, ?int $labBranchId): string
-    {
-        $query = A25AnalyteMapping::where('test_id', $testId);
-
-        if ($labBranchId) {
-            $mapping = (clone $query)->where('lab_branch_id', $labBranchId)->first();
-            if ($mapping) {
-                return $mapping->material_type ?: 'SER';
-            }
-        }
-
-        return $query->whereNull('lab_branch_id')->value('material_type') ?: 'SER';
     }
 }

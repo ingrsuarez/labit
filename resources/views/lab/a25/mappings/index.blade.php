@@ -55,8 +55,14 @@
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-2 font-mono text-xs">{{ $mapping->equipment_analyte_name }}</td>
                             <td class="px-4 py-2">
-                                <span class="text-xs text-gray-400 mr-1">{{ $mapping->test->code ?? '' }}</span>
-                                {{ $mapping->test->name ?? '—' }}
+                                @forelse($mapping->tests as $test)
+                                    <div class="text-sm leading-snug">
+                                        <span class="text-xs text-gray-400 mr-1">{{ $test->code }}</span>
+                                        {{ $test->name }}
+                                    </div>
+                                @empty
+                                    <span class="text-gray-400">—</span>
+                                @endforelse
                             </td>
                             <td class="px-4 py-2 text-center">
                                 <span class="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-mono">{{ $mapping->material_type }}</span>

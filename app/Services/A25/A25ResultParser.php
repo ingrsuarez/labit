@@ -23,8 +23,9 @@ use Illuminate\Support\Facades\Log;
  * - Si la determinación ya está validada → rechazar con ALREADY_VALIDATED.
  * - Si el analito no tiene mapeo configurado → rechazar con ANALYTE_NOT_MAPPED.
  * - Si la muestra no se encuentra en Labit → rechazar con SAMPLE_NOT_FOUND.
- * - Si la determinación no existe en el protocolo → rechazar con DETERMINATION_NOT_IN_PROTOCOL.
- * - Las demás líneas se ingresan; si ya tenía resultado previo → OVERWRITTEN.
+ * - Si ninguna de las determinaciones mapeadas existe en el protocolo → DETERMINATION_NOT_IN_PROTOCOL.
+ * - Un analito puede mapear a MÚLTIPLES determinaciones; el resultado se aplica a todas las que
+ *   estén en el protocolo y no estén validadas.
  * - Política: parcial (se aplican las líneas válidas, se reportan las rechazadas).
  */
 class A25ResultParser
@@ -54,7 +55,6 @@ class A25ResultParser
      */
     public function import(string $fileContent, ?int $labBranchId = null): array
     {
-        // Normalizar saltos de línea y encoding
         $content = mb_convert_encoding($fileContent, 'UTF-8', 'UTF-8, Windows-1252');
         $rawLines = preg_split('/\r\n|\r|\n/', trim($content));
 
@@ -67,9 +67,12 @@ class A25ResultParser
                 continue;
             }
 
-            $result = $this->processLine($lineIndex + 1, $rawLine, $labBranchId);
-            $results[] = $result;
-            $counters[$result['status'] === self::STATUS_REJECTED ? 'rejected' : $result['status']]++;
+            $lineResults = $this->processLine($lineIndex + 1, $rawLine, $labBranchId);
+
+            foreach ($lineResults as $result) {
+                $results[] = $result;
+                $counters[$result['status'] === self::STATUS_REJECTED ? 'rejected' : $result['status']]++;
+            }
         }
 
         Log::channel('api')->info('a25.import.completed', array_merge($counters, [
@@ -80,6 +83,12 @@ class A25ResultParser
         return array_merge($counters, ['lines' => $results]);
     }
 
+    /**
+     * Procesa una línea del export y devuelve un array de resultados
+     * (uno por cada determinación a la que se aplicó el valor).
+     *
+     * @return list<array>
+     */
     private function processLine(int $lineNumber, string $rawLine, ?int $labBranchId): array
     {
         $base = ['line' => $lineNumber, 'raw' => $rawLine];
@@ -87,11 +96,11 @@ class A25ResultParser
         $cols = explode("\t", $rawLine);
 
         if (count($cols) < 5) {
-            return array_merge($base, [
+            return [array_merge($base, [
                 'status' => self::STATUS_REJECTED,
                 'reason' => self::REASON_INVALID_LINE,
                 'message' => 'Línea con menos de 5 columnas TAB',
-            ]);
+            ])];
         }
 
         [$sampleId, $analyteName, $materialType, $value, $unit] = $cols;
@@ -100,88 +109,104 @@ class A25ResultParser
         $value = trim($value);
         $unit = trim($unit);
 
-        // Resolver test_id desde equivalencias
-        $testId = A25AnalyteMapping::resolveTestId($analyteName, $labBranchId);
+        // Resolver todos los test_ids mapeados para este analito
+        $testIds = A25AnalyteMapping::resolveTestIds($analyteName, $labBranchId);
 
-        if ($testId === null) {
-            return array_merge($base, [
+        if (empty($testIds)) {
+            return [array_merge($base, [
                 'status' => self::STATUS_REJECTED,
                 'reason' => self::REASON_ANALYTE_NOT_MAPPED,
                 'analyte' => $analyteName,
                 'message' => "Analito \"{$analyteName}\" no tiene equivalencia configurada.",
-            ]);
+            ])];
         }
 
         // Resolver protocolo por external_equipment_sample_id
         $admission = Admission::where('external_equipment_sample_id', $sampleId)->first();
 
         if (! $admission) {
-            return array_merge($base, [
+            return [array_merge($base, [
                 'status' => self::STATUS_REJECTED,
                 'reason' => self::REASON_SAMPLE_NOT_FOUND,
                 'sample_id' => $sampleId,
                 'message' => "No se encontró protocolo con id de equipo \"{$sampleId}\".",
+            ])];
+        }
+
+        // Aplicar el resultado a TODAS las determinaciones mapeadas que estén en el protocolo
+        $lineResults = [];
+        $anyFound = false;
+
+        foreach ($testIds as $testId) {
+            $determination = AdmissionTest::where('admission_id', $admission->id)
+                ->where('test_id', $testId)
+                ->first();
+
+            if (! $determination) {
+                continue;
+            }
+
+            $anyFound = true;
+
+            if ($determination->is_validated) {
+                $lineResults[] = array_merge($base, [
+                    'status' => self::STATUS_REJECTED,
+                    'reason' => self::REASON_ALREADY_VALIDATED,
+                    'determination_id' => $determination->id,
+                    'analyte' => $analyteName,
+                    'test_id' => $testId,
+                    'message' => 'La determinación ya fue validada.',
+                ]);
+
+                continue;
+            }
+
+            $hadValue = ! empty($determination->result);
+            $previousValue = $hadValue ? $determination->result : null;
+
+            $determination->result = $value;
+
+            if (in_array('unit', $determination->getFillable(), true)) {
+                $determination->unit = $unit;
+            }
+
+            if (in_array('analyzed_at', $determination->getFillable(), true)) {
+                $determination->analyzed_at = now();
+            }
+
+            if (in_array('observations', $determination->getFillable(), true)) {
+                $current = $determination->observations ?? '';
+                $note = '[A25 '.now()->format('Y-m-d H:i').']';
+                $determination->observations = trim($current."\n".$note, "\n");
+            }
+
+            $determination->save();
+
+            $status = $hadValue ? self::STATUS_OVERWRITTEN : self::STATUS_INGESTED;
+
+            $lineResults[] = array_merge($base, [
+                'status' => $status,
+                'determination_id' => $determination->id,
+                'analyte' => $analyteName,
+                'test_id' => $testId,
+                'value' => $value,
+                'unit' => $unit,
+                'previous_value' => $previousValue,
+                'protocol_number' => $admission->protocol_number,
             ]);
         }
 
-        // Buscar la determinación en el protocolo
-        $determination = AdmissionTest::where('admission_id', $admission->id)
-            ->where('test_id', $testId)
-            ->first();
-
-        if (! $determination) {
-            return array_merge($base, [
+        if (! $anyFound) {
+            return [array_merge($base, [
                 'status' => self::STATUS_REJECTED,
                 'reason' => self::REASON_DETERMINATION_NOT_IN_PROTOCOL,
                 'sample_id' => $sampleId,
-                'test_id' => $testId,
+                'test_ids' => $testIds,
                 'analyte' => $analyteName,
-                'message' => 'La determinación no está en el protocolo.',
-            ]);
+                'message' => 'Ninguna de las determinaciones mapeadas está en el protocolo.',
+            ])];
         }
 
-        if ($determination->is_validated) {
-            return array_merge($base, [
-                'status' => self::STATUS_REJECTED,
-                'reason' => self::REASON_ALREADY_VALIDATED,
-                'determination_id' => $determination->id,
-                'analyte' => $analyteName,
-                'message' => 'La determinación ya fue validada.',
-            ]);
-        }
-
-        $hadValue = ! empty($determination->result);
-        $previousValue = $hadValue ? $determination->result : null;
-
-        // Aplicar resultado
-        $determination->result = $value;
-
-        if (in_array('unit', $determination->getFillable(), true)) {
-            $determination->unit = $unit;
-        }
-
-        if (in_array('analyzed_at', $determination->getFillable(), true)) {
-            $determination->analyzed_at = now();
-        }
-
-        if (in_array('observations', $determination->getFillable(), true)) {
-            $current = $determination->observations ?? '';
-            $note = '[A25 '.now()->format('Y-m-d H:i').']';
-            $determination->observations = trim($current."\n".$note, "\n");
-        }
-
-        $determination->save();
-
-        $status = $hadValue ? self::STATUS_OVERWRITTEN : self::STATUS_INGESTED;
-
-        return array_merge($base, [
-            'status' => $status,
-            'determination_id' => $determination->id,
-            'analyte' => $analyteName,
-            'value' => $value,
-            'unit' => $unit,
-            'previous_value' => $previousValue,
-            'protocol_number' => $admission->protocol_number,
-        ]);
+        return $lineResults;
     }
 }
