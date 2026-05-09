@@ -41,7 +41,7 @@
                             <option value="">Seleccionar cliente...</option>
                             @foreach($customers as $cust)
                                 <option value="{{ $cust->id }}" {{ $cust->id == $customerId ? 'selected' : '' }}>
-                                    {{ $cust->name }} {{ $cust->cuit ? '(' . $cust->cuit . ')' : '' }}
+                                    {{ $cust->displayName() }} {{ $cust->cuit ? '(' . $cust->cuit . ')' : '' }}
                                 </option>
                             @endforeach
                         </select>

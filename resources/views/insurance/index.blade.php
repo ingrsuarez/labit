@@ -153,7 +153,10 @@
                                         @endif
                                     </div>
                                     <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900 uppercase">{{ $insurance->name }}</div>
+                                        <div class="text-sm font-medium text-gray-900 uppercase">{{ $insurance->displayName() }}</div>
+                                        @if($insurance->short_name)
+                                            <div class="text-xs text-gray-400 uppercase">{{ $insurance->name }}</div>
+                                        @endif
                                         @if($insurance->email)
                                             <div class="text-sm text-gray-500">{{ $insurance->email }}</div>
                                         @endif

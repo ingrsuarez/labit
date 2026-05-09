@@ -213,6 +213,18 @@
                                class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
                     </div>
 
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Nombre corto / Sigla
+                            <span class="text-gray-400 text-xs font-normal">(opcional)</span>
+                        </label>
+                        <input type="text" name="short_name" value="{{ old('short_name', $customer->short_name) }}"
+                               class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500"
+                               placeholder="Ej: OSDE, SWISS MED, PAMI"
+                               maxlength="50">
+                        <p class="text-xs text-gray-400 mt-1">Se usará en listados y encabezados en lugar del nombre completo</p>
+                    </div>
+
                     <!-- CUIT con botón Consultar AFIP -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">CUIT *</label>
