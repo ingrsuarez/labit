@@ -32,14 +32,15 @@
                     <div class="px-5 py-4 border-b border-gray-100">
                         <h2 class="text-base font-semibold text-gray-800">1. Generar worklist (import.txt)</h2>
                         <p class="text-xs text-gray-500 mt-1">
-                            Se muestran todos los protocolos <strong>Pendiente</strong> y <strong>En Proceso</strong>.
+                            Se muestran protocolos <strong>clínicos</strong> y <strong>veterinarios</strong> en estado
+                            <strong>Pendiente</strong> o <strong>En Proceso</strong>.
                             Seleccioná los que querés enviar al A25 y hacé clic en <em>Vista previa</em>.
                             Solo se incluyen determinaciones con equivalencia A25 configurada.
                         </p>
                     </div>
 
                     {{-- Filtros --}}
-                    <form method="GET" action="{{ route('a25.index') }}" class="px-5 py-3 border-b border-gray-100 flex flex-wrap items-center gap-3">
+                    <form method="GET" action="{{ route('a25.index') }}" class="px-5 py-3 border-b border-gray-100 flex flex-wrap items-end gap-3">
                         <select name="lab_branch_id"
                                 onchange="this.form.submit()"
                                 class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-teal-500">
@@ -50,13 +51,26 @@
                                 </option>
                             @endforeach
                         </select>
-                        <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none">
+                        <div class="flex flex-col gap-0.5">
+                            <label for="worklist-filter-date" class="text-xs font-medium text-gray-600">Día del protocolo</label>
+                            <input id="worklist-filter-date" type="date" name="date" value="{{ $dateFilter ?? '' }}"
+                                   onchange="this.form.submit()"
+                                   class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-teal-500">
+                        </div>
+                        @if($dateFilter)
+                            <a href="{{ route('a25.index', array_filter(['lab_branch_id' => $branchFilter])) }}"
+                               class="text-xs text-teal-700 hover:underline py-2">Quitar filtro de fecha</a>
+                        @endif
+                        <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none pb-2">
                             <input type="checkbox" id="select-all" class="h-4 w-4 rounded border-gray-300 text-teal-600">
-                            Seleccionar todos
+                            Seleccionar todos (clínico y veterinario)
                         </label>
                     </form>
 
-                    {{-- Tabla de protocolos --}}
+                    {{-- Clínico --}}
+                    <div class="px-5 py-2 border-b border-gray-100 bg-teal-50/60">
+                        <h3 class="text-xs font-semibold text-teal-900 uppercase tracking-wide">Laboratorio clínico</h3>
+                    </div>
                     <form action="{{ route('a25.worklist.preview') }}" method="POST" id="worklist-form">
                         @csrf
                         @if($branchFilter)
@@ -87,7 +101,7 @@
                                 <input type="checkbox"
                                        name="admission_ids[]"
                                        value="{{ $admission->id }}"
-                                       class="admission-check h-4 w-4 text-teal-600 border-gray-300 rounded">
+                                       class="worklist-check h-4 w-4 text-teal-600 border-gray-300 rounded">
                             </td>
                             <td class="px-4 py-2 font-medium text-teal-700">
                                 <a href="{{ route('lab.admissions.show', $admission) }}" class="hover:underline">
@@ -124,9 +138,82 @@
                             </table>
                         </div>
 
-                        @if($admissions->isNotEmpty())
-                            <div class="px-5 py-3 border-t border-gray-100 flex justify-between items-center">
-                                <div class="text-xs text-gray-500">{{ $admissions->total() }} protocolo(s) en total</div>
+                    {{-- Veterinario --}}
+                    <div class="px-5 py-2 border-b border-gray-100 bg-amber-50/80">
+                        <h3 class="text-xs font-semibold text-amber-900 uppercase tracking-wide">Laboratorio veterinario</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-100 text-sm">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="w-8 px-4 py-2"></th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Protocolo</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Animal / tutor</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Sede</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Det. pendientes</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @forelse($vetAdmissions as $vetAdmission)
+                                    @php
+                                        $vetPendingCount = $vetAdmission->vetTests
+                                            ->filter(fn($t) => !$t->is_validated && !$t->hasResult())
+                                            ->count();
+                                    @endphp
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-2 text-center">
+                                            <input type="checkbox"
+                                                   name="vet_admission_ids[]"
+                                                   value="{{ $vetAdmission->id }}"
+                                                   class="worklist-check h-4 w-4 text-teal-600 border-gray-300 rounded">
+                                        </td>
+                                        <td class="px-4 py-2 font-medium text-amber-800">
+                                            <a href="{{ route('vet.admissions.show', $vetAdmission) }}" class="hover:underline">
+                                                {{ $vetAdmission->protocol_number }}
+                                            </a>
+                                        </td>
+                                        <td class="px-4 py-2 text-gray-700">
+                                            <span class="font-medium">{{ $vetAdmission->animal_name }}</span>
+                                            <span class="text-gray-500 text-xs"> · {{ $vetAdmission->owner_name }}</span>
+                                        </td>
+                                        <td class="px-4 py-2 text-gray-500 text-xs">{{ $vetAdmission->labBranch?->name ?? '—' }}</td>
+                                        <td class="px-4 py-2">
+                                            @if($vetAdmission->status === 'pending')
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pendiente</span>
+                                            @elseif($vetAdmission->status === 'in_progress')
+                                                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">En Proceso</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-4 py-2 text-center">
+                                            @if($vetPendingCount > 0)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                    {{ $vetPendingCount }}
+                                                </span>
+                                            @else
+                                                <span class="text-xs text-gray-400">—</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="px-4 py-6 text-center text-gray-400 text-sm">
+                                            No hay protocolos veterinarios pendiente o en proceso.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                        @if($admissions->isNotEmpty() || $vetAdmissions->isNotEmpty())
+                            <div class="px-5 py-3 border-t border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                                <div class="text-xs text-gray-500">
+                                    {{ $admissions->total() }} clínico(s)
+                                    @if($vetAdmissions->total() > 0)
+                                        · {{ $vetAdmissions->total() }} veterinario(s)
+                                    @endif
+                                </div>
                                 <button type="submit"
                                         class="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-medium">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,7 +226,16 @@
                     </form>
                 </div>
 
-                <div class="mt-2">{{ $admissions->links() }}</div>
+                <div class="mt-2 space-y-3">
+                    <div>
+                        <p class="text-xs text-gray-500 mb-1">Paginación — clínico</p>
+                        {{ $admissions->links() }}
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 mb-1">Paginación — veterinario</p>
+                        {{ $vetAdmissions->links() }}
+                    </div>
+                </div>
             </div>
 
             {{-- Columna derecha: importar resultados --}}
@@ -149,7 +245,7 @@
                         <h2 class="text-base font-semibold text-gray-800">2. Importar resultados del equipo</h2>
                         <p class="text-xs text-gray-500 mt-1">
                             Subí el archivo <code class="text-xs bg-gray-100 px-1 rounded">EXP(...).txt</code>
-                            que exportó el A25. Los resultados se aplican automáticamente.
+                            que exportó el A25. Los resultados se aplican según la columna de muestra: número de protocolo o ID de equipo cargado en cada protocolo (clínico o veterinario).
                         </p>
                     </div>
                     <form action="{{ route('a25.import') }}" method="POST" enctype="multipart/form-data"
@@ -200,7 +296,7 @@
         const selectAll = document.getElementById('select-all');
         if (selectAll) {
             selectAll.addEventListener('change', function () {
-                document.querySelectorAll('.admission-check').forEach(cb => cb.checked = this.checked);
+                document.querySelectorAll('.worklist-check').forEach(cb => cb.checked = this.checked);
             });
         }
     </script>

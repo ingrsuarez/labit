@@ -5,6 +5,8 @@ namespace App\Services\A25;
 use App\Models\A25AnalyteMapping;
 use App\Models\Admission;
 use App\Models\AdmissionTest;
+use App\Models\VetAdmission;
+use App\Models\VetAdmissionTest;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -22,7 +24,7 @@ use Illuminate\Support\Facades\Log;
  * Reglas de negocio:
  * - Si la determinación ya está validada → rechazar con ALREADY_VALIDATED.
  * - Si el analito no tiene mapeo configurado → rechazar con ANALYTE_NOT_MAPPED.
- * - Si la muestra no se encuentra en Labit → rechazar con SAMPLE_NOT_FOUND.
+ * - Si la muestra no se encuentra en Labit (clínico o veterinario) → rechazar con SAMPLE_NOT_FOUND.
  * - Si ninguna de las determinaciones mapeadas existe en el protocolo → DETERMINATION_NOT_IN_PROTOCOL.
  * - Un analito puede mapear a MÚLTIPLES determinaciones; el resultado se aplica a todas las que
  *   estén en el protocolo y no estén validadas.
@@ -121,19 +123,41 @@ class A25ResultParser
             ])];
         }
 
-        // Resolver protocolo por external_equipment_sample_id
-        $admission = Admission::where('external_equipment_sample_id', $sampleId)->first();
+        $admission = Admission::where('external_equipment_sample_id', $sampleId)->first()
+            ?? Admission::where('protocol_number', $sampleId)->first();
 
-        if (! $admission) {
-            return [array_merge($base, [
-                'status' => self::STATUS_REJECTED,
-                'reason' => self::REASON_SAMPLE_NOT_FOUND,
-                'sample_id' => $sampleId,
-                'message' => "No se encontró protocolo con id de equipo \"{$sampleId}\".",
-            ])];
+        if ($admission) {
+            return $this->applyToClinicalAdmission($base, $admission, $testIds, $analyteName, $sampleId, $value, $unit);
         }
 
-        // Aplicar el resultado a TODAS las determinaciones mapeadas que estén en el protocolo
+        $vetAdmission = VetAdmission::where('external_equipment_sample_id', $sampleId)->first()
+            ?? VetAdmission::where('protocol_number', $sampleId)->first();
+
+        if ($vetAdmission) {
+            return $this->applyToVetAdmission($base, $vetAdmission, $testIds, $analyteName, $sampleId, $value, $unit);
+        }
+
+        return [array_merge($base, [
+            'status' => self::STATUS_REJECTED,
+            'reason' => self::REASON_SAMPLE_NOT_FOUND,
+            'sample_id' => $sampleId,
+            'message' => "No se encontró protocolo (clínico ni veterinario) con id de equipo \"{$sampleId}\".",
+        ])];
+    }
+
+    /**
+     * @param  list<int>  $testIds
+     * @return list<array>
+     */
+    private function applyToClinicalAdmission(
+        array $base,
+        Admission $admission,
+        array $testIds,
+        string $analyteName,
+        string $sampleId,
+        string $value,
+        string $unit,
+    ): array {
         $lineResults = [];
         $anyFound = false;
 
@@ -193,6 +217,95 @@ class A25ResultParser
                 'unit' => $unit,
                 'previous_value' => $previousValue,
                 'protocol_number' => $admission->protocol_number,
+            ]);
+        }
+
+        if (! $anyFound) {
+            return [array_merge($base, [
+                'status' => self::STATUS_REJECTED,
+                'reason' => self::REASON_DETERMINATION_NOT_IN_PROTOCOL,
+                'sample_id' => $sampleId,
+                'test_ids' => $testIds,
+                'analyte' => $analyteName,
+                'message' => 'Ninguna de las determinaciones mapeadas está en el protocolo.',
+            ])];
+        }
+
+        return $lineResults;
+    }
+
+    /**
+     * @param  list<int>  $testIds
+     * @return list<array>
+     */
+    private function applyToVetAdmission(
+        array $base,
+        VetAdmission $vetAdmission,
+        array $testIds,
+        string $analyteName,
+        string $sampleId,
+        string $value,
+        string $unit,
+    ): array {
+        $lineResults = [];
+        $anyFound = false;
+
+        foreach ($testIds as $testId) {
+            $determination = VetAdmissionTest::where('vet_admission_id', $vetAdmission->id)
+                ->where('test_id', $testId)
+                ->first();
+
+            if (! $determination) {
+                continue;
+            }
+
+            $anyFound = true;
+
+            if ($determination->is_validated) {
+                $lineResults[] = array_merge($base, [
+                    'status' => self::STATUS_REJECTED,
+                    'reason' => self::REASON_ALREADY_VALIDATED,
+                    'determination_id' => $determination->id,
+                    'analyte' => $analyteName,
+                    'test_id' => $testId,
+                    'message' => 'La determinación ya fue validada.',
+                ]);
+
+                continue;
+            }
+
+            $hadValue = ! empty($determination->result);
+            $previousValue = $hadValue ? $determination->result : null;
+
+            $determination->result = $value;
+
+            if (in_array('unit', $determination->getFillable(), true)) {
+                $determination->unit = $unit;
+            }
+
+            if (in_array('analyzed_at', $determination->getFillable(), true)) {
+                $determination->analyzed_at = now();
+            }
+
+            if (in_array('observations', $determination->getFillable(), true)) {
+                $current = $determination->observations ?? '';
+                $note = '[A25 '.now()->format('Y-m-d H:i').']';
+                $determination->observations = trim($current."\n".$note, "\n");
+            }
+
+            $determination->save();
+
+            $status = $hadValue ? self::STATUS_OVERWRITTEN : self::STATUS_INGESTED;
+
+            $lineResults[] = array_merge($base, [
+                'status' => $status,
+                'determination_id' => $determination->id,
+                'analyte' => $analyteName,
+                'test_id' => $testId,
+                'value' => $value,
+                'unit' => $unit,
+                'previous_value' => $previousValue,
+                'protocol_number' => $vetAdmission->protocol_number,
             ]);
         }
 

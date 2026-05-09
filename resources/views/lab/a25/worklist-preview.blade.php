@@ -1,6 +1,12 @@
 <x-lab-layout title="Vista previa — import.txt">
     <div class="py-6 px-4 md:px-6 lg:px-8 mt-14 md:mt-0 max-w-5xl mx-auto">
 
+        @php
+            $admissionIds = $admissionIds ?? [];
+            $vetAdmissionIds = $vetAdmissionIds ?? [];
+            $selectedProtocolCount = count($admissionIds) + count($vetAdmissionIds);
+        @endphp
+
         {{-- Header --}}
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
@@ -11,12 +17,14 @@
                 <p class="text-sm text-gray-600 mt-1">Revisá el contenido del <code class="bg-gray-100 px-1 rounded text-xs">import.txt</code> antes de descargarlo.</p>
             </div>
 
-            {{-- Botón descargar --}}
             @if($result['lines'] > 0)
                 <form action="{{ route('a25.worklist') }}" method="POST">
                     @csrf
                     @foreach($admissionIds as $id)
                         <input type="hidden" name="admission_ids[]" value="{{ $id }}">
+                    @endforeach
+                    @foreach($vetAdmissionIds as $id)
+                        <input type="hidden" name="vet_admission_ids[]" value="{{ $id }}">
                     @endforeach
                     @if($labBranchId)
                         <input type="hidden" name="lab_branch_id" value="{{ $labBranchId }}">
@@ -39,7 +47,7 @@
                 <p class="text-xs text-gray-500 mt-1">Líneas incluidas</p>
             </div>
             <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
-                <p class="text-2xl font-bold text-gray-800">{{ count($admissionIds) }}</p>
+                <p class="text-2xl font-bold text-gray-800">{{ $selectedProtocolCount }}</p>
                 <p class="text-xs text-gray-500 mt-1">Protocolos seleccionados</p>
             </div>
             <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
@@ -67,12 +75,23 @@
             {{-- Detalle por protocolo --}}
             <div class="space-y-3 mb-6">
                 @foreach($result['detail'] as $item)
-                    @php $admission = $item['admission']; @endphp
+                    @php
+                        $admission = $item['admission'] ?? null;
+                        $vetAdmission = $item['vetAdmission'] ?? null;
+                        $protocolNumber = $vetAdmission ? $vetAdmission->protocol_number : ($admission?->protocol_number ?? '—');
+                        $subjectLabel = $vetAdmission
+                            ? ($vetAdmission->animal_name.' · '.$vetAdmission->owner_name)
+                            : ($admission?->patient?->full_name ?? '—');
+                        $protocolClass = $vetAdmission ? 'text-amber-800' : 'text-teal-700';
+                    @endphp
                     <div class="bg-white rounded-xl border {{ count($item['lines']) > 0 ? 'border-gray-200' : 'border-amber-200 bg-amber-50' }} overflow-hidden">
-                        <div class="px-4 py-3 flex items-center justify-between">
+                        <div class="px-4 py-3 flex items-center justify-between flex-wrap gap-2">
                             <div class="flex items-center gap-3">
-                                <span class="font-medium text-teal-700 text-sm">{{ $admission->protocol_number }}</span>
-                                <span class="text-gray-500 text-xs">{{ $admission->patient?->full_name ?? '—' }}</span>
+                                <span class="font-medium {{ $protocolClass }} text-sm">{{ $protocolNumber }}</span>
+                                <span class="text-gray-500 text-xs">{{ $subjectLabel }}</span>
+                                @if($vetAdmission)
+                                    <span class="text-xs bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">Veterinario</span>
+                                @endif
                             </div>
                             <div class="flex items-center gap-2">
                                 @if(count($item['lines']) > 0)
@@ -117,6 +136,9 @@
                     @csrf
                     @foreach($admissionIds as $id)
                         <input type="hidden" name="admission_ids[]" value="{{ $id }}">
+                    @endforeach
+                    @foreach($vetAdmissionIds as $id)
+                        <input type="hidden" name="vet_admission_ids[]" value="{{ $id }}">
                     @endforeach
                     @if($labBranchId)
                         <input type="hidden" name="lab_branch_id" value="{{ $labBranchId }}">

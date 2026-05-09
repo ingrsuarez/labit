@@ -42,7 +42,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                     Determinación(es) en Labit <span class="text-red-500">*</span>
                 </label>
-                <p class="text-xs text-gray-500 mb-3">Podés agregar más de una determinación. El resultado del equipo se aplicará a todas las que estén en el protocolo.</p>
+                <p class="text-xs text-gray-500 mb-3">Podés agregar más de una determinación. El resultado del equipo se aplicará a todas las que estén en el protocolo. Incluye laboratorio clínico y veterinario: buscá por código o nombre (lista completa, con scroll).</p>
 
                 <div class="space-y-2">
                     <template x-for="(row, index) in rows" :key="row.uid">
@@ -63,7 +63,7 @@
 
                                 <div x-show="row.open && getFiltered(row).length > 0"
                                      x-cloak
-                                     class="absolute z-30 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
+                                     class="absolute z-30 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-72 overflow-y-auto">
                                     <template x-for="item in getFiltered(row)" :key="item.id">
                                         <div @mousedown.prevent="selectItem(row, item)"
                                              class="px-3 py-2 text-sm cursor-pointer hover:bg-teal-50"
@@ -144,9 +144,12 @@
             _uid: initialIds.length || 1,
 
             getFiltered(row) {
-                const q = row.query.toLowerCase();
-                if (!q) return this.allTests.slice(0, 80);
-                return this.allTests.filter(t => t.label.toLowerCase().includes(q)).slice(0, 80);
+                const q = row.query.toLowerCase().trim();
+                if (!q) {
+                    return this.allTests;
+                }
+
+                return this.allTests.filter(t => t.label.toLowerCase().includes(q));
             },
 
             selectItem(row, item) {
