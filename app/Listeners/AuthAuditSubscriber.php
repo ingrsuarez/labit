@@ -11,6 +11,8 @@ class AuthAuditSubscriber
 {
     public function handleLogin(Login $event): void
     {
+        $event->user->forceFill(['last_activity_at' => now()])->saveQuietly();
+
         AuditLog::create([
             'user_id' => $event->user->id,
             'user_name' => $event->user->name,

@@ -21,6 +21,7 @@ Route::get('/', function () {
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
+    'enforce.idle',
     'verified',
 ])->group(function () {
     Route::get('/access-pending', function () {
@@ -50,6 +51,7 @@ Route::middleware([
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
+    'enforce.idle',
     'verified',
     'check.access',
 ])->group(function () {
@@ -797,6 +799,7 @@ Route::middleware([
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
+    'enforce.idle',
     'verified',
     'has.employee',
 ])->prefix('portal')->name('portal.')->group(function () {
@@ -824,7 +827,7 @@ Route::middleware([
 // v1.53.0 — Dashboard de monitoreo de la API (ingesta de resultados desde LISCOM)
 // Acceso: usuarios logueados con permission 'lab-admissions.index' (roles: bioquimico, tecnico-lab, recepcion-lab)
 // Sección técnica adicional: permission 'api-clients.manage' (admin IT, de v1.46.0)
-Route::middleware(['auth', 'verified'])->prefix('admin/api-monitor')->name('admin.api-monitor.')->group(function () {
+Route::middleware(['auth', 'enforce.idle', 'verified'])->prefix('admin/api-monitor')->name('admin.api-monitor.')->group(function () {
     Route::middleware('can:lab-admissions.index')->group(function () {
         Route::get('/', \App\Livewire\Api\Dashboard::class)->name('dashboard');
         Route::get('/batches', \App\Livewire\Api\BatchesList::class)->name('batches');
