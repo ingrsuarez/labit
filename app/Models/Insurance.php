@@ -11,6 +11,7 @@ class Insurance extends Model
 
     protected $fillable = [
         'name',
+        'short_name',
         'tax_id',
         'tax',
         'address',
@@ -32,6 +33,11 @@ class Insurance extends Model
         'price' => 'float',
         'nbu' => 'float',
     ];
+
+    public function displayName(): string
+    {
+        return $this->short_name ?? $this->name;
+    }
 
     /**
      * Relación con el nomenclador de prácticas

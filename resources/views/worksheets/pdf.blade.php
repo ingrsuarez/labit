@@ -66,8 +66,20 @@
             word-wrap: break-word;
             overflow-wrap: break-word;
         }
-        td.empty-result {
-            color: #ccc;
+        td.cell-pending {
+            color: #0d9488;
+            font-weight: bold;
+            font-size: 11pt;
+        }
+        td.cell-not-ordered {
+            background: repeating-linear-gradient(
+                45deg,
+                #f5f5f5,
+                #f5f5f5 3px,
+                #e5e7eb 3px,
+                #e5e7eb 6px
+            );
+            color: #aaa;
         }
         .footer {
             position: fixed;
@@ -118,9 +130,14 @@
                 <td class="protocol-col">{{ $row['protocol'] }}</td>
                 <td class="name-col">{{ $row['name'] }}</td>
                 @foreach($tests as $test)
-                <td class="{{ !$row['results'][$test->id] ? 'empty-result' : '' }}">
-                    {{ $row['results'][$test->id] ?: '' }}
-                </td>
+                @php $val = $row['results'][$test->id] ?? null; @endphp
+                @if($val === null)
+                    <td class="cell-not-ordered"></td>
+                @elseif($val === '')
+                    <td class="cell-pending">✓</td>
+                @else
+                    <td>{{ $val }}</td>
+                @endif
                 @endforeach
             </tr>
             @endforeach

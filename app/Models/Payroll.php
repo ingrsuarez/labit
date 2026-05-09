@@ -10,6 +10,7 @@ class Payroll extends Model
 {
     protected $fillable = [
         'employee_id',
+        'payroll_payment_id',
         'year',
         'month',
         'period_label',
@@ -100,6 +101,14 @@ class Payroll extends Model
     public function deducciones(): HasMany
     {
         return $this->hasMany(PayrollItem::class)->where('type', 'deduccion');
+    }
+
+    /**
+     * Pago de haberes agrupado al que pertenece esta liquidación
+     */
+    public function payrollPayment(): BelongsTo
+    {
+        return $this->belongsTo(PayrollPayment::class);
     }
 
     /**

@@ -142,10 +142,12 @@ class LabAdmissionController extends Controller
 
         $variantsByInsuranceId = [];
         foreach ($insurances as $ins) {
-            $variantsByInsuranceId[$ins->id] = $this->searchVariantsForStrings([
-                $ins->name,
-                mb_strtoupper((string) $ins->name),
-            ]);
+            $strings = [$ins->name, mb_strtoupper((string) $ins->name)];
+            if ($ins->short_name) {
+                $strings[] = $ins->short_name;
+                $strings[] = mb_strtoupper((string) $ins->short_name);
+            }
+            $variantsByInsuranceId[$ins->id] = $this->searchVariantsForStrings($strings);
         }
 
         foreach ($customers as $customer) {
@@ -163,7 +165,7 @@ class LabAdmissionController extends Controller
             $pickerItems[] = [
                 'kind' => 'insurance',
                 'id' => $ins->id,
-                'name' => mb_strtoupper((string) $ins->name),
+                'name' => mb_strtoupper((string) $ins->displayName()),
                 'type' => $ins->type,
                 'variants' => $variantsByInsuranceId[$ins->id] ?? [],
             ];

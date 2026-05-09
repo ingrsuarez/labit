@@ -74,7 +74,7 @@
                     <select name="insurance_id" class="rounded-lg border-gray-300 text-sm focus:ring-teal-500 focus:border-teal-500">
                         <option value="">Todas</option>
                         @foreach($insurances as $ins)
-                            <option value="{{ $ins->id }}" {{ request('insurance_id') == $ins->id ? 'selected' : '' }}>{{ $ins->name }}</option>
+                            <option value="{{ $ins->id }}" {{ request('insurance_id') == $ins->id ? 'selected' : '' }}>{{ $ins->displayName() }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -139,7 +139,7 @@
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             @php
-                                $admissionGroups = $admissions->groupBy(fn($a) => $a->insuranceRelation?->name ?? 'Sin OS');
+                                $admissionGroups = $admissions->groupBy(fn($a) => $a->insuranceRelation?->displayName() ?? 'Sin OS');
                             @endphp
                             @foreach($admissionGroups as $osName => $group)
                                 <tr class="bg-gray-50">
@@ -167,7 +167,7 @@
                                             @if($adm->isParticular())
                                                 <span class="px-1.5 py-0.5 rounded text-xs font-medium bg-violet-100 text-violet-700">Particular</span>
                                             @else
-                                                {{ $adm->insuranceRelation?->name ?? '-' }}
+                                                {{ $adm->insuranceRelation?->displayName() ?? '-' }}
                                             @endif
                                         </td>
                                         <td class="px-4 py-2 text-gray-500 text-xs">{{ $adm->labBranch?->name ?? '-' }}</td>
@@ -230,7 +230,7 @@
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             @php
-                                $sampleGroups = $samples->groupBy(fn($s) => $s->customer?->name ?? 'Sin cliente');
+                                $sampleGroups = $samples->groupBy(fn($s) => $s->customer?->displayName() ?? 'Sin cliente');
                             @endphp
                             @foreach($sampleGroups as $clientName => $group)
                                 <tr class="bg-gray-50">
@@ -253,7 +253,7 @@
                                         @endif
                                         <td class="px-4 py-2 font-mono text-xs">{{ $sample->protocol_number }}</td>
                                         <td class="px-4 py-2 text-gray-600">{{ $sample->entry_date?->format('d/m/Y') }}</td>
-                                        <td class="px-4 py-2">{{ $sample->customer?->name ?? '-' }}</td>
+                                        <td class="px-4 py-2">{{ $sample->customer?->displayName() ?? '-' }}</td>
                                         <td class="px-4 py-2 text-gray-500 text-xs">{{ $sample->labBranch?->name ?? '-' }}</td>
                                         <td class="px-4 py-2 text-gray-500 text-xs">{{ $sample->determinations->pluck('test.name')->filter()->implode(', ') }}</td>
                                         <td class="px-4 py-2 text-right font-medium">${{ number_format($sample->determinations->sum('price'), 2, ',', '.') }}</td>
@@ -305,7 +305,7 @@
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             @php
-                                $vetGroups = $vetAdmissions->groupBy(fn($v) => $v->customer?->name ?? 'Sin veterinario');
+                                $vetGroups = $vetAdmissions->groupBy(fn($v) => $v->customer?->displayName() ?? 'Sin veterinario');
                             @endphp
                             @foreach($vetGroups as $vetName => $group)
                                 <tr class="bg-gray-50">
@@ -330,7 +330,7 @@
                                         <td class="px-4 py-2 text-gray-600">{{ $vet->date?->format('d/m/Y') }}</td>
                                         <td class="px-4 py-2">{{ $vet->owner_name ?? '-' }}</td>
                                         <td class="px-4 py-2">{{ $vet->animal_name ?? '-' }}</td>
-                                        <td class="px-4 py-2 text-gray-500">{{ $vet->customer?->name ?? '-' }}</td>
+                                        <td class="px-4 py-2 text-gray-500">{{ $vet->customer?->displayName() ?? '-' }}</td>
                                         <td class="px-4 py-2 text-gray-500 text-xs">{{ $vet->labBranch?->name ?? '-' }}</td>
                                         <td class="px-4 py-2 text-right font-medium">${{ number_format($vet->total_price ?? 0, 2, ',', '.') }}</td>
                                         <td class="px-4 py-2 text-center">

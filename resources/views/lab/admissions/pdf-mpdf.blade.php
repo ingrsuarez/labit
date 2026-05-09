@@ -332,7 +332,7 @@
         </table>
         <table width="100%" style="margin-top: 4px;">
             <tr>
-                <td width="50%">Obra Social: <strong>{{ strtoupper($admission->insuranceRelation->name ?? 'N/A') }}</strong></td>
+                <td width="50%">Obra Social: <strong>{{ strtoupper($admission->insuranceRelation?->displayName() ?? 'N/A') }}</strong></td>
                 <td width="50%" style="text-align: right;">Nro. Afiliado: <strong>{{ $admission->affiliate_number ?? 'N/A' }}</strong></td>
             </tr>
         </table>

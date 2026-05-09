@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Insurance;
 use App\Models\Group;
+use App\Models\Insurance;
 use Exception;
+use Illuminate\Http\Request;
 
 class InsuranceController extends Controller
 {
@@ -20,7 +20,7 @@ class InsuranceController extends Controller
             ->orderBy('name')
             ->get();
         $groups = Group::all();
-        
+
         return view('insurance.index', compact('insurances', 'groups'));
     }
 
@@ -33,6 +33,7 @@ class InsuranceController extends Controller
         $nomenclators = Insurance::where('type', 'nomenclador')
             ->orderBy('name')
             ->get();
+
         return view('insurance.create', compact('groups', 'nomenclators'));
     }
 
@@ -43,12 +44,14 @@ class InsuranceController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'short_name' => 'nullable|string|max:50',
             'type' => 'required|in:particular,obra_social,prepaga',
         ]);
 
         try {
             Insurance::create([
                 'name' => strtolower($request->name),
+                'short_name' => $request->short_name ? strtolower($request->short_name) : null,
                 'type' => $request->type,
                 'tax_id' => $request->tax_id,
                 'tax' => $request->tax,
@@ -69,7 +72,7 @@ class InsuranceController extends Controller
                 ->with('success', 'Cobertura creada correctamente');
         } catch (Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error al crear la cobertura: ' . $e->getMessage())
+                ->with('error', 'Error al crear la cobertura: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -80,7 +83,7 @@ class InsuranceController extends Controller
     public function edit(Insurance $insurance)
     {
         $groups = Group::all();
-        
+
         // Obtener nomencladores disponibles (solo si no es un nomenclador)
         $nomenclators = [];
         if ($insurance->type !== 'nomenclador') {
@@ -88,7 +91,7 @@ class InsuranceController extends Controller
                 ->orderBy('name')
                 ->get();
         }
-        
+
         return view('insurance.edit', compact('insurance', 'groups', 'nomenclators'));
     }
 
@@ -99,12 +102,14 @@ class InsuranceController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'short_name' => 'nullable|string|max:50',
             'type' => 'required|in:particular,obra_social,prepaga',
         ]);
 
         try {
             $insurance->update([
                 'name' => strtolower($request->name),
+                'short_name' => $request->short_name ? strtolower($request->short_name) : null,
                 'type' => $request->type,
                 'tax_id' => $request->tax_id,
                 'tax' => $request->tax,
@@ -125,7 +130,7 @@ class InsuranceController extends Controller
                 ->with('success', 'Cobertura actualizada correctamente');
         } catch (Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error al actualizar la cobertura: ' . $e->getMessage())
+                ->with('error', 'Error al actualizar la cobertura: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -148,7 +153,7 @@ class InsuranceController extends Controller
                 ->with('success', 'Cobertura eliminada correctamente');
         } catch (Exception $e) {
             return redirect()->route('insurance.index')
-                ->with('error', 'Error al eliminar la cobertura: ' . $e->getMessage());
+                ->with('error', 'Error al eliminar la cobertura: '.$e->getMessage());
         }
     }
 

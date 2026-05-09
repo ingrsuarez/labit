@@ -11,6 +11,7 @@ class Customer extends Model
 
     protected $fillable = [
         'name',
+        'short_name',
         'taxId',
         'tax',
         'email',
@@ -35,6 +36,11 @@ class Customer extends Model
         'afip_verified_at' => 'datetime',
         'type' => 'array',
     ];
+
+    public function displayName(): string
+    {
+        return $this->short_name ?? $this->name;
+    }
 
     /**
      * Relación con las muestras

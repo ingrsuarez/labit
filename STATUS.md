@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-08 (hotfix a25-mappings-buscador — combobox con búsqueda para determinaciones en equivalencias A25)
+> Última actualización: 2026-05-09 (hotfix: vet doble submit + botón borrar protocolo visible para admin)
 
 ---
 
@@ -9,13 +9,14 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | Tag más reciente: **v1.79.0** |
+| **Versión actual (línea v1.x)** | Tag más reciente: **v1.82.0** |
 | **Última en master** | Release 2026-05-08: v1.77.0 — Vista recepcion-lab (master pendiente de actualizar con v1.78.0 y v1.79.0) |
-| **Última completada (cola agente)** | **v1.79.0** — Fix: permitir cambio de sede en protocolos clínico y muestras al editar |
+| **Última completada (cola agente)** | **v1.82.0** — PayrollPayment: pago de haberes agrupado + asiento contable (Db 2.1.07 / Cr banco) |
+| **Hotfix aplicado** | 2026-05-09: vet doble submit (spinner en submit + `submitting` Alpine) + botón Eliminar visible para admin/bioquimico |
 | **En proceso** | — |
-| **Próxima recomendada** | **v1.80.0** — Nombre corto / sigla en clientes y obras sociales |
-| **Pendientes en cola** | 2 |
-| **Completadas** | 139 |
+| **Próxima recomendada** | **v1.83.0** — Conciliación bancaria de pagos de haberes |
+| **Pendientes en cola** | 1 |
+| **Completadas** | 141 |
 
 ---
 
@@ -25,12 +26,11 @@
 
 | # | Versión | Nombre | Notas |
 |---|---|---|---|
-| 1 | v1.80.0 | Nombre corto / sigla en clientes y obras sociales | `short_name` nullable, `displayName()`, vistas + PDFs + emails |
-| 2 | v1.81.0 | Estados visuales en planilla de trabajo | ✓ pendiente / valor / tacha no pedida — clínico + muestras |
+| 1 | v1.83.0 | Conciliación bancaria de pagos de haberes | `PayrollPayment` como registro reconciliable, filtro "Haberes", sugerencia por monto+período |
 
 Archivo adicional en `pendientes/` (no empieza con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
 
-> v1.76.2 completado 2026-05-07 (hotfix: fix ingesta OUT_OF_BRANCH con key global — skip branch check en `ApiResultIngestionService`). v1.76.1 completado 2026-05-07 (hotfix: API key global sin sede para LISCOM). v1.76.0 completado 2026-05-07 (marca de ratificación en determinaciones). hotfix `pdf-mail-jerarquia` completado 2026-05-08 (fix PDF por mail: jerarquía padre-hijo idéntica al PDF directo). hotfix `pdf-filename-paciente-dni-fecha` completado 2026-05-08 (nombre de archivo PDF: nombre_paciente-dni-fecha.pdf en email y descarga manual — lab clínico, vet y muestras). hotfix `a25-mappings-buscador` completado 2026-05-08 (combobox Alpine.js con búsqueda client-side en create y edit de equivalencias A25; fix route model binding `{mapping}`).
+> v1.76.2 completado 2026-05-07 (hotfix: fix ingesta OUT_OF_BRANCH con key global — skip branch check en `ApiResultIngestionService`). v1.76.1 completado 2026-05-07 (hotfix: API key global sin sede para LISCOM). v1.76.0 completado 2026-05-07 (marca de ratificación en determinaciones). hotfix `pdf-mail-jerarquia` completado 2026-05-08 (fix PDF por mail: jerarquía padre-hijo idéntica al PDF directo). hotfix `pdf-filename-paciente-dni-fecha` completado 2026-05-08 (nombre de archivo PDF: nombre_paciente-dni-fecha.pdf en email y descarga manual — lab clínico, vet y muestras). hotfix `a25-mappings-buscador` completado 2026-05-08 (combobox Alpine.js con búsqueda client-side en create y edit de equivalencias A25; fix route model binding `{mapping}`). hotfix `a25-multi-test-mapping` completado 2026-05-09 (tabla pivot `a25_analyte_mapping_tests`; múltiples determinaciones Labit por equivalencia A25; parser aplica resultado a todas las mapeadas).
 
 ### En proceso (0)
 
@@ -40,6 +40,9 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.82.0 | PayrollPayment: agrupa N liquidaciones en 1 pago bancario + asiento Db 2.1.07 Sueldos a Pagar / Cr banco. Controller, vistas, permisos, 10 tests. | 2026-05-09 | v1.82.0 |
+| v1.81.0 | Estados visuales en planilla de trabajo: ✓ teal (pendiente), valor (con resultado), tacha diagonal (no pedida) — clínico y muestras | 2026-05-09 | v1.81.0 |
+| v1.80.0 | Nombre corto / sigla en clientes y obras sociales (`short_name`, `displayName()`, vistas + PDFs + emails) | 2026-05-09 | v1.80.0 |
 | v1.76.2 | Fix ingesta: key global omite validación `PROTOCOL_OUT_OF_BRANCH` — `ApiResultIngestionService` skip branch check cuando `client->isGlobal()` | 2026-05-07 | v1.76.2 |
 | v1.76.1 | API key global sin sede para LISCOM (`lab_branch_id` nullable, `isGlobal()`, filtro condicional en `ProtocolLookupService` y `ProtocolController`, UI campo sede opcional) | 2026-05-07 | v1.76.1 |
 | v1.76.0 | Marcar determinaciones ratificadas (lab/vet/sample): `is_ratified` + `ratified_at` + `ratified_by`, UI checkbox editable post-validación, marca `*` y leyenda en PDF informe + email | 2026-05-07 | v1.76.0 |

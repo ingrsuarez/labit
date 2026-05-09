@@ -55,6 +55,20 @@
                                class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
                     </div>
 
+                    <!-- Nombre corto -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Nombre corto / Sigla
+                            <span class="text-gray-400 text-xs font-normal">(opcional)</span>
+                        </label>
+                        <input type="text" name="short_name"
+                               value="{{ old('short_name', $insurance->short_name) }}"
+                               placeholder="Ej: OSDE, PAMI, SWISS"
+                               maxlength="50"
+                               class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                        <p class="text-xs text-gray-400 mt-1">Se mostrará en listados en lugar del nombre completo</p>
+                    </div>
+
                     <!-- CUIT -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">CUIT</label>
