@@ -17,7 +17,7 @@
                         Creado por: {{ $admission->creator?->name ?? 'N/A' }}
                     </p>
                 </div>
-                <div class="flex items-center gap-2" x-data>
+                <div class="flex items-center gap-2 flex-wrap" x-data>
                     @php
                         $validatedCount = $admission->admissionTests->where('is_validated', true)->count();
                     @endphp
@@ -399,19 +399,29 @@
                             $canValidate = auth()->user()->can('lab-results.validate');
                         @endphp
                         
-                        <form action="{{ route('lab.admissions.saveResults', $admission) }}" method="POST">
+                        <form action="{{ route('lab.admissions.saveResults', $admission) }}" method="POST"
+                              x-data="{
+                                  collapsed: {},
+                                  parentOf: @json($childOf),
+                                  toggle(id) { this.collapsed[id] = !this.collapsed[id]; },
+                                  isVisible(id) {
+                                      let p = this.parentOf[id];
+                                      while (p) { if (this.collapsed[p]) return false; p = this.parentOf[p]; }
+                                      return true;
+                                  }
+                              }">
                             @csrf
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200">
+                            <div>
+                                <table class="w-full divide-y divide-gray-200">
                                     <thead class="bg-gray-50">
                                         <tr>
                                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Práctica</th>
-                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-40">Resultado</th>
-                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-24">Unidad</th>
-                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-40">Valor Ref.</th>
-                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-20" title="Ratificado: valor anormal/atípico verificado por bioquímico">Ratif.</th>
-                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-28">Estado</th>
-                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-24">Acciones</th>
+                                            <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase w-28">Resultado</th>
+                                            <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">Unidad</th>
+                                            <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase w-28">Valor Ref.</th>
+                                            <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase w-12" title="Ratificado: valor anormal/atípico verificado por bioquímico">Ratif.</th>
+                                            <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase w-20">Estado</th>
+                                            <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase w-20">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
@@ -450,7 +460,9 @@
                                                     $needsConfig = empty($testUnit) || $refValue === '';
                                                 }
                                             @endphp
-                                            <tr class="{{ $hasChildren ? 'bg-teal-50' . ($level === 0 ? ' border-l-4 border-teal-500' : ' border-l-4 border-teal-300') : 'hover:bg-gray-50' }} {{ $isChild && !$hasChildren ? 'bg-gray-50/50' : '' }} {{ $admissionTest->is_validated ? 'bg-green-50' : '' }}">
+                                            <tr @if($isChild) x-show="isVisible({{ $admissionTest->test_id }})" @endif
+                                                @if($hasChildren) @click="toggle({{ $admissionTest->test_id }})" @endif
+                                                class="{{ $hasChildren ? 'bg-teal-50' . ($level === 0 ? ' border-l-4 border-teal-500' : ' border-l-4 border-teal-300') : 'hover:bg-gray-50' }} {{ $isChild && !$hasChildren ? 'bg-gray-50/50' : '' }} {{ $admissionTest->is_validated ? 'bg-green-50' : '' }}{{ $hasChildren ? ' cursor-pointer select-none' : '' }}">
                                                 <td class="{{ $paddingLeft }} py-{{ $hasChildren ? '3' : '2' }}">
                                                     <input type="hidden" name="results[{{ $formIndex }}][id]" value="{{ $admissionTest->id }}">
                                                     <div class="flex items-center">
@@ -458,11 +470,21 @@
                                                             <span class="text-xs text-gray-400 mr-1">└</span>
                                                         @endif
                                                         @if($hasChildren && !$isChild)
+                                                            <svg :class="collapsed[{{ $admissionTest->test_id }}] ? '-rotate-90' : 'rotate-0'"
+                                                                 class="w-4 h-4 text-teal-500 transition-transform duration-200 mr-1 flex-shrink-0"
+                                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                                            </svg>
                                                             <span class="text-sm font-bold text-teal-700 mr-2">{{ $admissionTest->test->code }}</span>
                                                             <span class="text-sm font-semibold text-gray-900">{{ $admissionTest->test->name }}</span>
                                                             <span class="ml-2 text-xs text-teal-600">({{ $childCount }} det.)</span>
                                                             <span class="ml-2 text-xs text-gray-500">${{ number_format($admissionTest->price, 0, ',', '.') }}</span>
                                                         @elseif($isSubParent)
+                                                            <svg :class="collapsed[{{ $admissionTest->test_id }}] ? '-rotate-90' : 'rotate-0'"
+                                                                 class="w-3.5 h-3.5 text-teal-400 transition-transform duration-200 mr-1 flex-shrink-0"
+                                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                                            </svg>
                                                             <span class="text-xs font-bold text-teal-600 mr-2">{{ $admissionTest->test->code }}</span>
                                                             <span class="text-sm font-semibold text-gray-800">{{ $admissionTest->test->name }}</span>
                                                             <span class="ml-2 text-xs text-teal-500">({{ $childCount }} det.)</span>
@@ -484,11 +506,11 @@
                                                     </div>
                                                 </td>
                                                 @if($hasChildren)
-                                                    <td class="px-4 py-2 text-center text-xs text-gray-400" colspan="4">
+                                                    <td class="px-2 py-2 text-center text-xs text-gray-400" colspan="4">
                                                         Cargar resultados en las determinaciones ↓
                                                     </td>
                                                 @else
-                                                    <td class="px-4 py-1">
+                                                    <td class="px-2 py-1">
                                                         <input type="text"
                                                                name="results[{{ $formIndex }}][result]"
                                                                value="{{ $admissionTest->result }}"
@@ -496,7 +518,7 @@
                                                                {{ $admissionTest->is_validated || !$canEditResults ? 'disabled' : '' }}
                                                                class="w-full text-center border-gray-300 rounded text-sm {{ $admissionTest->is_validated || !$canEditResults ? 'bg-gray-100' : '' }}">
                                                     </td>
-                                                    <td class="px-4 py-1">
+                                                    <td class="px-2 py-1">
                                                         <input type="hidden" name="results[{{ $formIndex }}][unit]" value="{{ $testUnit ?? '' }}">
                                                         @if($testUnit)
                                                             <span class="text-sm text-gray-600">{{ $testUnit }}</span>
@@ -504,7 +526,7 @@
                                                             <span class="text-xs text-orange-500">Sin unidad</span>
                                                         @endif
                                                     </td>
-                                                    <td class="px-4 py-1">
+                                                    <td class="px-2 py-1">
                                                         <input type="hidden" name="results[{{ $formIndex }}][reference_value]" value="{{ $refValue ?? '' }}">
                                                         @if($refValue)
                                                             <span class="text-sm text-gray-600">{{ $refValue }}</span>
@@ -512,7 +534,7 @@
                                                             <span class="text-xs text-orange-500">Sin ref.</span>
                                                         @endif
                                                     </td>
-                                                    <td class="px-4 py-1 text-center">
+                                                    <td class="px-2 py-1 text-center">
                                                         @php
                                                             $ratifyDisabled = ! $canValidate;
                                                         @endphp
@@ -526,7 +548,7 @@
                                                                class="h-4 w-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 {{ $ratifyDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer' }}">
                                                     </td>
                                                 @endif
-                                                <td class="px-4 py-2 text-center">
+                                                <td class="px-2 py-2 text-center">
                                                     @if($admissionTest->is_validated)
                                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                             <svg class="w-3 h-3 {{ !$isChild ? 'mr-1' : '' }}" fill="currentColor" viewBox="0 0 20 20">
@@ -546,7 +568,7 @@
                                                         <span class="text-xs text-gray-400">-</span>
                                                     @endif
                                                 </td>
-                                                <td class="px-4 py-2 text-center">
+                                                <td class="px-2 py-2 text-center">
                                                     @php
                                                         $hasValidatedChildren = false;
                                                         if ($hasChildren && isset($parentMap[$admissionTest->test_id])) {
