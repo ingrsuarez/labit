@@ -374,9 +374,7 @@ function zebraPrintModal(browserPrintBaseUrl = '') {
                 }
             } catch (e) {
                 this.zebraAvailable = false;
-                if (!this.error) {
-                    this.error = e.message;
-                }
+                // Sin Zebra no es fallo bloqueante: materiales + "Imprimir vía navegador" siguen disponibles.
             } finally {
                 this.loading = false;
             }
