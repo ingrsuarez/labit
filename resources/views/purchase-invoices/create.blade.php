@@ -346,7 +346,7 @@
                                         <input type="hidden" :name="'items[' + index + '][expiration_date]'" :value="item.expiration_date || ''">
                                         <input type="hidden" :name="'items[' + index + '][updates_stock]'" :value="item.updates_stock ? '1' : '0'">
 
-                                        <div class="flex items-start gap-2">
+                                        <div class="flex flex-col gap-1">
                                             <div class="flex-1 min-w-0 relative">
                                                 <div class="flex items-center gap-1">
                                                     <input type="text"
@@ -446,10 +446,12 @@
                                             </div>
 
                                             <template x-if="item.supply_id && getSupplyTracksLot(item.supply_id)">
-                                                <div class="flex gap-2 shrink-0">
-                                                    <input type="text" x-model="item.lot_number" placeholder="Lote"
+                                                <div class="flex gap-2 items-center">
+                                                    <span class="text-xs text-gray-400 shrink-0">Lote:</span>
+                                                    <input type="text" x-model="item.lot_number" placeholder="Número de lote"
                                                            @keydown.enter.prevent="$dispatch('add-fc-item')"
-                                                           class="w-28 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
+                                                           class="w-32 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
+                                                    <span class="text-xs text-gray-400 shrink-0">Vence:</span>
                                                     <input type="date" x-model="item.expiration_date"
                                                            @keydown.enter.prevent="$dispatch('add-fc-item')"
                                                            class="w-36 rounded border-gray-300 text-xs focus:border-zinc-500 focus:ring-zinc-500">
