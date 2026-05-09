@@ -123,13 +123,15 @@ class A25ResultParser
             ])];
         }
 
-        $admission = Admission::where('external_equipment_sample_id', $sampleId)->first();
+        $admission = Admission::where('external_equipment_sample_id', $sampleId)->first()
+            ?? Admission::where('protocol_number', $sampleId)->first();
 
         if ($admission) {
             return $this->applyToClinicalAdmission($base, $admission, $testIds, $analyteName, $sampleId, $value, $unit);
         }
 
-        $vetAdmission = VetAdmission::where('external_equipment_sample_id', $sampleId)->first();
+        $vetAdmission = VetAdmission::where('external_equipment_sample_id', $sampleId)->first()
+            ?? VetAdmission::where('protocol_number', $sampleId)->first();
 
         if ($vetAdmission) {
             return $this->applyToVetAdmission($base, $vetAdmission, $testIds, $analyteName, $sampleId, $value, $unit);

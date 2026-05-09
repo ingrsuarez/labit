@@ -39,7 +39,17 @@ class A25InterfaceController extends Controller
 
         $admissions = $query->paginate(50)->withQueryString();
 
-        return view('lab.a25.index', compact('admissions', 'branches', 'branchFilter'));
+        $vetQuery = VetAdmission::with(['customer', 'species', 'vetTests.test', 'labBranch'])
+            ->whereIn('status', ['pending', 'in_progress'])
+            ->latest();
+
+        if ($branchFilter) {
+            $vetQuery->where('lab_branch_id', $branchFilter);
+        }
+
+        $vetAdmissions = $vetQuery->paginate(50, ['*'], 'vet_page')->withQueryString();
+
+        return view('lab.a25.index', compact('admissions', 'vetAdmissions', 'branches', 'branchFilter'));
     }
 
     /**
@@ -50,21 +60,36 @@ class A25InterfaceController extends Controller
         $this->authorize('a25.worklist');
 
         $request->validate([
-            'admission_ids' => 'required|array|min:1',
+            'admission_ids' => 'nullable|array',
             'admission_ids.*' => 'integer|exists:admissions,id',
+            'vet_admission_ids' => 'nullable|array',
+            'vet_admission_ids.*' => 'integer|exists:vet_admissions,id',
             'lab_branch_id' => 'nullable|exists:lab_branches,id',
         ]);
 
-        $admissions = Admission::with(['patient', 'admissionTests.test'])
-            ->whereIn('id', $request->admission_ids)
-            ->get();
+        $admissionIds = array_values(array_filter(array_map('intval', $request->input('admission_ids', []))));
+        $vetAdmissionIds = array_values(array_filter(array_map('intval', $request->input('vet_admission_ids', []))));
+
+        if ($admissionIds === [] && $vetAdmissionIds === []) {
+            return back()->with('error', 'Seleccioná al menos un protocolo clínico o veterinario.');
+        }
+
+        $admissions = $admissionIds === []
+            ? collect()
+            : Admission::with(['patient', 'admissionTests.test'])
+                ->whereIn('id', $admissionIds)
+                ->get();
+
+        $vetAdmissions = $vetAdmissionIds === []
+            ? collect()
+            : VetAdmission::with(['customer', 'species', 'vetTests.test'])
+                ->whereIn('id', $vetAdmissionIds)
+                ->get();
 
         $labBranchId = $request->lab_branch_id ? (int) $request->lab_branch_id : null;
-        $result = $this->worklistBuilder->build($admissions, $labBranchId);
+        $result = $this->worklistBuilder->buildCombined($admissions, $vetAdmissions, $labBranchId);
 
-        $admissionIds = $request->admission_ids;
-
-        return view('lab.a25.worklist-preview', compact('result', 'admissionIds', 'labBranchId'));
+        return view('lab.a25.worklist-preview', compact('result', 'admissionIds', 'vetAdmissionIds', 'labBranchId'));
     }
 
     /**
@@ -75,17 +100,34 @@ class A25InterfaceController extends Controller
         $this->authorize('a25.worklist');
 
         $request->validate([
-            'admission_ids' => 'required|array|min:1',
+            'admission_ids' => 'nullable|array',
             'admission_ids.*' => 'integer|exists:admissions,id',
+            'vet_admission_ids' => 'nullable|array',
+            'vet_admission_ids.*' => 'integer|exists:vet_admissions,id',
             'lab_branch_id' => 'nullable|exists:lab_branches,id',
         ]);
 
-        $admissions = Admission::with(['admissionTests.test'])
-            ->whereIn('id', $request->admission_ids)
-            ->get();
+        $admissionIds = array_values(array_filter(array_map('intval', $request->input('admission_ids', []))));
+        $vetAdmissionIds = array_values(array_filter(array_map('intval', $request->input('vet_admission_ids', []))));
+
+        if ($admissionIds === [] && $vetAdmissionIds === []) {
+            return back()->with('error', 'Seleccioná al menos un protocolo clínico o veterinario.');
+        }
+
+        $admissions = $admissionIds === []
+            ? collect()
+            : Admission::with(['admissionTests.test'])
+                ->whereIn('id', $admissionIds)
+                ->get();
+
+        $vetAdmissions = $vetAdmissionIds === []
+            ? collect()
+            : VetAdmission::with(['vetTests.test'])
+                ->whereIn('id', $vetAdmissionIds)
+                ->get();
 
         $labBranchId = $request->lab_branch_id ? (int) $request->lab_branch_id : null;
-        $result = $this->worklistBuilder->build($admissions, $labBranchId);
+        $result = $this->worklistBuilder->buildCombined($admissions, $vetAdmissions, $labBranchId);
 
         if ($result['lines'] === 0) {
             return back()->with('error', 'No hay determinaciones pendientes con equivalencia A25 configurada para los protocolos seleccionados.');

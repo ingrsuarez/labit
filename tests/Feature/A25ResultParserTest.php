@@ -156,4 +156,46 @@ class A25ResultParserTest extends TestCase
         $this->assertSame('33', $row->result);
         $this->assertSame('U/L', $row->unit);
     }
+
+    public function test_import_applies_to_veterinary_admission_by_protocol_number_when_external_id_empty(): void
+    {
+        $test = $this->makeClinicalTest();
+        $this->mappingFor('GOT-T', $test);
+        $species = Species::query()->create(['name' => 'Can T2', 'code' => uniqid('SP'), 'is_active' => true]);
+        $customer = Customer::query()->create([
+            'name' => 'Cliente Vet 2',
+            'taxId' => '20-'.uniqid().'9',
+            'status' => 'activo',
+            'type' => 'particular',
+        ]);
+
+        $proto = 'V-FIXED-'.uniqid();
+        $vet = VetAdmission::query()->create([
+            'protocol_number' => $proto,
+            'date' => today()->toDateString(),
+            'customer_id' => $customer->id,
+            'species_id' => $species->id,
+            'animal_name' => 'Kira',
+            'owner_name' => 'Cliente Vet 2',
+            'breed' => 'Mestizo',
+            'age' => 2,
+            'status' => 'pending',
+            'external_equipment_sample_id' => null,
+        ]);
+
+        VetAdmissionTest::query()->create([
+            'vet_admission_id' => $vet->id,
+            'test_id' => $test->id,
+            'status' => 'pending',
+        ]);
+
+        $parser = new A25ResultParser;
+        $line = "{$proto}\tGOT-T\tSER\t55\tU/L\t01/01/2026 10:00:00";
+        $result = $parser->import($line, null);
+
+        $this->assertSame(1, $result['ingested']);
+
+        $row = VetAdmissionTest::query()->where('vet_admission_id', $vet->id)->where('test_id', $test->id)->first();
+        $this->assertSame('55', $row->result);
+    }
 }
