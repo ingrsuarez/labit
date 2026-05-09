@@ -178,37 +178,45 @@
         @endif
 
         {{-- Conciliación bancaria --}}
-        @if($reconciledMovements->isNotEmpty())
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
             <div class="p-4 border-b border-gray-200">
-                <h2 class="text-base font-semibold text-gray-800">Movimiento Bancario Conciliado</h2>
+                <h2 class="text-base font-semibold text-gray-800">Conciliación bancaria</h2>
             </div>
-            <table class="min-w-full divide-y divide-gray-200 text-sm">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Concepto</th>
-                        <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Débito</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Banco</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                    @foreach($reconciledMovements as $movement)
-                    <tr>
-                        <td class="px-4 py-2 text-gray-700">{{ $movement->date->format('d/m/Y') }}</td>
-                        <td class="px-4 py-2 text-gray-700">{{ $movement->concept }}</td>
-                        <td class="px-4 py-2 text-right font-medium text-gray-900">
-                            ${{ number_format($movement->debit, 2, ',', '.') }}
-                        </td>
-                        <td class="px-4 py-2 text-gray-600 text-xs">
-                            {{ $movement->statement?->bankAccount?->bank_name ?? '—' }}
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            <div class="p-5 text-sm">
+                @if($reconciledMovements->isNotEmpty())
+                    @php $bm = $reconciledMovements->first(); @endphp
+                    <div class="flex items-start gap-3">
+                        <span class="text-green-600 text-xl leading-none">✓</span>
+                        <div class="space-y-2 flex-1">
+                            <p class="font-medium text-gray-900">Conciliado con extracto bancario</p>
+                            <p class="text-gray-600">
+                                <span class="text-gray-500">Banco:</span>
+                                {{ $bm->statement?->bankAccount?->display_name ?? '—' }}
+                                <span class="mx-2 text-gray-300">|</span>
+                                <span class="text-gray-500">Fecha:</span>
+                                {{ $bm->date?->format('d/m/Y') ?? '—' }}
+                            </p>
+                            <p class="text-gray-600"><span class="text-gray-500">Concepto:</span> {{ $bm->concept }}</p>
+                            <p class="text-gray-600"><span class="text-gray-500">Monto:</span> <span class="font-mono font-medium">$ {{ number_format($bm->debit, 2, ',', '.') }}</span></p>
+                            @if($bm->statement && $bm->statement->bankAccount)
+                                <a href="{{ route('accounting.bank-statements.show', [$bm->statement->bankAccount, $bm->statement]) }}"
+                                   class="inline-flex items-center text-violet-700 hover:text-violet-900 font-medium">
+                                    Ver extracto →
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                @else
+                    <div class="flex items-start gap-3">
+                        <span class="text-amber-500 text-xl leading-none">⚠</span>
+                        <div>
+                            <p class="font-medium text-gray-900">Aún no conciliado con el banco.</p>
+                            <p class="text-gray-600 mt-1">Cuando el débito aparezca en el extracto, podrás vincularlo desde la pantalla de Conciliación Bancaria.</p>
+                        </div>
+                    </div>
+                @endif
+            </div>
         </div>
-        @endif
 
         {{-- Acciones --}}
         <div class="flex gap-3">
