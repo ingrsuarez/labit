@@ -355,7 +355,7 @@ function zebraPrintModal(browserPrintBaseUrl = '') {
                 if (!res.ok) throw new Error('No se pudieron obtener los datos de la etiqueta');
                 const data = await res.json();
                 this.labelRows = ZebraLabelPrint.normalizeLabelRows(data);
-                this.selectedKeys = this.labelRows.map(r => r.material_key);
+                this.selectedKeys = this.labelRows.map(r => String(r.material_key));
             } catch (e) {
                 this.error = e.message || 'Error al cargar datos de etiquetas';
                 this.loading = false;
@@ -392,21 +392,8 @@ function zebraPrintModal(browserPrintBaseUrl = '') {
             ZebraLabelPrint.selectPrinter(this.selectedPrinter);
         },
 
-        isSelected(key) {
-            return this.selectedKeys.includes(String(key));
-        },
-
-        toggleKey(key) {
-            const k = String(key);
-            if (this.selectedKeys.includes(k)) {
-                this.selectedKeys = this.selectedKeys.filter(x => x !== k);
-            } else {
-                this.selectedKeys = [...this.selectedKeys, k];
-            }
-        },
-
         selectAllMaterials() {
-            this.selectedKeys = this.labelRows.map(r => r.material_key);
+            this.selectedKeys = this.labelRows.map(r => String(r.material_key));
         },
 
         clearAllMaterials() {
@@ -414,8 +401,8 @@ function zebraPrintModal(browserPrintBaseUrl = '') {
         },
 
         getSelectedRows() {
-            const set = new Set(this.selectedKeys);
-            return this.labelRows.filter(r => set.has(r.material_key));
+            const set = new Set(this.selectedKeys.map(k => String(k)));
+            return this.labelRows.filter(r => set.has(String(r.material_key)));
         },
 
         browserPrintHref() {

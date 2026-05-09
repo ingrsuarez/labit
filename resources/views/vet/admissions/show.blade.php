@@ -541,8 +541,8 @@
                                     <template x-for="row in labelRows" :key="row.material_key">
                                         <label class="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer">
                                             <input type="checkbox" class="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                                                   :checked="isSelected(row.material_key)"
-                                                   @click.prevent="toggleKey(row.material_key)">
+                                                   :value="String(row.material_key)"
+                                                   x-model="selectedKeys">
                                             <span class="text-sm text-gray-800">
                                                 <strong x-text="row.material"></strong>
                                                 <span x-show="row.material_name" class="text-gray-600 font-normal"> — <span x-text="row.material_name"></span></span>
