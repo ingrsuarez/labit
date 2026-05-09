@@ -223,7 +223,7 @@ class WorksheetController extends Controller
             $results = [];
             foreach ($testIds as $testId) {
                 $at = $admission->admissionTests->where('test_id', $testId)->first();
-                $results[$testId] = $at ? ($at->result ?? '') : '';
+                $results[$testId] = $at ? ($at->result ?? '') : null;
             }
 
             return [
@@ -271,7 +271,7 @@ class WorksheetController extends Controller
             $results = [];
             foreach ($testIds as $testId) {
                 $det = $sample->determinations->where('test_id', $testId)->first();
-                $results[$testId] = $det ? ($det->result ?? '') : '';
+                $results[$testId] = $det ? ($det->result ?? '') : null;
             }
 
             return [
