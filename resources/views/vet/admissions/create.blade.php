@@ -20,7 +20,7 @@
             </div>
         @endif
 
-        <form action="{{ route('vet.admissions.store') }}" method="POST">
+        <form action="{{ route('vet.admissions.store') }}" method="POST" @submit="submitting = true">
             @csrf
             @include('components.branch-select', ['selectedBranchId' => old('lab_branch_id')])
             <div class="space-y-6">
@@ -253,9 +253,15 @@
                 </div>
 
                 <div class="flex justify-end">
-                    <button type="submit" :disabled="testsData.length === 0"
-                            class="px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
-                        Crear Protocolo
+                    <button type="submit" :disabled="testsData.length === 0 || submitting"
+                            class="px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2">
+                        <template x-if="submitting">
+                            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                        </template>
+                        <span x-text="submitting ? 'Creando protocolo...' : 'Crear Protocolo'"></span>
                     </button>
                 </div>
             </div>
@@ -267,6 +273,7 @@
             return {
                 customerId: '{{ old("customer_id", "") }}',
                 veterinarianId: '{{ old("veterinarian_id", "") }}',
+                submitting: false,
                 customerNbuValues: @json($customerNbuValues ?? []),
                 searchTestsUrl: @json(route('vet.admissions.searchTests')),
                 veterinarians: [],
