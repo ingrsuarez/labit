@@ -14,7 +14,7 @@ class VetAdmission extends Model
     use Auditable, GeneratesProtocolNumber, HasFactory;
 
     protected $fillable = [
-        'protocol_number', 'date', 'customer_id', 'veterinarian_id',
+        'protocol_number', 'external_equipment_sample_id', 'date', 'customer_id', 'veterinarian_id',
         'species_id', 'animal_name', 'owner_name', 'owner_phone', 'owner_email',
         'breed', 'age', 'status', 'sent_at', 'observations', 'total_price', 'created_by',
         'lab_branch_id',

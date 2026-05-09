@@ -32,7 +32,7 @@ class A25AnalyteMappingController extends Controller
     {
         $this->authorize('a25.mappings.manage');
 
-        $tests = Test::orderBy('name')->get(['id', 'name', 'code']);
+        $tests = Test::orderBy('code')->orderBy('name')->get(['id', 'name', 'code']);
         $branches = LabBranch::orderBy('name')->get(['id', 'name']);
 
         return view('lab.a25.mappings.create', compact('tests', 'branches'));
@@ -44,10 +44,10 @@ class A25AnalyteMappingController extends Controller
 
         $data = $request->validate([
             'equipment_analyte_name' => 'required|string|max:255',
-            'test_ids'               => 'required|array|min:1',
-            'test_ids.*'             => 'required|exists:tests,id',
-            'lab_branch_id'          => 'nullable|exists:lab_branches,id',
-            'material_type'          => 'nullable|string|max:20',
+            'test_ids' => 'required|array|min:1',
+            'test_ids.*' => 'required|exists:tests,id',
+            'lab_branch_id' => 'nullable|exists:lab_branches,id',
+            'material_type' => 'nullable|string|max:20',
         ]);
 
         $data['material_type'] = $data['material_type'] ?: 'SER';
@@ -62,8 +62,8 @@ class A25AnalyteMappingController extends Controller
 
         $mapping = A25AnalyteMapping::create([
             'equipment_analyte_name' => $data['equipment_analyte_name'],
-            'lab_branch_id'          => $data['lab_branch_id'],
-            'material_type'          => $data['material_type'],
+            'lab_branch_id' => $data['lab_branch_id'],
+            'material_type' => $data['material_type'],
         ]);
 
         // Asociar los tests al pivot (con sort_order según orden recibido)
@@ -81,7 +81,7 @@ class A25AnalyteMappingController extends Controller
     {
         $this->authorize('a25.mappings.manage');
 
-        $tests = Test::orderBy('name')->get(['id', 'name', 'code']);
+        $tests = Test::orderBy('code')->orderBy('name')->get(['id', 'name', 'code']);
         $branches = LabBranch::orderBy('name')->get(['id', 'name']);
 
         return view('lab.a25.mappings.edit', compact('mapping', 'tests', 'branches'));
@@ -93,10 +93,10 @@ class A25AnalyteMappingController extends Controller
 
         $data = $request->validate([
             'equipment_analyte_name' => 'required|string|max:255',
-            'test_ids'               => 'required|array|min:1',
-            'test_ids.*'             => 'required|exists:tests,id',
-            'lab_branch_id'          => 'nullable|exists:lab_branches,id',
-            'material_type'          => 'nullable|string|max:20',
+            'test_ids' => 'required|array|min:1',
+            'test_ids.*' => 'required|exists:tests,id',
+            'lab_branch_id' => 'nullable|exists:lab_branches,id',
+            'material_type' => 'nullable|string|max:20',
         ]);
 
         $data['material_type'] = $data['material_type'] ?: 'SER';
@@ -112,8 +112,8 @@ class A25AnalyteMappingController extends Controller
 
         $mapping->update([
             'equipment_analyte_name' => $data['equipment_analyte_name'],
-            'lab_branch_id'          => $data['lab_branch_id'],
-            'material_type'          => $data['material_type'],
+            'lab_branch_id' => $data['lab_branch_id'],
+            'material_type' => $data['material_type'],
         ]);
 
         $syncData = collect($data['test_ids'])->mapWithKeys(fn ($id, $idx) => [

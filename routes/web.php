@@ -186,6 +186,7 @@ Route::middleware([
         Route::post('lab/a25/worklist', [App\Http\Controllers\A25InterfaceController::class, 'downloadWorklist'])->name('a25.worklist');
         Route::post('lab/a25/import', [App\Http\Controllers\A25InterfaceController::class, 'importResults'])->name('a25.import');
         Route::post('lab/admissions/{admission}/a25-sample-id', [App\Http\Controllers\A25InterfaceController::class, 'assignSampleId'])->name('a25.assignSampleId');
+        Route::post('vet/admissions/{vetAdmission}/a25-sample-id', [App\Http\Controllers\A25InterfaceController::class, 'assignVetSampleId'])->name('a25.assignVetSampleId');
 
         // EQUIVALENCIAS A25 ↔ LABIT
         Route::resource('lab/a25-mappings', App\Http\Controllers\A25AnalyteMappingController::class)
