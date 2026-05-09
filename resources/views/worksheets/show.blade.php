@@ -125,9 +125,16 @@
                     <td class="px-2 py-2 font-medium text-gray-900 whitespace-nowrap" style="width: 100px;">{{ $row['protocol'] }}</td>
                     <td class="px-2 py-2 text-gray-700" style="width: 140px; word-wrap: break-word; overflow-wrap: break-word;">{{ $row['name'] }}</td>
                     @foreach($preview['tests'] as $test)
-                    <td class="px-2 py-2 text-center {{ $row['results'][$test->id] ? 'text-gray-900' : 'text-gray-300' }}">
-                        {{ $row['results'][$test->id] ?: '—' }}
-                    </td>
+                    @php $val = $row['results'][$test->id] ?? null; @endphp
+                    @if($val === null)
+                        <td class="px-2 py-2 text-center"
+                            style="background: repeating-linear-gradient(45deg,#f5f5f5,#f5f5f5 3px,#e5e7eb 3px,#e5e7eb 6px);">
+                        </td>
+                    @elseif($val === '')
+                        <td class="px-2 py-2 text-center text-teal-600 font-bold">✓</td>
+                    @else
+                        <td class="px-2 py-2 text-center text-gray-900">{{ $val }}</td>
+                    @endif
                     @endforeach
                 </tr>
                 @endforeach
