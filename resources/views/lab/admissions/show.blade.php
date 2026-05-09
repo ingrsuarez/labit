@@ -402,13 +402,7 @@
                         <form action="{{ route('lab.admissions.saveResults', $admission) }}" method="POST"
                               x-data="{
                                   collapsed: @json(collect(array_keys($parentMap))->mapWithKeys(fn ($id) => [(string) $id => false])->all()),
-                                  parentOf: @json($childOf),
-                                  toggle(id) { this.collapsed[id] = !this.collapsed[id]; },
-                                  isVisible(id) {
-                                      let p = this.parentOf[id];
-                                      while (p) { if (this.collapsed[p]) return false; p = this.parentOf[p]; }
-                                      return true;
-                                  }
+                                  toggle(id) { this.collapsed[id] = !this.collapsed[id]; }
                               }">
                             @csrf
                             <div>
@@ -460,8 +454,12 @@
                                                     $needsConfig = empty($testUnit) || $refValue === '';
                                                 }
                                             @endphp
-                                            <tr @if($isChild) x-show="isVisible({{ $admissionTest->test_id }})" @endif
-                                                @if($hasChildren) @click="toggle({{ $admissionTest->test_id }})" @endif
+                                            @php
+                                                $directParentKey = (string) ($childOf[$admissionTest->test_id] ?? '');
+                                                $grandParentKey  = ($directParentKey !== '') ? (string) ($childOf[(int) $directParentKey] ?? '') : '';
+                                            @endphp
+                                            <tr @if($isChild) x-show="!collapsed['{{ $directParentKey }}']{{ $grandParentKey !== '' ? " && !collapsed['" . $grandParentKey . "']" : '' }}" @endif
+                                                @if($hasChildren) @click="toggle('{{ (string) $admissionTest->test_id }}')" @endif
                                                 class="{{ $hasChildren ? 'bg-teal-50' . ($level === 0 ? ' border-l-4 border-teal-500' : ' border-l-4 border-teal-300') : 'hover:bg-gray-50' }} {{ $isChild && !$hasChildren ? 'bg-gray-50/50' : '' }} {{ $admissionTest->is_validated ? 'bg-green-50' : '' }}{{ $hasChildren ? ' cursor-pointer select-none' : '' }}">
                                                 <td class="{{ $paddingLeft }} py-{{ $hasChildren ? '3' : '2' }}">
                                                     <input type="hidden" name="results[{{ $formIndex }}][id]" value="{{ $admissionTest->id }}">
@@ -470,7 +468,7 @@
                                                             <span class="text-xs text-gray-400 mr-1">└</span>
                                                         @endif
                                                         @if($hasChildren && !$isChild)
-                                                            <svg :class="collapsed[{{ $admissionTest->test_id }}] ? '-rotate-90' : 'rotate-0'"
+                                                            <svg :class="collapsed['{{ (string) $admissionTest->test_id }}'] ? '-rotate-90' : 'rotate-0'"
                                                                  class="w-4 h-4 text-teal-500 transition-transform duration-200 mr-1 flex-shrink-0"
                                                                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -480,7 +478,7 @@
                                                             <span class="ml-2 text-xs text-teal-600">({{ $childCount }} det.)</span>
                                                             <span class="ml-2 text-xs text-gray-500">${{ number_format($admissionTest->price, 0, ',', '.') }}</span>
                                                         @elseif($isSubParent)
-                                                            <svg :class="collapsed[{{ $admissionTest->test_id }}] ? '-rotate-90' : 'rotate-0'"
+                                                            <svg :class="collapsed['{{ (string) $admissionTest->test_id }}'] ? '-rotate-90' : 'rotate-0'"
                                                                  class="w-3.5 h-3.5 text-teal-400 transition-transform duration-200 mr-1 flex-shrink-0"
                                                                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
