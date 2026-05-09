@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-08 (hotfix pdf-filename — nombre_paciente-dni-fecha.pdf en email y descarga)
+> Última actualización: 2026-05-08 (hotfix a25-mappings-buscador — combobox con búsqueda para determinaciones en equivalencias A25)
 
 ---
 
@@ -13,8 +13,8 @@
 | **Última en master** | Release 2026-05-08: v1.77.0 — Vista recepcion-lab (master pendiente de actualizar con v1.78.0 y v1.79.0) |
 | **Última completada (cola agente)** | **v1.79.0** — Fix: permitir cambio de sede en protocolos clínico y muestras al editar |
 | **En proceso** | — |
-| **Próxima recomendada** | Sin prompts pendientes en cola — planificar nuevas versiones |
-| **Pendientes en cola** | 0 |
+| **Próxima recomendada** | **v1.80.0** — Nombre corto / sigla en clientes y obras sociales |
+| **Pendientes en cola** | 2 |
 | **Completadas** | 139 |
 
 ---
@@ -25,11 +25,12 @@
 
 | # | Versión | Nombre | Notas |
 |---|---|---|---|
-| — | — | Cola vacía | Planificar nuevas versiones |
+| 1 | v1.80.0 | Nombre corto / sigla en clientes y obras sociales | `short_name` nullable, `displayName()`, vistas + PDFs + emails |
+| 2 | v1.81.0 | Estados visuales en planilla de trabajo | ✓ pendiente / valor / tacha no pedida — clínico + muestras |
 
 Archivo adicional en `pendientes/` (no empieza con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
 
-> v1.76.2 completado 2026-05-07 (hotfix: fix ingesta OUT_OF_BRANCH con key global — skip branch check en `ApiResultIngestionService`). v1.76.1 completado 2026-05-07 (hotfix: API key global sin sede para LISCOM). v1.76.0 completado 2026-05-07 (marca de ratificación en determinaciones). hotfix `pdf-mail-jerarquia` completado 2026-05-08 (fix PDF por mail: jerarquía padre-hijo idéntica al PDF directo). hotfix `pdf-filename-paciente-dni-fecha` completado 2026-05-08 (nombre de archivo PDF: nombre_paciente-dni-fecha.pdf en email y descarga manual — lab clínico, vet y muestras).
+> v1.76.2 completado 2026-05-07 (hotfix: fix ingesta OUT_OF_BRANCH con key global — skip branch check en `ApiResultIngestionService`). v1.76.1 completado 2026-05-07 (hotfix: API key global sin sede para LISCOM). v1.76.0 completado 2026-05-07 (marca de ratificación en determinaciones). hotfix `pdf-mail-jerarquia` completado 2026-05-08 (fix PDF por mail: jerarquía padre-hijo idéntica al PDF directo). hotfix `pdf-filename-paciente-dni-fecha` completado 2026-05-08 (nombre de archivo PDF: nombre_paciente-dni-fecha.pdf en email y descarga manual — lab clínico, vet y muestras). hotfix `a25-mappings-buscador` completado 2026-05-08 (combobox Alpine.js con búsqueda client-side en create y edit de equivalencias A25; fix route model binding `{mapping}`).
 
 ### En proceso (0)
 
