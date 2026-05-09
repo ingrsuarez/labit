@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-09 (hotfix a25-multi-test-mapping — múltiples determinaciones Labit por equivalencia A25)
+> Última actualización: 2026-05-09 (sesión PM — v1.82.0 y v1.83.0 pago de haberes + conciliación bancaria)
 
 ---
 
@@ -14,7 +14,7 @@
 | **Última completada (cola agente)** | **v1.79.0** — Fix: permitir cambio de sede en protocolos clínico y muestras al editar |
 | **En proceso** | — |
 | **Próxima recomendada** | **v1.80.0** — Nombre corto / sigla en clientes y obras sociales |
-| **Pendientes en cola** | 2 |
+| **Pendientes en cola** | 4 |
 | **Completadas** | 139 |
 
 ---
@@ -27,6 +27,8 @@
 |---|---|---|---|
 | 1 | v1.80.0 | Nombre corto / sigla en clientes y obras sociales | `short_name` nullable, `displayName()`, vistas + PDFs + emails |
 | 2 | v1.81.0 | Estados visuales en planilla de trabajo | ✓ pendiente / valor / tacha no pedida — clínico + muestras |
+| 3 | v1.82.0 | PayrollPayment: pago de haberes agrupado + asiento contable | modelo `PayrollPayment`, UI RRHH, asiento Db 2.1.07 / Cr banco |
+| 4 | v1.83.0 | Conciliación bancaria de pagos de haberes | `PayrollPayment` como registro reconciliable, filtro "Haberes", sugerencia por monto+período |
 
 Archivo adicional en `pendientes/` (no empieza con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
 

@@ -162,7 +162,7 @@
                         <div>
                             <p class="text-sm text-gray-500">Obra Social</p>
                             <p class="font-medium text-gray-900">
-                                {{ strtoupper($admission->insuranceRelation?->name ?? 'N/A') }}
+                                {{ strtoupper($admission->insuranceRelation?->displayName() ?? 'N/A') }}
                             </p>
                         </div>
                         <div>

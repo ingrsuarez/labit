@@ -25,6 +25,7 @@ class CustomerController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('short_name', 'like', "%{$search}%")
                     ->orWhere('taxId', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
             });
@@ -58,6 +59,7 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'short_name' => 'nullable|string|max:50',
             'taxId' => 'required|string|max:20',
             'tax' => 'nullable|string|max:50',
             'email' => 'nullable|email',
@@ -104,6 +106,7 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'short_name' => 'nullable|string|max:50',
             'taxId' => 'required|string|max:20',
             'tax' => 'nullable|string|max:50',
             'email' => 'nullable|email',

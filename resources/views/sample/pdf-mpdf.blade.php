@@ -368,7 +368,7 @@
     <div class="sample-info-bar">
         <table width="100%">
             <tr>
-                <td>Empresa: <strong>{{ strtoupper($sample->customer->name ?? 'N/A') }}</strong></td>
+                <td>Empresa: <strong>{{ strtoupper($sample->customer?->displayName() ?? 'N/A') }}</strong></td>
                 <td style="text-align: right;"><strong>{{ $sample->sampling_date?->format('d/m/Y') }} - {{ substr($sample->protocol_number, -2) }}</strong></td>
             </tr>
         </table>

@@ -36,7 +36,7 @@
                         <option value="">Todas las OS</option>
                         @foreach($insurances as $ins)
                             <option value="{{ $ins->id }}" {{ request('insurance') == $ins->id ? 'selected' : '' }}>
-                                {{ strtoupper($ins->name) }}
+                                {{ strtoupper($ins->displayName()) }}
                             </option>
                         @endforeach
                     </select>
@@ -140,7 +140,7 @@
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="text-sm text-gray-900">
-                                            {{ strtoupper($admission->insuranceRelation?->name ?? 'N/A') }}
+                                            {{ strtoupper($admission->insuranceRelation?->displayName() ?? 'N/A') }}
                                         </div>
                                         @if($admission->affiliate_number)
                                             <div class="text-xs text-gray-500">

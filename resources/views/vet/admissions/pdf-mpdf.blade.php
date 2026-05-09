@@ -218,7 +218,7 @@
             @endif
         </div>
         <div class="sample-info-row">
-            <strong>Veterinaria:</strong> {{ $vetAdmission->customer->name }}
+            <strong>Veterinaria:</strong> {{ $vetAdmission->customer->displayName() }}
             @if($vetAdmission->veterinarian)
                 &nbsp;&nbsp;&nbsp;
                 <strong>Derivante:</strong> {{ $vetAdmission->veterinarian->name }}

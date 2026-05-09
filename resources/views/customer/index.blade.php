@@ -96,7 +96,10 @@
                     @forelse($customers as $customer)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ $customer->name }}</div>
+                                <div class="text-sm font-medium text-gray-900">{{ $customer->displayName() }}</div>
+                                @if($customer->short_name)
+                                    <div class="text-xs text-gray-400">{{ $customer->name }}</div>
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ $customer->taxId }}
