@@ -12,7 +12,7 @@
 | **Versión actual (línea v1.x)** | Tag más reciente: **v1.82.0** |
 | **Última en master** | Release 2026-05-08: v1.77.0 — Vista recepcion-lab (master pendiente de actualizar con v1.78.0 y v1.79.0) |
 | **Última completada (cola agente)** | **v1.82.0** — PayrollPayment: pago de haberes agrupado + asiento contable (Db 2.1.07 / Cr banco) |
-| **Hotfix aplicado** | 2026-05-09: vet doble submit (spinner en submit + `submitting` Alpine) + botón Eliminar visible para admin/bioquimico |
+| **Hotfix aplicado** | 2026-05-09: vet doble submit + botón Eliminar protocolo; **sesión por inactividad** (`SESSION_IDLE_TIMEOUT_MINUTES`, `users.last_activity_at`, middleware `enforce.idle`) |
 | **En proceso** | — |
 | **Próxima recomendada** | **v1.83.0** — Conciliación bancaria de pagos de haberes |
 | **Pendientes en cola** | 1 |
