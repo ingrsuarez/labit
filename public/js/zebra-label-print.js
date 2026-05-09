@@ -124,21 +124,63 @@ const ZebraLabelPrint = {
         }
     },
 
+    /**
+     * Asegura material_key estable y admite JSON legacy (una sola etiqueta plana).
+     *
+     * @param {object} data
+     * @returns {object[]}
+     */
+    normalizeLabelRows(data) {
+        let labels = Array.isArray(data.labels) ? data.labels : [];
+        if (labels.length === 0 && data.protocol_number) {
+            const rawMat = data.materials && data.materials !== 'N/A' ? String(data.materials) : '';
+            const first = rawMat.split('/').map(s => s.trim()).filter(Boolean)[0] || '?';
+            labels = [{
+                material_key: 'legacy',
+                protocol_number: data.protocol_number,
+                customer_name: data.customer_name,
+                material: first,
+                material_name: data.material_name || '',
+                entry_date: data.entry_date,
+                branch_name: data.sample_type || '',
+                sample_type: data.sample_type || '',
+            }];
+        }
+        return labels.map((row, idx) => ({
+            ...row,
+            material_key: row.material_key != null && String(row.material_key) !== ''
+                ? String(row.material_key)
+                : 'idx-' + idx,
+        }));
+    },
+
+    /** Contenido CODE_128 alineado a BarcodeFormatService::forLabel */
+    _barcodeDataForLabel(label) {
+        const protocol = this._sanitizeZPL(label.protocol_number);
+        const material = this._sanitizeZPL(label.material || '');
+        if (!material || material === '?') {
+            return protocol;
+        }
+        return protocol + '^' + material;
+    },
+
     generateZPL(data) {
-        if (data.labels) {
+        if (data.labels && data.labels.length > 0) {
             let zpl = '';
             for (const label of data.labels) {
                 const customerName = this._sanitizeZPL(label.customer_name).substring(0, 30);
-                const protocol = this._sanitizeZPL(label.protocol_number);
+                const barcodeData = this._barcodeDataForLabel(label);
                 const material = this._sanitizeZPL(label.material || '?');
                 const entryDate = this._sanitizeZPL(label.entry_date);
-                const branchName = this._sanitizeZPL(label.branch_name || 'CLINICO');
+                const branchName = this._sanitizeZPL(
+                    label.branch_name || label.sample_type || 'CLINICO'
+                );
 
                 zpl += '^XA\n';
                 zpl += '^CI28\n';
                 zpl += '^PW400\n';
                 zpl += '^LL200\n';
-                zpl += '^FO40,10^BY2,2,65^BCN,65,Y,N,N^FD' + protocol + '^FS\n';
+                zpl += '^FO40,10^BY2,2,65^BCN,65,Y,N,N^FD' + barcodeData + '^FS\n';
                 zpl += '^FO30,100^A0N,20,20^FD' + customerName + '^FS\n';
                 zpl += '^FO30,125^A0N,18,18^FD' + branchName + ' | ' + material + '^FS\n';
                 zpl += '^FO30,148^A0N,18,18^FD' + entryDate + '^FS\n';
@@ -153,13 +195,16 @@ const ZebraLabelPrint = {
         const materials = this._sanitizeZPL(data.materials);
         const entryDate = this._sanitizeZPL(data.entry_date);
         const sampleType = this._sanitizeZPL(data.sample_type);
+        const barcodeData = (materials && materials !== 'N/A')
+            ? protocol + '^' + materials.split('/')[0].trim()
+            : protocol;
 
         return [
             '^XA',
             '^CI28',
             '^PW400',
             '^LL200',
-            '^FO40,10^BY2,2,65^BCN,65,Y,N,N^FD' + protocol + '^FS',
+            '^FO40,10^BY2,2,65^BCN,65,Y,N,N^FD' + barcodeData + '^FS',
             '^FO30,100^A0N,20,20^FD' + customerName + '^FS',
             '^FO30,125^A0N,18,18^FD' + sampleType + ' | MAT: ' + materials + '^FS',
             '^FO30,148^A0N,18,18^FD' + entryDate + '^FS',
@@ -224,7 +269,12 @@ const ZebraLabelPrint = {
         throw new Error('Error al enviar a la impresora: ' + lastError);
     },
 
-    async printSampleLabel(labelDataUrl, copies = 1) {
+    /**
+     * @param {string} labelDataUrl
+     * @param {number} copies
+     * @param {object[]|null} selectedRows Si null, usa todas las filas del JSON.
+     */
+    async printSampleLabel(labelDataUrl, copies = 1, selectedRows = null) {
         const response = await fetch(labelDataUrl, {
             headers: {
                 'Accept': 'application/json',
@@ -235,7 +285,19 @@ const ZebraLabelPrint = {
         if (!response.ok) throw new Error('No se pudieron obtener los datos de la muestra');
 
         const data = await response.json();
-        let zpl = this.generateZPL(data);
+        let labels = this.normalizeLabelRows(data);
+
+        if (Array.isArray(selectedRows) && selectedRows.length > 0) {
+            const keys = new Set(selectedRows.map(r => String(r.material_key)));
+            labels = labels.filter(l => keys.has(String(l.material_key)));
+        }
+
+        if (labels.length === 0) {
+            throw new Error('Seleccione al menos un material para imprimir.');
+        }
+
+        const zplPayload = { labels };
+        let zpl = this.generateZPL(zplPayload);
 
         if (copies > 1) {
             zpl = zpl.replaceAll('^PQ1', '^PQ' + copies);
@@ -247,8 +309,10 @@ const ZebraLabelPrint = {
 
 /**
  * Alpine.js component for the label printing modal
+ *
+ * @param {string} browserPrintBaseUrl URL absoluta de la vista HTML multipágina (sin query materials)
  */
-function zebraPrintModal() {
+function zebraPrintModal(browserPrintBaseUrl = '') {
     return {
         open: false,
         loading: false,
@@ -260,18 +324,43 @@ function zebraPrintModal() {
         copies: 1,
         zebraAvailable: false,
         labelDataUrl: '',
+        browserPrintBaseUrl: browserPrintBaseUrl || '',
+        labelRows: [],
+        selectedKeys: [],
 
         async init() {
             const saved = localStorage.getItem('zebra_selected_printer');
             if (saved) this.selectedPrinter = saved;
         },
 
-        async openModal(labelDataUrl) {
+        async openModal(payload) {
+            const labelDataUrl = typeof payload === 'string' ? payload : (payload && payload.url);
+            if (!labelDataUrl) return;
+
             this.labelDataUrl = labelDataUrl;
             this.open = true;
             this.error = null;
             this.success = false;
             this.loading = true;
+            this.labelRows = [];
+            this.selectedKeys = [];
+
+            try {
+                const res = await fetch(labelDataUrl, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+                if (!res.ok) throw new Error('No se pudieron obtener los datos de la etiqueta');
+                const data = await res.json();
+                this.labelRows = ZebraLabelPrint.normalizeLabelRows(data);
+                this.selectedKeys = this.labelRows.map(r => r.material_key);
+            } catch (e) {
+                this.error = e.message || 'Error al cargar datos de etiquetas';
+                this.loading = false;
+                return;
+            }
 
             try {
                 this.printers = await ZebraLabelPrint.getAvailablePrinters();
@@ -285,7 +374,9 @@ function zebraPrintModal() {
                 }
             } catch (e) {
                 this.zebraAvailable = false;
-                this.error = e.message;
+                if (!this.error) {
+                    this.error = e.message;
+                }
             } finally {
                 this.loading = false;
             }
@@ -301,9 +392,59 @@ function zebraPrintModal() {
             ZebraLabelPrint.selectPrinter(this.selectedPrinter);
         },
 
+        isSelected(key) {
+            return this.selectedKeys.includes(String(key));
+        },
+
+        toggleKey(key) {
+            const k = String(key);
+            if (this.selectedKeys.includes(k)) {
+                this.selectedKeys = this.selectedKeys.filter(x => x !== k);
+            } else {
+                this.selectedKeys = [...this.selectedKeys, k];
+            }
+        },
+
+        selectAllMaterials() {
+            this.selectedKeys = this.labelRows.map(r => r.material_key);
+        },
+
+        clearAllMaterials() {
+            this.selectedKeys = [];
+        },
+
+        getSelectedRows() {
+            const set = new Set(this.selectedKeys);
+            return this.labelRows.filter(r => set.has(r.material_key));
+        },
+
+        browserPrintHref() {
+            if (!this.browserPrintBaseUrl) return '#';
+            const codes = this.getSelectedRows().map(r => r.material).filter(m => m && m !== '?');
+            if (codes.length === 0) return this.browserPrintBaseUrl;
+            const sep = this.browserPrintBaseUrl.includes('?') ? '&' : '?';
+            return this.browserPrintBaseUrl + sep + 'materials=' + encodeURIComponent(codes.join(','));
+        },
+
+        firstPreviewRow() {
+            const rows = this.getSelectedRows();
+            return rows.length ? rows[0] : (this.labelRows[0] || null);
+        },
+
+        previewField(field, fallback = '') {
+            const r = this.firstPreviewRow();
+            if (!r) return fallback;
+            const v = r[field];
+            return v != null && v !== '' ? v : fallback;
+        },
+
         async print() {
             if (!this.selectedPrinter) {
                 this.error = 'Seleccione una impresora';
+                return;
+            }
+            if (this.selectedKeys.length === 0) {
+                this.error = 'Seleccione al menos un material';
                 return;
             }
 
@@ -313,7 +454,11 @@ function zebraPrintModal() {
 
             try {
                 ZebraLabelPrint.selectPrinter(this.selectedPrinter);
-                await ZebraLabelPrint.printSampleLabel(this.labelDataUrl, this.copies);
+                await ZebraLabelPrint.printSampleLabel(
+                    this.labelDataUrl,
+                    this.copies,
+                    this.getSelectedRows()
+                );
                 this.success = true;
                 setTimeout(() => { this.success = false; }, 3000);
             } catch (e) {

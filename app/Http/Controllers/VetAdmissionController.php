@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\DeterminationProfileLabType;
+use App\Http\Controllers\Concerns\FiltersLabelsByMaterialsQuery;
 use App\Mail\VetAdmissionResultMail;
 use App\Models\Customer;
 use App\Models\DeterminationProfile;
@@ -17,6 +18,8 @@ use PDF;
 
 class VetAdmissionController extends Controller
 {
+    use FiltersLabelsByMaterialsQuery;
+
     public function index(Request $request)
     {
         $query = VetAdmission::with(['customer', 'veterinarian', 'species', 'vetTests', 'labBranch', 'invoiceProtocols'])
@@ -723,6 +726,7 @@ class VetAdmissionController extends Controller
         $vetAdmission->load(['vetTests.test.materialRelation', 'vetTests.test.parentTests', 'labBranch']);
 
         $labels = $this->groupByMaterial($vetAdmission);
+        $labels = $this->filterLabelsByMaterialsQuery($labels);
 
         $barcode = new \Picqer\Barcode\BarcodeGeneratorSVG;
 
@@ -778,8 +782,9 @@ class VetAdmissionController extends Controller
         $branchName = $vetAdmission->labBranch->name ?? 'VETERINARIO';
 
         $labels = [];
-        foreach ($materialGroups as $group) {
+        foreach ($materialGroups as $materialId => $group) {
             $labels[] = [
+                'material_key' => (string) $materialId,
                 'protocol_number' => $vetAdmission->protocol_number,
                 'customer_name' => $vetAdmission->animal_name ?? $vetAdmission->owner_name ?? 'Sin nombre',
                 'material' => $group['material_code'],
@@ -793,6 +798,7 @@ class VetAdmissionController extends Controller
 
         if (empty($labels)) {
             $labels[] = [
+                'material_key' => 'unknown',
                 'protocol_number' => $vetAdmission->protocol_number,
                 'customer_name' => $vetAdmission->animal_name ?? $vetAdmission->owner_name ?? 'Sin nombre',
                 'material' => '?',
