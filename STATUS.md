@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-09 (v1.80.0 — short_name en clientes y obras sociales)
+> Última actualización: 2026-05-09 (v1.81.0 — Estados visuales en planilla de trabajo)
 
 ---
 
@@ -9,13 +9,13 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | Tag más reciente: **v1.80.0** |
+| **Versión actual (línea v1.x)** | Tag más reciente: **v1.81.0** |
 | **Última en master** | Release 2026-05-08: v1.77.0 — Vista recepcion-lab (master pendiente de actualizar con v1.78.0 y v1.79.0) |
-| **Última completada (cola agente)** | **v1.80.0** — Nombre corto / sigla en clientes y obras sociales (`short_name`, `displayName()`) |
+| **Última completada (cola agente)** | **v1.81.0** — Estados visuales en planilla de trabajo (✓ teal / valor / tacha) |
 | **En proceso** | — |
-| **Próxima recomendada** | **v1.81.0** — Estados visuales en planilla de trabajo |
-| **Pendientes en cola** | 3 |
-| **Completadas** | 139 |
+| **Próxima recomendada** | **v1.82.0** — PayrollPayment: pago de haberes agrupado + asiento contable |
+| **Pendientes en cola** | 2 |
+| **Completadas** | 140 |
 
 ---
 
@@ -25,9 +25,8 @@
 
 | # | Versión | Nombre | Notas |
 |---|---|---|---|
-| 1 | v1.81.0 | Estados visuales en planilla de trabajo | ✓ pendiente / valor / tacha no pedida — clínico + muestras |
-| 2 | v1.82.0 | PayrollPayment: pago de haberes agrupado + asiento contable | modelo `PayrollPayment`, UI RRHH, asiento Db 2.1.07 / Cr banco |
-| 3 | v1.83.0 | Conciliación bancaria de pagos de haberes | `PayrollPayment` como registro reconciliable, filtro "Haberes", sugerencia por monto+período |
+| 1 | v1.82.0 | PayrollPayment: pago de haberes agrupado + asiento contable | modelo `PayrollPayment`, UI RRHH, asiento Db 2.1.07 / Cr banco |
+| 2 | v1.83.0 | Conciliación bancaria de pagos de haberes | `PayrollPayment` como registro reconciliable, filtro "Haberes", sugerencia por monto+período |
 
 Archivo adicional en `pendientes/` (no empieza con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
 
@@ -41,6 +40,8 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.81.0 | Estados visuales en planilla de trabajo: ✓ teal (pendiente), valor (con resultado), tacha diagonal (no pedida) — clínico y muestras | 2026-05-09 | v1.81.0 |
+| v1.80.0 | Nombre corto / sigla en clientes y obras sociales (`short_name`, `displayName()`, vistas + PDFs + emails) | 2026-05-09 | v1.80.0 |
 | v1.76.2 | Fix ingesta: key global omite validación `PROTOCOL_OUT_OF_BRANCH` — `ApiResultIngestionService` skip branch check cuando `client->isGlobal()` | 2026-05-07 | v1.76.2 |
 | v1.76.1 | API key global sin sede para LISCOM (`lab_branch_id` nullable, `isGlobal()`, filtro condicional en `ProtocolLookupService` y `ProtocolController`, UI campo sede opcional) | 2026-05-07 | v1.76.1 |
 | v1.76.0 | Marcar determinaciones ratificadas (lab/vet/sample): `is_ratified` + `ratified_at` + `ratified_by`, UI checkbox editable post-validación, marca `*` y leyenda en PDF informe + email | 2026-05-07 | v1.76.0 |
