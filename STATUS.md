@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-09 (sesión PM — v1.82.0 y v1.83.0 pago de haberes + conciliación bancaria)
+> Última actualización: 2026-05-09 (v1.80.0 — short_name en clientes y obras sociales)
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | Tag más reciente: **v1.79.0** |
+| **Versión actual (línea v1.x)** | Tag más reciente: **v1.80.0** |
 | **Última en master** | Release 2026-05-08: v1.77.0 — Vista recepcion-lab (master pendiente de actualizar con v1.78.0 y v1.79.0) |
-| **Última completada (cola agente)** | **v1.79.0** — Fix: permitir cambio de sede en protocolos clínico y muestras al editar |
+| **Última completada (cola agente)** | **v1.80.0** — Nombre corto / sigla en clientes y obras sociales (`short_name`, `displayName()`) |
 | **En proceso** | — |
-| **Próxima recomendada** | **v1.80.0** — Nombre corto / sigla en clientes y obras sociales |
-| **Pendientes en cola** | 4 |
+| **Próxima recomendada** | **v1.81.0** — Estados visuales en planilla de trabajo |
+| **Pendientes en cola** | 3 |
 | **Completadas** | 139 |
 
 ---
@@ -25,10 +25,9 @@
 
 | # | Versión | Nombre | Notas |
 |---|---|---|---|
-| 1 | v1.80.0 | Nombre corto / sigla en clientes y obras sociales | `short_name` nullable, `displayName()`, vistas + PDFs + emails |
-| 2 | v1.81.0 | Estados visuales en planilla de trabajo | ✓ pendiente / valor / tacha no pedida — clínico + muestras |
-| 3 | v1.82.0 | PayrollPayment: pago de haberes agrupado + asiento contable | modelo `PayrollPayment`, UI RRHH, asiento Db 2.1.07 / Cr banco |
-| 4 | v1.83.0 | Conciliación bancaria de pagos de haberes | `PayrollPayment` como registro reconciliable, filtro "Haberes", sugerencia por monto+período |
+| 1 | v1.81.0 | Estados visuales en planilla de trabajo | ✓ pendiente / valor / tacha no pedida — clínico + muestras |
+| 2 | v1.82.0 | PayrollPayment: pago de haberes agrupado + asiento contable | modelo `PayrollPayment`, UI RRHH, asiento Db 2.1.07 / Cr banco |
+| 3 | v1.83.0 | Conciliación bancaria de pagos de haberes | `PayrollPayment` como registro reconciliable, filtro "Haberes", sugerencia por monto+período |
 
 Archivo adicional en `pendientes/` (no empieza con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
 
