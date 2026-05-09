@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-09 (hotfix: vet doble submit + botón borrar protocolo visible para admin)
+> Última actualización: 2026-05-09 (v1.83.0: conciliación bancaria PayrollPayment + release a master)
 
 ---
 
@@ -9,14 +9,14 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | Tag más reciente: **v1.82.0** |
-| **Última en master** | Release 2026-05-08: v1.77.0 — Vista recepcion-lab (master pendiente de actualizar con v1.78.0 y v1.79.0) |
-| **Última completada (cola agente)** | **v1.82.0** — PayrollPayment: pago de haberes agrupado + asiento contable (Db 2.1.07 / Cr banco) |
-| **Hotfix aplicado** | 2026-05-09: vet doble submit (spinner en submit + `submitting` Alpine) + botón Eliminar visible para admin/bioquimico |
+| **Versión actual (línea v1.x)** | Tag más reciente: **v1.83.0** |
+| **Última en master** | Release 2026-05-09: **v1.83.0** — Conciliación bancaria de pagos de haberes (`PayrollPayment`) |
+| **Última completada (cola agente)** | **v1.83.0** — `PayrollPayment` reconciliable: motor `findMatch`, panel Haberes (PP), categoría `haberes`, tests |
+| **Hotfix aplicado** | 2026-05-09: vet doble submit + botón Eliminar protocolo; **sesión por inactividad** (`SESSION_IDLE_TIMEOUT_MINUTES`, `users.last_activity_at`, middleware `enforce.idle`) |
 | **En proceso** | — |
-| **Próxima recomendada** | **v1.83.0** — Conciliación bancaria de pagos de haberes |
-| **Pendientes en cola** | 1 |
-| **Completadas** | 141 |
+| **Próxima recomendada** | Revisar `DISEÑO_v1.55.0-buscador-unificado-fc.md` en pendientes / planificar nuevas versiones |
+| **Pendientes en cola** | 1 (solo diseño, sin prefijo `v`) |
+| **Completadas** | 142 |
 
 ---
 
@@ -24,9 +24,7 @@
 
 ### Pendientes — próximo por orden de versión (`ls pendientes \| sort \| grep '^v'`)
 
-| # | Versión | Nombre | Notas |
-|---|---|---|---|
-| 1 | v1.83.0 | Conciliación bancaria de pagos de haberes | `PayrollPayment` como registro reconciliable, filtro "Haberes", sugerencia por monto+período |
+_Sin prompts con prefijo `v` en pendientes._
 
 Archivo adicional en `pendientes/` (no empieza con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
 
@@ -40,6 +38,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.83.0 | Conciliación bancaria: `PayrollPayment` en `BankReconciliationService`, filtro Haberes (PP) en panel, categoría `haberes` en extractos, vista show pago | 2026-05-09 | v1.83.0 |
 | v1.82.0 | PayrollPayment: agrupa N liquidaciones en 1 pago bancario + asiento Db 2.1.07 Sueldos a Pagar / Cr banco. Controller, vistas, permisos, 10 tests. | 2026-05-09 | v1.82.0 |
 | v1.81.0 | Estados visuales en planilla de trabajo: ✓ teal (pendiente), valor (con resultado), tacha diagonal (no pedida) — clínico y muestras | 2026-05-09 | v1.81.0 |
 | v1.80.0 | Nombre corto / sigla en clientes y obras sociales (`short_name`, `displayName()`, vistas + PDFs + emails) | 2026-05-09 | v1.80.0 |

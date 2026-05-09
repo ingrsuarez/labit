@@ -1,4 +1,5 @@
 @php
+$internalRecordsCount = $paymentOrders->count() + $collectionReceipts->count() + $payrollPayments->count();
 $categoryColors = [
     'transferencia' => 'bg-blue-100 text-blue-700',
     'cobro' => 'bg-green-100 text-green-700',
@@ -10,6 +11,7 @@ $categoryColors = [
     'pago_servicio' => 'bg-pink-100 text-pink-600',
     'debin' => 'bg-indigo-100 text-indigo-700',
     'debito_automatico' => 'bg-yellow-100 text-yellow-700',
+    'haberes' => 'bg-violet-100 text-violet-800',
     'pago_tarjeta_credito' => 'bg-pink-100 text-pink-700',
     'movimiento_interno' => 'bg-gray-100 text-gray-600',
 ];
@@ -17,7 +19,7 @@ $categoryLabels = [
     'transferencia' => 'Transferencia', 'cobro' => 'Cobro', 'cheque' => 'Cheque',
     'impuesto' => 'Impuesto', 'comision' => 'Comisión', 'iva_comision' => 'IVA Com.',
     'pago_tarjeta' => 'Pago Tarjeta', 'pago_servicio' => 'Pago Servicio',
-    'debin' => 'DEBIN', 'debito_automatico' => 'Déb. Auto.',
+    'debin' => 'DEBIN', 'debito_automatico' => 'Déb. Auto.', 'haberes' => 'Haberes',
     'pago_tarjeta_credito' => 'Pago TC', 'movimiento_interno' => 'Mov. Int.',
 ];
 $statusLabels = ['pending' => 'Pendiente', 'matched' => 'Conciliado', 'ignored' => 'Ignorado'];
@@ -30,7 +32,7 @@ $pendingCategories = $movements->where('reconciliation_status', 'pending')
 @endphp
 
 <x-admin-layout>
-<div class="container mx-auto px-4 py-6" x-data="reconciliation()">
+<div class="container mx-auto px-4 py-6" x-data="reconciliation({{ json_encode($payrollPaymentSuggestions) }})">
 
     {{-- Header --}}
     <div class="flex items-center justify-between mb-4">
@@ -136,7 +138,11 @@ $pendingCategories = $movements->where('reconciliation_status', 'pending')
                             @if($mov->reconciliation_status === 'matched')
                             <span class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700">Conciliado</span>
                             @if($mov->reconciledRecord)
-                            <span class="text-[10px] text-green-600">{{ class_basename($mov->reconciled_type) }} #{{ $mov->reconciled_id }}</span>
+                            @php
+                                $recShort = class_basename($mov->reconciled_type);
+                                $recShort = $recShort === 'PayrollPayment' ? 'PP' : $recShort;
+                            @endphp
+                            <span class="text-[10px] text-green-600">{{ $recShort }} #{{ $mov->reconciled_id }}</span>
                             @endif
                             @elseif($mov->reconciliation_status === 'ignored')
                             <span class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-100 text-yellow-700">Ignorado</span>
@@ -170,13 +176,14 @@ $pendingCategories = $movements->where('reconciliation_status', 'pending')
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col" style="max-height: 75vh;">
             <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between shrink-0">
                 <h2 class="text-sm font-semibold text-gray-700">Registros del Sistema
-                    <span class="text-gray-400">({{ $paymentOrders->count() + $collectionReceipts->count() }})</span>
+                    <span class="text-gray-400">({{ $internalRecordsCount }})</span>
                 </h2>
                 <div class="flex gap-2">
                     <select x-model="filterRecordType" class="text-xs rounded-lg border-gray-300 py-1 px-2">
                         <option value="">Todos</option>
                         <option value="po">Pagos (OP)</option>
                         <option value="cr">Cobros (RC)</option>
+                        <option value="pp">Haberes (PP)</option>
                     </select>
                     <input type="text" x-model="searchRecord" placeholder="Buscar..." class="text-xs rounded-lg border-gray-300 py-1 px-2 w-28">
                 </div>
@@ -207,7 +214,7 @@ $pendingCategories = $movements->where('reconciliation_status', 'pending')
                                 <input type="hidden" name="reconciled_type" value="PaymentOrder">
                                 <input type="hidden" name="reconciled_id" value="{{ $po->id }}">
                                 <button type="button" @click="submitLink($event, {{ $po->id }}, 'PaymentOrder')"
-                                        :disabled="selectedMovement === null || selectedMovementStatus !== 'pending'"
+                                        :disabled="selectedMovement === null || selectedMovementStatus !== 'pending' || selectedMovementType !== 'debit'"
                                         class="text-xs px-3 py-1 rounded-lg bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed">
                                     Vincular
                                 </button>
@@ -239,7 +246,7 @@ $pendingCategories = $movements->where('reconciliation_status', 'pending')
                                 <input type="hidden" name="reconciled_type" value="CollectionReceipt">
                                 <input type="hidden" name="reconciled_id" value="{{ $cr->id }}">
                                 <button type="button" @click="submitLink($event, {{ $cr->id }}, 'CollectionReceipt')"
-                                        :disabled="selectedMovement === null || selectedMovementStatus !== 'pending'"
+                                        :disabled="selectedMovement === null || selectedMovementStatus !== 'pending' || selectedMovementType !== 'credit'"
                                         class="text-xs px-3 py-1 rounded-lg bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed">
                                     Vincular
                                 </button>
@@ -250,7 +257,40 @@ $pendingCategories = $movements->where('reconciliation_status', 'pending')
                 </div>
                 @endforeach
 
-                <div x-show="selectedMovement !== null && {{ $paymentOrders->count() + $collectionReceipts->count() }} === 0"
+                {{-- Pagos de haberes --}}
+                @foreach($payrollPayments as $pp)
+                <div x-show="selectedMovement !== null && filterRecord('pp', '{{ addslashes($pp->period_label) }} {{ addslashes($pp->bankAccount?->display_name ?? '') }}')"
+                     class="px-3 py-2 hover:bg-gray-50">
+                    <div class="flex items-center justify-between">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium bg-violet-100 text-violet-800">PP</span>
+                                <span class="text-sm font-medium text-gray-800">Haberes {{ ucfirst($pp->period_label) }}</span>
+                                <span x-show="isPpSuggested({{ $pp->id }})" class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800">Sugerido</span>
+                            </div>
+                            <p class="text-xs text-gray-500 truncate mt-0.5">{{ $pp->employee_count }} empleados · {{ $pp->bankAccount?->display_name ?? 'Sin banco' }}</p>
+                            <p class="text-xs text-gray-400 mt-0.5">Fecha: {{ $pp->payment_date ? $pp->payment_date->format('d/m/Y') : '—' }}</p>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0 ml-2">
+                            <span class="text-sm font-mono text-red-600">$ {{ number_format($pp->total, 2, ',', '.') }}</span>
+                            @can('contabilidad.reconciliation.manual')
+                            <form action="{{ route('accounting.reconciliation.link', ':mid') }}" method="POST" class="inline link-form">
+                                @csrf
+                                <input type="hidden" name="reconciled_type" value="PayrollPayment">
+                                <input type="hidden" name="reconciled_id" value="{{ $pp->id }}">
+                                <button type="button" @click="submitLink($event, {{ $pp->id }}, 'PayrollPayment')"
+                                        :disabled="selectedMovement === null || selectedMovementStatus !== 'pending' || selectedMovementType !== 'debit'"
+                                        class="text-xs px-3 py-1 rounded-lg bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed">
+                                    Vincular
+                                </button>
+                            </form>
+                            @endcan
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+
+                <div x-show="selectedMovement !== null && {{ $internalRecordsCount }} === 0"
                      class="px-4 py-8 text-center text-sm text-gray-400">
                     No hay registros internos pendientes de vincular.
                 </div>
@@ -274,8 +314,9 @@ $pendingCategories = $movements->where('reconciliation_status', 'pending')
 </div>
 
 <script>
-function reconciliation() {
+function reconciliation(payrollSuggestions = {}) {
     return {
+        payrollSuggestions,
         selectedMovement: null,
         selectedMovementStatus: null,
         selectedMovementType: null,
@@ -283,6 +324,12 @@ function reconciliation() {
         filterType: '',
         filterRecordType: '',
         searchRecord: '',
+
+        isPpSuggested(ppId) {
+            const mid = this.selectedMovement;
+            if (!mid || this.payrollSuggestions[mid] === undefined) return false;
+            return Number(this.payrollSuggestions[mid]) === Number(ppId);
+        },
 
         selectMovement(id, status, type) {
             if (this.selectedMovement === id) {

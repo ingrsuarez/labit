@@ -7,6 +7,7 @@ use App\Models\BankMovement;
 use App\Models\BankStatement;
 use App\Models\CollectionReceipt;
 use App\Models\PaymentOrder;
+use App\Models\PayrollPayment;
 use App\Services\BankReconciliationService;
 use Illuminate\Http\Request;
 
@@ -21,6 +22,7 @@ class BankReconciliationController extends Controller
         $movements = $statement->movements()
             ->orderByDesc('date')
             ->orderByDesc('id')
+            ->with('reconciledRecord')
             ->get();
 
         $paymentOrders = PaymentOrder::where('company_id', $companyId)
@@ -37,11 +39,24 @@ class BankReconciliationController extends Controller
             ->orderByDesc('date')
             ->get();
 
+        $service = new BankReconciliationService;
+        $payrollPayments = $service->getUnreconciledPayrollPayments($companyId);
+
+        $payrollPaymentSuggestions = [];
+        foreach ($movements->where('reconciliation_status', 'pending')->where('debit', '>', 0) as $mov) {
+            $match = $service->findMatch($mov, $companyId);
+            if (in_array($match['confidence'] ?? '', ['exact', 'probable'], true)
+                && $match['record'] instanceof PayrollPayment) {
+                $payrollPaymentSuggestions[$mov->id] = $match['record']->id;
+            }
+        }
+
         $progress = $statement->reconciliation_progress;
 
         return view('accounting.bank-statements.reconcile', compact(
             'bankAccount', 'statement', 'movements',
-            'paymentOrders', 'collectionReceipts', 'progress'
+            'paymentOrders', 'collectionReceipts', 'payrollPayments',
+            'payrollPaymentSuggestions', 'progress'
         ));
     }
 
@@ -69,15 +84,22 @@ class BankReconciliationController extends Controller
         $this->authorize('contabilidad.reconciliation.manual');
 
         $validated = $request->validate([
-            'reconciled_type' => 'required|in:PaymentOrder,CollectionReceipt',
+            'reconciled_type' => 'required|in:PaymentOrder,CollectionReceipt,PayrollPayment',
             'reconciled_id' => 'required|integer',
         ]);
 
-        $modelClass = $validated['reconciled_type'] === 'PaymentOrder'
-            ? PaymentOrder::class
-            : CollectionReceipt::class;
+        $modelClass = match ($validated['reconciled_type']) {
+            'PaymentOrder' => PaymentOrder::class,
+            'CollectionReceipt' => CollectionReceipt::class,
+            'PayrollPayment' => PayrollPayment::class,
+        };
 
         $record = $modelClass::findOrFail($validated['reconciled_id']);
+
+        $companyId = $movement->statement->bankAccount->company_id;
+        if ((int) $record->getAttribute('company_id') !== (int) $companyId) {
+            return back()->with('error', 'El registro no pertenece a la misma empresa que la cuenta bancaria.');
+        }
 
         $service = new BankReconciliationService;
         $service->linkMovement($movement, $record, auth()->user());

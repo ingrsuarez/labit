@@ -90,8 +90,10 @@ class BankMovement extends Model
             '/IVA TASA/i' => 'iva_comision',
             '/PAGO CON VIS|PAGO SERVICI/i' => 'pago_tarjeta',
             '/DEBIN/i' => 'debin',
+            '/OG-DEB[^\s]*\s*\d*\s*HABERE/i' => 'haberes',
+            '/ACRED.*SUELDO|PAGO.*HABER|SUELDO.*PAGO/i' => 'haberes',
             '/OG-DEBITO|OG-DEB/i' => 'debito_automatico',
-            '/ACRED SUELDO|DNET CREDITO/i' => 'cobro',
+            '/DNET CREDITO/i' => 'cobro',
         ];
 
         foreach ($conceptPatterns as $pattern => $category) {

@@ -33,6 +33,18 @@ return [
 
     'lifetime' => env('SESSION_LIFETIME', 120),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Idle timeout (authenticated activity)
+    |--------------------------------------------------------------------------
+    |
+    | Minutes without requests after which the user is logged out on the next
+    | hit. Stored on the user row so «remember me» cannot bypass the policy.
+    |
+    */
+
+    'idle_timeout_minutes' => (int) env('SESSION_IDLE_TIMEOUT_MINUTES', 30),
+
     'expire_on_close' => false,
 
     /*
