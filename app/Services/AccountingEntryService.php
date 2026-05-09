@@ -10,6 +10,7 @@ use App\Models\CreditNote;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryLine;
 use App\Models\PaymentOrder;
+use App\Models\PayrollPayment;
 use App\Models\PurchaseCreditNote;
 use App\Models\PurchaseInvoice;
 use App\Models\SalesInvoice;
@@ -524,6 +525,55 @@ class AccountingEntryService
             Carbon::parse($paymentOrder->date),
             'Pago OP '.$paymentOrder->number,
             $paymentOrder,
+            $lines
+        );
+    }
+
+    public function fromPayrollPayment(PayrollPayment $payment): ?JournalEntry
+    {
+        // Idempotencia: no generar si ya existe un asiento para este pago
+        $existing = JournalEntry::where('source_type', PayrollPayment::class)
+            ->where('source_id', $payment->id)
+            ->first();
+        if ($existing) {
+            return $existing;
+        }
+
+        $payment->loadMissing('bankAccount.accountingAccount');
+
+        if (! $payment->bank_account_id || ! $payment->bankAccount?->accountingAccount) {
+            Log::warning("AccountingEntryService::fromPayrollPayment: cuenta bancaria sin cuenta contable para PayrollPayment #{$payment->id}. Asiento no generado.");
+
+            return null;
+        }
+
+        $total = round((float) $payment->total, 2);
+        $label = "Pago haberes {$payment->period_label}";
+
+        $lines = [
+            [
+                'account_code' => '2.1.07',
+                'debit' => $total,
+                'credit' => 0,
+                'description' => $label,
+            ],
+            [
+                'account_code' => $payment->bankAccount->accountingAccount->code,
+                'debit' => 0,
+                'credit' => $total,
+                'description' => $label,
+            ],
+        ];
+
+        $date = $payment->payment_date
+            ? Carbon::parse($payment->payment_date)
+            : Carbon::now();
+
+        return $this->createEntry(
+            (int) $payment->company_id,
+            $date,
+            $label,
+            $payment,
             $lines
         );
     }
