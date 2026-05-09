@@ -27,7 +27,18 @@ class A25InterfaceController extends Controller
         $this->authorize('a25.worklist');
 
         $branches = LabBranch::orderBy('name')->get(['id', 'name']);
-        $branchFilter = $request->input('lab_branch_id');
+        $branchFilter = $request->filled('lab_branch_id') ? (int) $request->input('lab_branch_id') : null;
+        if ($branchFilter && ! LabBranch::query()->whereKey($branchFilter)->exists()) {
+            $branchFilter = null;
+        }
+
+        $dateFilter = null;
+        if ($request->filled('date')) {
+            $request->validate([
+                'date' => ['required', 'date'],
+            ]);
+            $dateFilter = $request->input('date');
+        }
 
         $query = Admission::with(['patient', 'admissionTests.test', 'labBranch'])
             ->whereIn('status', ['pending', 'in_progress'])
@@ -35,6 +46,10 @@ class A25InterfaceController extends Controller
 
         if ($branchFilter) {
             $query->where('lab_branch_id', $branchFilter);
+        }
+
+        if ($dateFilter) {
+            $query->whereDate('date', $dateFilter);
         }
 
         $admissions = $query->paginate(50)->withQueryString();
@@ -47,9 +62,13 @@ class A25InterfaceController extends Controller
             $vetQuery->where('lab_branch_id', $branchFilter);
         }
 
+        if ($dateFilter) {
+            $vetQuery->whereDate('date', $dateFilter);
+        }
+
         $vetAdmissions = $vetQuery->paginate(50, ['*'], 'vet_page')->withQueryString();
 
-        return view('lab.a25.index', compact('admissions', 'vetAdmissions', 'branches', 'branchFilter'));
+        return view('lab.a25.index', compact('admissions', 'vetAdmissions', 'branches', 'branchFilter', 'dateFilter'));
     }
 
     /**

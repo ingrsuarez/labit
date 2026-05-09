@@ -40,7 +40,7 @@
                     </div>
 
                     {{-- Filtros --}}
-                    <form method="GET" action="{{ route('a25.index') }}" class="px-5 py-3 border-b border-gray-100 flex flex-wrap items-center gap-3">
+                    <form method="GET" action="{{ route('a25.index') }}" class="px-5 py-3 border-b border-gray-100 flex flex-wrap items-end gap-3">
                         <select name="lab_branch_id"
                                 onchange="this.form.submit()"
                                 class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-teal-500">
@@ -51,7 +51,17 @@
                                 </option>
                             @endforeach
                         </select>
-                        <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none">
+                        <div class="flex flex-col gap-0.5">
+                            <label for="worklist-filter-date" class="text-xs font-medium text-gray-600">Día del protocolo</label>
+                            <input id="worklist-filter-date" type="date" name="date" value="{{ $dateFilter ?? '' }}"
+                                   onchange="this.form.submit()"
+                                   class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-teal-500">
+                        </div>
+                        @if($dateFilter)
+                            <a href="{{ route('a25.index', array_filter(['lab_branch_id' => $branchFilter])) }}"
+                               class="text-xs text-teal-700 hover:underline py-2">Quitar filtro de fecha</a>
+                        @endif
+                        <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none pb-2">
                             <input type="checkbox" id="select-all" class="h-4 w-4 rounded border-gray-300 text-teal-600">
                             Seleccionar todos (clínico y veterinario)
                         </label>
