@@ -76,10 +76,8 @@
                     @can('vet-admissions.delete')
                         @php
                             $allPending = $vetAdmission->vetTests->every(fn($t) => $t->status === 'pending');
-                            $isRecepcionLabRole = auth()->user()->hasRole('recepcion-lab');
-                            $canDelete = !$isRecepcionLabRole || $allPending;
                         @endphp
-                        @if($canDelete)
+                        @if($allPending)
                             <button
                                 type="button"
                                 onclick="if(confirm('¿Eliminar este protocolo? Esta acción no se puede deshacer.')) vetDeleteAction('{{ route('vet.admissions.destroy', $vetAdmission) }}')"
