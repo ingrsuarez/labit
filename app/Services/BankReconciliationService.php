@@ -6,6 +6,7 @@ use App\Models\BankMovement;
 use App\Models\BankStatement;
 use App\Models\CollectionReceipt;
 use App\Models\PaymentOrder;
+use App\Models\PayrollPayment;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
@@ -44,7 +45,7 @@ class BankReconciliationService
         ];
     }
 
-    private function findMatch(BankMovement $movement, int $companyId): array
+    public function findMatch(BankMovement $movement, int $companyId): array
     {
         $date = $movement->date;
 
@@ -66,6 +67,45 @@ class BankReconciliationService
                     'record' => $po,
                     'label' => "OP {$po->number} — {$po->supplier->name} — $".number_format($po->total, 2, ',', '.'),
                     'reason' => $exact ? 'Monto y fecha exactos' : 'Monto exacto, fecha cercana',
+                ];
+            }
+
+            $pp = PayrollPayment::where('company_id', $companyId)
+                ->where('status', 'confirmado')
+                ->where('total', $amount)
+                ->whereBetween('payment_date', [
+                    $date->copy()->subDays(5),
+                    $date->copy()->addDays(5),
+                ])
+                ->whereDoesntHave('reconciledMovements')
+                ->first();
+
+            if ($pp) {
+                $exact = $pp->payment_date && $pp->payment_date->eq($date);
+
+                return [
+                    'confidence' => $exact ? 'exact' : 'probable',
+                    'record' => $pp,
+                    'label' => "Haberes {$pp->period_label} ({$pp->employee_count} empleados) — $".number_format((float) $pp->total, 2, ',', '.'),
+                    'reason' => $exact ? 'Monto y fecha exactos' : 'Monto exacto, fecha cercana',
+                ];
+            }
+
+            $pp = PayrollPayment::where('company_id', $companyId)
+                ->where('status', 'confirmado')
+                ->where('total', $amount)
+                ->where('year', $date->year)
+                ->where('month', $date->month)
+                ->whereNull('payment_date')
+                ->whereDoesntHave('reconciledMovements')
+                ->first();
+
+            if ($pp) {
+                return [
+                    'confidence' => 'probable',
+                    'record' => $pp,
+                    'label' => "Haberes {$pp->period_label} ({$pp->employee_count} empleados) — $".number_format((float) $pp->total, 2, ',', '.'),
+                    'reason' => 'Monto exacto, mismo período',
                 ];
             }
         }
@@ -93,6 +133,22 @@ class BankReconciliationService
         }
 
         return ['confidence' => 'none', 'record' => null, 'label' => null, 'reason' => null];
+    }
+
+    /**
+     * Pagos de haberes confirmados pendientes de conciliar con extracto.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, PayrollPayment>
+     */
+    public function getUnreconciledPayrollPayments(int $companyId)
+    {
+        return PayrollPayment::where('company_id', $companyId)
+            ->where('status', 'confirmado')
+            ->whereDoesntHave('reconciledMovements')
+            ->with('bankAccount')
+            ->orderByDesc('year')
+            ->orderByDesc('month')
+            ->get();
     }
 
     public function linkMovement(BankMovement $movement, Model $record, User $user): void
