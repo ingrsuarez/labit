@@ -399,11 +399,7 @@
                             $canValidate = auth()->user()->can('lab-results.validate');
                         @endphp
                         
-                        <form action="{{ route('lab.admissions.saveResults', $admission) }}" method="POST"
-                              x-data="{
-                                  collapsed: @json(collect(array_keys($parentMap))->mapWithKeys(fn ($id) => [(string) $id => false])->all()),
-                                  toggle(id) { this.collapsed[id] = !this.collapsed[id]; }
-                              }">
+                        <form action="{{ route('lab.admissions.saveResults', $admission) }}" method="POST">
                             @csrf
                             <div>
                                 <table class="w-full divide-y divide-gray-200">
@@ -458,8 +454,9 @@
                                                 $directParentKey = (string) ($childOf[$admissionTest->test_id] ?? '');
                                                 $grandParentKey  = ($directParentKey !== '') ? (string) ($childOf[(int) $directParentKey] ?? '') : '';
                                             @endphp
-                                            <tr @if($isChild) x-show="!collapsed['{{ $directParentKey }}']{{ $grandParentKey !== '' ? " && !collapsed['" . $grandParentKey . "']" : '' }}" @endif
-                                                @if($hasChildren) @click="toggle('{{ (string) $admissionTest->test_id }}')" @endif
+                                            <tr @if($isChild) data-group="{{ $directParentKey }}" {{ $grandParentKey !== '' ? "data-parent-group=\"{$grandParentKey}\"" : '' }} @endif
+                                                @if($hasChildren) onclick="labAccordion.toggle(this, '{{ (string) $admissionTest->test_id }}')" @endif
+                                                @if($isChild && $hasChildren) data-sub-parent-id="{{ (string) $admissionTest->test_id }}" @endif
                                                 class="{{ $hasChildren ? 'bg-teal-50' . ($level === 0 ? ' border-l-4 border-teal-500' : ' border-l-4 border-teal-300') : 'hover:bg-gray-50' }} {{ $isChild && !$hasChildren ? 'bg-gray-50/50' : '' }} {{ $admissionTest->is_validated ? 'bg-green-50' : '' }}{{ $hasChildren ? ' cursor-pointer select-none' : '' }}">
                                                 <td class="{{ $paddingLeft }} py-{{ $hasChildren ? '3' : '2' }}">
                                                     <input type="hidden" name="results[{{ $formIndex }}][id]" value="{{ $admissionTest->id }}">
@@ -468,8 +465,8 @@
                                                             <span class="text-xs text-gray-400 mr-1">└</span>
                                                         @endif
                                                         @if($hasChildren && !$isChild)
-                                                            <svg :class="collapsed['{{ (string) $admissionTest->test_id }}'] ? '-rotate-90' : 'rotate-0'"
-                                                                 class="w-4 h-4 text-teal-500 transition-transform duration-200 mr-1 flex-shrink-0"
+                                                            <svg data-chevron
+                                                                 class="w-4 h-4 text-teal-500 mr-1 flex-shrink-0 transition-transform duration-200"
                                                                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                                             </svg>
@@ -478,8 +475,8 @@
                                                             <span class="ml-2 text-xs text-teal-600">({{ $childCount }} det.)</span>
                                                             <span class="ml-2 text-xs text-gray-500">${{ number_format($admissionTest->price, 0, ',', '.') }}</span>
                                                         @elseif($isSubParent)
-                                                            <svg :class="collapsed['{{ (string) $admissionTest->test_id }}'] ? '-rotate-90' : 'rotate-0'"
-                                                                 class="w-3.5 h-3.5 text-teal-400 transition-transform duration-200 mr-1 flex-shrink-0"
+                                                            <svg data-chevron
+                                                                 class="w-3.5 h-3.5 text-teal-400 mr-1 flex-shrink-0 transition-transform duration-200"
                                                                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                                             </svg>
@@ -1097,6 +1094,47 @@
                 closeAddTestModal();
             }
         });
+    </script>
+
+    <script>
+        const labAccordion = {
+            collapsed: new Set(),
+
+            toggle(rowEl, parentId) {
+                if (this.collapsed.has(parentId)) {
+                    this.collapsed.delete(parentId);
+                } else {
+                    this.collapsed.add(parentId);
+                }
+                const isCollapsed = this.collapsed.has(parentId);
+
+                // Rotar chevron
+                const chevron = rowEl.querySelector('[data-chevron]');
+                if (chevron) {
+                    chevron.style.transform = isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+                }
+
+                // Mostrar/ocultar hijos directos
+                document.querySelectorAll('tr[data-group="' + parentId + '"]').forEach(function(child) {
+                    if (isCollapsed) {
+                        child.style.display = 'none';
+                    } else {
+                        // Solo mostrar si el padre-del-padre no está también colapsado
+                        var parentGroup = child.getAttribute('data-parent-group');
+                        if (!parentGroup || !labAccordion.collapsed.has(parentGroup)) {
+                            child.style.display = '';
+                        }
+                    }
+                    // Si este hijo también es padre (sub-padre), manejar sus hijos
+                    var subParentId = child.getAttribute('data-sub-parent-id');
+                    if (subParentId) {
+                        document.querySelectorAll('tr[data-group="' + subParentId + '"]').forEach(function(grandChild) {
+                            grandChild.style.display = (isCollapsed || labAccordion.collapsed.has(subParentId)) ? 'none' : '';
+                        });
+                    }
+                });
+            }
+        };
     </script>
 
     <!-- Modal de Email -->
