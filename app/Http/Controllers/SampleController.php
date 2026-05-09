@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\DeterminationProfileLabType;
+use App\Http\Controllers\Concerns\FiltersLabelsByMaterialsQuery;
 use App\Mail\SampleBatchMail;
 use App\Mail\SampleResultMail;
 use App\Models\Customer;
@@ -11,12 +12,15 @@ use App\Models\LabSetting;
 use App\Models\Sample;
 use App\Models\SampleDetermination;
 use App\Models\Test;
+use App\Services\BarcodeFormatService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use PDF; // mPDF facade
 
 class SampleController extends Controller
 {
+    use FiltersLabelsByMaterialsQuery;
+
     /**
      * Muestra el listado de muestras/protocolos
      */
@@ -1203,39 +1207,11 @@ class SampleController extends Controller
     {
         $this->authorize('samples-labels.print');
 
-        $sample->load(['customer', 'determinations.test.parentTests', 'determinations.test.parentTest']);
-
-        $testIdsInProtocol = $sample->determinations->pluck('test_id')->toArray();
-
-        $materials = $sample->determinations
-            ->filter(function ($det) use ($testIdsInProtocol) {
-                $test = $det->test;
-                if (! $test || is_null($test->material)) {
-                    return false;
-                }
-
-                if ($test->parentTests->isNotEmpty()) {
-                    if ($test->parentTests->pluck('id')->intersect($testIdsInProtocol)->isNotEmpty()) {
-                        return false;
-                    }
-                }
-
-                if ($test->parent && in_array($test->parent, $testIdsInProtocol)) {
-                    return false;
-                }
-
-                return true;
-            })
-            ->map(fn ($det) => $det->test->material_abbreviation)
-            ->unique()
-            ->implode('/');
+        $labels = $this->buildLabelsForPrinting($sample);
 
         return response()->json([
-            'protocol_number' => $sample->protocol_number,
-            'customer_name' => $sample->customer->name ?? 'N/A',
-            'materials' => $materials ?: 'N/A',
-            'sample_type' => strtoupper($sample->sample_type),
-            'entry_date' => $sample->entry_date->format('d/m/Y'),
+            'labels' => $labels,
+            'total_labels' => count($labels),
         ]);
     }
 
@@ -1245,52 +1221,108 @@ class SampleController extends Controller
     public function printLabel(Sample $sample)
     {
         $this->authorize('samples-labels.print');
-        $sample->load(['customer', 'determinations.test.parentTests', 'determinations.test.parentTest']);
 
-        $testIdsInProtocol = $sample->determinations->pluck('test_id')->toArray();
-
-        $materials = $sample->determinations
-            ->filter(function ($det) use ($testIdsInProtocol) {
-                $test = $det->test;
-                if (! $test || is_null($test->material)) {
-                    return false;
-                }
-
-                if ($test->parentTests->isNotEmpty()) {
-                    if ($test->parentTests->pluck('id')->intersect($testIdsInProtocol)->isNotEmpty()) {
-                        return false;
-                    }
-                }
-
-                if ($test->parent && in_array($test->parent, $testIdsInProtocol)) {
-                    return false;
-                }
-
-                return true;
-            })
-            ->map(fn ($det) => $det->test->material_abbreviation)
-            ->unique()
-            ->implode('/');
-
-        $primaryMaterial = $sample->determinations
-            ->pluck('test.material_abbreviation')
-            ->filter()
-            ->first();
-
-        $barcodeContent = \App\Services\BarcodeFormatService::forLabel(
-            $sample->protocol_number,
-            $primaryMaterial
-        );
+        $labels = $this->buildLabelsForPrinting($sample);
+        $labels = $this->filterLabelsByMaterialsQuery($labels);
 
         $barcode = new \Picqer\Barcode\BarcodeGeneratorSVG;
-        $barcodeSvg = $barcode->getBarcode($barcodeContent, $barcode::TYPE_CODE_128, 2, 60);
 
-        return view('sample.label', [
+        foreach ($labels as &$label) {
+            $abbrev = ($label['material'] ?? '') === '?' ? null : $label['material'];
+            $content = BarcodeFormatService::forLabel($sample->protocol_number, $abbrev);
+            $label['barcode_content'] = $content;
+            $label['barcode_svg'] = $barcode->getBarcode(
+                $content,
+                $barcode::TYPE_CODE_128,
+                2,
+                60
+            );
+        }
+        unset($label);
+
+        return view('sample.labels', [
             'sample' => $sample,
-            'materials' => $materials ?: 'N/A',
-            'barcodeSvg' => $barcodeSvg,
-            'barcodeContent' => $barcodeContent,
+            'labels' => $labels,
         ]);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildLabelsForPrinting(Sample $sample): array
+    {
+        $sample->load([
+            'customer',
+            'labBranch',
+            'determinations.test.parentTests',
+            'determinations.test.parentTest',
+            'determinations.test.materialRelation',
+        ]);
+
+        $testIdsInProtocol = $sample->determinations->pluck('test_id')->toArray();
+        $materialGroups = [];
+
+        foreach ($sample->determinations as $det) {
+            $test = $det->test;
+            if (! $test || is_null($test->material)) {
+                continue;
+            }
+
+            if ($test->parentTests->isNotEmpty()) {
+                if ($test->parentTests->pluck('id')->intersect($testIdsInProtocol)->isNotEmpty()) {
+                    continue;
+                }
+            }
+
+            if ($test->parent && in_array($test->parent, $testIdsInProtocol)) {
+                continue;
+            }
+
+            $mat = $test->materialRelation;
+            if (! $mat) {
+                continue;
+            }
+
+            $materialId = $mat->id;
+            if (! isset($materialGroups[$materialId])) {
+                $materialGroups[$materialId] = [
+                    'material_name' => $mat->name,
+                    'material_code' => $test->material_abbreviation,
+                ];
+            }
+        }
+
+        $branchName = $sample->labBranch?->name;
+        $sampleTypeUpper = strtoupper((string) $sample->sample_type);
+
+        $labels = [];
+        foreach ($materialGroups as $materialId => $group) {
+            $labels[] = [
+                'material_key' => (string) $materialId,
+                'protocol_number' => $sample->protocol_number,
+                'customer_name' => $sample->customer->name ?? 'N/A',
+                'material' => $group['material_code'],
+                'material_name' => $group['material_name'],
+                'sample_type' => $sampleTypeUpper,
+                'entry_date' => $sample->entry_date->format('d/m/Y'),
+                'branch_name' => $branchName ?? $sampleTypeUpper,
+            ];
+        }
+
+        if ($labels === []) {
+            $labels[] = [
+                'material_key' => 'unknown',
+                'protocol_number' => $sample->protocol_number,
+                'customer_name' => $sample->customer->name ?? 'N/A',
+                'material' => '?',
+                'material_name' => 'Sin material',
+                'sample_type' => $sampleTypeUpper,
+                'entry_date' => $sample->entry_date->format('d/m/Y'),
+                'branch_name' => $branchName ?? $sampleTypeUpper,
+            ];
+        }
+
+        return $labels;
     }
 
     private function generatePdfFilename(Sample $sample): string
