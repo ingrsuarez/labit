@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\DeterminationProfileLabType;
+use App\Http\Controllers\Concerns\FiltersLabelsByMaterialsQuery;
 use App\Mail\AdmissionResultMail;
 use App\Models\Admission;
 use App\Models\AdmissionTest;
@@ -21,6 +22,8 @@ use PDF;
 
 class LabAdmissionController extends Controller
 {
+    use FiltersLabelsByMaterialsQuery;
+
     /**
      * Listado de admisiones
      */
@@ -1204,6 +1207,7 @@ class LabAdmissionController extends Controller
         $admission->load(['patient', 'admissionTests.test.materialRelation', 'admissionTests.test.parentTests', 'labBranch']);
 
         $labels = $this->groupByMaterial($admission);
+        $labels = $this->filterLabelsByMaterialsQuery($labels);
 
         $barcode = new \Picqer\Barcode\BarcodeGeneratorSVG;
 
@@ -1258,8 +1262,9 @@ class LabAdmissionController extends Controller
 
         $branchName = $admission->labBranch?->name;
         $labels = [];
-        foreach ($materialGroups as $group) {
+        foreach ($materialGroups as $materialId => $group) {
             $labels[] = [
+                'material_key' => (string) $materialId,
                 'protocol_number' => $admission->protocol_number,
                 'customer_name' => $admission->patient?->full_name ?? 'Sin paciente',
                 'material' => $group['material_code'],
@@ -1273,6 +1278,7 @@ class LabAdmissionController extends Controller
 
         if (empty($labels)) {
             $labels[] = [
+                'material_key' => 'unknown',
                 'protocol_number' => $admission->protocol_number,
                 'customer_name' => $admission->patient?->full_name ?? 'Sin paciente',
                 'material' => '?',
