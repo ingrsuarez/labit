@@ -401,7 +401,7 @@
                         
                         <form action="{{ route('lab.admissions.saveResults', $admission) }}" method="POST"
                               x-data="{
-                                  collapsed: {},
+                                  collapsed: @json(collect(array_keys($parentMap))->mapWithKeys(fn ($id) => [(string) $id => false])->all()),
                                   parentOf: @json($childOf),
                                   toggle(id) { this.collapsed[id] = !this.collapsed[id]; },
                                   isVisible(id) {
