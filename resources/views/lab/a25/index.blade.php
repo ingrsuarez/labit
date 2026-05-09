@@ -149,7 +149,7 @@
                         <h2 class="text-base font-semibold text-gray-800">2. Importar resultados del equipo</h2>
                         <p class="text-xs text-gray-500 mt-1">
                             Subí el archivo <code class="text-xs bg-gray-100 px-1 rounded">EXP(...).txt</code>
-                            que exportó el A25. Los resultados se aplican automáticamente.
+                            que exportó el A25. Los resultados se aplican a protocolos clínicos o veterinarios según el ID de equipo configurado en cada protocolo.
                         </p>
                     </div>
                     <form action="{{ route('a25.import') }}" method="POST" enctype="multipart/form-data"

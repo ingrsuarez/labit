@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Admission;
 use App\Models\LabBranch;
+use App\Models\VetAdmission;
 use App\Services\A25\A25ResultParser;
 use App\Services\A25\A25WorklistBuilder;
 use Illuminate\Http\RedirectResponse;
@@ -131,6 +132,25 @@ class A25InterfaceController extends Controller
         ]);
 
         $admission->update([
+            'external_equipment_sample_id' => $request->external_equipment_sample_id ?: null,
+        ]);
+
+        return back()->with('success', 'ID de equipo actualizado.');
+    }
+
+    /**
+     * Asigna o actualiza el id de equipo externo en un protocolo veterinario (mismo flujo que clínico para import A25).
+     */
+    public function assignVetSampleId(Request $request, VetAdmission $vetAdmission): RedirectResponse
+    {
+        $this->authorize('a25.worklist');
+        $this->authorize('vet-admissions.edit');
+
+        $request->validate([
+            'external_equipment_sample_id' => 'nullable|string|max:50',
+        ]);
+
+        $vetAdmission->update([
             'external_equipment_sample_id' => $request->external_equipment_sample_id ?: null,
         ]);
 

@@ -100,6 +100,27 @@
             <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">{{ session('error') }}</div>
         @endif
 
+        @can('a25.worklist')
+            <div class="mb-6 bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-700">ID equipo A25</p>
+                    <p class="text-xs text-gray-500">Identificador de muestra para el analizador Biosystems A25 (import de resultados).</p>
+                </div>
+                <form action="{{ route('a25.assignVetSampleId', $vetAdmission) }}" method="POST" class="flex flex-wrap items-center gap-2">
+                    @csrf
+                    <input type="text" name="external_equipment_sample_id"
+                           value="{{ $vetAdmission->external_equipment_sample_id }}"
+                           maxlength="50"
+                           placeholder="ej. C002638S"
+                           class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm w-40 font-mono focus:ring-2 focus:ring-teal-500">
+                    <button type="submit"
+                            class="px-3 py-1.5 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700">
+                        Guardar
+                    </button>
+                </form>
+            </div>
+        @endcan
+
         @can('vet-admissions.edit')
             @if(($vetProfiles ?? collect())->isNotEmpty())
                 <div class="mb-6 p-4 bg-white border border-amber-200 rounded-xl shadow-sm">
