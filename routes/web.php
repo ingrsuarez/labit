@@ -718,6 +718,16 @@ Route::middleware([
         Route::post('payroll/liquidar-bulk', [App\Http\Controllers\PayrollController::class, 'liquidarBulk'])->name('payroll.liquidarBulk');
         Route::post('payroll/pagar-bulk', [App\Http\Controllers\PayrollController::class, 'pagarBulk'])->name('payroll.pagarBulk');
         Route::get('payroll/{payroll}/pdf', [App\Http\Controllers\PayrollController::class, 'downloadPdf'])->name('payroll.pdf');
+
+        // PAYROLL PAYMENTS (Pagos de Haberes)
+        Route::middleware('permission:payroll-payments.manage')->group(function () {
+            Route::get('payroll-payments', [App\Http\Controllers\PayrollPaymentController::class, 'index'])->name('payroll-payments.index');
+            Route::get('payroll-payments/create', [App\Http\Controllers\PayrollPaymentController::class, 'create'])->name('payroll-payments.create');
+            Route::post('payroll-payments', [App\Http\Controllers\PayrollPaymentController::class, 'store'])->name('payroll-payments.store');
+            Route::get('payroll-payments/{payrollPayment}', [App\Http\Controllers\PayrollPaymentController::class, 'show'])->name('payroll-payments.show');
+            Route::delete('payroll-payments/{payrollPayment}', [App\Http\Controllers\PayrollPaymentController::class, 'destroy'])->name('payroll-payments.destroy');
+            Route::post('payroll-payments/{payrollPayment}/confirm', [App\Http\Controllers\PayrollPaymentController::class, 'confirm'])->name('payroll-payments.confirm');
+        });
     }); // fin liquidaciones.section
 
     // =============================================

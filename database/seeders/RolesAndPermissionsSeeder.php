@@ -137,6 +137,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'payroll.bulk',
             'payroll.sac',
 
+            // PAYROLL PAYMENTS (Pagos de Haberes)
+            'payroll-payments.manage',
+
             // SALARY ITEMS (Conceptos de Liquidación)
             'salary.index',
             'salary.create',
@@ -317,6 +320,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'payroll.sac',
             'payroll.liquidar',
             'payroll.pagar',
+
+            // Payroll Payments
+            'payroll-payments.manage',
 
             // Salary Items
             'salary.index',
