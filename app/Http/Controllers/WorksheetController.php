@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Admission;
+use App\Models\LabBranch;
 use App\Models\Sample;
 use App\Models\Test;
 use App\Models\Worksheet;
+use App\Services\LabBranchResolver;
 use Illuminate\Http\Request;
 use PDF;
 
@@ -94,8 +96,13 @@ class WorksheetController extends Controller
     {
         $worksheet->load('tests');
 
+        $labBranches = LabBranchResolver::activeBranchesForForms();
+
         $preview = null;
-        $filters = $request->only(['date_from', 'date_to', 'protocol_from', 'protocol_to', 'include_without_results', 'include_with_results']);
+        $filters = $request->only([
+            'date_from', 'date_to', 'protocol_from', 'protocol_to',
+            'include_without_results', 'include_with_results', 'lab_branch_id',
+        ]);
 
         if ($request->has('preview') || $request->has('pdf')) {
             $request->validate([
@@ -103,12 +110,13 @@ class WorksheetController extends Controller
                 'date_to' => 'required|date|after_or_equal:date_from',
                 'protocol_from' => 'nullable|string',
                 'protocol_to' => 'nullable|string',
+                'lab_branch_id' => 'nullable|exists:lab_branches,id',
             ]);
 
             $preview = $this->buildPreviewData($worksheet, $request);
         }
 
-        return view('worksheets.show', compact('worksheet', 'preview', 'filters'));
+        return view('worksheets.show', compact('worksheet', 'preview', 'filters', 'labBranches'));
     }
 
     public function generatePdf(Request $request, Worksheet $worksheet)
@@ -118,6 +126,7 @@ class WorksheetController extends Controller
             'date_to' => 'required|date|after_or_equal:date_from',
             'protocol_from' => 'nullable|string',
             'protocol_to' => 'nullable|string',
+            'lab_branch_id' => 'nullable|exists:lab_branches,id',
         ]);
 
         $worksheet->load('tests');
@@ -129,6 +138,7 @@ class WorksheetController extends Controller
             'tests' => $data['tests'],
             'dateFrom' => $request->date_from,
             'dateTo' => $request->date_to,
+            'filterBranchLabel' => $this->worksheetBranchFilterLabel($request),
         ], [], [
             'orientation' => 'L',
             'format' => 'A4',
@@ -194,13 +204,18 @@ class WorksheetController extends Controller
             ->whereHas('admissionTests', function ($q) use ($testIds) {
                 $q->whereIn('test_id', $testIds);
             })
-            ->whereBetween('date', [$request->date_from, $request->date_to]);
+            ->whereDate('date', '>=', $request->date_from)
+            ->whereDate('date', '<=', $request->date_to);
 
         if ($request->filled('protocol_from')) {
             $query->where('protocol_number', '>=', $request->protocol_from);
         }
         if ($request->filled('protocol_to')) {
             $query->where('protocol_number', '<=', $request->protocol_to);
+        }
+
+        if ($request->filled('lab_branch_id')) {
+            $query->where('lab_branch_id', $request->integer('lab_branch_id'));
         }
 
         $admissions = $query->orderBy('protocol_number')->get();
@@ -242,13 +257,18 @@ class WorksheetController extends Controller
             ->whereHas('determinations', function ($q) use ($testIds) {
                 $q->whereIn('test_id', $testIds);
             })
-            ->whereBetween('entry_date', [$request->date_from, $request->date_to]);
+            ->whereDate('entry_date', '>=', $request->date_from)
+            ->whereDate('entry_date', '<=', $request->date_to);
 
         if ($request->filled('protocol_from')) {
             $query->where('protocol_number', '>=', $request->protocol_from);
         }
         if ($request->filled('protocol_to')) {
             $query->where('protocol_number', '<=', $request->protocol_to);
+        }
+
+        if ($request->filled('lab_branch_id')) {
+            $query->where('lab_branch_id', $request->integer('lab_branch_id'));
         }
 
         $samples = $query->orderBy('protocol_number')->get();
@@ -280,5 +300,22 @@ class WorksheetController extends Controller
                 'results' => $results,
             ];
         })->values();
+    }
+
+    /**
+     * Texto para cabecera PDF / contexto de filtro (todas las sedes o nombre de sede).
+     */
+    private function worksheetBranchFilterLabel(Request $request): string
+    {
+        if (! $request->filled('lab_branch_id')) {
+            return 'Todas las sedes';
+        }
+
+        $name = LabBranch::query()
+            ->active()
+            ->whereKey($request->integer('lab_branch_id'))
+            ->value('name');
+
+        return $name ?? 'Sede';
     }
 }
