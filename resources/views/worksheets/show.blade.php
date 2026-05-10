@@ -34,7 +34,7 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <h2 class="text-lg font-semibold text-gray-800 mb-4">Filtros</h2>
         <form method="GET" action="{{ route('worksheets.show', $worksheet) }}" id="filterForm">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Fecha desde</label>
                     <input type="date" name="date_from" value="{{ $filters['date_from'] ?? date('Y-m-d') }}" required
@@ -56,6 +56,24 @@
                     <input type="text" name="protocol_to" value="{{ $filters['protocol_to'] ?? '' }}"
                            placeholder="Opcional"
                            class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                </div>
+                @php
+                    $branchIds = $labBranches->pluck('id')->all();
+                    if (request()->filled('lab_branch_id')) {
+                        $selectedLabBranchId = (int) request('lab_branch_id');
+                    } else {
+                        $active = active_lab_branch_id();
+                        $selectedLabBranchId = ($active && in_array($active, $branchIds, true)) ? $active : null;
+                    }
+                @endphp
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Sede</label>
+                    <select name="lab_branch_id" class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                        <option value="" {{ $selectedLabBranchId === null ? 'selected' : '' }}>Todas las sedes</option>
+                        @foreach($labBranches as $branch)
+                            <option value="{{ $branch->id }}" {{ $selectedLabBranchId === $branch->id ? 'selected' : '' }}>{{ $branch->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
 
