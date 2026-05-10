@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-10 (ROADMAP alineado: v1.83.0 completada en repo; próxima cola sugerida v1.77.0)
+> Última actualización: 2026-05-10 (v1.77.0 alineada en ROADMAP; ver pendientes reales en `pendientes/`)
 
 ---
 
@@ -14,9 +14,9 @@
 | **Última completada (cola agente)** | **v1.85.0** — Ícono neutro de config. de práctica en protocolo lab solo para admin; `TestController::quickUpdate` con 403 para no-admin; tests `TestQuickUpdateAuthorizationTest` |
 | **Hotfix aplicado** | 2026-05-09: vet doble submit + botón Eliminar protocolo; **sesión por inactividad** (`SESSION_IDLE_TIMEOUT_MINUTES`, `users.last_activity_at`, middleware `enforce.idle`) |
 | **En proceso** | — |
-| **Próxima recomendada** | **v1.77.0** — Vista recepción-lab (`pendientes/v1.77.0-vista-recepcion-lab-leaf-crud-restringido.md`) o revisar `DISEÑO_v1.55.0-buscador-unificado-fc.md` en pendientes |
+| **Próxima recomendada** | **Auditoría de cola:** en `agent-bootstrap/prompts/pendientes/` solo queda `DISEÑO_v1.55.0-buscador-unificado-fc.md`; muchas filas “Pendiente” del ROADMAP tienen el prompt ya en `completados/`. Elegir siguiente feature por prioridad de negocio o regenerar prompts en `pendientes/`. |
 | **Pendientes en cola** | 1 (solo diseño, sin prefijo `v`) |
-| **Completadas** | 144 |
+| **Completadas** | 145 |
 
 ---
 
@@ -39,6 +39,7 @@ _Sin prompts en ejecución._
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
 | v1.85.0 | Protocolo lab clínico: ícono config práctica solo admin + `quickUpdate` restringido (403) | 2026-05-09 | v1.85.0 |
+| v1.77.0 | Vista recepción-lab: determinaciones leaf, CRUD restringido, eliminar protocolo si todo pendiente (clínico/vet/muestras) | 2026-05-10 | v1.77.0 |
 | v1.84.0 | Etiquetas: selección de materiales (modal Zebra + vía navegador `?materials=`); `labelData` muestras con `labels[]`; trait `FiltersLabelsByMaterialsQuery` | 2026-05-09 | v1.84.0 |
 | v1.83.0 | Conciliación bancaria: `PayrollPayment` en `BankReconciliationService`, filtro Haberes (PP) en panel, categoría `haberes` en extractos, vista show pago | 2026-05-09 | v1.83.0 |
 | v1.82.0 | PayrollPayment: agrupa N liquidaciones en 1 pago bancario + asiento Db 2.1.07 Sueldos a Pagar / Cr banco. Controller, vistas, permisos, 10 tests. | 2026-05-09 | v1.82.0 |

@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-09 (v1.85.0 completada — ícono config prácticas solo admin en protocolo lab)
+> Última actualización: 2026-05-10 (v1.77.0 alineada en ROADMAP; v1.85.0 ícono config admin en protocolo lab)
 
 ---
 
@@ -101,7 +101,7 @@
 | v1.67.2 | Hotfix: columna birth de pacientes (timestamp → date) | 2026-05-04 | Columna `patients.birth` de TIMESTAMP a DATE para soportar fechas pre-1970. Limpia línea duplicada en PatientController. |
 | v1.67.1 | Hotfix billing batch al cambiar empresa | 2026-05-04 | `switchCompany` redirige a `billing.uninvoiced` en vez de `redirect()->back()` cuando URL es `/billing/batch-preview` o `/billing/batch-invoice`. Mismo patrón que v1.41.1 (Libro IVA). |
 | v1.67.0 | API: catálogo de tests/determinaciones para LISCOM | 2026-05-04 | `GET /api/v1/tests?search=...&category=...`. Búsqueda por name/code, filtro por categoría, flags is_parent/is_child, material. 12 tests Feature verde. Complementa v1.47.0 para que LISCOM configure EquipmentTestMapping (v1.49.0). |
-| v1.85.0 | Protocolo lab: ícono config práctica solo admin + `quickUpdate` 403 no-admin | 2026-05-09 | `show.blade.php`, `TestController::quickUpdate`, `TestQuickUpdateAuthorizationTest` |
+| v1.77.0 | Vista recepción-lab: leaf + CRUD restringido + eliminar protocolo pendiente (clínico/vet/muestras) | 2026-05-10 | Rutas `destroy`, `removeTest`/`removeDetermination` recepción-lab, vistas `isRecepcionLab`, permisos seeder |
 
 ---
 
@@ -155,7 +155,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 | v1.82.0 | PayrollPayment: pago de haberes agrupado (N liquidaciones → 1 pago) + asiento contable automático (Db 2.1.07 Sueldos a Pagar / Cr banco) | ✅ Completada (2026-05-09) | `completados/v1.82.0-payroll-payment-pago-haberes-asiento.md` |
 | v1.83.0 | Conciliación bancaria de pagos de haberes: `PayrollPayment` como registro reconciliable, filtro "Haberes", sugerencia automática por monto+período | ✅ Completada (2026-05-09) | `completados/v1.83.0-conciliacion-bancaria-pagos-haberes.md` |
 | v1.84.0 | Etiquetas: seleccionar materiales antes de imprimir (Zebra + navegador; lab clínico, vet y muestras) | ✅ Completada (2026-05-09) | `completados/v1.84.0-etiquetas-seleccion-materiales-impresion.md` |
-| v1.77.0 | Vista recepción-lab: determinaciones leaf + CRUD restringido por estado + eliminar protocolo 100% pendiente | Pendiente | `pendientes/v1.77.0-vista-recepcion-lab-leaf-crud-restringido.md` |
+| v1.77.0 | Vista recepción-lab: determinaciones leaf + CRUD restringido por estado + eliminar protocolo 100% pendiente | ✅ Completada (en código; tag v1.77.0) | `completados/v1.77.0-vista-recepcion-lab-leaf-crud-restringido.md` |
 | v1.76.2 | Fix ingesta: key global omite validación OUT_OF_BRANCH en `ApiResultIngestionService` | ✅ Completada (2026-05-07) | `completados/v1.76.2-labit-ingestion-key-global-out-of-branch.md` |
 | v1.76.1 | API key global sin sede para LISCOM — hotfix ORPHAN multi-sede | ✅ Completada (2026-05-07) | `completados/v1.76.1-labit-api-key-global-sin-sede.md` |
 | v1.78.0 | Biosystems A25: worklist `import.txt` + import export; equivalencias nombre A25↔Labit; id muestra sin asumir legado=Labit | Pendiente | `pendientes/v1.78.0-a25-biosystems-interfaz-texto-plano.md` |
@@ -219,5 +219,5 @@ Release master: ver tags; develop incluye v1.53.0
 ---
 
 > Este documento se actualiza al finalizar cada versión o sesión de planificación.
-> Última actualización: 2026-05-10 (sincronía ROADMAP: v1.83.0 ya estaba en código y `completados/`)
+> Última actualización: 2026-05-10 (v1.77.0 marcada completada en ROADMAP; código y tag ya existían)
 
