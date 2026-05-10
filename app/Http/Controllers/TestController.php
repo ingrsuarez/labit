@@ -280,6 +280,8 @@ class TestController extends Controller
      */
     public function quickUpdate(Request $request, Test $test)
     {
+        abort_unless($request->user()->hasRole('admin'), 403);
+
         $validated = $request->validate([
             'unit' => 'nullable|string|max:50',
             'low' => 'nullable|string|max:50',
