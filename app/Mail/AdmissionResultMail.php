@@ -109,6 +109,10 @@ class AdmissionResultMail extends Mailable
             return trim($clean, '_');
         })->implode('-');
 
-        return $sanitized.'.pdf';
+        $protocolPart = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $admission->protocol_number ?? 'SinProtocolo');
+        $protocolPart = preg_replace('/[^A-Za-z0-9_-]/', '_', $protocolPart);
+        $protocolPart = preg_replace('/_+/', '_', trim($protocolPart, '_'));
+
+        return $sanitized.'-'.$protocolPart.'.pdf';
     }
 }
