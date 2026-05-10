@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-10 (v1.77.0 alineada en ROADMAP; v1.85.0 ícono config admin en protocolo lab)
+> Última actualización: 2026-05-10 (v1.86.0 completada: envío masivo clínico un correo N PDFs)
 
 ---
 
@@ -102,6 +102,7 @@
 | v1.67.1 | Hotfix billing batch al cambiar empresa | 2026-05-04 | `switchCompany` redirige a `billing.uninvoiced` en vez de `redirect()->back()` cuando URL es `/billing/batch-preview` o `/billing/batch-invoice`. Mismo patrón que v1.41.1 (Libro IVA). |
 | v1.67.0 | API: catálogo de tests/determinaciones para LISCOM | 2026-05-04 | `GET /api/v1/tests?search=...&category=...`. Búsqueda por name/code, filtro por categoría, flags is_parent/is_child, material. 12 tests Feature verde. Complementa v1.47.0 para que LISCOM configure EquipmentTestMapping (v1.49.0). |
 | v1.77.0 | Vista recepción-lab: leaf + CRUD restringido + eliminar protocolo pendiente (clínico/vet/muestras) | 2026-05-10 | Rutas `destroy`, `removeTest`/`removeDetermination` recepción-lab, vistas `isRecepcionLab`, permisos seeder |
+| v1.86.0 | Envío masivo protocolos clínicos validados: un correo con N PDFs (`AdmissionBatchMail`, `batch-email`) | 2026-05-10 | Índice admisiones: selección + FAB + modal; tests `AdmissionBatchEmailTest` |
 
 ---
 
@@ -149,6 +150,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
+| v1.86.0 | Envío masivo protocolos clínicos validados: un correo con N PDFs; destino manual u atajos obra social / mismo paciente | ✅ Completada (2026-05-10) | `completados/v1.86.0-envio-masivo-protocolos-clinicos-email.md` |
 | v1.85.0 | Protocolo lab clínico: ícono neutro de config. de práctica + visible solo admin; `quickUpdate` restringido a admin (403) | ✅ Completada (2026-05-09) | `completados/v1.85.0-protocolo-lab-icono-config-admin.md` |
 | v1.80.0 | Nombre corto / sigla en clientes y obras sociales (`short_name`, `displayName()`, vistas + PDFs + emails) | ✅ Completada (2026-05-09) | `completados/v1.80.0-nombre-corto-clientes-obras-sociales.md` |
 | v1.81.0 | Estados visuales en planilla de trabajo: ✓ pendiente / valor / tacha no pedida | ✅ Completada (2026-05-09) | `completados/v1.81.0-planilla-trabajo-estados-celda.md` |
@@ -219,5 +221,5 @@ Release master: ver tags; develop incluye v1.53.0
 ---
 
 > Este documento se actualiza al finalizar cada versión o sesión de planificación.
-> Última actualización: 2026-05-10 (v1.77.0 marcada completada en ROADMAP; código y tag ya existían)
+> Última actualización: 2026-05-10 (v1.86.0 implementada; prompts en `completados/`)
 

@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-10 (v1.77.0 alineada en ROADMAP; ver pendientes reales en `pendientes/`)
+> Última actualización: 2026-05-10 (v1.86.0 envío masivo clínico completado en código y cola agente)
 
 ---
 
@@ -9,14 +9,14 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | Tag más reciente en develop: **v1.85.0** |
+| **Versión actual (línea v1.x)** | En código local / próximo tag sugerido: **v1.86.0** |
 | **Última en master** | Release 2026-05-09: **v1.83.0** — Conciliación bancaria de pagos de haberes (`PayrollPayment`) |
-| **Última completada (cola agente)** | **v1.85.0** — Ícono neutro de config. de práctica en protocolo lab solo para admin; `TestController::quickUpdate` con 403 para no-admin; tests `TestQuickUpdateAuthorizationTest` |
+| **Última completada (cola agente)** | **v1.86.0** — Envío masivo protocolos clínicos (`AdmissionBatchMail`, `lab/admissions/batch-email`, UI índice); tests `AdmissionBatchEmailTest` |
 | **Hotfix aplicado** | 2026-05-09: vet doble submit + botón Eliminar protocolo; **sesión por inactividad** (`SESSION_IDLE_TIMEOUT_MINUTES`, `users.last_activity_at`, middleware `enforce.idle`) |
 | **En proceso** | — |
-| **Próxima recomendada** | **Auditoría de cola:** en `agent-bootstrap/prompts/pendientes/` solo queda `DISEÑO_v1.55.0-buscador-unificado-fc.md`; muchas filas “Pendiente” del ROADMAP tienen el prompt ya en `completados/`. Elegir siguiente feature por prioridad de negocio o regenerar prompts en `pendientes/`. |
+| **Próxima recomendada** | Priorizar según negocio o alinear ROADMAP con `pendientes/` (muchas filas historícas “Pendiente” ya están en `completados/`). |
 | **Pendientes en cola** | 1 (solo diseño, sin prefijo `v`) |
-| **Completadas** | 145 |
+| **Completadas** | 146 |
 
 ---
 
@@ -38,6 +38,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.86.0 | Envío masivo protocolos clínicos por email (un correo, N PDFs) | 2026-05-10 | v1.86.0 (pendiente push) |
 | v1.85.0 | Protocolo lab clínico: ícono config práctica solo admin + `quickUpdate` restringido (403) | 2026-05-09 | v1.85.0 |
 | v1.77.0 | Vista recepción-lab: determinaciones leaf, CRUD restringido, eliminar protocolo si todo pendiente (clínico/vet/muestras) | 2026-05-10 | v1.77.0 |
 | v1.84.0 | Etiquetas: selección de materiales (modal Zebra + vía navegador `?materials=`); `labelData` muestras con `labels[]`; trait `FiltersLabelsByMaterialsQuery` | 2026-05-09 | v1.84.0 |

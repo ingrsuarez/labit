@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\DeterminationProfileLabType;
 use App\Http\Controllers\Concerns\FiltersLabelsByMaterialsQuery;
+use App\Mail\AdmissionBatchMail;
 use App\Mail\AdmissionResultMail;
 use App\Models\Admission;
 use App\Models\AdmissionTest;
@@ -1095,7 +1096,7 @@ class LabAdmissionController extends Controller
             $admission->update(['sent_at' => now()]);
         }
 
-        return $pdf->download($this->generatePdfFilename($admission));
+        return $pdf->download(AdmissionResultMail::generatePdfFilename($admission));
     }
 
     public function viewPdf(Admission $admission)
@@ -1131,7 +1132,94 @@ class LabAdmissionController extends Controller
 
         $admission->logAudit('pdf_generated', 'Visualizó PDF del protocolo Nº '.$admission->protocol_number);
 
-        return $pdf->stream($this->generatePdfFilename($admission));
+        return $pdf->stream(AdmissionResultMail::generatePdfFilename($admission));
+    }
+
+    /**
+     * Envío masivo: un correo con N PDFs de protocolos con al menos una determinación validada.
+     */
+    public function batchEmail(Request $request)
+    {
+        $this->authorize('lab-admissions.show');
+
+        $validated = $request->validate([
+            'admission_ids' => 'required|array|min:1',
+            'admission_ids.*' => 'integer|exists:admissions,id',
+            'email' => 'required|email',
+            'message' => 'nullable|string',
+        ]);
+
+        $fromEmail = LabSetting::get('results_email', config('mail.from.address'));
+        $fromName = LabSetting::get('results_from_name', config('mail.from.name'));
+
+        $query = Admission::with(['patient', 'insuranceRelation', 'admissionTests.test'])
+            ->whereIn('id', $validated['admission_ids']);
+
+        if ($activeBranch = active_lab_branch_id()) {
+            $query->where(function ($q) use ($activeBranch) {
+                $q->where('lab_branch_id', $activeBranch)
+                    ->orWhereNull('lab_branch_id');
+            });
+        }
+
+        $admissions = $query->get();
+
+        $requestedIds = collect($validated['admission_ids']);
+        $foundIds = $admissions->pluck('id');
+        $missingIds = $requestedIds->diff($foundIds);
+
+        $results = [
+            'sent' => [],
+            'skipped' => [],
+            'errors' => [],
+        ];
+
+        foreach ($missingIds as $mid) {
+            $orphan = Admission::find($mid);
+            $results['skipped'][] = ($orphan?->protocol_number ?? "#{$mid}").' (sin acceso o sede)';
+        }
+
+        $eligible = $admissions->filter(fn (Admission $a) => $this->admissionCanReceiveResultsEmail($a));
+        $ineligible = $admissions->filter(fn (Admission $a) => ! $this->admissionCanReceiveResultsEmail($a));
+
+        foreach ($ineligible as $a) {
+            $results['skipped'][] = $a->protocol_number.' (sin determinaciones validadas)';
+        }
+
+        if ($eligible->isEmpty()) {
+            $results['errors'][] = 'No hay protocolos válidos para enviar.';
+
+            return response()->json($results);
+        }
+
+        try {
+            Mail::mailer('smtp')
+                ->to($validated['email'])
+                ->send(
+                    (new AdmissionBatchMail($eligible->values(), $validated['message'] ?? null))
+                        ->from($fromEmail, $fromName)
+                );
+
+            foreach ($eligible as $adm) {
+                $adm->update(['sent_at' => now()]);
+                $adm->logAudit('email_sent', 'Enviado en lote masivo a '.$validated['email']);
+                $results['sent'][] = $adm->protocol_number;
+            }
+        } catch (\Throwable $e) {
+            foreach ($eligible as $adm) {
+                $results['errors'][] = $adm->protocol_number.' (error: '.$e->getMessage().')';
+            }
+        }
+
+        return response()->json($results);
+    }
+
+    /**
+     * Misma regla que {@see sendEmail}: al menos una determinación validada.
+     */
+    private function admissionCanReceiveResultsEmail(Admission $admission): bool
+    {
+        return $admission->admissionTests->where('is_validated', true)->count() > 0;
     }
 
     public function sendEmail(Request $request, Admission $admission)
@@ -1163,27 +1251,6 @@ class LabAdmissionController extends Controller
         $admission->update(['sent_at' => now()]);
 
         return back()->with('success', 'Informe enviado correctamente a '.$validated['email']);
-    }
-
-    private function generatePdfFilename(Admission $admission): string
-    {
-        $patient = $admission->patient;
-        $fullName = trim(($patient->name ?? '').' '.($patient->lastName ?? ''));
-        $parts = [
-            $fullName ?: 'SinPaciente',
-            $patient->patientId ?? 'SinDNI',
-            $admission->date ? $admission->date->format('d-m-Y') : now()->format('d-m-Y'),
-        ];
-
-        $sanitized = collect($parts)->map(function ($part) {
-            $clean = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $part);
-            $clean = preg_replace('/[^A-Za-z0-9_-]/', '_', $clean);
-            $clean = preg_replace('/_+/', '_', $clean);
-
-            return trim($clean, '_');
-        })->implode('-');
-
-        return $sanitized.'.pdf';
     }
 
     public function labelData(Admission $admission)
