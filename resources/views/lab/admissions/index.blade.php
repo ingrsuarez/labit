@@ -118,7 +118,7 @@
                                            title="Seleccionar todos los protocolos enviables en esta página">
                                 </th>
                                 @endcan
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Protocolo</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider max-w-[12rem]">Protocolo</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paciente</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Obra Social</th>
@@ -143,25 +143,29 @@
                                                class="rounded border-gray-300 text-teal-600 focus:ring-teal-500 disabled:opacity-30">
                                     </td>
                                     @endcan
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <a href="{{ route('lab.admissions.show', $admission) }}" 
-                                           class="text-teal-600 hover:text-teal-800 font-medium">
-                                            {{ $admission->protocol_number ?? $admission->number }}
-                                        </a>
-                                        @if($admission->isInvoiced())
-                                            <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
-                                                <i class="bi bi-check-circle text-[10px] mr-0.5"></i> Fact.
-                                            </span>
-                                        @endif
-                                        @if($admission->labBranch && !$admission->labBranch->is_central)
-                                            <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                                {{ $admission->labBranch->name }}
-                                            </span>
-                                        @elseif(!$admission->lab_branch_id)
-                                            <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
-                                                Sin sede
-                                            </span>
-                                        @endif
+                                    <td class="px-4 py-4 align-top max-w-[10rem] sm:max-w-[12rem]">
+                                        <div class="flex min-w-0 flex-col gap-1.5">
+                                            <div class="flex flex-wrap items-baseline gap-x-1 gap-y-0.5">
+                                                <a href="{{ route('lab.admissions.show', $admission) }}"
+                                                   class="break-all text-teal-600 font-medium hover:text-teal-800">
+                                                    {{ $admission->protocol_number ?? $admission->number }}
+                                                </a>
+                                                @if($admission->isInvoiced())
+                                                    <span class="inline-flex shrink-0 items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+                                                        <i class="bi bi-check-circle mr-0.5 text-[10px]"></i> Fact.
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            @if($admission->labBranch && !$admission->labBranch->is_central)
+                                                <span class="inline-flex max-w-full items-center self-start rounded px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800">
+                                                    <span class="truncate" title="{{ $admission->labBranch->name }}">{{ $admission->labBranch->name }}</span>
+                                                </span>
+                                            @elseif(!$admission->lab_branch_id)
+                                                <span class="inline-flex items-center self-start rounded px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800">
+                                                    Sin sede
+                                                </span>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                         {{ $admission->formatted_date }}
