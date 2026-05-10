@@ -1372,5 +1372,15 @@
         });
     </script>
     @endif
+    @if(request()->boolean('open_email'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var modal = document.getElementById('emailModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        });
+    </script>
+    @endif
 </x-lab-layout>
 
