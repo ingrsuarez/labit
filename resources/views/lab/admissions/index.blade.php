@@ -118,7 +118,7 @@
                                            title="Seleccionar todos los protocolos enviables en esta página">
                                 </th>
                                 @endcan
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider max-w-[12rem]">Protocolo</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Protocolo</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paciente</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Obra Social</th>
@@ -143,11 +143,11 @@
                                                class="rounded border-gray-300 text-teal-600 focus:ring-teal-500 disabled:opacity-30">
                                     </td>
                                     @endcan
-                                    <td class="px-4 py-4 align-top max-w-[10rem] sm:max-w-[12rem]">
+                                    <td class="px-4 py-4 align-top">
                                         <div class="flex min-w-0 flex-col gap-1.5">
-                                            <div class="flex flex-wrap items-baseline gap-x-1 gap-y-0.5">
+                                            <div class="flex flex-nowrap items-baseline gap-x-1">
                                                 <a href="{{ route('lab.admissions.show', $admission) }}"
-                                                   class="break-all text-teal-600 font-medium hover:text-teal-800">
+                                                   class="whitespace-nowrap text-teal-600 font-medium hover:text-teal-800">
                                                     {{ $admission->protocol_number ?? $admission->number }}
                                                 </a>
                                                 @if($admission->isInvoiced())
