@@ -486,12 +486,16 @@
                                                         @else
                                                             <span class="text-xs font-medium text-gray-500 mr-2">{{ $admissionTest->test->code }}</span>
                                                             <span class="text-sm text-gray-700">{{ $admissionTest->test->name }}</span>
-                                                            @if($needsConfig || auth()->user()->hasRole('bioquimico'))
+                                                            @if(auth()->user()->hasRole('admin'))
                                                                 <button type="button"
-                                                                   onclick="openConfigModal({{ $admissionTest->test->id }}, '{{ $admissionTest->test->code }}', '{{ addslashes($admissionTest->test->name) }}', '{{ $admissionTest->test->unit }}', '{{ $admissionTest->test->low }}', '{{ $admissionTest->test->high }}', '{{ addslashes($admissionTest->test->method) }}')"
-                                                                   class="ml-2 px-1.5 py-0.5 text-xs bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
-                                                                   title="Configurar unidad y valores de referencia">
-                                                                    ⚙ Config.
+                                                                        onclick="openConfigModal({{ $admissionTest->test->id }}, '{{ $admissionTest->test->code }}', '{{ addslashes($admissionTest->test->name) }}', '{{ $admissionTest->test->unit }}', '{{ $admissionTest->test->low }}', '{{ $admissionTest->test->high }}', '{{ addslashes($admissionTest->test->method) }}')"
+                                                                        class="ml-2 inline-flex shrink-0 items-center justify-center rounded p-0.5 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1"
+                                                                        title="Configurar unidad y valores de referencia de la práctica"
+                                                                        aria-label="Configurar unidad y valores de referencia de la práctica">
+                                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                                    </svg>
                                                                 </button>
                                                             @endif
                                                             @if(!$isChild)
@@ -1365,6 +1369,16 @@
                     detail: { url: '{{ route('lab.admissions.labelData', $admission) }}' }
                 }));
             }, 500);
+        });
+    </script>
+    @endif
+    @if(request()->boolean('open_email'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var modal = document.getElementById('emailModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
         });
     </script>
     @endif

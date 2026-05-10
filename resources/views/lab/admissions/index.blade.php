@@ -1,5 +1,5 @@
 <x-lab-layout title="Admisiones">
-    <div class="py-6 px-4 md:px-6 lg:px-8 mt-14 md:mt-0">
+    <div class="py-6 px-4 md:px-6 lg:px-8 mt-14 md:mt-0" x-data="admissionBatchMail()">
         <!-- Header -->
         <div class="mb-6 flex items-center justify-between">
             <div>
@@ -86,14 +86,39 @@
             </form>
         </div>
 
+        @can('lab-admissions.show')
+        <div x-show="selectedIds.length > 0" x-cloak
+             class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 shadow-sm">
+            <p class="text-sm text-teal-900">
+                <strong><span x-text="selectedIds.length"></span></strong> protocolo(s) seleccionado(s).
+                <span class="text-teal-700">Podés enviar todos los informes en un solo correo.</span>
+            </p>
+            <button type="button" @click="openBatchModal()"
+                    class="inline-flex shrink-0 items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-medium shadow-sm">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                Enviar por email
+            </button>
+        </div>
+        @endcan
+
         <!-- Listado -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
             @if($admissions->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Protocolo</th>
+                                @can('lab-admissions.show')
+                                <th class="w-10 px-3 py-3 text-left">
+                                    <input type="checkbox" x-model="selectAll" @change="toggleAll()"
+                                           class="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                                           title="Seleccionar todos los protocolos enviables en esta página">
+                                </th>
+                                @endcan
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Protocolo</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paciente</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Obra Social</th>
@@ -106,31 +131,48 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach($admissions as $admission)
+                                @php
+                                    $validatedForBatch = $admission->admissionTests->where('is_validated', true)->count() > 0;
+                                @endphp
                                 <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <a href="{{ route('lab.admissions.show', $admission) }}" 
-                                           class="text-teal-600 hover:text-teal-800 font-medium">
-                                            {{ $admission->protocol_number ?? $admission->number }}
-                                        </a>
-                                        @if($admission->isInvoiced())
-                                            <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
-                                                <i class="bi bi-check-circle text-[10px] mr-0.5"></i> Fact.
-                                            </span>
-                                        @endif
-                                        @if($admission->labBranch && !$admission->labBranch->is_central)
-                                            <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                                {{ $admission->labBranch->name }}
-                                            </span>
-                                        @elseif(!$admission->lab_branch_id)
-                                            <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
-                                                Sin sede
-                                            </span>
-                                        @endif
+                                    @can('lab-admissions.show')
+                                    <td class="px-3 py-4 w-10 align-top pt-1.5">
+                                        <input type="checkbox" :value="{{ $admission->id }}"
+                                               x-model="selectedIds"
+                                               @if(! $validatedForBatch) disabled @endif
+                                               class="rounded border-gray-300 text-teal-600 focus:ring-teal-500 disabled:opacity-30">
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    @endcan
+                                    <td class="px-4 py-4 align-top">
+                                        <div class="flex min-w-0 flex-col items-start gap-1.5">
+                                            <div class="flex flex-nowrap items-start gap-x-1 leading-none">
+                                                <a href="{{ route('lab.admissions.show', $admission) }}"
+                                                   class="whitespace-nowrap text-teal-600 font-medium hover:text-teal-800 leading-snug">
+                                                    {{ $admission->protocol_number ?? $admission->number }}
+                                                </a>
+                                                @if($admission->isInvoiced())
+                                                    <span class="inline-flex shrink-0 items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+                                                        <i class="bi bi-check-circle mr-0.5 text-[10px]"></i> Fact.
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <div class="flex min-h-[1.75rem] w-full items-start">
+                                                @if($admission->labBranch && !$admission->labBranch->is_central)
+                                                    <span class="inline-flex max-w-full items-center self-start rounded px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 leading-tight">
+                                                        <span class="truncate" title="{{ $admission->labBranch->name }}">{{ $admission->labBranch->name }}</span>
+                                                    </span>
+                                                @elseif(!$admission->lab_branch_id)
+                                                    <span class="inline-flex items-center self-start rounded px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 leading-tight">
+                                                        Sin sede
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 align-top whitespace-nowrap text-sm text-gray-600">
                                         {{ $admission->formatted_date }}
                                     </td>
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4 align-top">
                                         <div class="text-sm font-medium text-gray-900">
                                             {{ $admission->patient?->full_name ?? 'N/A' }}
                                         </div>
@@ -138,7 +180,7 @@
                                             DNI: {{ $admission->patient?->patientId ?? 'N/A' }}
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4 align-top">
                                         <div class="text-sm text-gray-900">
                                             {{ strtoupper($admission->insuranceRelation?->displayName() ?? 'N/A') }}
                                         </div>
@@ -148,12 +190,12 @@
                                             </div>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    <td class="px-6 py-4 align-top whitespace-nowrap text-center">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
                                             {{ $admission->admissionTests->count() }}
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    <td class="px-6 py-4 align-top whitespace-nowrap text-center">
                                         @php
                                             $statusColorMap = [
                                                 'sky'    => 'bg-sky-100 text-sky-800',
@@ -169,13 +211,13 @@
                                             {{ $admission->status_label }}
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
+                                    <td class="px-6 py-4 align-top whitespace-nowrap text-sm text-right font-medium text-gray-900">
                                         ${{ number_format($admission->total_insurance, 2, ',', '.') }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600">
+                                    <td class="px-6 py-4 align-top whitespace-nowrap text-sm text-right text-gray-600">
                                         ${{ number_format($admission->total_patient + $admission->total_copago, 2, ',', '.') }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    <td class="px-6 py-4 align-top whitespace-nowrap text-right">
                                         <a href="{{ route('lab.admissions.show', $admission) }}"
                                            class="text-teal-600 hover:text-teal-800 text-sm">
                                             Ver
@@ -186,6 +228,16 @@
                                            title="Ver PDF ({{ $admission->admissionTests->where('is_validated', true)->count() }} validadas)">
                                             PDF
                                         </a>
+                                        @can('lab-admissions.show')
+                                        <a href="{{ route('lab.admissions.show', ['admission' => $admission, 'open_email' => 1]) }}"
+                                           class="text-purple-600 hover:text-purple-800 text-sm ml-2 inline-flex items-center gap-0.5"
+                                           title="Enviar informe por email">
+                                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                            </svg>
+                                            Email
+                                        </a>
+                                        @endcan
                                         @endif
                                         @can('lab-labels.print')
                                         <a href="{{ route('lab.admissions.show', ['admission' => $admission, 'print_label' => 1]) }}"
@@ -226,6 +278,223 @@
                 </div>
             @endif
         </div>
+
+        @can('lab-admissions.show')
+        @if($admissions->count() > 0)
+                <div x-show="selectedIds.length > 0" x-cloak
+                     class="fixed bottom-6 right-6 z-[100] pointer-events-none [&>*]:pointer-events-auto">
+                    <button type="button" @click="openBatchModal()"
+                            class="inline-flex items-center px-5 py-3 bg-teal-600 text-white rounded-xl shadow-lg hover:bg-teal-700 transition-colors font-medium text-sm">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                        Enviar <span x-text="selectedIds.length"></span> seleccionado(s)
+                    </button>
+                </div>
+
+                <div x-show="showBatchModal" x-cloak
+                     class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-40 p-4">
+                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Enviar informes por email</h3>
+                            <button type="button" @click="showBatchModal = false" class="text-gray-400 hover:text-gray-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <template x-if="batchToSend.length > 0">
+                            <p class="text-sm text-gray-600 mb-4">
+                                Se enviarán <strong x-text="batchToSend.length"></strong> protocolo(s) en <strong>un solo correo</strong> con todos los PDFs adjuntos.
+                            </p>
+                        </template>
+
+                        <template x-if="batchSkipped.length > 0">
+                            <div class="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                                <p class="text-sm font-medium text-yellow-800 mb-1">
+                                    Los siguientes protocolos no se incluirán (sin determinaciones validadas):
+                                </p>
+                                <ul class="text-sm text-yellow-700 list-disc list-inside">
+                                    <template x-for="row in batchSkipped" :key="row.id">
+                                        <li x-text="row.protocol_number"></li>
+                                    </template>
+                                </ul>
+                            </div>
+                        </template>
+
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Correo del destinatario</label>
+                            <input type="email" x-model="batchEmail"
+                                   class="w-full text-sm border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
+                                   placeholder="ejemplo@dominio.com"
+                                   autocomplete="email">
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                <button type="button"
+                                        class="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                        :disabled="!canUseInsuranceShortcut"
+                                        :title="canUseInsuranceShortcut ? '' : 'Los protocolos seleccionados no comparten la misma obra social o la OS no tiene email'"
+                                        @click="applyInsuranceEmail()">
+                                    Usar email de obra social
+                                </button>
+                                <button type="button"
+                                        class="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                        :disabled="!canUsePatientShortcut"
+                                        :title="canUsePatientShortcut ? '' : 'Todos los protocolos deben ser del mismo paciente con email cargado'"
+                                        @click="applyPatientEmail()">
+                                    Usar email del paciente
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mensaje para el cuerpo del correo (opcional)</label>
+                            <textarea x-model="batchMessage" rows="4"
+                                      class="w-full text-sm border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
+                                      placeholder="Texto adicional para el destinatario…"></textarea>
+                        </div>
+
+                        <div class="mb-4" x-show="batchToSend.length > 0">
+                            <p class="text-xs text-gray-500 mb-2">Todos los PDFs se adjuntarán en un solo mensaje.</p>
+                            <ul class="text-sm text-gray-700 list-disc list-inside max-h-40 overflow-y-auto">
+                                <template x-for="row in batchToSend" :key="row.id">
+                                    <li x-text="row.protocol_number"></li>
+                                </template>
+                            </ul>
+                        </div>
+
+                        <div class="flex justify-end gap-3 mt-4">
+                            <button type="button" @click="showBatchModal = false"
+                                    class="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                                Cancelar
+                            </button>
+                            <button type="button" @click="sendBatch()" :disabled="batchSending || !batchEmail || batchToSend.length === 0"
+                                    class="px-4 py-2 text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50">
+                                <span x-show="!batchSending">Enviar</span>
+                                <span x-show="batchSending">Enviando…</span>
+                            </button>
+                        </div>
+
+                        <div x-show="batchResult" x-cloak class="mt-6 pt-4 border-t border-gray-200 space-y-2">
+                            <p x-show="batchResult && batchResult.sent && batchResult.sent.length > 0" class="text-sm text-green-600"
+                               x-text="'Enviados: ' + batchResult.sent.join(', ')"></p>
+                            <p x-show="batchResult && batchResult.skipped && batchResult.skipped.length > 0" class="text-sm text-yellow-700"
+                               x-text="'Salteados: ' + batchResult.skipped.join(', ')"></p>
+                            <p x-show="batchResult && batchResult.errors && batchResult.errors.length > 0" class="text-sm text-red-600"
+                               x-text="'Errores: ' + batchResult.errors.join(', ')"></p>
+                            <button type="button" @click="batchResult = null; showBatchModal = false; window.location.reload()" class="mt-2 text-xs text-teal-600 hover:underline">
+                                Cerrar y actualizar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+        @endif
+        @endcan
+
+        @php
+            $admissionMetaJson = $admissions->map(function ($a) {
+                return [
+                    'id' => $a->id,
+                    'protocol_number' => $a->protocol_number ?? $a->number,
+                    'insurance_id' => $a->insurance,
+                    'patient_id' => $a->patient_id,
+                    'insurance_email' => $a->insuranceRelation?->email,
+                    'patient_email' => $a->patient?->email,
+                    'can_batch_send' => $a->admissionTests->where('is_validated', true)->count() > 0,
+                ];
+            })->values();
+        @endphp
+        <script>
+            function admissionBatchMail() {
+                return {
+                    selectedIds: [],
+                    selectAll: false,
+                    showBatchModal: false,
+                    batchSending: false,
+                    batchEmail: '',
+                    batchMessage: '',
+                    batchResult: null,
+                    admissionMeta: @json($admissionMetaJson),
+                    batchSkipped: [],
+                    batchToSend: [],
+
+                    toggleAll() {
+                        const eligible = this.admissionMeta.filter(a => a.can_batch_send);
+                        if (this.selectAll) {
+                            this.selectedIds = eligible.map(a => Number(a.id));
+                        } else {
+                            this.selectedIds = [];
+                        }
+                    },
+
+                    openBatchModal() {
+                        const ids = new Set(this.selectedIds.map(id => Number(id)));
+                        const selected = this.admissionMeta.filter(a => ids.has(Number(a.id)));
+                        this.batchSkipped = selected.filter(a => !a.can_batch_send);
+                        this.batchToSend = selected.filter(a => a.can_batch_send);
+                        this.batchEmail = '';
+                        this.batchMessage = '';
+                        this.batchResult = null;
+                        this.showBatchModal = true;
+                    },
+
+                    get canUseInsuranceShortcut() {
+                        const list = this.batchToSend;
+                        if (list.length === 0) return false;
+                        const id = list[0].insurance_id;
+                        const email = list[0].insurance_email;
+                        if (!email || !id) return false;
+                        return list.every(a => a.insurance_id === id);
+                    },
+
+                    get canUsePatientShortcut() {
+                        const list = this.batchToSend;
+                        if (list.length === 0) return false;
+                        const pid = list[0].patient_id;
+                        const email = list[0].patient_email;
+                        if (!pid || !email) return false;
+                        return list.every(a => a.patient_id === pid);
+                    },
+
+                    applyInsuranceEmail() {
+                        if (this.batchToSend.length && this.batchToSend[0].insurance_email) {
+                            this.batchEmail = this.batchToSend[0].insurance_email;
+                        }
+                    },
+
+                    applyPatientEmail() {
+                        if (this.batchToSend.length && this.batchToSend[0].patient_email) {
+                            this.batchEmail = this.batchToSend[0].patient_email;
+                        }
+                    },
+
+                    async sendBatch() {
+                        if (!this.batchEmail || this.batchToSend.length === 0) return;
+                        this.batchSending = true;
+                        try {
+                            const res = await fetch(@json(route('lab.admissions.batch-email')), {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                                },
+                                body: JSON.stringify({
+                                    admission_ids: this.batchToSend.map(a => a.id),
+                                    email: this.batchEmail,
+                                    message: this.batchMessage || null,
+                                }),
+                            });
+                            this.batchResult = await res.json();
+                        } catch (e) {
+                            this.batchResult = { sent: [], skipped: [], errors: ['Error de red'] };
+                        }
+                        this.batchSending = false;
+                    },
+                };
+            }
+        </script>
     </div>
 </x-lab-layout>
 

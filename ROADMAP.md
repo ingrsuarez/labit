@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-09 (v1.84.0 completada — selección de materiales al imprimir etiquetas)
+> Última actualización: 2026-05-10 (v1.86.0 completada: envío masivo clínico un correo N PDFs)
 
 ---
 
@@ -101,6 +101,8 @@
 | v1.67.2 | Hotfix: columna birth de pacientes (timestamp → date) | 2026-05-04 | Columna `patients.birth` de TIMESTAMP a DATE para soportar fechas pre-1970. Limpia línea duplicada en PatientController. |
 | v1.67.1 | Hotfix billing batch al cambiar empresa | 2026-05-04 | `switchCompany` redirige a `billing.uninvoiced` en vez de `redirect()->back()` cuando URL es `/billing/batch-preview` o `/billing/batch-invoice`. Mismo patrón que v1.41.1 (Libro IVA). |
 | v1.67.0 | API: catálogo de tests/determinaciones para LISCOM | 2026-05-04 | `GET /api/v1/tests?search=...&category=...`. Búsqueda por name/code, filtro por categoría, flags is_parent/is_child, material. 12 tests Feature verde. Complementa v1.47.0 para que LISCOM configure EquipmentTestMapping (v1.49.0). |
+| v1.77.0 | Vista recepción-lab: leaf + CRUD restringido + eliminar protocolo pendiente (clínico/vet/muestras) | 2026-05-10 | Rutas `destroy`, `removeTest`/`removeDetermination` recepción-lab, vistas `isRecepcionLab`, permisos seeder |
+| v1.86.0 | Envío masivo protocolos clínicos validados: un correo con N PDFs (`AdmissionBatchMail`, `batch-email`) | 2026-05-10 | Índice admisiones: selección + FAB + modal; tests `AdmissionBatchEmailTest` |
 
 ---
 
@@ -148,12 +150,14 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
+| v1.86.0 | Envío masivo protocolos clínicos validados: un correo con N PDFs; destino manual u atajos obra social / mismo paciente | ✅ Completada (2026-05-10) | `completados/v1.86.0-envio-masivo-protocolos-clinicos-email.md` |
+| v1.85.0 | Protocolo lab clínico: ícono neutro de config. de práctica + visible solo admin; `quickUpdate` restringido a admin (403) | ✅ Completada (2026-05-09) | `completados/v1.85.0-protocolo-lab-icono-config-admin.md` |
 | v1.80.0 | Nombre corto / sigla en clientes y obras sociales (`short_name`, `displayName()`, vistas + PDFs + emails) | ✅ Completada (2026-05-09) | `completados/v1.80.0-nombre-corto-clientes-obras-sociales.md` |
 | v1.81.0 | Estados visuales en planilla de trabajo: ✓ pendiente / valor / tacha no pedida | ✅ Completada (2026-05-09) | `completados/v1.81.0-planilla-trabajo-estados-celda.md` |
 | v1.82.0 | PayrollPayment: pago de haberes agrupado (N liquidaciones → 1 pago) + asiento contable automático (Db 2.1.07 Sueldos a Pagar / Cr banco) | ✅ Completada (2026-05-09) | `completados/v1.82.0-payroll-payment-pago-haberes-asiento.md` |
-| v1.83.0 | Conciliación bancaria de pagos de haberes: `PayrollPayment` como registro reconciliable, filtro "Haberes", sugerencia automática por monto+período | Pendiente | `pendientes/v1.83.0-conciliacion-bancaria-pagos-haberes.md` |
+| v1.83.0 | Conciliación bancaria de pagos de haberes: `PayrollPayment` como registro reconciliable, filtro "Haberes", sugerencia automática por monto+período | ✅ Completada (2026-05-09) | `completados/v1.83.0-conciliacion-bancaria-pagos-haberes.md` |
 | v1.84.0 | Etiquetas: seleccionar materiales antes de imprimir (Zebra + navegador; lab clínico, vet y muestras) | ✅ Completada (2026-05-09) | `completados/v1.84.0-etiquetas-seleccion-materiales-impresion.md` |
-| v1.77.0 | Vista recepción-lab: determinaciones leaf + CRUD restringido por estado + eliminar protocolo 100% pendiente | Pendiente | `pendientes/v1.77.0-vista-recepcion-lab-leaf-crud-restringido.md` |
+| v1.77.0 | Vista recepción-lab: determinaciones leaf + CRUD restringido por estado + eliminar protocolo 100% pendiente | ✅ Completada (en código; tag v1.77.0) | `completados/v1.77.0-vista-recepcion-lab-leaf-crud-restringido.md` |
 | v1.76.2 | Fix ingesta: key global omite validación OUT_OF_BRANCH en `ApiResultIngestionService` | ✅ Completada (2026-05-07) | `completados/v1.76.2-labit-ingestion-key-global-out-of-branch.md` |
 | v1.76.1 | API key global sin sede para LISCOM — hotfix ORPHAN multi-sede | ✅ Completada (2026-05-07) | `completados/v1.76.1-labit-api-key-global-sin-sede.md` |
 | v1.78.0 | Biosystems A25: worklist `import.txt` + import export; equivalencias nombre A25↔Labit; id muestra sin asumir legado=Labit | Pendiente | `pendientes/v1.78.0-a25-biosystems-interfaz-texto-plano.md` |
@@ -217,5 +221,5 @@ Release master: ver tags; develop incluye v1.53.0
 ---
 
 > Este documento se actualiza al finalizar cada versión o sesión de planificación.
-> Última actualización: 2026-05-09 (v1.84.0 etiquetas: selección de materiales; develop)
+> Última actualización: 2026-05-10 (v1.86.0 implementada; prompts en `completados/`)
 

@@ -45,7 +45,17 @@ class AdmissionResultMail extends Mailable
 
     public function attachments(): array
     {
-        $this->admission->load([
+        return [
+            self::makePdfAttachment($this->admission),
+        ];
+    }
+
+    /**
+     * Genera el adjunto PDF del informe clínico (reutilizado en envío individual y por lote).
+     */
+    public static function makePdfAttachment(Admission $admission): Attachment
+    {
+        $admission->load([
             'patient',
             'insuranceRelation',
             'admissionTests',
@@ -55,14 +65,14 @@ class AdmissionResultMail extends Mailable
             'creator',
         ]);
 
-        $validatorId = $this->admission->admissionTests
+        $validatorId = $admission->admissionTests
             ->where('is_validated', true)
             ->pluck('validated_by')
             ->countBy()->sortDesc()->keys()->first();
         $validator = $validatorId ? User::find($validatorId) : null;
 
         $pdf = PDF::loadView('lab.admissions.pdf-mpdf', [
-            'admission' => $this->admission,
+            'admission' => $admission,
             'validator' => $validator,
         ], [], [
             'margin_top' => 35,
@@ -71,17 +81,15 @@ class AdmissionResultMail extends Mailable
             'margin_right' => 15,
         ]);
 
-        $filename = self::generatePdfFilename($this->admission);
+        $filename = self::generatePdfFilename($admission);
 
-        return [
-            Attachment::fromData(
-                fn () => $pdf->output(),
-                $filename
-            )->withMime('application/pdf'),
-        ];
+        return Attachment::fromData(
+            fn () => $pdf->output(),
+            $filename
+        )->withMime('application/pdf');
     }
 
-    private static function generatePdfFilename(Admission $admission): string
+    public static function generatePdfFilename(Admission $admission): string
     {
         $patient = $admission->patient;
         $fullName = trim(($patient->name ?? '').' '.($patient->lastName ?? ''));
@@ -101,6 +109,10 @@ class AdmissionResultMail extends Mailable
             return trim($clean, '_');
         })->implode('-');
 
-        return $sanitized.'.pdf';
+        $protocolPart = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $admission->protocol_number ?? 'SinProtocolo');
+        $protocolPart = preg_replace('/[^A-Za-z0-9_-]/', '_', $protocolPart);
+        $protocolPart = preg_replace('/_+/', '_', trim($protocolPart, '_'));
+
+        return $sanitized.'-'.$protocolPart.'.pdf';
     }
 }
