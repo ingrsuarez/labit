@@ -136,7 +136,7 @@
                                 @endphp
                                 <tr class="hover:bg-gray-50">
                                     @can('lab-admissions.show')
-                                    <td class="px-3 py-4 w-10 align-middle">
+                                    <td class="px-3 py-4 w-10 align-top pt-1.5">
                                         <input type="checkbox" :value="{{ $admission->id }}"
                                                x-model="selectedIds"
                                                @if(! $validatedForBatch) disabled @endif
@@ -144,10 +144,10 @@
                                     </td>
                                     @endcan
                                     <td class="px-4 py-4 align-top">
-                                        <div class="flex min-w-0 flex-col gap-1.5">
-                                            <div class="flex flex-nowrap items-baseline gap-x-1">
+                                        <div class="flex min-w-0 flex-col items-start gap-1.5">
+                                            <div class="flex flex-nowrap items-start gap-x-1 leading-none">
                                                 <a href="{{ route('lab.admissions.show', $admission) }}"
-                                                   class="whitespace-nowrap text-teal-600 font-medium hover:text-teal-800">
+                                                   class="whitespace-nowrap text-teal-600 font-medium hover:text-teal-800 leading-snug">
                                                     {{ $admission->protocol_number ?? $admission->number }}
                                                 </a>
                                                 @if($admission->isInvoiced())
@@ -156,21 +156,23 @@
                                                     </span>
                                                 @endif
                                             </div>
-                                            @if($admission->labBranch && !$admission->labBranch->is_central)
-                                                <span class="inline-flex max-w-full items-center self-start rounded px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800">
-                                                    <span class="truncate" title="{{ $admission->labBranch->name }}">{{ $admission->labBranch->name }}</span>
-                                                </span>
-                                            @elseif(!$admission->lab_branch_id)
-                                                <span class="inline-flex items-center self-start rounded px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800">
-                                                    Sin sede
-                                                </span>
-                                            @endif
+                                            <div class="flex min-h-[1.75rem] w-full items-start">
+                                                @if($admission->labBranch && !$admission->labBranch->is_central)
+                                                    <span class="inline-flex max-w-full items-center self-start rounded px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 leading-tight">
+                                                        <span class="truncate" title="{{ $admission->labBranch->name }}">{{ $admission->labBranch->name }}</span>
+                                                    </span>
+                                                @elseif(!$admission->lab_branch_id)
+                                                    <span class="inline-flex items-center self-start rounded px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 leading-tight">
+                                                        Sin sede
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    <td class="px-6 py-4 align-top whitespace-nowrap text-sm text-gray-600">
                                         {{ $admission->formatted_date }}
                                     </td>
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4 align-top">
                                         <div class="text-sm font-medium text-gray-900">
                                             {{ $admission->patient?->full_name ?? 'N/A' }}
                                         </div>
@@ -178,7 +180,7 @@
                                             DNI: {{ $admission->patient?->patientId ?? 'N/A' }}
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4 align-top">
                                         <div class="text-sm text-gray-900">
                                             {{ strtoupper($admission->insuranceRelation?->displayName() ?? 'N/A') }}
                                         </div>
@@ -188,12 +190,12 @@
                                             </div>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    <td class="px-6 py-4 align-top whitespace-nowrap text-center">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
                                             {{ $admission->admissionTests->count() }}
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    <td class="px-6 py-4 align-top whitespace-nowrap text-center">
                                         @php
                                             $statusColorMap = [
                                                 'sky'    => 'bg-sky-100 text-sky-800',
@@ -209,13 +211,13 @@
                                             {{ $admission->status_label }}
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
+                                    <td class="px-6 py-4 align-top whitespace-nowrap text-sm text-right font-medium text-gray-900">
                                         ${{ number_format($admission->total_insurance, 2, ',', '.') }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600">
+                                    <td class="px-6 py-4 align-top whitespace-nowrap text-sm text-right text-gray-600">
                                         ${{ number_format($admission->total_patient + $admission->total_copago, 2, ',', '.') }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    <td class="px-6 py-4 align-top whitespace-nowrap text-right">
                                         <a href="{{ route('lab.admissions.show', $admission) }}"
                                            class="text-teal-600 hover:text-teal-800 text-sm">
                                             Ver
