@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-09 (v1.85.0: config rápida de práctica solo admin en protocolo lab — develop)
+> Última actualización: 2026-05-10 (ROADMAP alineado: v1.83.0 completada en repo; próxima cola sugerida v1.77.0)
 
 ---
 
@@ -14,7 +14,7 @@
 | **Última completada (cola agente)** | **v1.85.0** — Ícono neutro de config. de práctica en protocolo lab solo para admin; `TestController::quickUpdate` con 403 para no-admin; tests `TestQuickUpdateAuthorizationTest` |
 | **Hotfix aplicado** | 2026-05-09: vet doble submit + botón Eliminar protocolo; **sesión por inactividad** (`SESSION_IDLE_TIMEOUT_MINUTES`, `users.last_activity_at`, middleware `enforce.idle`) |
 | **En proceso** | — |
-| **Próxima recomendada** | **v1.83.0** — Conciliación bancaria de pagos de haberes (`pendientes/v1.83.0-...`) o revisar `DISEÑO_v1.55.0-buscador-unificado-fc.md` en pendientes |
+| **Próxima recomendada** | **v1.77.0** — Vista recepción-lab (`pendientes/v1.77.0-vista-recepcion-lab-leaf-crud-restringido.md`) o revisar `DISEÑO_v1.55.0-buscador-unificado-fc.md` en pendientes |
 | **Pendientes en cola** | 1 (solo diseño, sin prefijo `v`) |
 | **Completadas** | 144 |
 

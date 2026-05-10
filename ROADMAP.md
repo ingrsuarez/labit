@@ -153,7 +153,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 | v1.80.0 | Nombre corto / sigla en clientes y obras sociales (`short_name`, `displayName()`, vistas + PDFs + emails) | ✅ Completada (2026-05-09) | `completados/v1.80.0-nombre-corto-clientes-obras-sociales.md` |
 | v1.81.0 | Estados visuales en planilla de trabajo: ✓ pendiente / valor / tacha no pedida | ✅ Completada (2026-05-09) | `completados/v1.81.0-planilla-trabajo-estados-celda.md` |
 | v1.82.0 | PayrollPayment: pago de haberes agrupado (N liquidaciones → 1 pago) + asiento contable automático (Db 2.1.07 Sueldos a Pagar / Cr banco) | ✅ Completada (2026-05-09) | `completados/v1.82.0-payroll-payment-pago-haberes-asiento.md` |
-| v1.83.0 | Conciliación bancaria de pagos de haberes: `PayrollPayment` como registro reconciliable, filtro "Haberes", sugerencia automática por monto+período | Pendiente | `pendientes/v1.83.0-conciliacion-bancaria-pagos-haberes.md` |
+| v1.83.0 | Conciliación bancaria de pagos de haberes: `PayrollPayment` como registro reconciliable, filtro "Haberes", sugerencia automática por monto+período | ✅ Completada (2026-05-09) | `completados/v1.83.0-conciliacion-bancaria-pagos-haberes.md` |
 | v1.84.0 | Etiquetas: seleccionar materiales antes de imprimir (Zebra + navegador; lab clínico, vet y muestras) | ✅ Completada (2026-05-09) | `completados/v1.84.0-etiquetas-seleccion-materiales-impresion.md` |
 | v1.77.0 | Vista recepción-lab: determinaciones leaf + CRUD restringido por estado + eliminar protocolo 100% pendiente | Pendiente | `pendientes/v1.77.0-vista-recepcion-lab-leaf-crud-restringido.md` |
 | v1.76.2 | Fix ingesta: key global omite validación OUT_OF_BRANCH en `ApiResultIngestionService` | ✅ Completada (2026-05-07) | `completados/v1.76.2-labit-ingestion-key-global-out-of-branch.md` |
@@ -219,5 +219,5 @@ Release master: ver tags; develop incluye v1.53.0
 ---
 
 > Este documento se actualiza al finalizar cada versión o sesión de planificación.
-> Última actualización: 2026-05-09 (v1.85.0 mergeada a develop)
+> Última actualización: 2026-05-10 (sincronía ROADMAP: v1.83.0 ya estaba en código y `completados/`)
 
