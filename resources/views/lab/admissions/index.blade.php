@@ -86,8 +86,26 @@
             </form>
         </div>
 
+        @can('lab-admissions.show')
+        <div x-show="selectedIds.length > 0" x-cloak
+             class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 shadow-sm">
+            <p class="text-sm text-teal-900">
+                <strong><span x-text="selectedIds.length"></span></strong> protocolo(s) seleccionado(s).
+                <span class="text-teal-700">Podés enviar todos los informes en un solo correo.</span>
+            </p>
+            <button type="button" @click="openBatchModal()"
+                    class="inline-flex shrink-0 items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-medium shadow-sm">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                Enviar por email
+            </button>
+        </div>
+        @endcan
+
         <!-- Listado -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
             @if($admissions->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
@@ -223,10 +241,32 @@
                 <div class="px-6 py-4 border-t border-gray-200">
                     {{ $admissions->links() }}
                 </div>
+            @else
+                <div class="px-6 py-12 text-center">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">No hay admisiones</h3>
+                    <p class="mt-1 text-sm text-gray-500">Comience creando una nueva admisión.</p>
+                    @can('lab-admissions.create')
+                    <div class="mt-6">
+                        <a href="{{ route('lab.admissions.create') }}" 
+                           class="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            Nueva Admisión
+                        </a>
+                    </div>
+                    @endcan
+                </div>
+            @endif
+        </div>
 
-                @can('lab-admissions.show')
+        @can('lab-admissions.show')
+        @if($admissions->count() > 0)
                 <div x-show="selectedIds.length > 0" x-cloak
-                     class="fixed bottom-6 right-6 z-50">
+                     class="fixed bottom-6 right-6 z-[100] pointer-events-none [&>*]:pointer-events-auto">
                     <button type="button" @click="openBatchModal()"
                             class="inline-flex items-center px-5 py-3 bg-teal-600 text-white rounded-xl shadow-lg hover:bg-teal-700 transition-colors font-medium text-sm">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -238,7 +278,7 @@
                 </div>
 
                 <div x-show="showBatchModal" x-cloak
-                     class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
+                     class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-40 p-4">
                     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold text-gray-800">Enviar informes por email</h3>
@@ -333,28 +373,8 @@
                         </div>
                     </div>
                 </div>
-                @endcan
-            @else
-                <div class="px-6 py-12 text-center">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">No hay admisiones</h3>
-                    <p class="mt-1 text-sm text-gray-500">Comience creando una nueva admisión.</p>
-                    @can('lab-admissions.create')
-                    <div class="mt-6">
-                        <a href="{{ route('lab.admissions.create') }}" 
-                           class="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                            </svg>
-                            Nueva Admisión
-                        </a>
-                    </div>
-                    @endcan
-                </div>
-            @endif
-        </div>
+        @endif
+        @endcan
 
         @php
             $admissionMetaJson = $admissions->map(function ($a) {
@@ -386,14 +406,15 @@
                     toggleAll() {
                         const eligible = this.admissionMeta.filter(a => a.can_batch_send);
                         if (this.selectAll) {
-                            this.selectedIds = eligible.map(a => a.id);
+                            this.selectedIds = eligible.map(a => Number(a.id));
                         } else {
                             this.selectedIds = [];
                         }
                     },
 
                     openBatchModal() {
-                        const selected = this.admissionMeta.filter(a => this.selectedIds.includes(a.id));
+                        const ids = new Set(this.selectedIds.map(id => Number(id)));
+                        const selected = this.admissionMeta.filter(a => ids.has(Number(a.id)));
                         this.batchSkipped = selected.filter(a => !a.can_batch_send);
                         this.batchToSend = selected.filter(a => a.can_batch_send);
                         this.batchEmail = '';
