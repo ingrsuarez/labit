@@ -211,7 +211,8 @@ class SampleController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        $isRecepcionLab = auth()->user()->hasRole('recepcion-lab');
+        $isRecepcionLab = auth()->user()->hasRole('recepcion-lab')
+            && !auth()->user()->hasAnyRole(['bioquimico', 'tecnico-lab']);
 
         return view('sample.show', compact('sample', 'labelMaterials', 'availableTests', 'sampleProfiles', 'isRecepcionLab'));
     }

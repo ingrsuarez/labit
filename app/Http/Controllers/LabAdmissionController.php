@@ -489,7 +489,8 @@ class LabAdmissionController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        $isRecepcionLab = auth()->user()->hasRole('recepcion-lab');
+        $isRecepcionLab = auth()->user()->hasRole('recepcion-lab')
+            && !auth()->user()->hasAnyRole(['bioquimico', 'tecnico-lab']);
 
         return view('lab.admissions.show', compact('admission', 'availableTests', 'clinicalProfiles', 'isRecepcionLab'));
     }
