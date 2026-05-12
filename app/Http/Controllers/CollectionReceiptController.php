@@ -115,7 +115,12 @@ class CollectionReceiptController extends Controller
             throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
-            throw $e;
+            Log::error('Error al crear recibo de cobro: '.$e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'customer_id' => $request->input('customer_id'),
+            ]);
+
+            return redirect()->back()->withInput()->with('error', 'Ocurrió un error al guardar el recibo. Por favor intentá nuevamente.');
         }
 
         return redirect()->route('collection-receipts.show', $collectionReceipt)

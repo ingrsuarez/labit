@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-10 (v1.86.0 completada: envío masivo clínico un correo N PDFs)
+> Última actualización: 2026-05-11 (v1.90.0 planificada: notas de crédito manuales independientes)
 
 ---
 
@@ -150,6 +150,9 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
+| v1.88.0 | Auditoría completa en protocolo veterinario: 10 `logAudit()` faltantes + `<x-audit-history>` en vista show | Pendiente | `pendientes/v1.88.0-auditoria-completa-protocolo-veterinario.md` |
+| v1.89.0 | Preservar estado del formulario de recibo de cobro ante errores (Alpine.js + `old()` + catch graceful) | Pendiente | `pendientes/v1.89.0-preservar-estado-formulario-recibo-cobro.md` |
+| v1.90.0 | Notas de crédito manuales independientes: carga de NC sin factura asociada, PdV manual, sin AFIP | Pendiente | `pendientes/v1.90.0-notas-credito-manuales-independientes.md` |
 | v1.86.0 | Envío masivo protocolos clínicos validados: un correo con N PDFs; destino manual u atajos obra social / mismo paciente | ✅ Completada (2026-05-10) | `completados/v1.86.0-envio-masivo-protocolos-clinicos-email.md` |
 | v1.85.0 | Protocolo lab clínico: ícono neutro de config. de práctica + visible solo admin; `quickUpdate` restringido a admin (403) | ✅ Completada (2026-05-09) | `completados/v1.85.0-protocolo-lab-icono-config-admin.md` |
 | v1.80.0 | Nombre corto / sigla en clientes y obras sociales (`short_name`, `displayName()`, vistas + PDFs + emails) | ✅ Completada (2026-05-09) | `completados/v1.80.0-nombre-corto-clientes-obras-sociales.md` |

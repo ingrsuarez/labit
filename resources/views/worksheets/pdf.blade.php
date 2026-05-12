@@ -109,6 +109,11 @@
             &nbsp;|&nbsp;
             Generado: {{ now()->format('d/m/Y H:i') }}
         </p>
+        @isset($filterBranchLabel)
+        <p style="margin-top: 4px; font-size: 8.5pt; color: #555;">
+            Sede: {{ $filterBranchLabel }}
+        </p>
+        @endisset
     </div>
 
     @if($rows->isEmpty())

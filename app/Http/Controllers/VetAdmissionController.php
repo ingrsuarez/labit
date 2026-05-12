@@ -329,6 +329,8 @@ class VetAdmissionController extends Controller
 
         $admission->update(['total_price' => $totalPrice]);
 
+        $admission->logAudit('created', 'Creó el protocolo veterinario Nº '.$admission->protocol_number.' para '.$admission->animal_name.' ('.$admission->owner_name.')');
+
         return redirect()->route('vet.admissions.show', $admission)
             ->with('success', 'Protocolo veterinario creado. N? '.$admission->protocol_number);
     }
@@ -341,6 +343,7 @@ class VetAdmissionController extends Controller
             'vetTests.test.materialRelation',
             'creator', 'labBranch',
             'determinationProfileApplications.user',
+            'auditLogs',
         ]);
 
         $vetProfiles = DeterminationProfile::active()
@@ -348,7 +351,8 @@ class VetAdmissionController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        $isRecepcionLab = auth()->user()->hasRole('recepcion-lab');
+        $isRecepcionLab = auth()->user()->hasRole('recepcion-lab')
+            && !auth()->user()->hasAnyRole(['bioquimico', 'tecnico-lab']);
 
         return view('vet.admissions.show', compact('vetAdmission', 'vetProfiles', 'isRecepcionLab'));
     }
@@ -403,6 +407,8 @@ class VetAdmissionController extends Controller
                 $vat->update($update);
             }
         }
+
+        $vetAdmission->logAudit('results_loaded', 'Cargó resultados en protocolo veterinario Nº '.$vetAdmission->protocol_number);
 
         return redirect()->back()->with('success', 'Resultados guardados correctamente.');
     }
@@ -478,6 +484,8 @@ class VetAdmissionController extends Controller
             return redirect()->back()->with('error', 'Las pr?cticas seleccionadas ya estaban en el protocolo.');
         }
 
+        $vetAdmission->logAudit('tests_added', "Agregó {$addedCount} práctica(s) al protocolo veterinario Nº ".$vetAdmission->protocol_number);
+
         return redirect()->back()->with('success', "Se agregaron {$addedCount} pr?ctica(s) al protocolo.");
     }
 
@@ -498,6 +506,7 @@ class VetAdmissionController extends Controller
         }
 
         $test = $vetAdmissionTest->test;
+        $testName = $test->name ?? 'Desconocida';
         $removedPrice = (float) $vetAdmissionTest->price;
         $removedCount = 1;
 
@@ -524,6 +533,8 @@ class VetAdmissionController extends Controller
         $newTotal = max(0, $vetAdmission->total_price - $removedPrice);
         $vetAdmission->update(['total_price' => $newTotal]);
 
+        $vetAdmission->logAudit('test_removed', 'Eliminó práctica '.$testName.' del protocolo veterinario Nº '.$vetAdmission->protocol_number);
+
         $msg = 'Pr?ctica eliminada del protocolo.';
         if ($removedCount > 1) {
             $msg = "Se eliminaron {$removedCount} pr?cticas (padre + hijos) del protocolo.";
@@ -548,11 +559,15 @@ class VetAdmissionController extends Controller
         $vetAdmission->load(['vetTests.test.childTests']);
         $vetAdmission->update(['status' => $vetAdmission->calculated_status]);
 
+        $vetAdmission->logAudit('validated', 'Validó práctica '.$vetAdmissionTest->test->name.' en protocolo veterinario Nº '.$vetAdmission->protocol_number);
+
         return redirect()->back()->with('success', 'Pr?ctica validada.');
     }
 
     public function unvalidateTest(VetAdmission $vetAdmission, VetAdmissionTest $vetAdmissionTest)
     {
+        $testName = $vetAdmissionTest->test->name ?? 'Desconocida';
+
         $vetAdmissionTest->update([
             'is_validated' => false,
             'validated_by' => null,
@@ -565,6 +580,8 @@ class VetAdmissionController extends Controller
 
         $vetAdmission->load(['vetTests.test.childTests']);
         $vetAdmission->update(['status' => $vetAdmission->calculated_status]);
+
+        $vetAdmission->logAudit('unvalidated', 'Desvalidó práctica '.$testName.' en protocolo veterinario Nº '.$vetAdmission->protocol_number);
 
         return redirect()->back()->with('success', 'Validaci?n removida.');
     }
@@ -587,6 +604,8 @@ class VetAdmissionController extends Controller
 
         $vetAdmission->load(['vetTests.test.childTests']);
         $vetAdmission->update(['status' => $vetAdmission->calculated_status]);
+
+        $vetAdmission->logAudit('validated', "Validó {$count} prácticas en protocolo veterinario Nº ".$vetAdmission->protocol_number);
 
         return redirect()->back()->with('success', "Se validaron {$count} pr?cticas.");
     }
@@ -647,6 +666,8 @@ class VetAdmissionController extends Controller
             $vetAdmission->update(['sent_at' => now()]);
         }
 
+        $vetAdmission->logAudit('pdf_generated', 'Generó PDF del protocolo veterinario Nº '.$vetAdmission->protocol_number);
+
         return $pdf->download($this->generatePdfFilename($vetAdmission));
     }
 
@@ -675,6 +696,8 @@ class VetAdmissionController extends Controller
             'margin_right' => 15,
         ]);
 
+        $vetAdmission->logAudit('pdf_generated', 'Visualizó PDF del protocolo veterinario Nº '.$vetAdmission->protocol_number);
+
         return $pdf->stream($this->generatePdfFilename($vetAdmission));
     }
 
@@ -701,6 +724,8 @@ class VetAdmissionController extends Controller
             );
 
         $vetAdmission->update(['sent_at' => now()]);
+
+        $vetAdmission->logAudit('email_sent', 'Envió resultados por email a '.$validated['email']);
 
         return back()->with('success', 'Informe enviado correctamente a '.$validated['email']);
     }
