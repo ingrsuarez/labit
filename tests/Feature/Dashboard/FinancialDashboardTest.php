@@ -80,7 +80,7 @@ class FinancialDashboardTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('dashboard'))
-            ->assertRedirect(route('lab.section.clinico'));
+            ->assertRedirect(route('lab.dashboard'));
     }
 
     public function test_dashboard_muestra_banner_si_no_hay_empresa_activa(): void
