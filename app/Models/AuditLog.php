@@ -22,6 +22,7 @@ class AuditLog extends Model
         'App\Models\Patient' => 'Paciente',
         'App\Models\Admission' => 'Admisión',
         'App\Models\Sample' => 'Muestra',
+        'App\Models\VetAdmission' => 'Protocolo veterinario',
     ];
 
     public const ACTION_LABELS = [
@@ -36,6 +37,8 @@ class AuditLog extends Model
         'results_loaded' => ['label' => 'Carga de resultados', 'color' => 'blue'],
         'pdf_generated' => ['label' => 'PDF generado', 'color' => 'gray'],
         'email_sent' => ['label' => 'Email enviado', 'color' => 'gray'],
+        'tests_added' => ['label' => 'Prácticas agregadas', 'color' => 'emerald'],
+        'test_removed' => ['label' => 'Práctica eliminada', 'color' => 'orange'],
     ];
 
     public function user(): BelongsTo
@@ -79,6 +82,7 @@ class AuditLog extends Model
                 'App\Models\Patient' => route('patient.edit', ['id' => $this->auditable_id]),
                 'App\Models\Admission' => route('lab.admissions.show', $this->auditable_id),
                 'App\Models\Sample' => route('sample.show', $this->auditable_id),
+                'App\Models\VetAdmission' => route('vet.admissions.show', $this->auditable_id),
                 default => null,
             };
         } catch (\Throwable) {

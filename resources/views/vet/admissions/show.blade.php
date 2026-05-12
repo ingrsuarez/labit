@@ -491,6 +491,12 @@
         </div>
     </div>
 
+    @if($vetAdmission->auditLogs->count() > 0)
+    <div class="mt-6">
+        <x-audit-history :logs="$vetAdmission->auditLogs" />
+    </div>
+    @endif
+
     <!-- Modal Imprimir Etiqueta -->
     <div x-data="zebraPrintModal(@js(route('vet.admissions.label', $vetAdmission, absolute: true)))"
          @open-label-modal.window="openModal($event.detail.url)"
