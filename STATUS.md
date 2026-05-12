@@ -38,6 +38,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.93.0 | Navegación siguiente/anterior protocolo pendiente en validación (clínico/vet/muestras); tests `ProtocolPendingNavigationTest` | 2026-05-12 | — |
 | v1.92.0 | Dashboard operativo del laboratorio: KPIs, barras por estado/tipo/sede, alerta atrasados, links filtrados | 2026-05-12 | v1.92.0 |
 | v1.91.0 | Carga de resultados desde planilla de trabajo: celdas editables inline, batch save, clinico + muestras | 2026-05-12 | v1.91.0 |
 | v1.90.0 | Notas de crédito manuales independientes: carga de NC sin factura asociada, PdV manual, sin AFIP | 2026-05-12 | v1.90.0 |
@@ -271,7 +272,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-**v1.92.0 completada y mergeada a develop (2026-05-12).** Tag `v1.92.0`. No hay prompts con prefijo `v` pendientes en cola (v1.90.0 residual en pendientes ya tiene tag).
+**v1.92.0 completada y mergeada a develop (2026-05-12).** Tag `v1.92.0`. **v1.93.0 (navegación siguiente/anterior protocolo en validación):** prompt cerrado en `completados/v1.93.0-navegacion-siguiente-protocolo-validacion.md`; tests Feature `tests/Feature/ProtocolPendingNavigationTest.php`. Tag de release pendiente si aún no existe. No hay prompts con prefijo `v` pendientes en cola (v1.90.0 residual en pendientes ya tiene tag).
 
 Pendientes en cola: diseño **v1.55.0** (buscador FC); ver `pendientes/`.
 

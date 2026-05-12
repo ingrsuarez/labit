@@ -1,7 +1,7 @@
 <x-lab-layout title="Protocolo {{ $vetAdmission->protocol_number }}">
     <div class="py-6 px-4 md:px-6 lg:px-8 mt-14 md:mt-0" x-data="vetShowPage()">
         <div class="mb-6">
-            <a href="{{ route('vet.admissions.index') }}" class="text-amber-600 hover:text-amber-800 text-sm flex items-center mb-2">
+            <a href="{{ route('vet.admissions.index', request()->only(['search', 'species_id', 'customer_id', 'date_from', 'date_to', 'owner', 'animal', 'status', 'lab_branch_id'])) }}" class="text-amber-600 hover:text-amber-800 text-sm flex items-center mb-2">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
@@ -16,6 +16,20 @@
                 </div>
                 <div class="flex gap-2 flex-wrap">
                     @can('vet-admissions.edit')
+                        <div class="inline-flex shrink-0 overflow-hidden rounded-lg border border-gray-700 shadow-sm" role="group" aria-label="Navegar protocolos pendientes">
+                            <a href="{{ route('vet.admissions.previous-pending', array_merge(['vetAdmission' => $vetAdmission], request()->only(['search', 'species_id', 'customer_id', 'date_from', 'date_to', 'owner', 'animal', 'status', 'lab_branch_id']))) }}"
+                               class="inline-flex items-center gap-1 border-r border-gray-700 bg-gray-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
+                               title="Protocolo pendiente anterior">
+                                <svg class="h-4 w-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+                                Anterior
+                            </a>
+                            <a href="{{ route('vet.admissions.next-pending', array_merge(['vetAdmission' => $vetAdmission], request()->only(['search', 'species_id', 'customer_id', 'date_from', 'date_to', 'owner', 'animal', 'status', 'lab_branch_id']))) }}"
+                               class="inline-flex items-center gap-1 bg-gray-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
+                               title="Próximo protocolo pendiente">
+                                Siguiente
+                                <svg class="h-4 w-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+                            </a>
+                        </div>
                         <a href="{{ route('vet.admissions.edit', $vetAdmission) }}"
                            class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm font-medium transition-colors">
                             <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,6 +107,9 @@
             </div>
         </div>
 
+        @if(session('warning'))
+            <div class="mb-4 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg">{{ session('warning') }}</div>
+        @endif
         @if(session('success'))
             <div class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">{{ session('success') }}</div>
         @endif

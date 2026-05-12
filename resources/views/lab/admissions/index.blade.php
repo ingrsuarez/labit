@@ -23,6 +23,16 @@
             </div>
         @endif
 
+        @if(session('warning'))
+            <div class="mb-6 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg">
+                {{ session('warning') }}
+            </div>
+        @endif
+
+        @php
+            $labAdmissionNav = request()->only(['search', 'insurance', 'date_from', 'date_to', 'lab_branch_id', 'status']);
+        @endphp
+
         <!-- Filtros -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
             <form action="{{ route('lab.admissions.index') }}" method="GET" class="flex flex-wrap gap-4">
@@ -146,7 +156,7 @@
                                     <td class="px-4 py-4 align-top">
                                         <div class="flex min-w-0 flex-col items-start gap-1.5">
                                             <div class="flex flex-nowrap items-start gap-x-1 leading-none">
-                                                <a href="{{ route('lab.admissions.show', $admission) }}"
+                                                <a href="{{ route('lab.admissions.show', array_merge(['admission' => $admission], $labAdmissionNav)) }}"
                                                    class="whitespace-nowrap text-teal-600 font-medium hover:text-teal-800 leading-snug">
                                                     {{ $admission->protocol_number ?? $admission->number }}
                                                 </a>
@@ -218,7 +228,7 @@
                                         ${{ number_format($admission->total_patient + $admission->total_copago, 2, ',', '.') }}
                                     </td>
                                     <td class="px-6 py-4 align-top whitespace-nowrap text-right">
-                                        <a href="{{ route('lab.admissions.show', $admission) }}"
+                                        <a href="{{ route('lab.admissions.show', array_merge(['admission' => $admission], $labAdmissionNav)) }}"
                                            class="text-teal-600 hover:text-teal-800 text-sm">
                                             Ver
                                         </a>
@@ -229,7 +239,7 @@
                                             PDF
                                         </a>
                                         @can('lab-admissions.show')
-                                        <a href="{{ route('lab.admissions.show', ['admission' => $admission, 'open_email' => 1]) }}"
+                                        <a href="{{ route('lab.admissions.show', array_merge(['admission' => $admission, 'open_email' => 1], $labAdmissionNav)) }}"
                                            class="text-purple-600 hover:text-purple-800 text-sm ml-2 inline-flex items-center gap-0.5"
                                            title="Enviar informe por email">
                                             <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -240,7 +250,7 @@
                                         @endcan
                                         @endif
                                         @can('lab-labels.print')
-                                        <a href="{{ route('lab.admissions.show', ['admission' => $admission, 'print_label' => 1]) }}"
+                                        <a href="{{ route('lab.admissions.show', array_merge(['admission' => $admission, 'print_label' => 1], $labAdmissionNav)) }}"
                                            class="text-purple-500 hover:text-purple-700 text-sm ml-2"
                                            title="Imprimir etiquetas">
                                             <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>

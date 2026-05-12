@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\DeterminationProfileLabType;
+use App\Http\Controllers\Concerns\AppliesProtocolIndexFilters;
 use App\Http\Controllers\Concerns\FiltersLabelsByMaterialsQuery;
 use App\Mail\VetAdmissionResultMail;
 use App\Models\Customer;
@@ -18,7 +19,7 @@ use PDF;
 
 class VetAdmissionController extends Controller
 {
-    use FiltersLabelsByMaterialsQuery;
+    use AppliesProtocolIndexFilters, FiltersLabelsByMaterialsQuery;
 
     public function index(Request $request)
     {
@@ -26,60 +27,7 @@ class VetAdmissionController extends Controller
             ->orderBy('date', 'desc')
             ->orderBy('id', 'desc');
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('protocol_number', 'like', "%{$search}%")
-                    ->orWhere('animal_name', 'like', "%{$search}%")
-                    ->orWhere('owner_name', 'like', "%{$search}%")
-                    ->orWhere('breed', 'like', "%{$search}%")
-                    ->orWhereHas('customer', function ($q2) use ($search) {
-                        $q2->where('name', 'like', "%{$search}%");
-                    })
-                    ->orWhereHas('veterinarian', function ($q2) use ($search) {
-                        $q2->where('name', 'like', "%{$search}%");
-                    });
-            });
-        }
-
-        if ($request->filled('species_id')) {
-            $query->where('species_id', $request->species_id);
-        }
-
-        if ($request->filled('customer_id')) {
-            $query->where('customer_id', $request->customer_id);
-        }
-
-        if ($request->filled('date_from')) {
-            $query->whereDate('date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('date', '<=', $request->date_to);
-        }
-
-        if ($request->filled('owner')) {
-            $query->where('owner_name', 'like', '%'.$request->owner.'%');
-        }
-
-        if ($request->filled('animal')) {
-            $query->where('animal_name', 'like', '%'.$request->animal.'%');
-        }
-
-        if ($request->filled('lab_branch_id')) {
-            if ($request->lab_branch_id === 'all') {
-                // No filtrar ? se ven todos
-            } elseif ($request->lab_branch_id === 'none') {
-                $query->whereNull('lab_branch_id');
-            } else {
-                $query->where('lab_branch_id', $request->lab_branch_id);
-            }
-        } elseif ($activeBranch = active_lab_branch_id()) {
-            $query->where(function ($q) use ($activeBranch) {
-                $q->where('lab_branch_id', $activeBranch)
-                    ->orWhereNull('lab_branch_id');
-            });
-        }
+        $this->applyVetAdmissionIndexFilters($request, $query);
 
         $admissions = $query->paginate(20)->withQueryString();
         $species = Species::where('is_active', true)->orderBy('name')->get();
@@ -352,9 +300,75 @@ class VetAdmissionController extends Controller
             ->get(['id', 'name']);
 
         $isRecepcionLab = auth()->user()->hasRole('recepcion-lab')
-            && !auth()->user()->hasAnyRole(['bioquimico', 'tecnico-lab']);
+            && ! auth()->user()->hasAnyRole(['bioquimico', 'tecnico-lab']);
 
         return view('vet.admissions.show', compact('vetAdmission', 'vetProfiles', 'isRecepcionLab'));
+    }
+
+    /**
+     * Siguiente protocolo veterinario elegible (no validado, no enviado) según filtros vivos y protocol_number ascendente.
+     */
+    public function nextPendingVetAdmission(Request $request, VetAdmission $vetAdmission)
+    {
+        if (! auth()->user()->can('vet-admissions.edit')) {
+            abort(403);
+        }
+
+        $nav = $this->vetAdmissionNavigationQuery($request);
+
+        $query = VetAdmission::query();
+        $this->applyVetAdmissionIndexFilters($request, $query);
+        $query->whereNull('sent_at')
+            ->where(function ($q) {
+                $q->whereNull('status')
+                    ->orWhereNotIn('status', ['validated', 'cancelled']);
+            });
+
+        $next = (clone $query)
+            ->where('protocol_number', '>', $vetAdmission->protocol_number)
+            ->orderBy('protocol_number')
+            ->orderBy('id')
+            ->first();
+
+        if (! $next) {
+            return redirect()->route('vet.admissions.index', $nav)
+                ->with('warning', 'No hay siguiente protocolo pendiente (sin validar ni enviar) con estos filtros.');
+        }
+
+        return redirect()->route('vet.admissions.show', array_merge(['vetAdmission' => $next], $nav));
+    }
+
+    /**
+     * Protocolo veterinario pendiente anterior (mismos filtros; protocol_number menor).
+     */
+    public function previousPendingVetAdmission(Request $request, VetAdmission $vetAdmission)
+    {
+        if (! auth()->user()->can('vet-admissions.edit')) {
+            abort(403);
+        }
+
+        $nav = $this->vetAdmissionNavigationQuery($request);
+
+        $query = VetAdmission::query();
+        $this->applyVetAdmissionIndexFilters($request, $query);
+        $query->whereNull('sent_at')
+            ->where(function ($q) {
+                $q->whereNull('status')
+                    ->orWhereNotIn('status', ['validated', 'cancelled']);
+            });
+
+        $previous = (clone $query)
+            ->where('protocol_number', '<', $vetAdmission->protocol_number)
+            ->orderByDesc('protocol_number')
+            ->orderByDesc('id')
+            ->first();
+
+        if (! $previous) {
+            return redirect()->route('vet.admissions.index', $nav)
+                ->with('warning', 'No hay anterior protocolo pendiente (sin validar ni enviar) con estos filtros.');
+        }
+
+        return redirect()->route('vet.admissions.show', array_merge(['vetAdmission' => $previous], $nav));
     }
 
     public function loadResults(Request $request, VetAdmission $vetAdmission)

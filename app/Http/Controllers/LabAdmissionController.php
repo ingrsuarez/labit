@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\DeterminationProfileLabType;
+use App\Http\Controllers\Concerns\AppliesProtocolIndexFilters;
 use App\Http\Controllers\Concerns\FiltersLabelsByMaterialsQuery;
 use App\Mail\AdmissionBatchMail;
 use App\Mail\AdmissionResultMail;
@@ -23,7 +24,7 @@ use PDF;
 
 class LabAdmissionController extends Controller
 {
-    use FiltersLabelsByMaterialsQuery;
+    use AppliesProtocolIndexFilters, FiltersLabelsByMaterialsQuery;
 
     /**
      * Listado de admisiones
@@ -35,53 +36,7 @@ class LabAdmissionController extends Controller
             ->orderBy('date', 'desc')
             ->orderBy('id', 'desc');
 
-        // Filtros
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('protocol_number', 'like', "%{$search}%")
-                    ->orWhereHas('patient', function ($q2) use ($search) {
-                        $q2->where('name', 'like', "%{$search}%")
-                            ->orWhere('lastName', 'like', "%{$search}%")
-                            ->orWhere('patientId', 'like', "%{$search}%");
-                    });
-            });
-        }
-
-        if ($request->filled('insurance')) {
-            $query->where('insurance', $request->insurance);
-        }
-
-        if ($request->filled('date_from')) {
-            $query->whereDate('date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('date', '<=', $request->date_to);
-        }
-
-        if ($request->filled('lab_branch_id')) {
-            if ($request->lab_branch_id === 'all') {
-                // No filtrar — se ven todos
-            } elseif ($request->lab_branch_id === 'none') {
-                $query->whereNull('lab_branch_id');
-            } else {
-                $query->where('lab_branch_id', $request->lab_branch_id);
-            }
-        } elseif ($activeBranch = active_lab_branch_id()) {
-            $query->where(function ($q) use ($activeBranch) {
-                $q->where('lab_branch_id', $activeBranch)
-                    ->orWhereNull('lab_branch_id');
-            });
-        }
-
-        if ($request->filled('status')) {
-            if ($request->status === 'enviado') {
-                $query->where('status', 'validated')->whereNotNull('sent_at');
-            } else {
-                $query->where('status', $request->status);
-            }
-        }
+        $this->applyLabAdmissionIndexFilters($request, $query);
 
         $admissions = $query->paginate(20)->withQueryString();
         $insurances = Insurance::where('type', '!=', 'nomenclador')
@@ -490,9 +445,67 @@ class LabAdmissionController extends Controller
             ->get(['id', 'name']);
 
         $isRecepcionLab = auth()->user()->hasRole('recepcion-lab')
-            && !auth()->user()->hasAnyRole(['bioquimico', 'tecnico-lab']);
+            && ! auth()->user()->hasAnyRole(['bioquimico', 'tecnico-lab']);
 
         return view('lab.admissions.show', compact('admission', 'availableTests', 'clinicalProfiles', 'isRecepcionLab'));
+    }
+
+    /**
+     * Siguiente protocolo clínico elegible (no validado, no enviado) según filtros vivos del listado y orden ascendente de protocol_number.
+     */
+    public function nextPendingAdmission(Request $request, Admission $admission)
+    {
+        $this->authorize('lab-admissions.show');
+
+        $nav = $this->labAdmissionNavigationQuery($request);
+
+        $query = Admission::query();
+        $this->applyLabAdmissionIndexFilters($request, $query);
+        $query->where('status', '!=', Admission::STATUS_VALIDATED)
+            ->whereNull('sent_at')
+            ->where('status', '!=', Admission::STATUS_CANCELLED);
+
+        $next = (clone $query)
+            ->where('protocol_number', '>', $admission->protocol_number)
+            ->orderBy('protocol_number')
+            ->orderBy('id')
+            ->first();
+
+        if (! $next) {
+            return redirect()->route('lab.admissions.index', $nav)
+                ->with('warning', 'No hay siguiente protocolo pendiente (sin validar ni enviar) con estos filtros.');
+        }
+
+        return redirect()->route('lab.admissions.show', array_merge(['admission' => $next], $nav));
+    }
+
+    /**
+     * Protocolo clínico pendiente anterior (mismos filtros; protocol_number descendente respecto del actual).
+     */
+    public function previousPendingAdmission(Request $request, Admission $admission)
+    {
+        $this->authorize('lab-admissions.show');
+
+        $nav = $this->labAdmissionNavigationQuery($request);
+
+        $query = Admission::query();
+        $this->applyLabAdmissionIndexFilters($request, $query);
+        $query->where('status', '!=', Admission::STATUS_VALIDATED)
+            ->whereNull('sent_at')
+            ->where('status', '!=', Admission::STATUS_CANCELLED);
+
+        $previous = (clone $query)
+            ->where('protocol_number', '<', $admission->protocol_number)
+            ->orderByDesc('protocol_number')
+            ->orderByDesc('id')
+            ->first();
+
+        if (! $previous) {
+            return redirect()->route('lab.admissions.index', $nav)
+                ->with('warning', 'No hay anterior protocolo pendiente (sin validar ni enviar) con estos filtros.');
+        }
+
+        return redirect()->route('lab.admissions.show', array_merge(['admission' => $previous], $nav));
     }
 
     /**
