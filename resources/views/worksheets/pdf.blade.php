@@ -135,13 +135,13 @@
                 <td class="protocol-col">{{ $row['protocol'] }}</td>
                 <td class="name-col">{{ $row['name'] }}</td>
                 @foreach($tests as $test)
-                @php $val = $row['results'][$test->id] ?? null; @endphp
-                @if($val === null)
+                @php $cell = $row['results'][$test->id] ?? null; @endphp
+                @if($cell === null)
                     <td class="cell-not-ordered"></td>
-                @elseif($val === '')
+                @elseif($cell['value'] === '')
                     <td class="cell-pending">✓</td>
                 @else
-                    <td>{{ $val }}</td>
+                    <td>{{ $cell['value'] }}</td>
                 @endif
                 @endforeach
             </tr>

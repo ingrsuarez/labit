@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Admission;
+use App\Models\AdmissionTest;
 use App\Models\LabBranch;
 use App\Models\Sample;
+use App\Models\SampleDetermination;
 use App\Models\Test;
 use App\Models\Worksheet;
 use App\Services\LabBranchResolver;
@@ -238,7 +240,11 @@ class WorksheetController extends Controller
             $results = [];
             foreach ($testIds as $testId) {
                 $at = $admission->admissionTests->where('test_id', $testId)->first();
-                $results[$testId] = $at ? ($at->result ?? '') : null;
+                $results[$testId] = $at ? [
+                    'id' => $at->id,
+                    'value' => $at->result ?? '',
+                    'is_validated' => (bool) $at->is_validated,
+                ] : null;
             }
 
             return [
@@ -291,7 +297,11 @@ class WorksheetController extends Controller
             $results = [];
             foreach ($testIds as $testId) {
                 $det = $sample->determinations->where('test_id', $testId)->first();
-                $results[$testId] = $det ? ($det->result ?? '') : null;
+                $results[$testId] = $det ? [
+                    'id' => $det->id,
+                    'value' => $det->result ?? '',
+                    'is_validated' => (bool) $det->is_validated,
+                ] : null;
             }
 
             return [
@@ -302,9 +312,74 @@ class WorksheetController extends Controller
         })->values();
     }
 
-    /**
-     * Texto para cabecera PDF / contexto de filtro (todas las sedes o nombre de sede).
-     */
+    public function saveResults(Request $request, Worksheet $worksheet)
+    {
+        if ($worksheet->type === 'clinico') {
+            $this->authorize('lab-results.create');
+        } else {
+            $this->authorize('samples-results.create');
+        }
+
+        $input = $request->input('results', []);
+        if (empty($input)) {
+            return redirect()->back()->with('info', 'No hay resultados para guardar.');
+        }
+
+        $saved = 0;
+
+        if ($worksheet->type === 'clinico') {
+            $admissionIds = collect();
+
+            foreach ($input as $id => $value) {
+                $at = AdmissionTest::find($id);
+                if (! $at || $at->is_validated) {
+                    continue;
+                }
+
+                $result = trim($value) !== '' ? trim($value) : null;
+                $at->update(['result' => $result]);
+                $admissionIds->push($at->admission_id);
+                $saved++;
+            }
+
+            foreach ($admissionIds->unique() as $admId) {
+                $admission = Admission::with('admissionTests')->find($admId);
+                if ($admission) {
+                    $admission->update(['status' => $admission->calculated_status]);
+                }
+            }
+        } else {
+            foreach ($input as $id => $value) {
+                $det = SampleDetermination::find($id);
+                if (! $det || $det->is_validated) {
+                    continue;
+                }
+
+                $result = trim($value) !== '' ? trim($value) : null;
+                $hasResult = $result !== null;
+
+                $update = ['result' => $result];
+
+                if ($hasResult) {
+                    $update['status'] = 'completed';
+                    if (! $det->analyzed_at) {
+                        $update['analyzed_at'] = now();
+                        $update['analyzed_by'] = auth()->id();
+                    }
+                } else {
+                    $update['status'] = 'pending';
+                    $update['analyzed_at'] = null;
+                    $update['analyzed_by'] = null;
+                }
+
+                $det->update($update);
+                $saved++;
+            }
+        }
+
+        return redirect()->back()->with('success', "{$saved} resultado(s) guardado(s) correctamente.");
+    }
+
     private function worksheetBranchFilterLabel(Request $request): string
     {
         if (! $request->filled('lab_branch_id')) {
