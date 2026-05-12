@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-11 (v1.90.0 planificada: notas de crédito manuales independientes)
+> Última actualización: 2026-05-12 (v1.93.0 completada: navegación siguiente/anterior protocolo en validación)
 
 ---
 
@@ -103,6 +103,7 @@
 | v1.67.0 | API: catálogo de tests/determinaciones para LISCOM | 2026-05-04 | `GET /api/v1/tests?search=...&category=...`. Búsqueda por name/code, filtro por categoría, flags is_parent/is_child, material. 12 tests Feature verde. Complementa v1.47.0 para que LISCOM configure EquipmentTestMapping (v1.49.0). |
 | v1.77.0 | Vista recepción-lab: leaf + CRUD restringido + eliminar protocolo pendiente (clínico/vet/muestras) | 2026-05-10 | Rutas `destroy`, `removeTest`/`removeDetermination` recepción-lab, vistas `isRecepcionLab`, permisos seeder |
 | v1.86.0 | Envío masivo protocolos clínicos validados: un correo con N PDFs (`AdmissionBatchMail`, `batch-email`) | 2026-05-10 | Índice admisiones: selección + FAB + modal; tests `AdmissionBatchEmailTest` |
+| v1.93.0 | Navegación siguiente/anterior protocolo pendiente en validación (clínico/vet/muestras): filtros vivos, `protocol_number`, rutas `next-pending`/`previous-pending`, concern `AppliesProtocolIndexFilters` | 2026-05-12 | Tests `ProtocolPendingNavigationTest` |
 
 ---
 
@@ -150,6 +151,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
+| v1.93.0 | Navegación “Siguiente protocolo” en validación: filtros vivos del listado, no validado ni enviado, orden ascendente `protocol_number` (clínico + vet + muestras) | ✅ Completada (2026-05-12) | `completados/v1.93.0-navegacion-siguiente-protocolo-validacion.md` |
 | v1.92.0 | Dashboard operativo del laboratorio: KPIs, barras por estado/tipo/sede, alerta atrasados, links filtrados | Pendiente | `pendientes/v1.92.0-dashboard-operativo-laboratorio.md` |
 | v1.88.0 | Auditoría completa en protocolo veterinario: 10 `logAudit()` faltantes + `<x-audit-history>` en vista show | Pendiente | `pendientes/v1.88.0-auditoria-completa-protocolo-veterinario.md` |
 | v1.89.0 | Preservar estado del formulario de recibo de cobro ante errores (Alpine.js + `old()` + catch graceful) | Pendiente | `pendientes/v1.89.0-preservar-estado-formulario-recibo-cobro.md` |
@@ -225,5 +227,5 @@ Release master: ver tags; develop incluye v1.53.0
 ---
 
 > Este documento se actualiza al finalizar cada versión o sesión de planificación.
-> Última actualización: 2026-05-12 (v1.92.0 planificada: dashboard operativo del laboratorio)
+> Última actualización: 2026-05-12 (v1.93.0 completada; v1.92.0 planificada: dashboard operativo del laboratorio)
 

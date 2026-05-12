@@ -238,6 +238,8 @@ Route::middleware([
         Route::get('lab/admissions/search-patients', [App\Http\Controllers\LabAdmissionController::class, 'searchPatients'])->name('lab.admissions.searchPatients');
         Route::get('lab/admissions/search-tests', [App\Http\Controllers\LabAdmissionController::class, 'searchTests'])->name('lab.admissions.searchTests');
         Route::get('lab/admissions/test-price', [App\Http\Controllers\LabAdmissionController::class, 'getTestPrice'])->name('lab.admissions.getTestPrice');
+        Route::get('lab/admissions/{admission}/next-pending', [App\Http\Controllers\LabAdmissionController::class, 'nextPendingAdmission'])->name('lab.admissions.next-pending');
+        Route::get('lab/admissions/{admission}/previous-pending', [App\Http\Controllers\LabAdmissionController::class, 'previousPendingAdmission'])->name('lab.admissions.previous-pending');
         Route::get('lab/admissions/{admission}', [App\Http\Controllers\LabAdmissionController::class, 'show'])->name('lab.admissions.show');
         Route::get('lab/admissions/{admission}/edit', [App\Http\Controllers\LabAdmissionController::class, 'edit'])->name('lab.admissions.edit');
         Route::delete('lab/admissions/{admission}', [App\Http\Controllers\LabAdmissionController::class, 'destroy'])->name('lab.admissions.destroy');
@@ -300,6 +302,8 @@ Route::middleware([
         Route::post('determination-profiles/preview', [App\Http\Controllers\DeterminationProfileController::class, 'previewVet'])->name('vet.determination-profiles.preview');
         Route::get('admissions/search-tests', [App\Http\Controllers\VetAdmissionController::class, 'searchTests'])->name('vet.admissions.searchTests');
         Route::post('admissions', [App\Http\Controllers\VetAdmissionController::class, 'store'])->name('vet.admissions.store');
+        Route::get('admissions/{vetAdmission}/next-pending', [App\Http\Controllers\VetAdmissionController::class, 'nextPendingVetAdmission'])->name('vet.admissions.next-pending');
+        Route::get('admissions/{vetAdmission}/previous-pending', [App\Http\Controllers\VetAdmissionController::class, 'previousPendingVetAdmission'])->name('vet.admissions.previous-pending');
         Route::get('admissions/{vetAdmission}', [App\Http\Controllers\VetAdmissionController::class, 'show'])->name('vet.admissions.show');
         Route::get('admissions/{vetAdmission}/edit', [App\Http\Controllers\VetAdmissionController::class, 'edit'])->name('vet.admissions.edit');
         Route::delete('admissions/{vetAdmission}', [App\Http\Controllers\VetAdmissionController::class, 'destroy'])->name('vet.admissions.destroy');
@@ -349,6 +353,8 @@ Route::middleware([
         Route::post('sample', [App\Http\Controllers\SampleController::class, 'store'])->name('sample.store');
         Route::post('sample/batch-email', [App\Http\Controllers\SampleController::class, 'batchEmail'])
             ->name('sample.batch-email');
+        Route::get('sample/{sample}/next-pending', [App\Http\Controllers\SampleController::class, 'nextPendingSample'])->name('sample.next-pending');
+        Route::get('sample/{sample}/previous-pending', [App\Http\Controllers\SampleController::class, 'previousPendingSample'])->name('sample.previous-pending');
         Route::get('sample/{sample}', [App\Http\Controllers\SampleController::class, 'show'])->name('sample.show');
         Route::get('sample/{sample}/edit', [App\Http\Controllers\SampleController::class, 'edit'])->name('sample.edit');
         Route::delete('sample/{sample}', [App\Http\Controllers\SampleController::class, 'destroy'])->name('sample.destroy');

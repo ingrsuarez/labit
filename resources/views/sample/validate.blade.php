@@ -3,7 +3,7 @@
         <!-- Header -->
         <div class="flex flex-col md:flex-row md:items-start md:justify-between mb-6">
             <div>
-                <a href="{{ route('sample.show', $sample) }}" class="text-teal-600 hover:text-teal-800 text-sm flex items-center mb-2">
+                <a href="{{ route('sample.show', array_merge(['sample' => $sample], request()->only(['search', 'sample_type', 'list_status', 'lab_branch_id']))) }}" class="text-teal-600 hover:text-teal-800 text-sm flex items-center mb-2">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
@@ -13,6 +13,22 @@
                 <p class="text-gray-600 mt-1">{{ $sample->protocol_number }} - {{ $sample->customer->name ?? 'N/A' }}</p>
             </div>
             <div class="mt-4 md:mt-0 flex items-center gap-3">
+                @can('samples-results.validate')
+                <div class="inline-flex shrink-0 overflow-hidden rounded-lg border border-gray-700 shadow-sm" role="group" aria-label="Navegar protocolos pendientes">
+                    <a href="{{ route('sample.previous-pending', array_merge(['sample' => $sample, 'redirect_to' => 'validate'], request()->only(['search', 'sample_type', 'list_status', 'lab_branch_id']))) }}"
+                       class="inline-flex items-center gap-1 border-r border-gray-700 bg-gray-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
+                       title="Protocolo pendiente anterior">
+                        <svg class="h-4 w-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+                        Anterior
+                    </a>
+                    <a href="{{ route('sample.next-pending', array_merge(['sample' => $sample, 'redirect_to' => 'validate'], request()->only(['search', 'sample_type', 'list_status', 'lab_branch_id']))) }}"
+                       class="inline-flex items-center gap-1 bg-gray-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
+                       title="Próximo protocolo pendiente">
+                        Siguiente
+                        <svg class="h-4 w-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+                @endcan
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                     {{ $sample->sample_type == 'agua' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800' }}">
                     {{ ucfirst($sample->sample_type) }}
@@ -36,6 +52,12 @@
         </div>
 
         <!-- Alertas -->
+        @if(session('warning'))
+            <div class="mb-4 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg flex items-center">
+                {{ session('warning') }}
+            </div>
+        @endif
+
         @if(session('success'))
             <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

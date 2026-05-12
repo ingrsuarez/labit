@@ -3,7 +3,7 @@
         <!-- Header -->
         <div class="mb-6">
             <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                <a href="{{ route('lab.admissions.index') }}" class="hover:text-teal-600">Admisiones</a>
+                <a href="{{ route('lab.admissions.index', request()->only(['search', 'insurance', 'date_from', 'date_to', 'lab_branch_id', 'status'])) }}" class="hover:text-teal-600">Admisiones</a>
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
@@ -55,6 +55,24 @@
                     </button>
                     @endcan
                     @can('lab-admissions.edit')
+                    <div class="inline-flex shrink-0 overflow-hidden rounded-lg border border-gray-700 shadow-sm" role="group" aria-label="Navegar protocolos pendientes">
+                        <a href="{{ route('lab.admissions.previous-pending', array_merge(['admission' => $admission], request()->only(['search', 'insurance', 'date_from', 'date_to', 'lab_branch_id', 'status']))) }}"
+                           class="inline-flex items-center gap-1 border-r border-gray-700 bg-gray-900 px-2.5 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800 sm:px-3"
+                           title="Protocolo pendiente anterior (sin validar ni enviar; mismos filtros)">
+                            <svg class="h-4 w-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+                            </svg>
+                            <span class="hidden sm:inline">Anterior</span>
+                        </a>
+                        <a href="{{ route('lab.admissions.next-pending', array_merge(['admission' => $admission], request()->only(['search', 'insurance', 'date_from', 'date_to', 'lab_branch_id', 'status']))) }}"
+                           class="inline-flex items-center gap-1 bg-gray-900 px-2.5 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800 sm:px-3"
+                           title="Próximo protocolo pendiente (sin validar ni enviar; mismos filtros)">
+                            <span class="hidden sm:inline">Siguiente</span>
+                            <svg class="h-4 w-4 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+                            </svg>
+                        </a>
+                    </div>
                     <form action="{{ route('lab.admissions.syncChildren', $admission) }}" method="POST" class="inline">
                         @csrf
                         <button type="submit" 
@@ -99,6 +117,12 @@
                 </div>
             </div>
         </div>
+
+        @if(session('warning'))
+            <div class="mb-6 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg">
+                {{ session('warning') }}
+            </div>
+        @endif
 
         @if(session('success'))
             <div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">

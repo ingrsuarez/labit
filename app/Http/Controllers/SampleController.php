@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\DeterminationProfileLabType;
+use App\Http\Controllers\Concerns\AppliesProtocolIndexFilters;
 use App\Http\Controllers\Concerns\FiltersLabelsByMaterialsQuery;
 use App\Mail\SampleBatchMail;
 use App\Mail\SampleResultMail;
@@ -19,7 +20,7 @@ use PDF; // mPDF facade
 
 class SampleController extends Controller
 {
-    use FiltersLabelsByMaterialsQuery;
+    use AppliesProtocolIndexFilters, FiltersLabelsByMaterialsQuery;
 
     /**
      * Muestra el listado de muestras/protocolos
@@ -30,12 +31,7 @@ class SampleController extends Controller
         $query = Sample::with(['customer', 'determinations', 'labBranch', 'invoiceProtocols'])
             ->orderBy('created_at', 'desc');
 
-        if ($activeBranch = active_lab_branch_id()) {
-            $query->where(function ($q) use ($activeBranch) {
-                $q->where('lab_branch_id', $activeBranch)
-                    ->orWhereNull('lab_branch_id');
-            });
-        }
+        $this->applySampleIndexFilters($request, $query);
 
         $samples = $query->get();
         $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
@@ -212,7 +208,7 @@ class SampleController extends Controller
             ->get(['id', 'name']);
 
         $isRecepcionLab = auth()->user()->hasRole('recepcion-lab')
-            && !auth()->user()->hasAnyRole(['bioquimico', 'tecnico-lab']);
+            && ! auth()->user()->hasAnyRole(['bioquimico', 'tecnico-lab']);
 
         return view('sample.show', compact('sample', 'labelMaterials', 'availableTests', 'sampleProfiles', 'isRecepcionLab'));
     }
@@ -542,6 +538,100 @@ class SampleController extends Controller
         ]);
 
         return view('sample.validate', compact('sample'));
+    }
+
+    /**
+     * Siguiente muestra elegible (validation_status distinto de validated, sin enviar), filtros vivos + protocol_number ascendente.
+     * Query redirect_to=validate para abrir la vista de validación del siguiente protocolo.
+     */
+    public function nextPendingSample(Request $request, Sample $sample)
+    {
+        $this->authorize('samples.index');
+
+        $nav = $this->sampleNavigationQuery($request);
+        $toValidate = $request->get('redirect_to') === 'validate' && auth()->user()->can('samples-results.validate');
+        $targetRoute = $toValidate ? 'sample.validate.show' : 'sample.show';
+
+        $query = Sample::with(['determinations', 'customer']);
+        $this->applySampleIndexFilters($request, $query);
+        $samples = $query->orderBy('protocol_number')->orderBy('id')->get();
+
+        if ($request->filled('list_status')) {
+            $samples = $this->filterSamplesCollectionForList($request, $samples);
+        }
+
+        $eligible = $samples->filter(function (Sample $s) {
+            return $s->validation_status !== 'validated' && $s->sent_at === null;
+        })->sortBy([
+            ['protocol_number', 'asc'],
+            ['id', 'asc'],
+        ])->values();
+
+        $currentPn = (string) $sample->protocol_number;
+        $next = $eligible->first(function (Sample $s) use ($currentPn) {
+            return strcmp((string) $s->protocol_number, $currentPn) > 0;
+        });
+
+        if (! $next) {
+            return redirect()->route('sample.index', $nav)
+                ->with('warning', 'No hay siguiente protocolo pendiente (sin validar ni enviar) con estos filtros.');
+        }
+
+        $params = array_merge(['sample' => $next], $nav);
+        if ($toValidate) {
+            $params['redirect_to'] = 'validate';
+        }
+
+        return redirect()->route($targetRoute, $params);
+    }
+
+    /**
+     * Muestra elegible anterior (misma lógica que nextPendingSample pero protocol_number menor).
+     */
+    public function previousPendingSample(Request $request, Sample $sample)
+    {
+        $this->authorize('samples.index');
+
+        $nav = $this->sampleNavigationQuery($request);
+        $toValidate = $request->get('redirect_to') === 'validate' && auth()->user()->can('samples-results.validate');
+        $targetRoute = $toValidate ? 'sample.validate.show' : 'sample.show';
+
+        $query = Sample::with(['determinations', 'customer']);
+        $this->applySampleIndexFilters($request, $query);
+        $samples = $query->orderBy('protocol_number')->orderBy('id')->get();
+
+        if ($request->filled('list_status')) {
+            $samples = $this->filterSamplesCollectionForList($request, $samples);
+        }
+
+        $eligible = $samples->filter(function (Sample $s) {
+            return $s->validation_status !== 'validated' && $s->sent_at === null;
+        })->values();
+
+        $currentPn = (string) $sample->protocol_number;
+        $previous = $eligible
+            ->filter(function (Sample $s) use ($currentPn) {
+                return strcmp((string) $s->protocol_number, $currentPn) < 0;
+            })
+            ->sort(function (Sample $a, Sample $b) {
+                $c = strcmp((string) $b->protocol_number, (string) $a->protocol_number);
+
+                return $c !== 0 ? $c : $b->id <=> $a->id;
+            })
+            ->values()
+            ->first();
+
+        if (! $previous) {
+            return redirect()->route('sample.index', $nav)
+                ->with('warning', 'No hay anterior protocolo pendiente (sin validar ni enviar) con estos filtros.');
+        }
+
+        $params = array_merge(['sample' => $previous], $nav);
+        if ($toValidate) {
+            $params['redirect_to'] = 'validate';
+        }
+
+        return redirect()->route($targetRoute, $params);
     }
 
     /**

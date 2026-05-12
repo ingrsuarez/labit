@@ -155,7 +155,7 @@
             @php
                 $typeData = [
                     ['label' => 'Clínico', 'color' => 'bg-teal-400', 'value' => $byLabType['clinico'], 'link' => route('lab.admissions.index', ['status' => 'pending'])],
-                    ['label' => 'Veterinario', 'color' => 'bg-amber-400', 'value' => $byLabType['veterinario'], 'link' => route('vet.admissions.index')],
+                    ['label' => 'Veterinario', 'color' => 'bg-amber-400', 'value' => $byLabType['veterinario'], 'link' => route('vet.admissions.index', ['status' => 'pending'])],
                     ['label' => 'Aguas', 'color' => 'bg-cyan-400', 'value' => $byLabType['aguas'], 'link' => route('sample.index')],
                 ];
                 $typeMax = max(1, max(array_column($typeData, 'value')));

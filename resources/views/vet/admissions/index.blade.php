@@ -20,6 +20,16 @@
             </div>
         @endif
 
+        @if(session('warning'))
+            <div class="mb-6 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg">
+                {{ session('warning') }}
+            </div>
+        @endif
+
+        @php
+            $vetAdmissionNav = request()->only(['search', 'species_id', 'customer_id', 'date_from', 'date_to', 'owner', 'animal', 'status', 'lab_branch_id']);
+        @endphp
+
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
             <form action="{{ route('vet.admissions.index') }}" method="GET">
                 <div class="flex flex-wrap gap-4">
@@ -29,12 +39,12 @@
                                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-amber-500 focus:border-amber-500">
                     </div>
                     <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">Filtrar</button>
-                    @if(request()->hasAny(['search', 'species_id', 'customer_id', 'date_from', 'date_to', 'owner', 'animal']))
+                    @if(request()->hasAny(['search', 'species_id', 'customer_id', 'date_from', 'date_to', 'owner', 'animal', 'status']))
                         <a href="{{ route('vet.admissions.index') }}" class="px-4 py-2 text-gray-500 hover:text-gray-700">Limpiar</a>
                     @endif
                 </div>
 
-                <div x-data="{ showFilters: {{ request()->hasAny(['species_id', 'customer_id', 'date_from', 'date_to', 'owner', 'animal', 'lab_branch_id']) ? 'true' : 'false' }} }" class="mt-3">
+                <div x-data="{ showFilters: {{ request()->hasAny(['species_id', 'customer_id', 'date_from', 'date_to', 'owner', 'animal', 'lab_branch_id', 'status']) ? 'true' : 'false' }} }" class="mt-3">
                     <button @click="showFilters = !showFilters" type="button"
                             class="text-sm text-amber-600 hover:text-amber-800 font-medium flex items-center gap-1">
                         <svg class="w-4 h-4 transition-transform" :class="showFilters ? 'rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,6 +54,17 @@
                     </button>
 
                     <div x-show="showFilters" x-transition class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Estado</label>
+                            <select name="status" class="w-full rounded-lg border-gray-300 text-sm focus:ring-amber-500 focus:border-amber-500">
+                                <option value="">Todos los estados</option>
+                                <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pendientes (sin validar)</option>
+                                <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>En Proceso</option>
+                                <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completado</option>
+                                <option value="validated" {{ request('status') === 'validated' ? 'selected' : '' }}>Validado</option>
+                                <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Cancelado</option>
+                            </select>
+                        </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-500 mb-1">Especie</label>
                             <select name="species_id" class="w-full rounded-lg border-gray-300 text-sm focus:ring-amber-500 focus:border-amber-500">
@@ -124,7 +145,7 @@
                                 @endphp
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <a href="{{ route('vet.admissions.show', $adm) }}" class="text-amber-600 hover:text-amber-800 font-medium">
+                                        <a href="{{ route('vet.admissions.show', array_merge(['vetAdmission' => $adm], $vetAdmissionNav)) }}" class="text-amber-600 hover:text-amber-800 font-medium">
                                             {{ $adm->protocol_number }}
                                         </a>
                                         @if($adm->isInvoiced())
@@ -169,7 +190,7 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right">
-                                        <a href="{{ route('vet.admissions.show', $adm) }}" class="text-amber-600 hover:text-amber-800 text-sm font-medium">Ver</a>
+                                        <a href="{{ route('vet.admissions.show', array_merge(['vetAdmission' => $adm], $vetAdmissionNav)) }}" class="text-amber-600 hover:text-amber-800 text-sm font-medium">Ver</a>
                                     </td>
                                 </tr>
                             @endforeach

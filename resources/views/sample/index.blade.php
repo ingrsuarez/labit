@@ -24,6 +24,12 @@
             </div>
         @endif
 
+        @if(session('warning'))
+            <div class="mb-4 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg">
+                {{ session('warning') }}
+            </div>
+        @endif
+
         <!-- Filtros -->
         <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
             <div class="flex flex-wrap items-center gap-4">
@@ -129,7 +135,7 @@
                                        class="rounded border-gray-300 text-teal-600 focus:ring-teal-500 disabled:opacity-30">
                             </td>
                             <td class="px-3 py-4 whitespace-nowrap">
-                                <a href="{{ route('sample.show', $sample) }}" class="text-teal-600 hover:text-teal-800 font-medium">
+                                <a x-bind:href="sampleShowUrl({{ $sample->id }})" class="text-teal-600 hover:text-teal-800 font-medium">
                                     {{ $sample->protocol_number }}
                                 </a>
                                 @if($sample->isInvoiced())
@@ -189,7 +195,7 @@
                                 </span>
                             </td>
                             <td class="px-2 py-4 whitespace-nowrap text-right text-sm font-medium space-x-1">
-                                <a href="{{ route('sample.show', $sample) }}" class="text-teal-600 hover:text-teal-900">Ver</a>
+                                <a x-bind:href="sampleShowUrl({{ $sample->id }})" class="text-teal-600 hover:text-teal-900">Ver</a>
                                 <a href="{{ route('sample.edit', $sample) }}" class="text-indigo-600 hover:text-indigo-900">Editar</a>
                                 @if($validatedCount > 0)
                                     <a href="{{ route('sample.pdf.view', $sample) }}" target="_blank" 
@@ -336,6 +342,40 @@
                 batchResult: null,
 
                 sampleMeta: @json($sampleMetaJson),
+
+                init() {
+                    const p = new URLSearchParams(window.location.search);
+                    this.search = p.get('search') ?? '';
+                    this.filterType = p.get('sample_type') ?? '';
+                    this.filterStatus = p.get('list_status') ?? '';
+                    this.filterBranch = p.get('lab_branch_id') ?? '';
+                    this.$watch('search', () => this.syncSampleListUrl());
+                    this.$watch('filterType', () => this.syncSampleListUrl());
+                    this.$watch('filterStatus', () => this.syncSampleListUrl());
+                    this.$watch('filterBranch', () => this.syncSampleListUrl());
+                },
+
+                buildSampleListQuery() {
+                    const p = new URLSearchParams();
+                    if (this.search) p.set('search', this.search);
+                    if (this.filterType) p.set('sample_type', this.filterType);
+                    if (this.filterStatus) p.set('list_status', this.filterStatus);
+                    if (this.filterBranch) p.set('lab_branch_id', this.filterBranch);
+                    const s = p.toString();
+                    return s ? '?' + s : '';
+                },
+
+                sampleShowUrl(id) {
+                    const base = @json(route('sample.index', [], false));
+                    return base + '/' + id + this.buildSampleListQuery();
+                },
+
+                syncSampleListUrl() {
+                    const path = @json(route('sample.index', [], false));
+                    const q = this.buildSampleListQuery();
+                    const url = q ? path + q : path;
+                    window.history.replaceState({}, '', url);
+                },
 
                 matchesFilter(protocol, customer, place, type, status, branchId) {
                     const q = this.search.toLowerCase().trim();

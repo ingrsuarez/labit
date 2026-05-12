@@ -3,7 +3,7 @@
         <!-- Header -->
         <div class="flex flex-col md:flex-row md:items-start md:justify-between mb-6">
             <div>
-                <a href="{{ route('sample.index') }}" class="text-teal-600 hover:text-teal-800 text-sm flex items-center mb-2">
+                <a href="{{ route('sample.index', request()->only(['search', 'sample_type', 'list_status', 'lab_branch_id'])) }}" class="text-teal-600 hover:text-teal-800 text-sm flex items-center mb-2">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
@@ -44,6 +44,24 @@
                 </div>
             </div>
             <div class="mt-4 md:mt-0 flex flex-wrap gap-2" x-data>
+                @can('samples.index')
+                <div class="inline-flex shrink-0 overflow-hidden rounded-lg border border-gray-700 shadow-sm" role="group" aria-label="Navegar protocolos pendientes">
+                    <a href="{{ route('sample.previous-pending', array_merge(['sample' => $sample], request()->only(['search', 'sample_type', 'list_status', 'lab_branch_id']))) }}"
+                       class="inline-flex items-center gap-1 border-r border-gray-700 bg-gray-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
+                       title="Protocolo pendiente anterior">
+                        <svg class="h-5 w-5 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+                        <span class="hidden sm:inline">Anterior</span>
+                    </a>
+                    <a href="{{ route('sample.next-pending', array_merge(['sample' => $sample], request()->only(['search', 'sample_type', 'list_status', 'lab_branch_id']))) }}"
+                       class="inline-flex items-center gap-1 bg-gray-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
+                       title="Próximo protocolo pendiente">
+                        <span class="hidden sm:inline">Siguiente</span>
+                        <svg class="h-5 w-5 shrink-0 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+                @endcan
                 @can('samples-results.create')
                 <a href="{{ route('sample.loadResults', $sample) }}" 
                    class="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
@@ -55,7 +73,7 @@
                 @endcan
                 
                 @can('samples-results.validate')
-                    <a href="{{ route('sample.validate.show', $sample) }}" 
+                    <a href="{{ route('sample.validate.show', array_merge(['sample' => $sample], request()->only(['search', 'sample_type', 'list_status', 'lab_branch_id']))) }}" 
                        class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -131,6 +149,12 @@
         </div>
 
         <!-- Alertas -->
+        @if(session('warning'))
+            <div class="mb-4 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg">
+                {{ session('warning') }}
+            </div>
+        @endif
+
         @if(session('success'))
             <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
                 {{ session('success') }}

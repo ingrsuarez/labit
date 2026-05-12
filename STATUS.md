@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-12 (v1.92.0 dashboard operativo del laboratorio mergeado a develop)
+> Última actualización: 2026-05-12 (v1.93.0 mergeada a develop, tag v1.93.0)
 
 ---
 
@@ -9,9 +9,9 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | Tag: **v1.92.0** |
+| **Versión actual (línea v1.x)** | Tag: **v1.93.0** |
 | **Última en master** | Release 2026-05-12: **v1.90.0** — Notas de crédito manuales independientes |
-| **Última completada (cola agente)** | **v1.92.0** — Dashboard operativo del laboratorio (KPIs, barras por estado/tipo/sede, alerta atrasados) |
+| **Última completada (cola agente)** | **v1.93.0** — Navegación siguiente/anterior protocolo pendiente en validación (clínico/vet/muestras) |
 | **Hotfix aplicado** | 2026-05-09: vet doble submit + botón Eliminar protocolo; **sesión por inactividad** (`SESSION_IDLE_TIMEOUT_MINUTES`, `users.last_activity_at`, middleware `enforce.idle`) |
 | **En proceso** | — |
 | **Próxima recomendada** | Planificar nuevas versiones (cola de pendientes con prefijo `v` vacía) |
@@ -38,6 +38,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.93.0 | Navegación siguiente/anterior protocolo pendiente en validación (clínico/vet/muestras); tests `ProtocolPendingNavigationTest` | 2026-05-12 | v1.93.0 |
 | v1.92.0 | Dashboard operativo del laboratorio: KPIs, barras por estado/tipo/sede, alerta atrasados, links filtrados | 2026-05-12 | v1.92.0 |
 | v1.91.0 | Carga de resultados desde planilla de trabajo: celdas editables inline, batch save, clinico + muestras | 2026-05-12 | v1.91.0 |
 | v1.90.0 | Notas de crédito manuales independientes: carga de NC sin factura asociada, PdV manual, sin AFIP | 2026-05-12 | v1.90.0 |
@@ -271,7 +272,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-**v1.92.0 completada y mergeada a develop (2026-05-12).** Tag `v1.92.0`. No hay prompts con prefijo `v` pendientes en cola (v1.90.0 residual en pendientes ya tiene tag).
+**v1.93.0 completada y mergeada a develop (2026-05-12).** Tag `v1.93.0`. Prompt en `completados/v1.93.0-navegacion-siguiente-protocolo-validacion.md`; tests `tests/Feature/ProtocolPendingNavigationTest.php`. **v1.92.0** ya estaba en develop con tag `v1.92.0`. No hay prompts con prefijo `v` pendientes en cola (v1.90.0 residual en pendientes ya tiene tag).
 
 Pendientes en cola: diseño **v1.55.0** (buscador FC); ver `pendientes/`.
 
