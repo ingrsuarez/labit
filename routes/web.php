@@ -167,6 +167,9 @@ Route::middleware([
     // LAB — Sección protegida por permiso lab.section
     Route::middleware(['permission:lab.section'])->group(function () {
 
+        // Dashboard operativo del laboratorio
+        Route::get('lab', [App\Http\Controllers\LabSectionController::class, 'dashboard'])->name('lab.dashboard');
+
         // LAB SECTIONS (Páginas index de cada sección del sidebar)
         Route::get('lab/clinico', [App\Http\Controllers\LabSectionController::class, 'clinico'])->name('lab.section.clinico');
         Route::get('lab/muestras', [App\Http\Controllers\LabSectionController::class, 'muestras'])->name('lab.section.muestras');
