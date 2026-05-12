@@ -150,6 +150,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
+| v1.92.0 | Dashboard operativo del laboratorio: KPIs, barras por estado/tipo/sede, alerta atrasados, links filtrados | Pendiente | `pendientes/v1.92.0-dashboard-operativo-laboratorio.md` |
 | v1.88.0 | Auditoría completa en protocolo veterinario: 10 `logAudit()` faltantes + `<x-audit-history>` en vista show | Pendiente | `pendientes/v1.88.0-auditoria-completa-protocolo-veterinario.md` |
 | v1.89.0 | Preservar estado del formulario de recibo de cobro ante errores (Alpine.js + `old()` + catch graceful) | Pendiente | `pendientes/v1.89.0-preservar-estado-formulario-recibo-cobro.md` |
 | v1.90.0 | Notas de crédito manuales independientes: carga de NC sin factura asociada, PdV manual, sin AFIP | Pendiente | `pendientes/v1.90.0-notas-credito-manuales-independientes.md` |
@@ -224,5 +225,5 @@ Release master: ver tags; develop incluye v1.53.0
 ---
 
 > Este documento se actualiza al finalizar cada versión o sesión de planificación.
-> Última actualización: 2026-05-10 (v1.86.0 implementada; prompts en `completados/`)
+> Última actualización: 2026-05-12 (v1.92.0 planificada: dashboard operativo del laboratorio)
 

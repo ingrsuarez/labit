@@ -20,7 +20,7 @@ class DashboardController extends Controller
 
         if ($user->hasAnyRole(['recepcion-lab', 'tecnico-lab', 'bioquimico'])
             && ! $user->hasAnyRole(['admin', 'contador', 'compras', 'ventas'])) {
-            return redirect()->route('lab.section.clinico');
+            return redirect()->route('lab.dashboard');
         }
 
         if ($user->hasRole('compras')

@@ -167,6 +167,9 @@ Route::middleware([
     // LAB — Sección protegida por permiso lab.section
     Route::middleware(['permission:lab.section'])->group(function () {
 
+        // Dashboard operativo del laboratorio
+        Route::get('lab', [App\Http\Controllers\LabSectionController::class, 'dashboard'])->name('lab.dashboard');
+
         // LAB SECTIONS (Páginas index de cada sección del sidebar)
         Route::get('lab/clinico', [App\Http\Controllers\LabSectionController::class, 'clinico'])->name('lab.section.clinico');
         Route::get('lab/muestras', [App\Http\Controllers\LabSectionController::class, 'muestras'])->name('lab.section.muestras');
@@ -275,6 +278,7 @@ Route::middleware([
         Route::put('lab/worksheets/{worksheet}', [App\Http\Controllers\WorksheetController::class, 'update'])->name('worksheets.update');
         Route::delete('lab/worksheets/{worksheet}', [App\Http\Controllers\WorksheetController::class, 'destroy'])->name('worksheets.destroy');
         Route::get('lab/worksheets/{worksheet}/pdf', [App\Http\Controllers\WorksheetController::class, 'generatePdf'])->name('worksheets.pdf');
+        Route::post('lab/worksheets/{worksheet}/save-results', [App\Http\Controllers\WorksheetController::class, 'saveResults'])->name('worksheets.saveResults');
 
         // Veterinario — Especies
         Route::get('species', [App\Http\Controllers\SpeciesController::class, 'index'])->name('species.index');

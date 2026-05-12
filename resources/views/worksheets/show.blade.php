@@ -15,6 +15,21 @@
         </p>
     </div>
 
+    @if(session('success'))
+        <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if(session('info'))
+        <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6">
+            {{ session('info') }}
+        </div>
+    @endif
+
     @if(session('error'))
         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
             {{ session('error') }}
@@ -114,50 +129,118 @@
 
     @if($preview !== null)
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-        <div class="p-4 border-b border-gray-200 flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-800">Vista previa</h3>
-            <span class="text-sm text-gray-500">{{ $preview['rows']->count() }} protocolo(s)</span>
-        </div>
         @if($preview['rows']->isEmpty())
+            <div class="p-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800">Vista previa</h3>
+            </div>
             <div class="px-6 py-12 text-center text-gray-500">
                 No se encontraron protocolos con los filtros seleccionados.
             </div>
         @else
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase" style="width: 100px;">N° Prot.</th>
-                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase" style="width: 140px;">
-                        {{ $worksheet->type === 'clinico' ? 'Paciente' : 'Cliente' }}
-                    </th>
-                    @foreach($preview['tests'] as $test)
-                    <th class="px-2 py-2 text-center text-xs font-medium text-teal-700" style="word-wrap: break-word; overflow-wrap: break-word; max-width: 120px;" title="{{ $test->code }}">
-                        {{ $test->name }}
-                    </th>
-                    @endforeach
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-                @foreach($preview['rows'] as $row)
-                <tr class="hover:bg-gray-50">
-                    <td class="px-2 py-2 font-medium text-gray-900 whitespace-nowrap" style="width: 100px;">{{ $row['protocol'] }}</td>
-                    <td class="px-2 py-2 text-gray-700" style="width: 140px; word-wrap: break-word; overflow-wrap: break-word;">{{ $row['name'] }}</td>
-                    @foreach($preview['tests'] as $test)
-                    @php $val = $row['results'][$test->id] ?? null; @endphp
-                    @if($val === null)
-                        <td class="px-2 py-2 text-center"
-                            style="background: repeating-linear-gradient(45deg,#f5f5f5,#f5f5f5 3px,#e5e7eb 3px,#e5e7eb 6px);">
-                        </td>
-                    @elseif($val === '')
-                        <td class="px-2 py-2 text-center text-teal-600 font-bold">✓</td>
-                    @else
-                        <td class="px-2 py-2 text-center text-gray-900">{{ $val }}</td>
+            @php
+                $canEdit = $worksheet->type === 'clinico'
+                    ? auth()->user()->can('lab-results.create')
+                    : auth()->user()->can('samples-results.create');
+                $hasEditableCells = false;
+                if ($canEdit) {
+                    foreach ($preview['rows'] as $row) {
+                        foreach ($row['results'] as $cell) {
+                            if ($cell !== null && !$cell['is_validated']) {
+                                $hasEditableCells = true;
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            @endphp
+            <form method="POST" action="{{ route('worksheets.saveResults', $worksheet) }}" id="resultsForm">
+                @csrf
+                <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <h3 class="text-lg font-semibold text-gray-800">Vista previa</h3>
+                        <span class="text-sm text-gray-500">{{ $preview['rows']->count() }} protocolo(s)</span>
+                    </div>
+                    @if($hasEditableCells)
+                        <button type="submit"
+                                class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Guardar Resultados
+                        </button>
                     @endif
-                    @endforeach
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </div>
+                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase" style="width: 100px;">N° Prot.</th>
+                            <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase" style="width: 140px;">
+                                {{ $worksheet->type === 'clinico' ? 'Paciente' : 'Cliente' }}
+                            </th>
+                            @foreach($preview['tests'] as $test)
+                            <th class="px-2 py-2 text-center text-xs font-medium text-teal-700" style="word-wrap: break-word; overflow-wrap: break-word; max-width: 120px;" title="{{ $test->code }}">
+                                {{ $test->name }}
+                            </th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        @foreach($preview['rows'] as $row)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-2 py-2 font-medium text-gray-900 whitespace-nowrap" style="width: 100px;">{{ $row['protocol'] }}</td>
+                            <td class="px-2 py-2 text-gray-700" style="width: 140px; word-wrap: break-word; overflow-wrap: break-word;">{{ $row['name'] }}</td>
+                            @foreach($preview['tests'] as $test)
+                            @php $cell = $row['results'][$test->id] ?? null; @endphp
+                            @if($cell === null)
+                                {{-- Not ordered --}}
+                                <td class="px-2 py-2 text-center"
+                                    style="background: repeating-linear-gradient(45deg,#f5f5f5,#f5f5f5 3px,#e5e7eb 3px,#e5e7eb 6px);">
+                                </td>
+                            @elseif($cell['is_validated'])
+                                {{-- Validated (locked) --}}
+                                <td class="px-2 py-2 text-center text-gray-900" title="Resultado validado">
+                                    <span class="inline-flex items-center gap-1">
+                                        {{ $cell['value'] }}
+                                        <svg class="w-3 h-3 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </span>
+                                </td>
+                            @elseif($canEdit)
+                                {{-- Editable cell --}}
+                                <td class="px-1 py-1 text-center">
+                                    <input type="text"
+                                           name="results[{{ $cell['id'] }}]"
+                                           value="{{ $cell['value'] }}"
+                                           class="w-full text-center text-sm border-gray-300 rounded px-1 py-0.5 focus:ring-teal-500 focus:border-teal-500"
+                                           style="min-width: 60px;"
+                                           autocomplete="off">
+                                </td>
+                            @else
+                                {{-- No edit permission: show value or pending mark --}}
+                                @if($cell['value'] === '')
+                                    <td class="px-2 py-2 text-center text-teal-600 font-bold">✓</td>
+                                @else
+                                    <td class="px-2 py-2 text-center text-gray-900">{{ $cell['value'] }}</td>
+                                @endif
+                            @endif
+                            @endforeach
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                @if($hasEditableCells)
+                    <div class="p-4 border-t border-gray-200 flex justify-end">
+                        <button type="submit"
+                                class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Guardar Resultados
+                        </button>
+                    </div>
+                @endif
+            </form>
         @endif
     </div>
     @endif
