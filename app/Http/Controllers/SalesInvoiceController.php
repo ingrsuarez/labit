@@ -24,7 +24,8 @@ class SalesInvoiceController extends Controller
 
         $query = SalesInvoice::with(['customer', 'creator', 'pointOfSale'])
             ->where('company_id', active_company_id())
-            ->orderByDesc('created_at');
+            ->orderByDesc('issue_date')
+            ->orderByDesc('id');
 
         if ($request->filled('search')) {
             $search = $request->search;

@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\CreditNote;
 use App\Models\CreditNoteItem;
+use App\Models\Customer;
 use App\Models\JournalEntry;
+use App\Models\PointOfSale;
 use App\Models\SalesInvoice;
 use App\Services\AccountingEntryService;
 use App\Services\AfipService;
@@ -229,6 +231,95 @@ class CreditNoteController extends Controller
 
         } catch (\Exception $e) {
             return back()->with('error', 'Error al conectar con AFIP: '.$e->getMessage());
+        }
+    }
+
+    public function createManual()
+    {
+        $customers = Customer::where('company_id', active_company_id())
+            ->orderBy('name')
+            ->get(['id', 'name', 'tax', 'cuit']);
+
+        $pointsOfSale = PointOfSale::where('company_id', active_company_id())
+            ->where('is_electronic', false)
+            ->orderBy('code')
+            ->get(['id', 'code', 'name']);
+
+        return view('credit-notes.create-manual', compact('customers', 'pointsOfSale'));
+    }
+
+    public function storeManual(Request $request)
+    {
+        $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'voucher_type' => 'required|in:A,B,C',
+            'point_of_sale_id' => 'required|exists:points_of_sale,id',
+            'credit_note_number' => 'required|string|max:20',
+            'issue_date' => 'required|date',
+            'reason' => 'required|string|max:500',
+            'items' => 'required|array|min:1',
+            'items.*.description' => 'required|string|max:255',
+            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.iva_rate' => 'required|numeric|in:0,10.5,21,27',
+        ]);
+
+        $pos = PointOfSale::where('company_id', active_company_id())->findOrFail($request->point_of_sale_id);
+        abort_if($pos->is_electronic, 422, 'Para NC electrónicas, generarlas desde la factura de venta.');
+
+        DB::beginTransaction();
+
+        try {
+            $creditNote = CreditNote::create([
+                'company_id' => active_company_id(),
+                'credit_note_number' => $request->credit_note_number,
+                'voucher_type' => $request->voucher_type,
+                'point_of_sale_id' => $pos->id,
+                'customer_id' => $request->customer_id,
+                'sales_invoice_id' => null,
+                'issue_date' => $request->issue_date,
+                'reason' => $request->reason,
+                'percepciones' => $request->percepciones ?? 0,
+                'otros_impuestos' => $request->otros_impuestos ?? 0,
+                'status' => 'confirmada',
+                'is_electronic' => false,
+                'created_by' => Auth::id(),
+            ]);
+
+            foreach ($request->items as $i => $itemData) {
+                $qty = floatval($itemData['quantity']);
+                $price = floatval($itemData['unit_price']);
+                $ivaRate = floatval($itemData['iva_rate']);
+                $ivaAmount = round($qty * $price * $ivaRate / 100, 2);
+                $total = round($qty * $price + $ivaAmount, 2);
+
+                CreditNoteItem::create([
+                    'credit_note_id' => $creditNote->id,
+                    'description' => $itemData['description'],
+                    'quantity' => $qty,
+                    'unit_price' => $price,
+                    'iva_rate' => $ivaRate,
+                    'iva_amount' => $ivaAmount,
+                    'total' => $total,
+                    'sort_order' => $i,
+                ]);
+            }
+
+            $creditNote->recalculate();
+
+            DB::commit();
+
+            $this->recordCreditNoteJournalEntry($creditNote);
+
+            return redirect()->route('credit-notes.show', $creditNote)
+                ->with('success', 'Nota de crédito registrada exitosamente.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Manual credit note creation failed', ['error' => $e->getMessage()]);
+
+            return back()->withInput()
+                ->with('error', 'Error al registrar la nota de crédito: '.$e->getMessage());
         }
     }
 

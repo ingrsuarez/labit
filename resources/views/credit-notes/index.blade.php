@@ -35,6 +35,13 @@
                 <h1 class="text-2xl font-bold text-gray-800">Notas de Crédito</h1>
                 <p class="text-gray-500 text-sm mt-1">Listado de notas de crédito emitidas</p>
             </div>
+            <a href="{{ route('credit-notes.create-manual') }}"
+               class="inline-flex items-center px-4 py-2 bg-zinc-700 text-white text-sm font-medium rounded-lg hover:bg-zinc-800 transition-colors shadow-sm mt-3 md:mt-0">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Nueva Nota de Crédito
+            </a>
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
@@ -108,7 +115,7 @@
                                         @if($cn->salesInvoice)
                                             <a href="{{ route('sales-invoices.show', $cn->salesInvoice) }}" class="text-zinc-700 hover:text-zinc-900 underline">{{ $cn->salesInvoice->full_number }}</a>
                                         @else
-                                            -
+                                            <span class="text-gray-400">Manual</span>
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $cn->issue_date->format('d/m/Y') }}</td>

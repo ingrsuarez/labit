@@ -560,6 +560,8 @@ Route::middleware([
         Route::post('collection-receipts/{collection_receipt}/confirm', [App\Http\Controllers\CollectionReceiptController::class, 'confirm'])->name('collection-receipts.confirm');
 
         // CREDIT NOTES (Notas de Crédito)
+        Route::get('credit-notes/create-manual', [App\Http\Controllers\CreditNoteController::class, 'createManual'])->name('credit-notes.create-manual');
+        Route::post('credit-notes/store-manual', [App\Http\Controllers\CreditNoteController::class, 'storeManual'])->name('credit-notes.store-manual');
         Route::resource('credit-notes', App\Http\Controllers\CreditNoteController::class)->except(['edit', 'update']);
         Route::post('credit-notes/{creditNote}/retry-afip', [App\Http\Controllers\CreditNoteController::class, 'retryAfip'])->name('credit-notes.retry-afip');
 

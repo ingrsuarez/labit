@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-11 (v1.88.0 auditoría completa protocolo veterinario mergeado a develop)
+> Última actualización: 2026-05-11 (v1.89.0 preservar estado formulario recibo cobro mergeado a develop)
 
 ---
 
@@ -9,14 +9,14 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | Tag: **v1.88.0** |
+| **Versión actual (línea v1.x)** | Tag: **v1.89.0** |
 | **Última en master** | Release 2026-05-09: **v1.83.0** — Conciliación bancaria de pagos de haberes (`PayrollPayment`) |
-| **Última completada (cola agente)** | **v1.88.0** — Auditoría completa en protocolo veterinario (10 `logAudit()` + `<x-audit-history>` en vista show) |
+| **Última completada (cola agente)** | **v1.89.0** — Preservar estado formulario recibo de cobro ante errores (catch Throwable → redirect, old() → Alpine.js) |
 | **Hotfix aplicado** | 2026-05-09: vet doble submit + botón Eliminar protocolo; **sesión por inactividad** (`SESSION_IDLE_TIMEOUT_MINUTES`, `users.last_activity_at`, middleware `enforce.idle`) |
 | **En proceso** | — |
-| **Próxima recomendada** | **v1.89.0** — Preservar estado formulario recibo de cobro (siguiente en cola `pendientes/`) |
-| **Pendientes en cola** | 3 (v1.89.0, v1.90.0 + 1 diseño sin prefijo `v`) |
-| **Completadas** | 148 |
+| **Próxima recomendada** | **v1.90.0** — Notas de crédito manuales independientes (siguiente en cola `pendientes/`) |
+| **Pendientes en cola** | 2 (v1.90.0 + 1 diseño sin prefijo `v`) |
+| **Completadas** | 149 |
 
 ---
 
@@ -26,7 +26,6 @@
 
 | Versión | Nombre | Prompt |
 |---|---|---|
-| v1.89.0 | Preservar estado formulario recibo de cobro ante errores | `pendientes/v1.89.0-preservar-estado-formulario-recibo-cobro.md` |
 | v1.90.0 | Notas de crédito manuales independientes | `pendientes/v1.90.0-notas-credito-manuales-independientes.md` |
 
 Archivo adicional en `pendientes/` (no empieza con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
@@ -41,6 +40,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.89.0 | Preservar estado formulario recibo de cobro ante errores (catch Throwable → redirect, old() → Alpine) | 2026-05-11 | v1.89.0 |
 | v1.88.0 | Auditoría completa en protocolo veterinario (10 logAudit + x-audit-history en show) | 2026-05-11 | v1.88.0 |
 | v1.87.0 | Filtro por sede en planilla de trabajo (preview + PDF) | 2026-05-10 | v1.87.0 |
 | v1.86.0 | Envío masivo protocolos clínicos por email (un correo, N PDFs) | 2026-05-10 | v1.86.0 |
@@ -270,9 +270,9 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-**v1.88.0 completada y mergeada a develop (2026-05-11).** Tag `v1.88.0`. Próximo prompt disponible por orden `v*`: **v1.89.0** (preservar estado formulario recibo de cobro).
+**v1.89.0 completada y mergeada a develop (2026-05-11).** Tag `v1.89.0`. Próximo prompt disponible por orden `v*`: **v1.90.0** (notas de crédito manuales independientes).
 
-Pendientes en cola: **v1.89.0**, **v1.90.0**, diseño **v1.55.0** (buscador FC); ver `pendientes/`.
+Pendientes en cola: **v1.90.0**, diseño **v1.55.0** (buscador FC); ver `pendientes/`.
 
 **Cadena LISCOM↔labit:** completada en labit (v1.46.0, v1.47.0, v1.48.5, v1.51.0, v1.53.0).
 Pendientes en repo `interfases` (Django): v1.48.0, v1.49.0, v1.50.0, v1.52.0.
