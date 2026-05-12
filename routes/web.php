@@ -275,6 +275,7 @@ Route::middleware([
         Route::put('lab/worksheets/{worksheet}', [App\Http\Controllers\WorksheetController::class, 'update'])->name('worksheets.update');
         Route::delete('lab/worksheets/{worksheet}', [App\Http\Controllers\WorksheetController::class, 'destroy'])->name('worksheets.destroy');
         Route::get('lab/worksheets/{worksheet}/pdf', [App\Http\Controllers\WorksheetController::class, 'generatePdf'])->name('worksheets.pdf');
+        Route::post('lab/worksheets/{worksheet}/save-results', [App\Http\Controllers\WorksheetController::class, 'saveResults'])->name('worksheets.saveResults');
 
         // Veterinario — Especies
         Route::get('species', [App\Http\Controllers\SpeciesController::class, 'index'])->name('species.index');
