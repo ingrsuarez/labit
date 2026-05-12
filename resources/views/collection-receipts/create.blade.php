@@ -8,6 +8,17 @@
             <a href="{{ route('collection-receipts.index') }}" class="text-gray-500 hover:text-gray-700 text-sm font-medium">&larr; Volver</a>
         </div>
 
+        @if(session('error'))
+            <div class="mb-4 bg-red-50 border-l-4 border-red-400 p-4 rounded">
+                <div class="flex items-center">
+                    <svg class="h-5 w-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="text-sm text-red-700">{{ session('error') }}</span>
+                </div>
+            </div>
+        @endif
+
         @if($errors->any())
             <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <ul class="text-sm text-red-700 list-disc list-inside">
@@ -282,6 +293,9 @@
     <script>
         function collectionForm() {
             const invoicesByCustomer = @json($invoicesByCustomer);
+            const oldInvoices = @json(old('invoices', []));
+            const oldPayments = @json(old('payments', []));
+            const oldWithholdings = @json(old('withholdings', []));
 
             @if($selectedCustomer && $preloadedInvoiceRows)
                 const preloaded = @json($preloadedInvoiceRows);
@@ -311,11 +325,42 @@
             return {
                 customerId: '{{ old('customer_id', $selectedCustomer?->id ?? '') }}',
                 invoices: [],
-                paymentLines: [emptyPaymentLine()],
-                withholdingLines: [],
+                paymentLines: oldPayments.length > 0
+                    ? oldPayments.map(p => ({
+                        line_type: p.line_type || 'efectivo',
+                        amount: parseFloat(p.amount) || 0,
+                        bank_account_id: p.bank_account_id || '',
+                        cheque_number: p.cheque_number || '',
+                        bank_name: p.bank_name || '',
+                        due_date: p.due_date || '',
+                    }))
+                    : [emptyPaymentLine()],
+                withholdingLines: oldWithholdings.length > 0
+                    ? oldWithholdings.map(wh => ({
+                        withholding_type: wh.withholding_type || '',
+                        document_number: wh.document_number || '',
+                        regime: wh.regime || '',
+                        jurisdiction: wh.jurisdiction || '',
+                        certificate_number: wh.certificate_number || '',
+                        amount: parseFloat(wh.amount) || 0,
+                    }))
+                    : [],
                 init() {
                     if (this.customerId) {
                         this.invoices = JSON.parse(JSON.stringify(invoicesByCustomer[this.customerId] || []));
+
+                        if (oldInvoices.length > 0) {
+                            const oldMap = {};
+                            oldInvoices.forEach(oi => {
+                                oldMap[oi.sales_invoice_id] = parseFloat(oi.amount);
+                            });
+                            this.invoices.forEach(inv => {
+                                if (oldMap[inv.id] !== undefined) {
+                                    inv.selected = true;
+                                    inv.amount = oldMap[inv.id];
+                                }
+                            });
+                        }
                     }
                     this.$watch('totalCollection', () => this.syncDefaultPaymentAmount());
                     this.$watch('withholdingLines', () => this.syncDefaultPaymentAmount(), { deep: true });
