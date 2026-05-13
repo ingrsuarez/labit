@@ -11,7 +11,10 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->bind(
+            \App\Contracts\SantaCruzFtpClientInterface::class,
+            \App\Services\SantaCruz\SantaCruzFtpService::class
+        );
     }
 
     public function boot(): void
