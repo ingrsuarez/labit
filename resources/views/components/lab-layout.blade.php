@@ -23,20 +23,21 @@
             [x-cloak] { display: none !important; }
         </style>
     </head>
-    <body class="font-sans antialiased bg-gray-100">
+    <body class="font-sans antialiased bg-gray-100 flex min-h-screen min-h-dvh flex-col overflow-hidden">
         <x-banner />
 
-        <div class="min-h-screen flex">
+        {{-- Shell: scroll solo en <main> para que position:sticky del detalle de protocolo funcione de forma fiable --}}
+        <div class="flex min-h-0 min-w-0 flex-1 overflow-hidden">
             <!-- Sidebar de Laboratorio -->
             @include('lab.partials.sidebar')
 
             <!-- Contenido Principal -->
-            <div class="flex-1 flex flex-col md:ml-64">
-                <!-- Header -->
+            <div class="flex min-h-0 min-w-0 flex-1 flex-col md:ml-64">
+                <!-- Header (fijo en columna; el scroll es el de main) -->
                 @include('lab.partials.header')
 
                 <!-- Page Content -->
-                <main class="flex-1">
+                <main class="min-h-0 min-w-0 flex-1 overflow-y-auto">
                     {{ $slot }}
                 </main>
             </div>

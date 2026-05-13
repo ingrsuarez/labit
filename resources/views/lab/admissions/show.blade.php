@@ -1,7 +1,7 @@
 <x-lab-layout title="Admisión {{ $admission->protocol_number }}">
     <div class="py-6 px-4 md:px-6 lg:px-8 mt-14 md:mt-0">
-        <!-- Header -->
-        <div class="mb-6">
+        <!-- Header: sticky respecto al scroll de <main> (lab-layout); top-14 = barra móvil fija del lab -->
+        <div class="sticky top-14 z-20 mb-6 border-b border-gray-200 bg-gray-100 pb-4 pt-2 shadow-sm md:top-0">
             <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
                 <a href="{{ route('lab.admissions.index', request()->only(['search', 'insurance', 'date_from', 'date_to', 'lab_branch_id', 'status'])) }}" class="hover:text-teal-600">Admisiones</a>
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
