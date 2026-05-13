@@ -155,6 +155,55 @@ class RemoveLeafAdmissionDeterminationTest extends TestCase
         $this->assertStringContainsString('determinación hoja', mb_strtolower($log->description));
     }
 
+    public function test_lab_protocolo_pasa_a_validado_si_al_quitar_hoja_solo_quedan_practicas_validadas(): void
+    {
+        $user = $this->userWithPermissions([
+            'lab.section',
+            'lab-admissions.index',
+            'lab-admissions.show',
+            'lab-admissions.delete',
+            'lab-results.create',
+        ]);
+        $patient = $this->makePatient();
+        $admission = $this->makeAdmission($user, $patient);
+        $admission->update(['status' => Admission::STATUS_COMPLETED]);
+
+        $parent = $this->makeTest('PAN-P', null, 1, 1000);
+        $childOk = $this->makeTest('PAN-OK', $parent->id, 2, 0);
+        $childPending = $this->makeTest('PAN-PEND', $parent->id, 3, 0);
+
+        AdmissionTest::query()->create([
+            'admission_id' => $admission->id,
+            'test_id' => $parent->id,
+            'price' => 100,
+            'authorization_status' => 'not_required',
+        ]);
+        AdmissionTest::query()->create([
+            'admission_id' => $admission->id,
+            'test_id' => $childOk->id,
+            'price' => 0,
+            'result' => '99',
+            'authorization_status' => 'not_required',
+            'is_validated' => true,
+            'validated_by' => $user->id,
+            'validated_at' => now(),
+        ]);
+        $atPending = AdmissionTest::query()->create([
+            'admission_id' => $admission->id,
+            'test_id' => $childPending->id,
+            'price' => 0,
+            'authorization_status' => 'not_required',
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('lab.admissions.show', $admission))
+            ->delete(route('lab.admissions.removeTest', [$admission, $atPending]))
+            ->assertRedirect(route('lab.admissions.show', $admission));
+
+        $admission->refresh();
+        $this->assertSame(Admission::STATUS_VALIDATED, $admission->status);
+    }
+
     public function test_lab_rechaza_eliminar_hoja_con_resultado(): void
     {
         $user = $this->userWithPermissions([
@@ -266,5 +315,74 @@ class RemoveLeafAdmissionDeterminationTest extends TestCase
             'vet_admission_id' => $vetAdmission->id,
             'test_id' => $childB->id,
         ]);
+    }
+
+    public function test_vet_protocolo_pasa_a_validado_si_al_quitar_hoja_solo_quedan_practicas_validadas(): void
+    {
+        $customer = Customer::query()->create([
+            'name' => 'Cli Vet Stat',
+            'taxId' => '20-33333333-3',
+            'status' => 'activo',
+            'type' => ['veterinario'],
+        ]);
+        $species = Species::query()->create([
+            'name' => 'Canino',
+            'code' => 'DOG-VST',
+            'is_active' => true,
+        ]);
+
+        $user = $this->userWithPermissions([
+            'lab.section',
+            'vet-admissions.index',
+            'vet-admissions.show',
+            'vet-admissions.delete',
+        ]);
+
+        $vetAdmission = VetAdmission::query()->create([
+            'date' => now()->toDateString(),
+            'protocol_number' => 'V-2026-VSTAT01',
+            'status' => 'completed',
+            'customer_id' => $customer->id,
+            'species_id' => $species->id,
+            'animal_name' => 'Firulais',
+            'owner_name' => 'Dueño',
+            'total_price' => 100,
+            'created_by' => $user->id,
+        ]);
+
+        $parent = $this->makeTest('VST-P', null, 1, 0);
+        $childOk = $this->makeTest('VST-OK', $parent->id, 2, 0);
+        $childPending = $this->makeTest('VST-PEND', $parent->id, 3, 0);
+
+        VetAdmissionTest::query()->create([
+            'vet_admission_id' => $vetAdmission->id,
+            'test_id' => $parent->id,
+            'price' => 100,
+            'status' => 'pending',
+        ]);
+        VetAdmissionTest::query()->create([
+            'vet_admission_id' => $vetAdmission->id,
+            'test_id' => $childOk->id,
+            'price' => 0,
+            'result' => '5',
+            'status' => 'completed',
+            'is_validated' => true,
+            'validated_by' => $user->id,
+            'validated_at' => now(),
+        ]);
+        $vatPending = VetAdmissionTest::query()->create([
+            'vet_admission_id' => $vetAdmission->id,
+            'test_id' => $childPending->id,
+            'price' => 0,
+            'status' => 'pending',
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('vet.admissions.show', $vetAdmission))
+            ->delete(route('vet.admissions.removeTest', [$vetAdmission, $vatPending]))
+            ->assertRedirect(route('vet.admissions.show', $vetAdmission));
+
+        $vetAdmission->refresh();
+        $this->assertSame('validated', $vetAdmission->status);
     }
 }

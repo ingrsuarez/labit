@@ -536,6 +536,7 @@ class VetAdmissionController extends Controller
             $vetAdmissionTest->delete();
             $newTotal = max(0, (float) $vetAdmission->total_price - $removedPrice);
             $vetAdmission->update(['total_price' => $newTotal]);
+            $this->syncVetAdmissionProtocolStatus($vetAdmission);
             $vetAdmission->logAudit('test_removed', 'Eliminó determinación hoja '.$testName.' del protocolo veterinario Nº '.$vetAdmission->protocol_number);
 
             return redirect()->back()->with('success', 'Determinación eliminada del protocolo (el grupo permanece).');
@@ -568,6 +569,7 @@ class VetAdmissionController extends Controller
 
         $newTotal = max(0, $vetAdmission->total_price - $removedPrice);
         $vetAdmission->update(['total_price' => $newTotal]);
+        $this->syncVetAdmissionProtocolStatus($vetAdmission);
 
         $vetAdmission->logAudit('test_removed', 'Eliminó práctica '.$testName.' del protocolo veterinario Nº '.$vetAdmission->protocol_number);
 
@@ -577,6 +579,13 @@ class VetAdmissionController extends Controller
         }
 
         return redirect()->back()->with('success', $msg);
+    }
+
+    private function syncVetAdmissionProtocolStatus(VetAdmission $vetAdmission): void
+    {
+        $vetAdmission->unsetRelation('vetTests');
+        $vetAdmission->load(['vetTests.test.childTests', 'vetTests.test.children']);
+        $vetAdmission->update(['status' => $vetAdmission->calculated_status]);
     }
 
     public function validateTest(VetAdmission $vetAdmission, VetAdmissionTest $vetAdmissionTest)

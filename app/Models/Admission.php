@@ -230,8 +230,15 @@ class Admission extends Model
             if ($at->hasResult() || $at->is_validated) {
                 return true;
             }
-            if ($at->relationLoaded('test') && $at->test?->relationLoaded('childTests')) {
-                return $at->test->childTests->isEmpty();
+            if (! $at->relationLoaded('test') || ! $at->test) {
+                return true;
+            }
+            $t = $at->test;
+            if ($t->relationLoaded('childTests') && $t->childTests->isNotEmpty()) {
+                return false;
+            }
+            if ($t->relationLoaded('children') && $t->children->isNotEmpty()) {
+                return false;
             }
 
             return true;

@@ -686,7 +686,7 @@ class LabAdmissionController extends Controller
                 ? trim(($test->test->code ? $test->test->code.' — ' : '').$test->test->name)
                 : 'Desconocida';
             $test->delete();
-            $admission->calculateTotals();
+            $this->syncAdmissionAfterTestsMutation($admission);
             $admission->logAudit('test_removed', 'Eliminó determinación hoja '.$detLabel.' de la admisión Nº '.$admission->protocol_number);
 
             return redirect()->back()->with('success', 'Determinación eliminada del protocolo (el grupo permanece).');
@@ -707,10 +707,21 @@ class LabAdmissionController extends Controller
         $test->loadMissing('test');
         $testName = $test->test->name ?? 'Desconocida';
         $test->delete();
-        $admission->calculateTotals();
+        $this->syncAdmissionAfterTestsMutation($admission);
         $admission->logAudit('test_removed', 'Eliminó práctica '.$testName.' de la admisión Nº '.$admission->protocol_number);
 
         return redirect()->back()->with('success', 'Práctica eliminada correctamente.');
+    }
+
+    /**
+     * Tras agregar/quitar filas de admission_tests: totales coherentes y estado del protocolo (p. ej. validado si ya no queda nada pendiente).
+     */
+    private function syncAdmissionAfterTestsMutation(Admission $admission): void
+    {
+        $admission->unsetRelation('admissionTests');
+        $admission->load(['admissionTests.test.childTests', 'admissionTests.test.children']);
+        $admission->calculateTotals();
+        $admission->update(['status' => $admission->calculated_status]);
     }
 
     /**
