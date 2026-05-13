@@ -1,6 +1,6 @@
 <x-lab-layout title="Protocolo {{ $vetAdmission->protocol_number }}">
     <div class="py-6 px-4 md:px-6 lg:px-8 mt-14 md:mt-0" x-data="vetShowPage()">
-        <div class="sticky top-14 z-20 mb-6 border-b border-gray-200 bg-gray-100 pb-4 pt-2 shadow-sm md:top-0">
+        <div class="sticky top-14 z-20 mb-6 border-b border-gray-200 bg-gray-100 pb-4 pt-2 shadow-sm md:top-24">
             <a href="{{ route('vet.admissions.index', request()->only(['search', 'species_id', 'customer_id', 'date_from', 'date_to', 'owner', 'animal', 'status', 'lab_branch_id'])) }}" class="text-amber-600 hover:text-amber-800 text-sm flex items-center mb-2">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>

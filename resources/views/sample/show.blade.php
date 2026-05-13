@@ -1,7 +1,7 @@
 <x-lab-layout>
     <div class="mt-14 py-6 px-4 md:mt-0 md:px-6">
-        <!-- Header: sticky respecto al scroll de <main>; top-14 = barra móvil fija del lab -->
-        <div class="sticky top-14 z-20 mb-6 flex flex-col border-b border-gray-200 bg-gray-100 pb-4 pt-2 shadow-sm md:top-0 md:flex-row md:items-start md:justify-between">
+        <!-- Header: sticky en viewport; top-14 móvil; md:top-24 bajo header lab -->
+        <div class="sticky top-14 z-20 mb-6 flex flex-col border-b border-gray-200 bg-gray-100 pb-4 pt-2 shadow-sm md:top-24 md:flex-row md:items-start md:justify-between">
             <div>
                 <a href="{{ route('sample.index', request()->only(['search', 'sample_type', 'list_status', 'lab_branch_id'])) }}" class="text-teal-600 hover:text-teal-800 text-sm flex items-center mb-2">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -3,7 +3,7 @@
     $labBranches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
 @endphp
 
-<header class="hidden md:block shrink-0 bg-white shadow-sm border-b z-30">
+<header class="hidden md:block bg-white shadow-sm border-b sticky top-0 z-30">
     <div class="px-6 py-4">
         <div class="flex items-center justify-between">
             <!-- Título de la página -->
