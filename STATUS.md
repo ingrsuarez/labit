@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-12 (v1.93.0 mergeada a develop, tag v1.93.0)
+> Última actualización: 2026-05-12 (v1.95.0 mergeada a develop — encabezado sticky protocolo clínico/vet/muestras)
 
 ---
 
@@ -9,14 +9,14 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | Tag: **v1.93.0** |
+| **Versión actual (línea v1.x)** | **develop** incluye **v1.95.0** (sin tag); último tag referencia: **v1.93.0** |
 | **Última en master** | Release 2026-05-12: **v1.90.0** — Notas de crédito manuales independientes |
-| **Última completada (cola agente)** | **v1.93.0** — Navegación siguiente/anterior protocolo pendiente en validación (clínico/vet/muestras) |
+| **Última completada (cola agente)** | **v1.95.0** — Encabezado sticky detalle protocolo (clínico, vet, muestras); merge `develop` 2026-05-12 |
 | **Hotfix aplicado** | 2026-05-09: vet doble submit + botón Eliminar protocolo; **sesión por inactividad** (`SESSION_IDLE_TIMEOUT_MINUTES`, `users.last_activity_at`, middleware `enforce.idle`) |
 | **En proceso** | — |
-| **Próxima recomendada** | Planificar nuevas versiones (cola de pendientes con prefijo `v` vacía) |
+| **Próxima recomendada** | **v1.92.0** — Dashboard operativo del laboratorio (`pendientes/v1.92.0-dashboard-operativo-laboratorio.md`) |
 | **Pendientes en cola** | 1 (diseño sin prefijo `v`) + 1 residual v1.90.0 (ya completada, tag existente) |
-| **Completadas** | 152 |
+| **Completadas** | 153 |
 
 ---
 
@@ -38,6 +38,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.95.0 | Encabezado sticky detalle protocolo (`md:top-20`); tests `ProtocolPendingNavigationTest` regresión layout + HTML sticky | 2026-05-12 | (tag al release) |
 | v1.93.0 | Navegación siguiente/anterior protocolo pendiente en validación (clínico/vet/muestras); tests `ProtocolPendingNavigationTest` | 2026-05-12 | v1.93.0 |
 | v1.92.0 | Dashboard operativo del laboratorio: KPIs, barras por estado/tipo/sede, alerta atrasados, links filtrados | 2026-05-12 | v1.92.0 |
 | v1.91.0 | Carga de resultados desde planilla de trabajo: celdas editables inline, batch save, clinico + muestras | 2026-05-12 | v1.91.0 |
