@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-12 (v1.95.0 mergeada a develop — encabezado sticky protocolo clínico/vet/muestras)
+> Última actualización: 2026-05-12 (v1.96.0 mergeada a develop — quitar determinación hoja sin resultado, lab + vet)
 
 ---
 
@@ -9,14 +9,14 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **develop** incluye **v1.95.0** (sin tag); último tag referencia: **v1.93.0** |
+| **Versión actual (línea v1.x)** | **develop** incluye **v1.96.0**; tag **v1.96.0** |
 | **Última en master** | Release 2026-05-12: **v1.90.0** — Notas de crédito manuales independientes |
-| **Última completada (cola agente)** | **v1.95.0** — Encabezado sticky detalle protocolo (clínico, vet, muestras); merge `develop` 2026-05-12 |
+| **Última completada (cola agente)** | **v1.96.0** — Eliminar determinación hoja sin resultado (lab clínico + vet); tests `RemoveLeafAdmissionDeterminationTest` |
 | **Hotfix aplicado** | 2026-05-09: vet doble submit + botón Eliminar protocolo; **sesión por inactividad** (`SESSION_IDLE_TIMEOUT_MINUTES`, `users.last_activity_at`, middleware `enforce.idle`) |
 | **En proceso** | — |
-| **Próxima recomendada** | **v1.92.0** — Dashboard operativo del laboratorio (`pendientes/v1.92.0-dashboard-operativo-laboratorio.md`) |
-| **Pendientes en cola** | 1 (diseño sin prefijo `v`) + 1 residual v1.90.0 (ya completada, tag existente) |
-| **Completadas** | 153 |
+| **Próxima recomendada** | Por orden: **v1.90.0** (residual en carpeta) → **v1.94.0** Factura B sin cliente |
+| **Pendientes en cola** | 2 con prefijo `v` (**v1.90.0** residual + **v1.94.0**) + 1 diseño sin prefijo `v` |
+| **Completadas** | 154 |
 
 ---
 
@@ -24,7 +24,8 @@
 
 ### Pendientes — próximo por orden de versión (`ls pendientes | sort | grep '^v'`)
 
-_Sin prompts con prefijo `v` en cola._
+- `v1.90.0-notas-credito-manuales-independientes.md` — residual en carpeta (verificar si ya aplicado en producto).
+- `v1.94.0-factura-b-sin-cliente-fv-create.md` — Factura B manual sin alta de cliente (snapshot en FC).
 
 Archivo adicional en `pendientes/` (no empieza con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
 
@@ -38,6 +39,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.96.0 | Quitar determinación hoja sin resultado (lab + vet): `ClinicalAdmissionTestHierarchy`, `removeTest` hoja sin cascada indebida en vet; tests `RemoveLeafAdmissionDeterminationTest` | 2026-05-12 | v1.96.0 |
 | v1.95.0 | Encabezado sticky detalle protocolo (`md:top-20`); tests `ProtocolPendingNavigationTest` regresión layout + HTML sticky | 2026-05-12 | (tag al release) |
 | v1.93.0 | Navegación siguiente/anterior protocolo pendiente en validación (clínico/vet/muestras); tests `ProtocolPendingNavigationTest` | 2026-05-12 | v1.93.0 |
 | v1.92.0 | Dashboard operativo del laboratorio: KPIs, barras por estado/tipo/sede, alerta atrasados, links filtrados | 2026-05-12 | v1.92.0 |
