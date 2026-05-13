@@ -681,8 +681,13 @@ class LabAdmissionController extends Controller
             if ($test->hasResult() || $test->is_validated || $test->is_ratified) {
                 return redirect()->back()->with('error', 'No se puede eliminar esta determinación: tiene resultado, está validada o ratificada.');
             }
+            $test->loadMissing('test');
+            $detLabel = $test->test
+                ? trim(($test->test->code ? $test->test->code.' — ' : '').$test->test->name)
+                : 'Desconocida';
             $test->delete();
             $admission->calculateTotals();
+            $admission->logAudit('test_removed', 'Eliminó determinación hoja '.$detLabel.' de la admisión Nº '.$admission->protocol_number);
 
             return redirect()->back()->with('success', 'Determinación eliminada del protocolo (el grupo permanece).');
         }
@@ -699,8 +704,11 @@ class LabAdmissionController extends Controller
             }
         }
 
+        $test->loadMissing('test');
+        $testName = $test->test->name ?? 'Desconocida';
         $test->delete();
         $admission->calculateTotals();
+        $admission->logAudit('test_removed', 'Eliminó práctica '.$testName.' de la admisión Nº '.$admission->protocol_number);
 
         return redirect()->back()->with('success', 'Práctica eliminada correctamente.');
     }

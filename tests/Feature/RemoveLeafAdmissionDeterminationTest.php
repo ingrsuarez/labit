@@ -148,6 +148,11 @@ class RemoveLeafAdmissionDeterminationTest extends TestCase
             'admission_id' => $admission->id,
             'test_id' => $childB->id,
         ]);
+
+        $log = $admission->fresh()->auditLogs()->where('action', 'test_removed')->first();
+        $this->assertNotNull($log);
+        $this->assertStringContainsString('HEMO-A', $log->description);
+        $this->assertStringContainsString('determinación hoja', mb_strtolower($log->description));
     }
 
     public function test_lab_rechaza_eliminar_hoja_con_resultado(): void
@@ -185,6 +190,10 @@ class RemoveLeafAdmissionDeterminationTest extends TestCase
             ->assertRedirect(route('lab.admissions.show', $admission));
 
         $this->assertDatabaseHas('admission_tests', ['id' => $atA->id]);
+
+        $this->assertFalse(
+            $admission->fresh()->auditLogs()->where('action', 'test_removed')->exists()
+        );
     }
 
     public function test_vet_elimina_solo_hoja_sin_resultado(): void
