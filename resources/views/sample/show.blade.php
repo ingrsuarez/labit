@@ -1,7 +1,7 @@
 <x-lab-layout>
-    <div class="py-6 px-4 md:px-6">
-        <!-- Header -->
-        <div class="flex flex-col md:flex-row md:items-start md:justify-between mb-6">
+    <div class="mt-14 py-6 px-4 md:mt-0 md:px-6">
+        <!-- Header (sticky: alineado a lab/vet; barra móvil laboratorio) -->
+        <div class="sticky top-14 z-20 -mx-4 mb-6 flex flex-col border-b border-gray-200 bg-gray-100 px-4 pb-4 pt-2 shadow-sm md:-mx-6 md:flex-row md:items-start md:justify-between md:top-[5rem] md:px-6 md:z-20">
             <div>
                 <a href="{{ route('sample.index', request()->only(['search', 'sample_type', 'list_status', 'lab_branch_id'])) }}" class="text-teal-600 hover:text-teal-800 text-sm flex items-center mb-2">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
