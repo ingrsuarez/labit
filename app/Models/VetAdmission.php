@@ -124,8 +124,15 @@ class VetAdmission extends Model
                 return true;
             }
 
-            if ($vt->relationLoaded('test') && $vt->test?->relationLoaded('childTests')) {
-                return $vt->test->childTests->isEmpty();
+            if (! $vt->relationLoaded('test') || ! $vt->test) {
+                return true;
+            }
+            $t = $vt->test;
+            if ($t->relationLoaded('childTests') && $t->childTests->isNotEmpty()) {
+                return false;
+            }
+            if ($t->relationLoaded('children') && $t->children->isNotEmpty()) {
+                return false;
             }
 
             return true;

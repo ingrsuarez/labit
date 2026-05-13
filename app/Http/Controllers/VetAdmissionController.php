@@ -13,6 +13,7 @@ use App\Models\Species;
 use App\Models\Test;
 use App\Models\VetAdmission;
 use App\Models\VetAdmissionTest;
+use App\Support\VetAdmissionTestDisplayOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use PDF;
@@ -505,6 +506,8 @@ class VetAdmissionController extends Controller
 
     public function removeTest(VetAdmission $vetAdmission, VetAdmissionTest $vetAdmissionTest)
     {
+        $this->authorize('vet-admissions.delete');
+
         if ($vetAdmissionTest->vet_admission_id !== $vetAdmission->id) {
             abort(404);
         }
@@ -516,7 +519,27 @@ class VetAdmissionController extends Controller
         }
 
         if ($vetAdmissionTest->is_validated) {
-            return redirect()->back()->with('error', 'No se puede quitar una pr?ctica ya validada.');
+            return redirect()->back()->with('error', 'No se puede quitar una práctica ya validada.');
+        }
+
+        if (VetAdmissionTestDisplayOrder::isProtocolSubParent($vetAdmission, $vetAdmissionTest)) {
+            return redirect()->back()->with('error', 'No se puede eliminar un grupo intermedio. Quite solo determinaciones hoja sin resultado.');
+        }
+
+        if (VetAdmissionTestDisplayOrder::isProtocolLeafChild($vetAdmission, $vetAdmissionTest)) {
+            if ($vetAdmissionTest->hasResult() || $vetAdmissionTest->is_ratified) {
+                return redirect()->back()->with('error', 'No se puede eliminar esta determinación: tiene resultado o está ratificada.');
+            }
+
+            $testName = $vetAdmissionTest->test->name ?? 'Desconocida';
+            $removedPrice = (float) $vetAdmissionTest->price;
+            $vetAdmissionTest->delete();
+            $newTotal = max(0, (float) $vetAdmission->total_price - $removedPrice);
+            $vetAdmission->update(['total_price' => $newTotal]);
+            $this->syncVetAdmissionProtocolStatus($vetAdmission);
+            $vetAdmission->logAudit('test_removed', 'Eliminó determinación hoja '.$testName.' del protocolo veterinario Nº '.$vetAdmission->protocol_number);
+
+            return redirect()->back()->with('success', 'Determinación eliminada del protocolo (el grupo permanece).');
         }
 
         $test = $vetAdmissionTest->test;
@@ -546,15 +569,23 @@ class VetAdmissionController extends Controller
 
         $newTotal = max(0, $vetAdmission->total_price - $removedPrice);
         $vetAdmission->update(['total_price' => $newTotal]);
+        $this->syncVetAdmissionProtocolStatus($vetAdmission);
 
         $vetAdmission->logAudit('test_removed', 'Eliminó práctica '.$testName.' del protocolo veterinario Nº '.$vetAdmission->protocol_number);
 
-        $msg = 'Pr?ctica eliminada del protocolo.';
+        $msg = 'Práctica eliminada del protocolo.';
         if ($removedCount > 1) {
-            $msg = "Se eliminaron {$removedCount} pr?cticas (padre + hijos) del protocolo.";
+            $msg = "Se eliminaron {$removedCount} prácticas (padre + hijos) del protocolo.";
         }
 
         return redirect()->back()->with('success', $msg);
+    }
+
+    private function syncVetAdmissionProtocolStatus(VetAdmission $vetAdmission): void
+    {
+        $vetAdmission->unsetRelation('vetTests');
+        $vetAdmission->load(['vetTests.test.childTests', 'vetTests.test.children']);
+        $vetAdmission->update(['status' => $vetAdmission->calculated_status]);
     }
 
     public function validateTest(VetAdmission $vetAdmission, VetAdmissionTest $vetAdmissionTest)

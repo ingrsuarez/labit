@@ -1,6 +1,7 @@
 ﻿# STATUS — Labit
 
-> Última actualización: 2026-05-12 (merge **develop**→**master**: v1.95.0 sticky protocolo; pendiente v1.94.0 FV B)
+> Estado actual del proyecto y del sistema de agentes.
+> Última actualización: 2026-05-13 (merge **develop**→**master**: **v1.96.0** quitar determinación hoja; auditoría lab al quitar hoja; estado del protocolo al quitar hoja + `calculated_status` con jerarquía legacy; pendiente **v1.94.0** FV B)
 
 ---
 
@@ -8,14 +9,15 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **master** incluye **v1.95.0** (sin tag); último tag referencia: **v1.93.0** |
-| **Última en master** | Release 2026-05-12: **v1.90.0** — Notas de crédito manuales independientes |
-| **Última completada (cola agente)** | **v1.95.0** — Encabezado sticky detalle protocolo (clínico, vet, muestras); `md:top-20`, tests regresión |
+| **Versión actual (línea v1.x)** | **master** incluye **v1.96.0**; tag **v1.96.0** |
+| **Última en master (releases v1.x previos)** | **v1.90.0** — Notas de crédito manuales independientes; merges sucesivos desde develop (p. ej. v1.95.0 sticky protocolo) hasta **v1.96.0** |
+| **Última completada (cola agente)** | **v1.96.0** — Quitar determinación hoja (lab + vet); `ClinicalAdmissionTestHierarchy`; auditoría y sync de estado en `removeTest`; tests `RemoveLeafAdmissionDeterminationTest` |
 | **Hotfix aplicado** | 2026-05-09: vet doble submit + botón Eliminar protocolo; **sesión por inactividad** (`SESSION_IDLE_TIMEOUT_MINUTES`, `users.last_activity_at`, middleware `enforce.idle`) |
+| **Referencia acceso/roles (v2.x)** | **v2.4.1** — Hotfix redirect loop lab + condición Mi Portal |
 | **En proceso** | — |
-| **Próxima recomendada** | Por orden en `pendientes/`: **v1.90.0** (verificar residual) → **v1.94.0** Factura B (`pendientes/v1.94.0-factura-b-sin-cliente-fv-create.md`); en roadmap **v1.92.0** dashboard operativo |
+| **Próxima recomendada** | Por orden: **v1.90.0** (residual en carpeta) → **v1.94.0** Factura B sin cliente |
 | **Pendientes en cola** | 2 con prefijo `v` (**v1.90.0** residual + **v1.94.0**) + 1 diseño sin prefijo `v` |
-| **Completadas** | 153 |
+| **Completadas** | 154 |
 
 ---
 
@@ -38,6 +40,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.96.0 | Quitar determinación hoja sin resultado (lab + vet): `ClinicalAdmissionTestHierarchy`, `removeTest` hoja sin cascada indebida en vet; tests `RemoveLeafAdmissionDeterminationTest` | 2026-05-12 | v1.96.0 |
 | v1.95.0 | Encabezado sticky detalle protocolo (`md:top-20`); tests `ProtocolPendingNavigationTest` regresión layout + HTML sticky | 2026-05-12 | (tag al release) |
 | v1.93.0 | Navegación siguiente/anterior protocolo pendiente en validación (clínico/vet/muestras); tests `ProtocolPendingNavigationTest` | 2026-05-12 | v1.93.0 |
 | v1.92.0 | Dashboard operativo del laboratorio: KPIs, barras por estado/tipo/sede, alerta atrasados, links filtrados | 2026-05-12 | v1.92.0 |
@@ -273,9 +276,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-**v1.93.0 completada y mergeada a develop (2026-05-12).** Tag `v1.93.0`. Prompt en `completados/v1.93.0-navegacion-siguiente-protocolo-validacion.md`; tests `tests/Feature/ProtocolPendingNavigationTest.php`. **v1.92.0** ya estaba en develop con tag `v1.92.0`. No hay prompts con prefijo `v` pendientes en cola (v1.90.0 residual en pendientes ya tiene tag).
-
-Pendientes en cola: diseño **v1.55.0** (buscador FC); ver `pendientes/`.
+**v1.96.0** mergeada a **master** (2026-05-13). Pendientes en cola con prefijo `v`: **v1.90.0** (residual) y **v1.94.0** (Factura B); diseño **v1.55.0** (buscador FC) en `pendientes/`.
 
 **Cadena LISCOM↔labit:** completada en labit (v1.46.0, v1.47.0, v1.48.5, v1.51.0, v1.53.0).
 Pendientes en repo `interfases` (Django): v1.48.0, v1.49.0, v1.50.0, v1.52.0.

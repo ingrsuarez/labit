@@ -174,6 +174,34 @@ class VetAdmissionTestDisplayOrder
     }
 
     /**
+     * @return (array{vt: VetAdmissionTest, level: int, isParent: bool, isSubParent: bool, isChild: bool})|null
+     */
+    public static function displayEntryFor(VetAdmission $admission, VetAdmissionTest $vat): ?array
+    {
+        foreach (self::orderedEntries($admission, false) as $entry) {
+            if ($entry['vt']->id === $vat->id) {
+                return $entry;
+            }
+        }
+
+        return null;
+    }
+
+    public static function isProtocolLeafChild(VetAdmission $admission, VetAdmissionTest $vat): bool
+    {
+        $e = self::displayEntryFor($admission, $vat);
+
+        return $e !== null && $e['isChild'] && ! $e['isParent'];
+    }
+
+    public static function isProtocolSubParent(VetAdmission $admission, VetAdmissionTest $vat): bool
+    {
+        $e = self::displayEntryFor($admission, $vat);
+
+        return $e !== null && $e['isChild'] && $e['isParent'];
+    }
+
+    /**
      * @param  array<int, VetAdmissionTest>  $itemsByTestId
      */
     private static function compareTestIds(int $a, int $b, array $itemsByTestId): int
