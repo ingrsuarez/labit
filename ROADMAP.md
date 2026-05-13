@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-12 (v1.95.0 mergeada a develop: encabezado sticky detalle protocolo)
+> Última actualización: 2026-05-13 (**v1.97.0** integración Santa Cruz FTP; develop previo **v1.95.0** sticky detalle protocolo)
 
 ---
 
@@ -152,6 +152,8 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
 | v1.95.0 | Encabezado sticky detalle protocolo (clínico, vet, muestras); `md:top-20`; tests regresión layout | ✅ Completada (2026-05-12) | `completados/v1.95.0-encabezado-sticky-detalle-protocolos.md` |
+| v1.97.0 | Santa Cruz O&G: FTP, preview XML, mapeos prestación↔test, importación admisiones clínicas, mover XML a `/procesados/` | ✅ Completada (2026-05-13) | `completados/v1.97.0-santacruz-ftp-import-admisiones.md` |
+| v1.94.0 | Factura B desde `/sales-invoices/create` sin cliente maestro: `customer_id` nullable, snapshot receptor, AFIP/PDF/asientos | Pendiente | `pendientes/v1.94.0-factura-b-sin-cliente-fv-create.md` |
 | v1.93.0 | Navegación “Siguiente protocolo” en validación: filtros vivos del listado, no validado ni enviado, orden ascendente `protocol_number` (clínico + vet + muestras) | ✅ Completada (2026-05-12) | `completados/v1.93.0-navegacion-siguiente-protocolo-validacion.md` |
 | v1.92.0 | Dashboard operativo del laboratorio: KPIs, barras por estado/tipo/sede, alerta atrasados, links filtrados | Pendiente | `pendientes/v1.92.0-dashboard-operativo-laboratorio.md` |
 | v1.88.0 | Auditoría completa en protocolo veterinario: 10 `logAudit()` faltantes + `<x-audit-history>` en vista show | Pendiente | `pendientes/v1.88.0-auditoria-completa-protocolo-veterinario.md` |
@@ -228,5 +230,5 @@ Release master: ver tags; develop incluye v1.53.0
 ---
 
 > Este documento se actualiza al finalizar cada versión o sesión de planificación.
-> Última actualización: 2026-05-12 (v1.95.0 mergeada a develop; v1.92.0 planificada: dashboard operativo del laboratorio)
+> Última actualización: 2026-05-13 (**v1.97.0** Santa Cruz FTP; v1.92.0 planificada: dashboard operativo del laboratorio)
 
