@@ -1,7 +1,6 @@
 ﻿# STATUS — Labit
 
-> Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-12 (v1.95.0 encabezado sticky detalle protocolos; planificado v1.94.0 FV B sin cliente)
+> Última actualización: 2026-05-12 (merge **develop**→**master**: v1.95.0 sticky protocolo; pendiente v1.94.0 FV B)
 
 ---
 
@@ -9,12 +8,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | Última entrega agente: **v1.95.0** (tag sugerido al release) · Tag referencia: **v1.93.0** |
+| **Versión actual (línea v1.x)** | **master** incluye **v1.95.0** (sin tag); último tag referencia: **v1.93.0** |
 | **Última en master** | Release 2026-05-12: **v1.90.0** — Notas de crédito manuales independientes |
-| **Última completada (cola agente)** | **v1.95.0** — Encabezado sticky en detalle de protocolo (clínico, vet, muestras) |
+| **Última completada (cola agente)** | **v1.95.0** — Encabezado sticky detalle protocolo (clínico, vet, muestras); `md:top-20`, tests regresión |
 | **Hotfix aplicado** | 2026-05-09: vet doble submit + botón Eliminar protocolo; **sesión por inactividad** (`SESSION_IDLE_TIMEOUT_MINUTES`, `users.last_activity_at`, middleware `enforce.idle`) |
 | **En proceso** | — |
-| **Próxima recomendada** | Por orden `sort` en `pendientes/`: **v1.90.0** (verificar si aún aplica) → **v1.94.0** — Factura B (`pendientes/v1.94.0-factura-b-sin-cliente-fv-create.md`) |
+| **Próxima recomendada** | Por orden en `pendientes/`: **v1.90.0** (verificar residual) → **v1.94.0** Factura B (`pendientes/v1.94.0-factura-b-sin-cliente-fv-create.md`); en roadmap **v1.92.0** dashboard operativo |
 | **Pendientes en cola** | 2 con prefijo `v` (**v1.90.0** residual + **v1.94.0**) + 1 diseño sin prefijo `v` |
 | **Completadas** | 153 |
 
@@ -39,7 +38,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
-| v1.95.0 | Encabezado sticky en detalle de protocolo (`lab/admissions/show`, `vet/admissions/show`, `sample/show`); `top-14` móvil, `md:top-[5rem]` bajo header lab | 2026-05-12 | (tag al release) |
+| v1.95.0 | Encabezado sticky detalle protocolo (`md:top-20`); tests `ProtocolPendingNavigationTest` regresión layout + HTML sticky | 2026-05-12 | (tag al release) |
 | v1.93.0 | Navegación siguiente/anterior protocolo pendiente en validación (clínico/vet/muestras); tests `ProtocolPendingNavigationTest` | 2026-05-12 | v1.93.0 |
 | v1.92.0 | Dashboard operativo del laboratorio: KPIs, barras por estado/tipo/sede, alerta atrasados, links filtrados | 2026-05-12 | v1.92.0 |
 | v1.91.0 | Carga de resultados desde planilla de trabajo: celdas editables inline, batch save, clinico + muestras | 2026-05-12 | v1.91.0 |
