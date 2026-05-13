@@ -299,7 +299,7 @@ class ProtocolPendingNavigationTest extends TestCase
         $this->assertFileExists($path);
         $blade = file_get_contents($path);
         $this->assertStringContainsString('sticky top-14', $blade);
-        $this->assertStringContainsString('md:top-24', $blade);
+        $this->assertStringContainsString('md:top-20', $blade);
 
         $branch = LabBranch::query()->create([
             'name' => 'Sede QA Sticky',
@@ -323,6 +323,6 @@ class ProtocolPendingNavigationTest extends TestCase
         $response = $this->actingAs($user)->get(route('lab.admissions.show', ['admission' => $admission]));
         $response->assertOk();
         $response->assertSee('sticky top-14', false);
-        $response->assertSee('md:top-24', false);
+        $response->assertSee('md:top-20', false);
     }
 }
