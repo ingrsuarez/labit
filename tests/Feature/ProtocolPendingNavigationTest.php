@@ -279,4 +279,50 @@ class ProtocolPendingNavigationTest extends TestCase
             'lab_branch_id' => (string) $branch->id,
         ]));
     }
+
+    /** @see v1.95.0 — scroll del documento en lab (no trap en main); QA automatizada de regresión */
+    public function test_lab_layout_no_inner_main_scroll_trap(): void
+    {
+        $path = resource_path('views/components/lab-layout.blade.php');
+        $this->assertFileExists($path);
+        $html = file_get_contents($path);
+        $this->assertStringContainsString('<main class="flex-1">', $html);
+        $this->assertStringNotContainsString('<main class="min-h-0 min-w-0 flex-1 overflow-y-auto">', $html);
+        $this->assertStringNotContainsString('overflow-hidden', $html,
+            'El body del lab-layout no debe usar overflow-hidden (rompe scroll / sticky en varios navegadores).');
+    }
+
+    /** @see v1.95.0 — cabecera de protocolo clínico con clases sticky + offset desktop */
+    public function test_clinical_admission_show_incluye_barra_protocolo_sticky(): void
+    {
+        $path = resource_path('views/lab/admissions/show.blade.php');
+        $this->assertFileExists($path);
+        $blade = file_get_contents($path);
+        $this->assertStringContainsString('sticky top-14', $blade);
+        $this->assertStringContainsString('md:top-20', $blade);
+
+        $branch = LabBranch::query()->create([
+            'name' => 'Sede QA Sticky',
+            'is_central' => true,
+            'is_active' => true,
+        ]);
+        $user = User::factory()->create(['default_lab_branch_id' => $branch->id]);
+        $this->grant($user, ['lab.section', 'lab-admissions.show']);
+
+        $patient = Patient::query()->create([
+            'name' => 'QA',
+            'lastName' => 'Sticky',
+            'patientId' => '30999111',
+            'type' => 'humano',
+            'sex' => 'M',
+            'status' => 'activo',
+        ]);
+
+        $admission = $this->makeClinicalAdmission($user, $patient, $branch, 'C-QA-STK-001', Admission::STATUS_PENDING);
+
+        $response = $this->actingAs($user)->get(route('lab.admissions.show', ['admission' => $admission]));
+        $response->assertOk();
+        $response->assertSee('sticky top-14', false);
+        $response->assertSee('md:top-20', false);
+    }
 }
