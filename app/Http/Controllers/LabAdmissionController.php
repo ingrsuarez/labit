@@ -16,6 +16,7 @@ use App\Models\InsuranceTest;
 use App\Models\LabSetting;
 use App\Models\Patient;
 use App\Models\Test;
+use App\Support\ClinicalAdmissionTestHierarchy;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -660,10 +661,30 @@ class LabAdmissionController extends Controller
      */
     public function removeTest(Admission $admission, AdmissionTest $test)
     {
+        $this->authorize('lab-admissions.delete');
+
+        if ($test->admission_id !== $admission->id) {
+            abort(404);
+        }
+
         if (auth()->user()->hasRole('recepcion-lab')) {
             if ($test->is_validated || $test->hasResult()) {
                 return redirect()->back()->with('error', 'No se puede eliminar una práctica en proceso o validada.');
             }
+        }
+
+        if (ClinicalAdmissionTestHierarchy::isProtocolSubParent($admission, $test)) {
+            return redirect()->back()->with('error', 'No se puede eliminar un grupo intermedio. Quite solo determinaciones hoja sin resultado.');
+        }
+
+        if (ClinicalAdmissionTestHierarchy::isProtocolLeafChild($admission, $test)) {
+            if ($test->hasResult() || $test->is_validated || $test->is_ratified) {
+                return redirect()->back()->with('error', 'No se puede eliminar esta determinación: tiene resultado, está validada o ratificada.');
+            }
+            $test->delete();
+            $admission->calculateTotals();
+
+            return redirect()->back()->with('success', 'Determinación eliminada del protocolo (el grupo permanece).');
         }
 
         // Si es una práctica padre (precio > 0), eliminar también sus hijos
