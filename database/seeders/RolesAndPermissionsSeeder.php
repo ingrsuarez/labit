@@ -220,6 +220,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'a25.worklist',
             'a25.import',
             'a25.mappings.manage',
+            'santacruz.import',
 
             // VENTAS (Módulo de Ventas)
             'ventas.section',
@@ -471,6 +472,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'patients.index', 'patients.create', 'patients.edit',
             'lab-admissions.index', 'lab-admissions.create', 'lab-admissions.edit', 'lab-admissions.show',
             'lab-admissions.delete',
+            'santacruz.import',
             'determination-profiles.index',
             'determination-profiles.manage',
             'lab-reports.print', 'lab-reports.send',
@@ -534,6 +536,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'a25.worklist',
             'a25.import',
             'a25.mappings.manage',
+            'santacruz.import',
             // Muestras
             'samples.section', 'samples.index', 'samples.show',
             'samples.delete',

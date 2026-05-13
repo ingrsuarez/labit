@@ -47,7 +47,7 @@
             @can('lab-admissions.index')
             <a href="{{ route('lab.section.clinico') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('lab.section.clinico') || request()->routeIs('lab.admissions.*') || request()->routeIs('lab.reports.*') || request()->routeIs('lab.patients.*') || request()->routeIs('patient.*') || request()->routeIs('insurance.*')
+                {{ request()->routeIs('lab.section.clinico') || request()->routeIs('lab.admissions.*') || request()->routeIs('lab.reports.*') || request()->routeIs('lab.patients.*') || request()->routeIs('patient.*') || request()->routeIs('insurance.*') || request()->routeIs('lab.santa-cruz.*')
                     ? 'bg-teal-600 text-white'
                     : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,6 +109,19 @@
                 Interfaz A25
             </a>
             @endcanany
+
+            @can('santacruz.import')
+            <a href="{{ route('lab.santa-cruz.sync') }}"
+               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                {{ request()->routeIs('lab.santa-cruz.*')
+                    ? 'bg-teal-600 text-white'
+                    : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                </svg>
+                Santa Cruz (FTP)
+            </a>
+            @endcan
 
             <a href="{{ route('worksheets.index') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
