@@ -383,20 +383,20 @@ class ResultIngestionBatchTest extends TestCase
         ]);
         $this->withHeaders($this->authHeaders())->postJson('/api/v1/results/batch', $payload1);
 
-        // Segundo batch: mismo control_id, mismo equipo, mismo protocolo → duplicate
+        // Segundo batch: mismo hl7_control_id + equipo + protocolo → se vuelve a aplicar (nuevo batch_id)
         $payload2 = $this->batchPayload($this->uuid(), [
             $this->item('ctrl-shared', $admission->protocol_number, $test->id, '55'),
         ]);
         $response = $this->withHeaders($this->authHeaders())->postJson('/api/v1/results/batch', $payload2);
 
         $response->assertStatus(200)
-            ->assertJsonPath('items.0.status', ApiResultIngestionService::STATUS_DUPLICATE);
+            ->assertJsonPath('items.0.status', ApiResultIngestionService::STATUS_INGESTED);
 
-        // El valor original no debe haber cambiado
+        // Segundo envío (mismo hl7_control_id + equipo + protocolo) debe sobrescribir si no está validado
         $this->assertDatabaseHas('admission_tests', [
             'admission_id' => $admission->id,
             'test_id' => $test->id,
-            'result' => '90',
+            'result' => '55',
         ]);
     }
 
@@ -458,7 +458,7 @@ class ResultIngestionBatchTest extends TestCase
             'result' => '0.74',
         ]);
 
-        // 3) Si DIRUI reintenta con el mismo equipo → ahora sí debe ser duplicate
+        // 3) Reintento con el mismo batch_id → idempotencia a nivel batch (no re-aplica)
         $response3 = $this->withHeaders($this->authHeaders())
             ->postJson('/api/v1/results/batch', $payload2);
 
@@ -511,7 +511,7 @@ class ResultIngestionBatchTest extends TestCase
             'result' => '1.23',
         ]);
 
-        // Retry real de protocolo B → ahora sí duplicate
+        // Reintento HTTP con el mismo batch_id → idempotencia a nivel batch
         $this->withHeaders($this->authHeaders())
             ->postJson('/api/v1/results/batch', $payloadB)
             ->assertJsonPath('duplicate', true);
@@ -755,12 +755,12 @@ class ResultIngestionBatchTest extends TestCase
         $this->assertSame('ingested', $items[0]['status']);
         $this->assertSame('partial', $items[1]['status']);
         $this->assertSame(ApiResultIngestionService::STATUS_REJECTED, $items[2]['status']);
-        $this->assertSame(ApiResultIngestionService::STATUS_DUPLICATE, $items[3]['status']);
+        $this->assertSame(ApiResultIngestionService::STATUS_INGESTED, $items[3]['status']);
 
         // Contadores del batch
         $batch = ResultBatch::where('external_batch_id', $mainBatchId)->first();
-        $this->assertSame(2, $batch->items_ingested); // msg1 + msg2 (partial → ingested counter)
+        $this->assertSame(3, $batch->items_ingested); // msg1 + msg2 (partial) + msg4 reenvío con mismo control_id
         $this->assertSame(1, $batch->items_rejected);
-        $this->assertSame(1, $batch->items_duplicate);
+        $this->assertSame(0, $batch->items_duplicate);
     }
 }
