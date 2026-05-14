@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-14 (**v1.97.1** fix scroll detalle protocolo completado; **v1.98.0** planilla pendientes; merge develop→master: **v1.97.0** Santa Cruz FTP)
+> Última actualización: 2026-05-14 (**develop**: **v1.98.2** hotfix API LISCOM ingesta batch; **v1.97.1** fix scroll detalle protocolo; **v1.98.0** planilla pendientes; merge develop→master reciente: **v1.98.1** / **v1.97.0** Santa Cruz FTP)
 
 ---
 
