@@ -11,13 +11,13 @@
 |---|---|
 | **Versión actual (línea v1.x)** | **master**: **v1.98.1**; **develop**: incluye hotfix **v1.98.2** (ingesta API); tags **v1.98.1**, **v1.97.1**, **v1.97.0** |
 | **Última en master (releases v1.x previos)** | **v1.98.1** — Planilla pendientes clínico+vet, sidebar; **v1.97.1** — scroll con fragmento; **v1.97.0** — Santa Cruz FTP |
-| **Última completada (cola agente)** | **v1.97.1** — Scroll al bloque de resultados tras POST en show clínico/vet (`withFragment` + `vet-admission-results`); tests `RemoveLeafAdmissionDeterminationTest` |
+| **Última completada (cola agente)** | **v1.99.0** — Base de cálculo configurable en deducciones RRHH (`DeductionBaseResolver`, `total_haberes` incluye no remunerativos) |
 | **Hotfix aplicado** | **v1.98.2** (2026-05-14): ingesta API `POST /api/v1/results/batch` sin dedup por mensaje HL7; idempotencia solo por `batch_id`. Además: 2026-05-09 vet doble submit, botón Eliminar protocolo; **sesión por inactividad** (`SESSION_IDLE_TIMEOUT_MINUTES`, `users.last_activity_at`, middleware `enforce.idle`) |
 | **Referencia acceso/roles (v2.x)** | **v2.4.1** — Hotfix redirect loop lab + condición Mi Portal |
 | **En proceso** | — |
 | **Próxima recomendada** | Por orden: **v1.90.0** (residual en carpeta) → **v1.94.0** Factura B sin cliente → **v1.98.0** planilla pendientes |
 | **Pendientes en cola** | 3 con prefijo `v` (**v1.90.0** residual + **v1.94.0** + **v1.98.0**) + 2 diseños/prompts asociados (`DISEÑO_v1.98.0-*`, `DISEÑO_v1.55.0-*`) |
-| **Completadas** | 156 |
+| **Completadas** | 157 |
 
 ---
 
@@ -41,6 +41,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.99.0 | RRHH: base de cálculo configurable en deducciones (subtotal remunerativo default, `total_haberes`, bases `$bases`; SAC sin cambio) | 2026-05-14 | (tag al release) |
 | v1.97.1 | Scroll al bloque resultados tras POST en show protocolo clínico/vet (`withFragment`, `vet-admission-results`) | 2026-05-14 | (tag al release) |
 | v1.97.0 | Santa Cruz O&G: FTP (`SantaCruzFtpService`), parser XML, mapeos prestación↔test, importación admisiones, vistas sync + índice mapeos, permiso `santacruz.import` | 2026-05-13 | v1.97.0 |
 | v1.96.0 | Quitar determinación hoja sin resultado (lab + vet): `ClinicalAdmissionTestHierarchy`, `removeTest` hoja sin cascada indebida en vet; tests `RemoveLeafAdmissionDeterminationTest` | 2026-05-12 | v1.96.0 |

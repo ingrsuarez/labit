@@ -9,6 +9,29 @@ class SalaryItem extends Model
 {
     use HasFactory;
 
+    /** Bases permitidas para haberes (incluye personalizada por checkboxes). */
+    public const HABER_CALCULATION_BASES = [
+        'basic',
+        'basic_vacaciones',
+        'basic_antiguedad',
+        'basic_antiguedad_titulo',
+        'basic_hours',
+        'basic_hours_antiguedad',
+        'custom',
+    ];
+
+    /** Bases permitidas para deducciones en liquidación mensual (sin custom). */
+    public const DEDUCTION_CALCULATION_BASES = [
+        'subtotal_remunerativo',
+        'total_haberes',
+        'basic',
+        'basic_vacaciones',
+        'basic_antiguedad',
+        'basic_antiguedad_titulo',
+        'basic_hours',
+        'basic_hours_antiguedad',
+    ];
+
     protected $fillable = [
         'name',
         'code',
@@ -46,8 +69,8 @@ class SalaryItem extends Model
     public function employees()
     {
         return $this->belongsToMany(Employee::class, 'employee_salary_item')
-                    ->withPivot('is_active', 'custom_value')
-                    ->withTimestamps();
+            ->withPivot('is_active', 'custom_value')
+            ->withTimestamps();
     }
 
     /**
@@ -79,7 +102,7 @@ class SalaryItem extends Model
             ];
         }
 
-        if (!empty($rows)) {
+        if (! empty($rows)) {
             \DB::table('salary_item_base_items')->insert($rows);
         }
     }
@@ -110,7 +133,7 @@ class SalaryItem extends Model
 
     /**
      * Scope para filtrar conceptos que aplican en un período específico
-     * 
+     *
      * Un concepto aplica si:
      * - applies_all_year = true (aplica siempre), O
      * - recurrent_month = mes del período (se repite cada año), O
@@ -118,16 +141,16 @@ class SalaryItem extends Model
      */
     public function scopeForPeriod($query, int $month, int $year)
     {
-        return $query->where(function($q) use ($month, $year) {
+        return $query->where(function ($q) use ($month, $year) {
             // Aplica todo el año
             $q->where('applies_all_year', true)
               // O es un mes recurrente (cada año)
-              ->orWhere('recurrent_month', $month)
+                ->orWhere('recurrent_month', $month)
               // O es un período específico
-              ->orWhere(function($q2) use ($month, $year) {
-                  $q2->where('specific_month', $month)
-                     ->where('specific_year', $year);
-              });
+                ->orWhere(function ($q2) use ($month, $year) {
+                    $q2->where('specific_month', $month)
+                        ->where('specific_year', $year);
+                });
         });
     }
 
@@ -139,21 +162,21 @@ class SalaryItem extends Model
         if ($this->applies_all_year) {
             return 'Todo el año';
         }
-        
+
         $months = [
             1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
             5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
-            9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+            9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre',
         ];
-        
+
         if ($this->recurrent_month) {
-            return 'Cada ' . $months[$this->recurrent_month];
+            return 'Cada '.$months[$this->recurrent_month];
         }
-        
+
         if ($this->specific_month && $this->specific_year) {
-            return $months[$this->specific_month] . ' ' . $this->specific_year;
+            return $months[$this->specific_month].' '.$this->specific_year;
         }
-        
+
         return 'Sin período definido';
     }
 
@@ -170,7 +193,7 @@ class SalaryItem extends Model
      */
     public function getCalculationTypeNameAttribute()
     {
-        return match($this->calculation_type) {
+        return match ($this->calculation_type) {
             'percentage' => 'Porcentaje',
             'fixed' => 'Monto Fijo',
             'hours' => 'Por Horas',
@@ -183,7 +206,7 @@ class SalaryItem extends Model
      */
     public function calculate($baseSalary, $hours = 0)
     {
-        return match($this->calculation_type) {
+        return match ($this->calculation_type) {
             'percentage' => $baseSalary * ($this->value / 100),
             'fixed' => $this->value,
             'hours' => $hours * $this->value,

@@ -70,10 +70,10 @@
                         </select>
                     </div>
 
-                    {{-- Base de Cálculo (solo para Haberes) --}}
-                    <div id="calculation_base_wrapper">
-                        <label for="calculation_base" class="block text-sm font-medium text-gray-700">Base de Cálculo *</label>
-                        <select name="calculation_base" id="calculation_base"
+                    {{-- Base de Cálculo — Haberes --}}
+                    <div id="haber_calculation_base_wrapper">
+                        <label for="calculation_base_haber" class="block text-sm font-medium text-gray-700">Base de Cálculo *</label>
+                        <select name="calculation_base" id="calculation_base_haber"
                                 class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
                             <option value="basic" {{ old('calculation_base') === 'basic' ? 'selected' : '' }}>Sueldo Básico</option>
                             <option value="basic_vacaciones" {{ old('calculation_base') === 'basic_vacaciones' ? 'selected' : '' }}>Básico + Vacaciones (CCT 108/75 Zona)</option>
@@ -139,13 +139,22 @@
                             @endif
                         </div>
                     </div>
-                    
-                    {{-- Info para Deducciones --}}
-                    <div id="deduccion_info" class="hidden">
-                        <label class="block text-sm font-medium text-gray-700">Base de Cálculo</label>
-                        <div class="mt-1 px-4 py-3 bg-gray-100 rounded-lg text-sm text-gray-600">
-                            <span class="font-medium">Bruto Total</span> - Las deducciones siempre se calculan sobre el total de haberes
-                        </div>
+
+                    {{-- Base de Cálculo — Deducciones (mismo name; el no activo va disabled para no duplicar POST) --}}
+                    <div id="deduccion_calculation_base_wrapper" class="hidden">
+                        <label for="calculation_base_deduccion" class="block text-sm font-medium text-gray-700">Base de Cálculo *</label>
+                        <select name="calculation_base" id="calculation_base_deduccion" disabled
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="subtotal_remunerativo" {{ old('calculation_base', 'subtotal_remunerativo') === 'subtotal_remunerativo' ? 'selected' : '' }}>Subtotal remunerativo (haberes remunerativos; comportamiento habitual)</option>
+                            <option value="total_haberes" {{ old('calculation_base') === 'total_haberes' ? 'selected' : '' }}>Total haberes (incluye no remunerativos)</option>
+                            <option value="basic" {{ old('calculation_base') === 'basic' ? 'selected' : '' }}>Sueldo Básico</option>
+                            <option value="basic_vacaciones" {{ old('calculation_base') === 'basic_vacaciones' ? 'selected' : '' }}>Básico + Vacaciones</option>
+                            <option value="basic_antiguedad" {{ old('calculation_base') === 'basic_antiguedad' ? 'selected' : '' }}>Básico + Antigüedad</option>
+                            <option value="basic_antiguedad_titulo" {{ old('calculation_base') === 'basic_antiguedad_titulo' ? 'selected' : '' }}>Básico + Vacaciones + Antigüedad + Título</option>
+                            <option value="basic_hours" {{ old('calculation_base') === 'basic_hours' ? 'selected' : '' }}>Básico + Horas Extras</option>
+                            <option value="basic_hours_antiguedad" {{ old('calculation_base') === 'basic_hours_antiguedad' ? 'selected' : '' }}>Básico + Horas + Antigüedad</option>
+                        </select>
+                        <p class="mt-1 text-xs text-gray-500">Solo aplica a deducciones por <strong>porcentaje</strong>. Montos fijos / proporcional / horas no usan esta base.</p>
                     </div>
 
                     {{-- Valor --}}
@@ -293,15 +302,21 @@
         // Mostrar/ocultar base de cálculo según tipo (haber/deducción)
         function toggleCalculationBase() {
             const type = document.getElementById('type').value;
-            const baseWrapper = document.getElementById('calculation_base_wrapper');
-            const deduccionInfo = document.getElementById('deduccion_info');
-            
+            const haberWrap = document.getElementById('haber_calculation_base_wrapper');
+            const dedWrap = document.getElementById('deduccion_calculation_base_wrapper');
+            const haberSelect = document.getElementById('calculation_base_haber');
+            const dedSelect = document.getElementById('calculation_base_deduccion');
+
             if (type === 'deduccion') {
-                baseWrapper.classList.add('hidden');
-                deduccionInfo.classList.remove('hidden');
+                haberWrap.classList.add('hidden');
+                dedWrap.classList.remove('hidden');
+                haberSelect.disabled = true;
+                dedSelect.disabled = false;
             } else {
-                baseWrapper.classList.remove('hidden');
-                deduccionInfo.classList.add('hidden');
+                haberWrap.classList.remove('hidden');
+                dedWrap.classList.add('hidden');
+                haberSelect.disabled = false;
+                dedSelect.disabled = true;
             }
         }
         
@@ -310,7 +325,7 @@
         toggleCalculationBase();
 
         // Mostrar/ocultar panel de base personalizada
-        document.getElementById('calculation_base').addEventListener('change', function() {
+        document.getElementById('calculation_base_haber').addEventListener('change', function() {
             const panel = document.getElementById('custom_base_panel');
             panel.classList.toggle('hidden', this.value !== 'custom');
         });

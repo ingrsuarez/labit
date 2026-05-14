@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-14 (**develop**: **v1.98.2** hotfix API LISCOM ingesta batch; **v1.97.1** fix scroll detalle protocolo; **v1.98.0** planilla pendientes; merge develop→master reciente: **v1.98.1** / **v1.97.0** Santa Cruz FTP)
+> Última actualización: 2026-05-14 (**develop**: **v1.98.2** hotfix API LISCOM ingesta batch; **v1.97.1** fix scroll detalle protocolo; **v1.98.0** planilla pendientes; merge develop→master reciente: **v1.98.1** / **v1.97.0** Santa Cruz FTP). **v1.99.0** deducciones: base configurable (en código).
 
 ---
 
@@ -151,6 +151,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
+| v1.99.0 | RRHH: base de cálculo configurable por deducción (liquidación mensual; default = subtotal remunerativo; `total_haberes` incluye no remunerativos; sin `custom`; SAC sin cambio) | ✅ Completada (2026-05-14) | `completados/v1.99.0-deducciones-base-calculo-configurable.md` |
 | v1.95.0 | Encabezado sticky detalle protocolo (clínico, vet, muestras); `md:top-20`; tests regresión layout | ✅ Completada (2026-05-12) | `completados/v1.95.0-encabezado-sticky-detalle-protocolos.md` |
 | v1.97.0 | Santa Cruz O&G: FTP, preview XML, mapeos prestación↔test, importación admisiones clínicas, mover XML a `/procesados/` | ✅ Completada (2026-05-13) | `completados/v1.97.0-santacruz-ftp-import-admisiones.md` |
 | v1.97.1 | Detalle protocolo (clínico + vet): tras validar/desvalidar/eliminar determinación, `redirect()->back()->withFragment` hacia bloque de resultados (`#lab-admission-results` / `#vet-admission-results`) | ✅ Completada (2026-05-14) | `completados/v1.97.1-fix-scroll-detalle-protocolo-tras-acciones-determinacion.md` |

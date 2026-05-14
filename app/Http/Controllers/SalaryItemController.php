@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\SalaryItem;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SalaryItemController extends Controller
 {
@@ -14,7 +15,7 @@ class SalaryItemController extends Controller
     {
         $haberes = SalaryItem::haberes()->orderBy('order')->get();
         $deducciones = SalaryItem::deducciones()->orderBy('order')->get();
-        
+
         $summary = [
             'total' => SalaryItem::count(),
             'haberes' => $haberes->count(),
@@ -31,6 +32,7 @@ class SalaryItemController extends Controller
     public function create()
     {
         $allHaberes = SalaryItem::haberes()->active()->orderBy('order')->get();
+
         return view('salary.create', compact('allHaberes'));
     }
 
@@ -39,13 +41,19 @@ class SalaryItemController extends Controller
      */
     public function store(Request $request)
     {
+        $type = $request->input('type');
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'code' => ['nullable', 'string', 'max:50'],
             'type' => ['required', 'in:haber,deduccion'],
             'calculation_type' => ['required', 'in:percentage,fixed,fixed_proportional,hours'],
             'value' => ['required', 'numeric', 'min:0'],
-            'calculation_base' => ['nullable', 'string', 'in:basic,basic_vacaciones,basic_antiguedad,basic_antiguedad_titulo,basic_hours,basic_hours_antiguedad,custom'],
+            'calculation_base' => [
+                'nullable',
+                'string',
+                Rule::in($type === 'deduccion' ? SalaryItem::DEDUCTION_CALCULATION_BASES : SalaryItem::HABER_CALCULATION_BASES),
+            ],
             'is_remunerative' => ['nullable', 'boolean'],
             'is_active' => ['nullable', 'boolean'],
             'order' => ['nullable', 'integer', 'min:0'],
@@ -61,7 +69,9 @@ class SalaryItemController extends Controller
         $validated['requires_assignment'] = $request->has('requires_assignment');
         $validated['hide_percentage_in_receipt'] = $request->has('hide_percentage_in_receipt');
         $validated['includes_in_antiguedad_base'] = $request->has('includes_in_antiguedad_base');
-        $validated['calculation_base'] = $request->input('calculation_base', 'basic_antiguedad');
+        $validated['calculation_base'] = $type === 'deduccion'
+            ? $request->input('calculation_base', 'subtotal_remunerativo')
+            : $request->input('calculation_base', 'basic_antiguedad');
         $validated['order'] = $validated['order'] ?? SalaryItem::max('order') + 1;
 
         // Procesar período de aplicación
@@ -76,8 +86,10 @@ class SalaryItemController extends Controller
 
         $salaryItem = SalaryItem::create($validated);
 
-        if ($validated['calculation_base'] === 'custom') {
+        if ($validated['calculation_base'] === 'custom' && $validated['type'] === 'haber') {
             $salaryItem->syncBaseItemKeys($request->input('base_items', []));
+        } else {
+            $salaryItem->syncBaseItemKeys([]);
         }
 
         return redirect()->route('salary.index')
@@ -93,7 +105,25 @@ class SalaryItemController extends Controller
             ->where('id', '!=', $salaryItem->id)
             ->orderBy('order')->get();
         $selectedBaseItems = $salaryItem->getBaseItemKeys();
-        return view('salary.edit', compact('salaryItem', 'allHaberes', 'selectedBaseItems'));
+
+        $oldBase = old('calculation_base');
+        if ($oldBase !== null) {
+            $deductionCalculationBase = in_array($oldBase, SalaryItem::DEDUCTION_CALCULATION_BASES, true)
+                ? $oldBase
+                : 'subtotal_remunerativo';
+            $haberCalculationBase = in_array($oldBase, SalaryItem::HABER_CALCULATION_BASES, true)
+                ? $oldBase
+                : 'basic_antiguedad';
+        } else {
+            $haberCalculationBase = $salaryItem->type === 'haber' && in_array($salaryItem->calculation_base, SalaryItem::HABER_CALCULATION_BASES, true)
+                ? $salaryItem->calculation_base
+                : 'basic_antiguedad';
+            $deductionCalculationBase = $salaryItem->type === 'deduccion' && in_array($salaryItem->calculation_base, SalaryItem::DEDUCTION_CALCULATION_BASES, true)
+                ? $salaryItem->calculation_base
+                : 'subtotal_remunerativo';
+        }
+
+        return view('salary.edit', compact('salaryItem', 'allHaberes', 'selectedBaseItems', 'haberCalculationBase', 'deductionCalculationBase'));
     }
 
     /**
@@ -101,13 +131,19 @@ class SalaryItemController extends Controller
      */
     public function update(Request $request, SalaryItem $salaryItem)
     {
+        $type = $request->input('type');
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'code' => ['nullable', 'string', 'max:50'],
             'type' => ['required', 'in:haber,deduccion'],
             'calculation_type' => ['required', 'in:percentage,fixed,fixed_proportional,hours'],
             'value' => ['required', 'numeric', 'min:0'],
-            'calculation_base' => ['nullable', 'string', 'in:basic,basic_vacaciones,basic_antiguedad,basic_antiguedad_titulo,basic_hours,basic_hours_antiguedad,custom'],
+            'calculation_base' => [
+                'nullable',
+                'string',
+                Rule::in($type === 'deduccion' ? SalaryItem::DEDUCTION_CALCULATION_BASES : SalaryItem::HABER_CALCULATION_BASES),
+            ],
             'is_remunerative' => ['nullable', 'boolean'],
             'is_active' => ['nullable', 'boolean'],
             'order' => ['nullable', 'integer', 'min:0'],
@@ -123,7 +159,9 @@ class SalaryItemController extends Controller
         $validated['requires_assignment'] = $request->has('requires_assignment');
         $validated['hide_percentage_in_receipt'] = $request->has('hide_percentage_in_receipt');
         $validated['includes_in_antiguedad_base'] = $request->has('includes_in_antiguedad_base');
-        $validated['calculation_base'] = $request->input('calculation_base', 'basic_antiguedad');
+        $validated['calculation_base'] = $type === 'deduccion'
+            ? $request->input('calculation_base', 'subtotal_remunerativo')
+            : $request->input('calculation_base', 'basic_antiguedad');
 
         // Procesar período de aplicación
         $periodType = $request->input('period_type', 'all_year');
@@ -137,7 +175,7 @@ class SalaryItemController extends Controller
 
         $salaryItem->update($validated);
 
-        if ($validated['calculation_base'] === 'custom') {
+        if ($validated['calculation_base'] === 'custom' && $validated['type'] === 'haber') {
             $salaryItem->syncBaseItemKeys($request->input('base_items', []));
         } else {
             $salaryItem->syncBaseItemKeys([]);
@@ -152,10 +190,11 @@ class SalaryItemController extends Controller
      */
     public function toggle(SalaryItem $salaryItem)
     {
-        $salaryItem->is_active = !$salaryItem->is_active;
+        $salaryItem->is_active = ! $salaryItem->is_active;
         $salaryItem->save();
 
         $status = $salaryItem->is_active ? 'activado' : 'desactivado';
+
         return redirect()->back()
             ->with('success', "Concepto {$status} correctamente.");
     }
@@ -178,7 +217,7 @@ class SalaryItemController extends Controller
     {
         $employees = \App\Models\Employee::orderBy('lastName')->orderBy('name')->get();
         $assignedIds = $salaryItem->employees()->pluck('employee_id')->toArray();
-        
+
         return view('salary.assignments', compact('salaryItem', 'employees', 'assignedIds'));
     }
 
@@ -188,13 +227,13 @@ class SalaryItemController extends Controller
     public function saveAssignments(Request $request, SalaryItem $salaryItem)
     {
         $employeeIds = $request->input('employees', []);
-        
+
         // Sincronizar empleados asignados
         $syncData = [];
         foreach ($employeeIds as $employeeId) {
             $syncData[$employeeId] = ['is_active' => true];
         }
-        
+
         $salaryItem->employees()->sync($syncData);
 
         return redirect()->route('salary.edit', $salaryItem)
@@ -207,7 +246,7 @@ class SalaryItemController extends Controller
     public function toggleAssignment(SalaryItem $salaryItem, \App\Models\Employee $employee)
     {
         $exists = $salaryItem->employees()->where('employee_id', $employee->id)->exists();
-        
+
         if ($exists) {
             $salaryItem->employees()->detach($employee->id);
             $message = "Concepto removido de {$employee->name} {$employee->lastName}";
@@ -219,4 +258,3 @@ class SalaryItemController extends Controller
         return redirect()->back()->with('success', $message);
     }
 }
-

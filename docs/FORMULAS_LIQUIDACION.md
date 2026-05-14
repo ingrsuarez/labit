@@ -117,22 +117,27 @@ Importe = Valor Fijo × (Horas Semanales Empleado / Horas Base Categoría)
 
 ## 5. Deducciones
 
-### Base para Deducciones
-```
-Base Deducciones = Total Haberes Remunerativos (excluye No Remunerativos)
-```
+### Base para Deducciones (configurable por concepto)
 
-> **Importante:** Los conceptos marcados como "No Remunerativo" NO se incluyen en la base para calcular deducciones.
+En cada concepto de tipo **deducción** se guarda `calculation_base`. En la liquidación **mensual**, el sistema obtiene un monto base numérico y, si el concepto es por **porcentaje**, aplica `Importe = Base × (Valor / 100)`. Los tipos **monto fijo**, **monto fijo proporcional** y **por horas** no usan esta base (el importe viene del valor del concepto o de reglas propias).
+
+| Valor `calculation_base` | Significado |
+|--------------------------|-------------|
+| `subtotal_remunerativo` (predeterminado) | Suma de haberes **remunerativos** del período (equivale al comportamiento histórico: excluye no remunerativos). |
+| `total_haberes` | Suma de **todos** los haberes del período (**incluye** no remunerativos). Útil cuando se debe calcular un porcentaje sobre el bruto completo. |
+| `basic`, `basic_vacaciones`, `basic_antiguedad`, `basic_antiguedad_titulo`, `basic_hours`, `basic_hours_antiguedad` | Misma composición que para haberes: ver sección 4 (bases predefinidas). |
+
+> **Liquidación SAC:** en el recibo de Sueldo Anual Complementario las deducciones siguen calculándose sobre el **bruto del SAC**; no se aplica `calculation_base` del concepto en ese flujo.
 
 ### Deducciones Legales (Argentina)
 
 | Concepto | Porcentaje | Fórmula |
 |----------|------------|---------|
-| Jubilación | 11% | Base Remunerativa × 0.11 |
-| INSS/PLEY 19032 | 3% | Base Remunerativa × 0.03 |
-| Ley 23660 (Obra Social) | 2.55% | Base Remunerativa × 0.0255 |
-| Aporte Solidario | 1% | Base Remunerativa × 0.01 |
-| ANSSAL | 0.45% | Base Remunerativa × 0.0045 |
+| Jubilación | 11% | Base elegida × 0.11 |
+| INSS/PLEY 19032 | 3% | Base elegida × 0.03 |
+| Ley 23660 (Obra Social) | 2.55% | Base elegida × 0.0255 |
+| Aporte Solidario | 1% | Base elegida × 0.01 |
+| ANSSAL | 0.45% | Base elegida × 0.0045 |
 
 ### Total Deducciones
 ```
@@ -220,7 +225,7 @@ Neto a Cobrar = Total Haberes - Total Deducciones
 4. **Antigüedad** (sobre básico + horas extras)
 5. **Haberes Adicionales** (según su base de cálculo configurada)
 6. **Haberes No Remunerativos**
-7. **Deducciones** (sobre total remunerativo)
+7. **Deducciones** (base según `calculation_base` de cada concepto; por defecto subtotal remunerativo)
 8. **Neto a Cobrar**
 
 ---

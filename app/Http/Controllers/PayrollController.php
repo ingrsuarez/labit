@@ -8,6 +8,7 @@ use App\Models\Leave;
 use App\Models\Payroll;
 use App\Models\PayrollSetting;
 use App\Models\SalaryItem;
+use App\Services\Payroll\DeductionBaseResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
@@ -397,7 +398,7 @@ class PayrollController extends Controller
         // Subtotal total (incluye no remunerativo)
         $subtotal = $totalHaberes;
 
-        // Calcular deducciones - SOLO sobre el BRUTO REMUNERATIVO (excluye no remunerativos)
+        // Deducciones: la base numérica depende de `calculation_base` del concepto (ver DeductionBaseResolver).
         $deduccionesCalculadas = [];
         $totalDeducciones = 0;
 
@@ -407,8 +408,13 @@ class PayrollController extends Controller
                 continue;
             }
 
-            // Las deducciones se calculan sobre el SUBTOTAL REMUNERATIVO (excluye no remunerativos)
-            $importe = $this->calculateItem($deduccion, $subtotalRemunerativo, $leaves, $employee);
+            $baseDeduccion = DeductionBaseResolver::resolve(
+                $deduccion->calculation_base,
+                $subtotalRemunerativo,
+                $subtotal,
+                $bases
+            );
+            $importe = $this->calculateItem($deduccion, $baseDeduccion, $leaves, $employee);
             if ($importe > 0) {
                 $deduccionesCalculadas[] = [
                     'nombre' => $deduccion->name,
@@ -824,7 +830,8 @@ class PayrollController extends Controller
         // Obtener deducciones activas
         $deducciones = SalaryItem::deducciones()->active()->forPeriod($month, $year)->orderBy('order')->get();
 
-        // Calcular deducciones sobre el SAC bruto
+        // SAC: el recibo no replica el desglose mensual; las deducciones se aplican solo sobre el SAC bruto.
+        // `calculation_base` del concepto (subtotal remunerativo, total haberes, etc.) no interviene aquí.
         $deduccionesCalculadas = [];
         $totalDeducciones = 0;
 
