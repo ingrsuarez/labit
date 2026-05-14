@@ -77,8 +77,16 @@ class SantaCruzFtpCurlService implements SantaCruzFtpClientInterface
         }
 
         $timeout = (int) config('santacruz.ftp.timeout', 30);
-        curl_setopt($ch, \CURLOPT_USERNAME, (string) config('santacruz.ftp.username'));
-        curl_setopt($ch, \CURLOPT_PASSWORD, (string) config('santacruz.ftp.password'));
+        $user = (string) config('santacruz.ftp.username');
+        $pass = (string) config('santacruz.ftp.password');
+        if ($user === '' || $pass === '') {
+            throw new RuntimeException(
+                'FTP Santa Cruz: usuario o contraseña vacíos en la configuración. Si editaste el .env en el servidor, ejecutá `php artisan config:clear` o volvé a generar la caché con `php artisan config:cache`.'
+            );
+        }
+
+        curl_setopt($ch, \CURLOPT_USERNAME, $user);
+        curl_setopt($ch, \CURLOPT_PASSWORD, $pass);
         curl_setopt($ch, \CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, \CURLOPT_CONNECTTIMEOUT, $timeout);
         curl_setopt($ch, \CURLOPT_TIMEOUT, $timeout);

@@ -25,26 +25,42 @@ class SantaCruzFtpService implements SantaCruzFtpClientInterface
         $port = config('santacruz.ftp.port', 21);
         $timeout = config('santacruz.ftp.timeout', 30);
 
-        $conn = @ftp_connect($host, $port, $timeout);
+        if (! function_exists('ftp_connect')) {
+            $ini = php_ini_loaded_file() ?: '(ninguno)';
+            throw new RuntimeException(
+                'La extensión PHP «ftp» no está cargada (SAPI: '.PHP_SAPI.", php.ini: {$ini}). En producción suele bastar con la extensión «curl» y el cliente alternativo; si no, habilitá «ftp» en el PHP del servidor web."
+            );
+        }
+
+        $conn = @\ftp_connect($host, (int) $port, (int) $timeout);
         if ($conn === false) {
             throw new RuntimeException('No se pudo conectar al FTP de Santa Cruz (host/puerto).');
         }
 
         $user = (string) config('santacruz.ftp.username');
         $pass = (string) config('santacruz.ftp.password');
-        if (! @ftp_login($conn, $user, $pass)) {
-            ftp_close($conn);
-            throw new RuntimeException('Credenciales FTP de Santa Cruz inválidas.');
+        if ($user === '' || $pass === '') {
+            \ftp_close($conn);
+            throw new RuntimeException(
+                'FTP Santa Cruz: usuario o contraseña vacíos en la configuración. Si editaste el .env en el servidor, ejecutá `php artisan config:clear` o volvé a generar la caché con `php artisan config:cache` para que se apliquen los valores.'
+            );
+        }
+
+        if (! @\ftp_login($conn, $user, $pass)) {
+            \ftp_close($conn);
+            throw new RuntimeException(
+                'Credenciales FTP de Santa Cruz rechazadas por el servidor (usuario o contraseña incorrectos, o cuenta sin acceso desde esta IP). Revisá mayúsculas/minúsculas y que el .env en producción no tenga comillas de más; claves con # o espacios deben ir entre comillas dobles. Si usás `config:cache`, regenerala tras cambiar el .env.'
+            );
         }
 
         if (config('santacruz.ftp.passive', true)) {
-            @ftp_pasv($conn, true);
+            @\ftp_pasv($conn, true);
         }
 
         $path = $this->normalizeFtpPath((string) config('santacruz.ftp.path', '/'));
         if ($path !== '' && $path !== '/') {
-            if (! @ftp_chdir($conn, $path)) {
-                ftp_close($conn);
+            if (! @\ftp_chdir($conn, $path)) {
+                \ftp_close($conn);
                 throw new RuntimeException('No se pudo acceder a la carpeta FTP: '.$path);
             }
         }
@@ -68,7 +84,7 @@ class SantaCruzFtpService implements SantaCruzFtpClientInterface
     public function disconnect(): void
     {
         if (is_resource($this->connection)) {
-            @ftp_close($this->connection);
+            @\ftp_close($this->connection);
         }
         $this->connection = null;
     }
@@ -81,7 +97,7 @@ class SantaCruzFtpService implements SantaCruzFtpClientInterface
     public function listXmlFiles(): array
     {
         $this->connect();
-        $list = @ftp_nlist($this->connection, '.');
+        $list = @\ftp_nlist($this->connection, '.');
         if ($list === false) {
             return [];
         }
@@ -108,7 +124,7 @@ class SantaCruzFtpService implements SantaCruzFtpClientInterface
         }
 
         try {
-            if (! @ftp_get($this->connection, $tmp, $basename, FTP_BINARY)) {
+            if (! @\ftp_get($this->connection, $tmp, $basename, \FTP_BINARY)) {
                 throw new RuntimeException('No se pudo descargar el archivo: '.$basename);
             }
             $content = (string) file_get_contents($tmp);
@@ -125,10 +141,10 @@ class SantaCruzFtpService implements SantaCruzFtpClientInterface
         $basename = basename($basename);
         $sub = (string) config('santacruz.ftp.processed_subpath', 'procesados');
 
-        @ftp_mkdir($this->connection, $sub);
+        @\ftp_mkdir($this->connection, $sub);
 
         $dest = $sub.'/'.$basename;
-        if (! @ftp_rename($this->connection, $basename, $dest)) {
+        if (! @\ftp_rename($this->connection, $basename, $dest)) {
             Log::error('SantaCruzFtp: rename fallido', ['from' => $basename, 'to' => $dest]);
             throw new RuntimeException('No se pudo mover el archivo a procesados: '.$basename.' → '.$dest);
         }
