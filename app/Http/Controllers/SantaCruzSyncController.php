@@ -37,6 +37,8 @@ class SantaCruzSyncController extends Controller
     ): RedirectResponse {
         $this->authorize('santacruz.import');
 
+        @set_time_limit((int) config('santacruz.scan_max_execution_seconds', 900));
+
         $insuranceId = config('santacruz.insurance_id');
         if (! $insuranceId) {
             return redirect()
@@ -110,6 +112,8 @@ class SantaCruzSyncController extends Controller
         SantaCruzImportService $importService,
     ): RedirectResponse {
         $this->authorize('santacruz.import');
+
+        @set_time_limit((int) config('santacruz.scan_max_execution_seconds', 900));
 
         $request->validate([
             'files' => 'required|array|min:1',

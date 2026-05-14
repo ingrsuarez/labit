@@ -91,6 +91,13 @@ class SantaCruzFtpCurlService implements SantaCruzFtpClientInterface
         curl_setopt($ch, \CURLOPT_CONNECTTIMEOUT, $timeout);
         curl_setopt($ch, \CURLOPT_TIMEOUT, $timeout);
 
+        $lowTime = (int) config('santacruz.ftp.low_speed_time', 0);
+        $lowLimit = (int) config('santacruz.ftp.low_speed_limit', 1);
+        if ($lowTime > 0 && $lowLimit > 0 && \defined('CURLOPT_LOW_SPEED_LIMIT') && \defined('CURLOPT_LOW_SPEED_TIME')) {
+            curl_setopt($ch, \CURLOPT_LOW_SPEED_LIMIT, $lowLimit);
+            curl_setopt($ch, \CURLOPT_LOW_SPEED_TIME, $lowTime);
+        }
+
         if ((bool) config('santacruz.ftp.ssl', false)) {
             if (\defined('CURLUSESSL_ALL')) {
                 curl_setopt($ch, \CURLOPT_USE_SSL, \CURLUSESSL_ALL);

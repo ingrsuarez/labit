@@ -14,7 +14,13 @@ return [
         /** FTPS explícito (AUTH TLS), p. ej. IIS «Policy requires SSL» (respuesta 534 en USER sin TLS). */
         'ssl' => filter_var(env('SANTA_CRUZ_FTP_SSL', false), FILTER_VALIDATE_BOOL),
         'ssl_verify_peer' => filter_var(env('SANTA_CRUZ_FTP_SSL_VERIFY_PEER', true), FILTER_VALIDATE_BOOL),
+        /** Si la velocidad cae bajo este umbral (bytes/s) durante low_speed_time s, cURL aborta (evita PASV colgado). 0 = desactivado. */
+        'low_speed_limit' => (int) env('SANTA_CRUZ_FTP_LOW_SPEED_LIMIT', 1),
+        'low_speed_time' => (int) env('SANTA_CRUZ_FTP_LOW_SPEED_TIME', 120),
     ],
+
+    /** Límite de tiempo PHP (segundos) para scan/import Santa Cruz (muchos XML + FTPS). */
+    'scan_max_execution_seconds' => (int) env('SANTA_CRUZ_SCAN_MAX_SECONDS', 900),
 
     'insurance_id' => env('SANTA_CRUZ_INSURANCE_ID') !== null && env('SANTA_CRUZ_INSURANCE_ID') !== ''
         ? (int) env('SANTA_CRUZ_INSURANCE_ID')
