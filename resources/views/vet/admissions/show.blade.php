@@ -260,7 +260,7 @@
                 </div>
             </div>
 
-            <form action="{{ route('vet.admissions.loadResults', $vetAdmission) }}" method="POST">
+            <form id="vet-admission-results" action="{{ route('vet.admissions.loadResults', $vetAdmission) }}" method="POST">
                 @csrf
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
