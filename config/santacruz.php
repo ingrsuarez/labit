@@ -11,6 +11,9 @@ return [
         'processed_subpath' => trim(env('SANTA_CRUZ_FTP_PROCESSED_SUBPATH', 'procesados'), '/'),
         'passive' => filter_var(env('SANTA_CRUZ_FTP_PASSIVE', true), FILTER_VALIDATE_BOOL),
         'timeout' => (int) env('SANTA_CRUZ_FTP_TIMEOUT', 30),
+        /** FTPS explícito (AUTH TLS), p. ej. IIS «Policy requires SSL» (respuesta 534 en USER sin TLS). */
+        'ssl' => filter_var(env('SANTA_CRUZ_FTP_SSL', false), FILTER_VALIDATE_BOOL),
+        'ssl_verify_peer' => filter_var(env('SANTA_CRUZ_FTP_SSL_VERIFY_PEER', true), FILTER_VALIDATE_BOOL),
     ],
 
     'insurance_id' => env('SANTA_CRUZ_INSURANCE_ID') !== null && env('SANTA_CRUZ_INSURANCE_ID') !== ''

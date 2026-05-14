@@ -91,6 +91,15 @@ class SantaCruzFtpCurlService implements SantaCruzFtpClientInterface
         curl_setopt($ch, \CURLOPT_CONNECTTIMEOUT, $timeout);
         curl_setopt($ch, \CURLOPT_TIMEOUT, $timeout);
 
+        if ((bool) config('santacruz.ftp.ssl', false)) {
+            if (\defined('CURLUSESSL_ALL')) {
+                curl_setopt($ch, \CURLOPT_USE_SSL, \CURLUSESSL_ALL);
+            }
+            $verify = (bool) config('santacruz.ftp.ssl_verify_peer', true);
+            curl_setopt($ch, \CURLOPT_SSL_VERIFYPEER, $verify);
+            curl_setopt($ch, \CURLOPT_SSL_VERIFYHOST, $verify ? 2 : 0);
+        }
+
         if (config('santacruz.ftp.passive', true)) {
             curl_setopt($ch, \CURLOPT_FTP_USE_EPSV, false);
             if (\defined('CURLOPT_FTP_SKIPPASV_IP')) {

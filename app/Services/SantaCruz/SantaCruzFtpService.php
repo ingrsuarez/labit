@@ -32,9 +32,20 @@ class SantaCruzFtpService implements SantaCruzFtpClientInterface
             );
         }
 
-        $conn = @\ftp_connect($host, (int) $port, (int) $timeout);
+        $useSsl = (bool) config('santacruz.ftp.ssl', false);
+        if ($useSsl && ! function_exists('ftp_ssl_connect')) {
+            throw new RuntimeException(
+                'SANTA_CRUZ_FTP_SSL=true requiere `ftp_ssl_connect` (PHP compilado con OpenSSL para la extensión ftp) o usá la extensión «curl», que negocia FTPS explícito (AUTH TLS) con IIS.'
+            );
+        }
+
+        $conn = $useSsl
+            ? @\ftp_ssl_connect($host, (int) $port, (int) $timeout)
+            : @\ftp_connect($host, (int) $port, (int) $timeout);
         if ($conn === false) {
-            throw new RuntimeException('No se pudo conectar al FTP de Santa Cruz (host/puerto).');
+            throw new RuntimeException(
+                'No se pudo conectar al FTP de Santa Cruz (host/puerto'.($useSsl ? ', TLS' : '').').'
+            );
         }
 
         $user = (string) config('santacruz.ftp.username');
