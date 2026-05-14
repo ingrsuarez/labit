@@ -17,8 +17,10 @@ use App\Models\LabSetting;
 use App\Models\Patient;
 use App\Models\Test;
 use App\Support\ClinicalAdmissionTestHierarchy;
+use App\Support\ClinicalPendingResultsPresenter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use PDF;
@@ -47,6 +49,66 @@ class LabAdmissionController extends Controller
         $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
 
         return view('lab.admissions.index', compact('admissions', 'insurances', 'branches'));
+    }
+
+    /**
+     * Planilla global: admisiones con al menos una determinación sin resultado (todas las fechas).
+     */
+    public function pendingResults(Request $request)
+    {
+        $this->authorize('lab-admissions.index');
+
+        $filterRequest = Request::create(
+            $request->url(),
+            'GET',
+            $request->except(['date_from', 'date_to'])
+        );
+
+        $query = Admission::query()
+            ->with(['patient', 'admissionTests.test.parentTests']);
+
+        $query->where('status', '!=', Admission::STATUS_CANCELLED);
+
+        $this->applyLabAdmissionIndexFilters($filterRequest, $query);
+
+        $isRecepcionLab = auth()->user()->hasRole('recepcion-lab')
+            && ! auth()->user()->hasAnyRole(['bioquimico', 'tecnico-lab']);
+
+        $candidates = $query
+            ->orderBy('protocol_number')
+            ->orderBy('id')
+            ->get();
+
+        $rows = [];
+        foreach ($candidates as $admission) {
+            $label = ClinicalPendingResultsPresenter::pendingDeterminationsLabel($admission, $isRecepcionLab);
+            if ($label !== '') {
+                $admission->pending_determinations_label = $label;
+                $rows[] = $admission;
+            }
+        }
+
+        $withPending = collect($rows);
+        $page = max(1, (int) $request->input('page', 1));
+        $perPage = 20;
+        $total = $withPending->count();
+        $slice = $withPending->forPage($page, $perPage)->values();
+
+        $admissions = new LengthAwarePaginator(
+            $slice,
+            $total,
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
+        $insurances = Insurance::where('type', '!=', 'nomenclador')
+            ->orderByRaw("CASE WHEN type = 'particular' THEN 0 ELSE 1 END")
+            ->orderBy('name')
+            ->get();
+
+        return view('lab.admissions.pending-results', compact('admissions', 'branches', 'insurances'));
     }
 
     /**

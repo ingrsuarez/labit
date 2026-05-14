@@ -135,6 +135,16 @@
             </a>
 
             @can('lab-admissions.index')
+            <a href="{{ route('lab.admissions.pending-results') }}"
+               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
+                {{ request()->routeIs('lab.admissions.pending-results')
+                    ? 'bg-teal-600 text-white'
+                    : 'text-teal-100 hover:bg-teal-600/50 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Resultados pendientes
+            </a>
             <a href="{{ route('lab.debtors') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
                 {{ request()->routeIs('lab.debtors')

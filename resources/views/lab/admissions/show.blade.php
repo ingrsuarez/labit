@@ -423,7 +423,7 @@
                             $canValidate = auth()->user()->can('lab-results.validate');
                         @endphp
                         
-                        <form action="{{ route('lab.admissions.saveResults', $admission) }}" method="POST">
+                        <form id="lab-admission-results" action="{{ route('lab.admissions.saveResults', $admission) }}" method="POST">
                             @csrf
                             <div>
                                 <table class="w-full divide-y divide-gray-200">

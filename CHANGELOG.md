@@ -5,6 +5,20 @@
 
 ---
 
+## [v1.98.0] — 2026-05-13 — Planilla global resultados pendientes (lab clínico)
+
+### Agregado
+- Ruta **GET** `lab/admissions/pending-results` (`lab.admissions.pending-results`): listado de admisiones no canceladas con al menos una determinación hoja pendiente de resultado, con los mismos filtros de sede/búsqueda/OS/estado que el índice de admisiones **sin** filtro obligatorio por fecha.
+- Columna **Determinaciones pendientes**: texto unido con ` - `; agrupación padre/sub-padre alineada a la jerarquía de `lab/admissions/show` (nombre del grupo una vez si falta alguna hoja bajo el agrupador).
+- Vista Blade `resources/views/lab/admissions/pending-results.blade.php`, enlace en sidebar **Resultados pendientes** (permiso `lab-admissions.index`).
+- Ancla **`#lab-admission-results`** en el formulario de guardado masivo de resultados en `show` para deep link desde la planilla.
+- `App\Support\ClinicalPendingResultsPresenter` y tests (`LabPendingResultsPlanillaTest`, `ClinicalPendingResultsPresenterTest`).
+
+### Notas
+- Criterio de fila contable: misma elegibilidad que en show para carga (no rechazada; autorizada / no requiere / paga paciente) y visibilidad recepción-lab (no cuenta hojas hijas ocultas para ese rol).
+
+---
+
 ## [v1.76.0] — 2026-05-07 — Marcar determinaciones como ratificadas
 
 ### Agregado
