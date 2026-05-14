@@ -89,36 +89,12 @@ class ApiResultIngestionService
 
     private function processItem(ApiClient $client, ResultBatch $batch, array $item): array
     {
-        $equipmentName = $item['equipment_name'] ?? null;
         $protocolNumber = $item['protocol_number'];
 
-        $dedupQuery = ResultIngestion::where('api_client_id', $client->id)
-            ->where('hl7_control_id', $item['hl7_control_id'])
-            ->where('protocol_number', $protocolNumber)
-            ->whereIn('status', [self::STATUS_INGESTED, self::STATUS_OVERWRITTEN, self::STATUS_DUPLICATE]);
-
-        // Scope por equipo: dos equipos distintos enviando resultados para el mismo protocolo
-        // con el mismo hl7_control_id (MSH-10 derivado del número de protocolo) NO son duplicados.
-        if ($equipmentName !== null && $equipmentName !== '') {
-            $dedupQuery->where('equipment_name', $equipmentName);
-        }
-
-        $existingIngestion = $dedupQuery->first();
-
-        if ($existingIngestion) {
-            return [
-                'counter' => 'duplicate',
-                'response' => [
-                    'external_message_id' => $item['external_message_id'] ?? null,
-                    'hl7_control_id' => $item['hl7_control_id'],
-                    'status' => self::STATUS_DUPLICATE,
-                    'original_batch_id' => $existingIngestion->batch->external_batch_id,
-                    'results' => $existingIngestion->items_summary,
-                ],
-            ];
-        }
-
-        $protocolNumber = $item['protocol_number'];
+        // Nota (2026-05-14): ya no se corta el flujo por hl7_control_id + protocolo + equipo.
+        // Reenvíos del mismo mensaje vuelven a persistir resultados; la única protección dura
+        // es ALREADY_VALIDATED en processSingleResult. Sigue existiendo idempotencia por batch_id
+        // en process() y auditoría por fila nueva en result_ingestions.
         $protocol = $this->resolveProtocol($protocolNumber);
 
         if (! $protocol) {

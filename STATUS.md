@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-14 (**release master**: **v1.98.1** planilla pendientes clínico+vet y sidebar; incluye **v1.97.1** scroll con fragmento en show; **v1.98.0** planilla pendientes base; merge previo **v1.97.0** Santa Cruz FTP, tag **v1.97.0**)
+> Última actualización: 2026-05-14 (**develop**: hotfix **v1.98.2** ingesta API LISCOM sin dedup por mensaje HL7; **release master**: **v1.98.1** planilla pendientes clínico+vet y sidebar; **v1.97.0** Santa Cruz FTP)
 
 ---
 
@@ -9,10 +9,10 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **master** y **develop**: **v1.98.1**; tags **v1.98.1**, **v1.97.1**, **v1.97.0** |
+| **Versión actual (línea v1.x)** | **master**: **v1.98.1**; **develop**: incluye hotfix **v1.98.2** (ingesta API); tags **v1.98.1**, **v1.97.1**, **v1.97.0** |
 | **Última en master (releases v1.x previos)** | **v1.98.1** — Planilla pendientes clínico+vet, sidebar; **v1.97.1** — scroll con fragmento; **v1.97.0** — Santa Cruz FTP |
 | **Última completada (cola agente)** | **v1.97.1** — Scroll al bloque de resultados tras POST en show clínico/vet (`withFragment` + `vet-admission-results`); tests `RemoveLeafAdmissionDeterminationTest` |
-| **Hotfix aplicado** | 2026-05-09: vet doble submit + botón Eliminar protocolo; **sesión por inactividad** (`SESSION_IDLE_TIMEOUT_MINUTES`, `users.last_activity_at`, middleware `enforce.idle`) |
+| **Hotfix aplicado** | **v1.98.2** (2026-05-14): ingesta API `POST /api/v1/results/batch` sin dedup por mensaje HL7; idempotencia solo por `batch_id`. Además: 2026-05-09 vet doble submit, botón Eliminar protocolo; **sesión por inactividad** (`SESSION_IDLE_TIMEOUT_MINUTES`, `users.last_activity_at`, middleware `enforce.idle`) |
 | **Referencia acceso/roles (v2.x)** | **v2.4.1** — Hotfix redirect loop lab + condición Mi Portal |
 | **En proceso** | — |
 | **Próxima recomendada** | Por orden: **v1.90.0** (residual en carpeta) → **v1.94.0** Factura B sin cliente → **v1.98.0** planilla pendientes |

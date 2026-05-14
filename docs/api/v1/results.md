@@ -1,6 +1,6 @@
 # API v1 — Ingesta de resultados (`POST /api/v1/results/batch`)
 
-> Versión: **v1.67.6** | Introducido: 2026-04-18 | Actualizado: 2026-05-05 (multi-equipo)
+> Versión: **v1.67.6** | Introducido: 2026-04-18 | Actualizado: 2026-05-14 (sin dedup por MSH-10; solo `ALREADY_VALIDATED` bloquea)
 
 ---
 
@@ -59,7 +59,7 @@ POST /api/v1/results/batch
 |---|---|---|---|
 | `batch_id` | UUID | ✅ | Identificador único del batch generado por LISCOM. Garantiza idempotencia a nivel batch. |
 | `items` | array | ✅ | Lista de mensajes. Máximo 500. |
-| `items[].hl7_control_id` | string(100) | ✅ | Control ID del mensaje HL7 (campo MSH-10). Garantiza idempotencia a nivel mensaje. |
+| `items[].hl7_control_id` | string(100) | ✅ | Control ID del mensaje HL7 (campo MSH-10). **Auditoría / trazabilidad**; no bloquea reenvíos (ver idempotencia). |
 | `items[].protocol_number` | string(50) | ✅ | Número de protocolo labit. Prefijo determina el tipo: `C` = clínico, `A` = muestras, `V` = vet. |
 | `items[].external_message_id` | string(100) | — | ID externo del mensaje (campo opcional de LISCOM). |
 | `items[].equipment_name` | string(100) | — | Nombre del equipo analizador. |
@@ -152,7 +152,7 @@ POST /api/v1/results/batch
 | `ingested` | Todos los resultados del mensaje fueron ingresados o sobrescritos exitosamente. |
 | `partial` | Al menos uno fue ingresado/sobrescrito y al menos uno fue rechazado. |
 | `rejected` | Todos los resultados del mensaje fueron rechazados, o el protocolo no existe. |
-| `duplicate` | El `hl7_control_id` + `equipment_name` ya fue procesado para este `api_client`. Se devuelven los resultados originales. |
+| `duplicate` | **Solo respuesta legacy o filas históricas en auditoría.** Desde 2026-05-14 un reenvío con el mismo `hl7_control_id` se vuelve a procesar; ver idempotencia. |
 
 ## Status codes por resultado (level: OBX)
 
@@ -175,23 +175,21 @@ POST /api/v1/results/batch
 
 ## Idempotencia
 
-El endpoint es **doblemente idempotente**:
+1. **A nivel batch** (`batch_id`): si el mismo `batch_id` se recibe dos veces del mismo `api_client`, la segunda respuesta devuelve los resultados del primer procesamiento con `"duplicate": true`. **La BD no se modifica** en ese reintento (idempotencia de red para el mismo POST).
 
-1. **A nivel batch** (`batch_id`): si el mismo `batch_id` se recibe dos veces del mismo `api_client`, la segunda respuesta devuelve los resultados del primer procesamiento con `"duplicate": true`. La BD no se modifica.
+2. **A nivel mensaje** (`hl7_control_id` + `protocol_number` + equipo): **no hay deduplicación automática.** Cada POST con un `batch_id` nuevo vuelve a aplicar valores a las determinaciones. La **única** protección contra sobrescritura es `ALREADY_VALIDATED` por determinación (ver `processSingleResult` en labit).
 
-2. **A nivel mensaje** (`hl7_control_id` + `equipment_name`): un mensaje es un reenvío idempotente solo si proviene del **mismo equipo** (`equipment_name`) con el mismo `hl7_control_id`. Si el mismo `hl7_control_id` llega de un equipo diferente, se trata como un mensaje complementario y se procesa normalmente.
+### Escenario multi-equipo
 
-### Escenario multi-equipo (v1.67.6)
-
-Un protocolo puede recibir resultados de múltiples equipos con el mismo `hl7_control_id` (LISCOM puede construir MSH-10 a partir del número de protocolo):
+Un protocolo puede recibir resultados de múltiples equipos con el mismo `hl7_control_id` (p. ej. MSH-10 fijo `1` en DIRUI):
 
 | Evento | hl7_control_id | equipment_name | Resultado |
 |---|---|---|---|
 | BC-780 envía hemograma | `V2605050003` | `CONTADOR BC-780` | `ingested` |
 | DIRUI envía bioquímica | `V2605050003` | `DIRUI CST240` | `ingested` ✓ |
-| BC-780 reintenta | `V2605050003` | `CONTADOR BC-780` | `duplicate` ✓ |
+| BC-780 **reenvía** el mismo mensaje (nuevo `batch_id`) | `V2605050003` | `CONTADOR BC-780` | `ingested` / `overwritten` ✓ (valores actualizados salvo validados) |
 
-> **Nota para LISCOM:** el campo `equipment_name` es opcional pero **recomendado** en todos los items. Sin él, la deduplicación recae solo sobre `hl7_control_id`, lo que bloquearía escenarios multi-equipo.
+> **Nota para LISCOM:** el campo `equipment_name` sigue siendo **recomendado** para auditoría y soporte; ya no participa en una clave de dedup que bloquee reenvíos.
 
 ---
 
@@ -225,7 +223,7 @@ Todas las operaciones generan logs en el canal `api` con keys estructuradas:
 ## Modelos de auditoría creados
 
 - **`result_batches`**: cabecera de cada POST (1 fila por request único). Contiene contadores de ítems.
-- **`result_ingestions`**: detalle de cada mensaje (1 fila por `hl7_control_id` único). Contiene `items_summary` JSON con el resultado de cada OBX.
+- **`result_ingestions`**: detalle por cada procesamiento de un ítem del batch (una fila por POST exitoso por mensaje; reenvíos con nuevo `batch_id` generan filas adicionales). Contiene `items_summary` JSON con el resultado de cada OBX.
 
 ---
 

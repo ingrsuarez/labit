@@ -5,6 +5,19 @@
 
 ---
 
+## [v1.98.2] — 2026-05-14 — Hotfix LISCOM: ingesta API sin deduplicación por mensaje HL7
+
+### Cambiado
+- **POST `/api/v1/results/batch`**: se elimina el atajo que devolvía `duplicate` por `hl7_control_id` + `protocol_number` + `equipment_name` sin volver a persistir. Cada ítem del batch sigue el flujo normal (nueva fila en `result_ingestions` por envío). La idempotencia por **`batch_id`** (mismo POST/reintento HTTP) se mantiene. La única barrera dura en determinación sigue siendo **`ALREADY_VALIDATED`**.
+
+### Documentación
+- `docs/api/v1/results.md` alineado al contrato.
+
+### Tests
+- `ResultIngestionBatchTest`: reenvío con nuevo `batch_id` sobrescribe valor; batch mixto sin `duplicate` en el cuarto mensaje por control HL7 repetido.
+
+---
+
 ## [v1.98.1] — 2026-05-14 — Planilla pendientes clínico+veterinario y sidebar
 
 ### Cambiado
