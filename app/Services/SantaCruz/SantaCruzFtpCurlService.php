@@ -114,6 +114,18 @@ class SantaCruzFtpCurlService implements SantaCruzFtpClientInterface
         return $ch;
     }
 
+    /**
+     * Texto extra cuando cURL falla por certificado TLS del FTP (p. ej. autofirmado en IIS).
+     */
+    private function sslCertificateHint(int $errno, string $err): string
+    {
+        if ($errno === 60 || str_contains(strtolower($err), 'self-signed') || str_contains(strtolower($err), 'ssl certificate')) {
+            return ' Si confiás en este servidor, agregá SANTA_CRUZ_FTP_SSL_VERIFY_PEER=false en .env y ejecutá php artisan config:clear. A largo plazo conviene un certificado emitido por una CA reconocida.';
+        }
+
+        return '';
+    }
+
     public function listXmlFiles(): array
     {
         $ch = $this->newCurl($this->urlDirectory());
@@ -123,7 +135,10 @@ class SantaCruzFtpCurlService implements SantaCruzFtpClientInterface
         $err = curl_error($ch);
         curl_close($ch);
         if ($body === false || $errno !== 0) {
-            throw new RuntimeException('FTP (cURL) listado: '.($err !== '' ? $err : 'respuesta vacía').($errno ? ' (#'.$errno.')' : ''));
+            throw new RuntimeException(
+                'FTP (cURL) listado: '.($err !== '' ? $err : 'respuesta vacía').($errno ? ' (#'.$errno.')' : '').
+                $this->sslCertificateHint($errno, $err)
+            );
         }
 
         $out = [];
@@ -151,7 +166,10 @@ class SantaCruzFtpCurlService implements SantaCruzFtpClientInterface
         $err = curl_error($ch);
         curl_close($ch);
         if ($data === false || $errno !== 0) {
-            throw new RuntimeException('FTP (cURL) descarga «'.$basename.'»: '.($err !== '' ? $err : 'fallo desconocido').($errno ? ' (#'.$errno.')' : ''));
+            throw new RuntimeException(
+                'FTP (cURL) descarga «'.$basename.'»: '.($err !== '' ? $err : 'fallo desconocido').($errno ? ' (#'.$errno.')' : '').
+                $this->sslCertificateHint($errno, $err)
+            );
         }
 
         return (string) $data;
@@ -181,7 +199,11 @@ class SantaCruzFtpCurlService implements SantaCruzFtpClientInterface
 
         if ($ok === false || $errno !== 0) {
             Log::error('SantaCruzFtp (cURL): rename fallido', ['from' => $basename, 'to' => $sub.'/'.$basename, 'errno' => $errno, 'error' => $err]);
-            throw new RuntimeException('No se pudo mover el archivo a procesados: '.$basename.' → '.$sub.'/'.$basename);
+            throw new RuntimeException(
+                'No se pudo mover el archivo a procesados: '.$basename.' → '.$sub.'/'.$basename.
+                ($errno || $err !== '' ? ' ('.$err.' #'.$errno.')' : '').
+                $this->sslCertificateHint($errno, $err)
+            );
         }
     }
 }
