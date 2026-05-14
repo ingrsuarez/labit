@@ -22,6 +22,9 @@ return [
     /** Límite de tiempo PHP (segundos) para scan/import Santa Cruz (muchos XML + FTPS). */
     'scan_max_execution_seconds' => (int) env('SANTA_CRUZ_SCAN_MAX_SECONDS', 900),
 
+    /** XML analizados por petición (listar + descargar + parsear). Menor = menos riesgo de «Request Timeout» en IIS/proxy. */
+    'scan_batch_size' => max(1, min(500, (int) env('SANTA_CRUZ_SCAN_BATCH_SIZE', 10))),
+
     'insurance_id' => env('SANTA_CRUZ_INSURANCE_ID') !== null && env('SANTA_CRUZ_INSURANCE_ID') !== ''
         ? (int) env('SANTA_CRUZ_INSURANCE_ID')
         : null,

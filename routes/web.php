@@ -209,6 +209,7 @@ Route::middleware([
         // Santa Cruz O&G — importación admisiones desde FTP (v1.97.0)
         Route::middleware('can:santacruz.import')->group(function () {
             Route::get('lab/santa-cruz/sync', [App\Http\Controllers\SantaCruzSyncController::class, 'sync'])->name('lab.santa-cruz.sync');
+            Route::get('lab/santa-cruz/sync/scan-continue', [App\Http\Controllers\SantaCruzSyncController::class, 'scanContinue'])->name('lab.santa-cruz.sync.scan.continue');
             Route::post('lab/santa-cruz/sync/scan', [App\Http\Controllers\SantaCruzSyncController::class, 'scan'])->name('lab.santa-cruz.sync.scan');
             Route::post('lab/santa-cruz/sync/import', [App\Http\Controllers\SantaCruzSyncController::class, 'import'])->name('lab.santa-cruz.sync.import');
             Route::post('lab/santa-cruz/mappings', [App\Http\Controllers\SantaCruzSyncController::class, 'storeMapping'])->name('lab.santa-cruz.mappings.store');

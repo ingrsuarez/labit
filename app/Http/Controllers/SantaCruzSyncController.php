@@ -9,6 +9,7 @@ use App\Services\SantaCruz\SantaCruzXmlParseException;
 use App\Services\SantaCruz\SantaCruzXmlParser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 use Throwable;
 
@@ -34,7 +35,7 @@ class SantaCruzSyncController extends Controller
         SantaCruzFtpClientInterface $ftp,
         SantaCruzXmlParser $parser,
         SantaCruzImportService $importService,
-    ): RedirectResponse {
+    ): RedirectResponse|Response {
         $this->authorize('santacruz.import');
 
         @set_time_limit((int) config('santacruz.scan_max_execution_seconds', 900));
@@ -46,6 +47,8 @@ class SantaCruzSyncController extends Controller
                 ->with('error', 'Falta configurar SANTA_CRUZ_INSURANCE_ID en .env (obra social Santa Cruz en Labit).');
         }
 
+        $this->forgetPendingScanSession();
+
         try {
             $files = $ftp->listXmlFiles();
         } catch (Throwable $e) {
@@ -54,55 +57,95 @@ class SantaCruzSyncController extends Controller
                 ->with('error', 'FTP: '.$e->getMessage());
         }
 
-        $rows = [];
-        foreach ($files as $file) {
-            try {
-                $xml = $ftp->getFileContents($file);
-                $parsed = $parser->parse($xml);
-                $resolved = $importService->resolvePracticas($parsed['practicas']);
-                $ready = collect($resolved)->every(fn ($p) => $p['mapped']);
-                $rows[] = [
-                    'file' => $file,
-                    'error' => null,
-                    'parsed' => $parsed,
-                    'practicas_resolved' => $resolved,
-                    'ready' => $ready,
-                ];
-            } catch (SantaCruzXmlParseException $e) {
-                $rows[] = [
-                    'file' => $file,
-                    'error' => $e->getMessage(),
-                    'parsed' => null,
-                    'practicas_resolved' => [],
-                    'ready' => false,
-                ];
-            } catch (Throwable $e) {
-                $rows[] = [
-                    'file' => $file,
-                    'error' => $e->getMessage(),
-                    'parsed' => null,
-                    'practicas_resolved' => [],
-                    'ready' => false,
-                ];
-            }
-        }
+        if (count($files) === 0) {
+            session()->forget('santa_cruz_scan');
 
-        session([
-            'santa_cruz_scan' => [
-                'rows' => $rows,
-                'insurance_id' => $insuranceId,
-            ],
-        ]);
-
-        if (count($rows) === 0) {
             return redirect()
                 ->route('lab.santa-cruz.sync')
                 ->with('warning', 'No hay archivos .xml en la carpeta FTP configurada.');
         }
 
-        return redirect()
-            ->route('lab.santa-cruz.sync')
-            ->with('success', 'Sincronización: '.count($rows).' archivo(s) leídos desde el FTP.');
+        $batchSize = (int) config('santacruz.scan_batch_size', 10);
+        $total = count($files);
+
+        if ($total <= $batchSize) {
+            return $this->finalizeScanFromFiles($files, $ftp, $parser, $importService, $insuranceId);
+        }
+
+        $slice = array_slice($files, 0, $batchSize);
+        $rows = [];
+        foreach ($slice as $file) {
+            $rows[] = $this->buildRowForFile($file, $ftp, $parser, $importService);
+        }
+        $offset = count($slice);
+
+        session([
+            'santa_cruz_scan_pending_files' => $files,
+            'santa_cruz_scan_pending_offset' => $offset,
+            'santa_cruz_scan_accumulated_rows' => $rows,
+        ]);
+
+        if ($offset >= $total) {
+            return $this->commitScanSession($rows, $insuranceId);
+        }
+
+        return $this->scanProgressResponse($offset, $total);
+    }
+
+    /**
+     * Sigue analizando XML en lotes (GET + meta refresh) para no superar el timeout del proxy/IIS.
+     */
+    public function scanContinue(
+        SantaCruzFtpClientInterface $ftp,
+        SantaCruzXmlParser $parser,
+        SantaCruzImportService $importService,
+    ): RedirectResponse|Response {
+        $this->authorize('santacruz.import');
+
+        @set_time_limit((int) config('santacruz.scan_max_execution_seconds', 900));
+
+        $insuranceId = config('santacruz.insurance_id');
+        if (! $insuranceId) {
+            $this->forgetPendingScanSession();
+
+            return redirect()
+                ->route('lab.santa-cruz.sync')
+                ->with('error', 'Falta configurar SANTA_CRUZ_INSURANCE_ID en .env (obra social Santa Cruz en Labit).');
+        }
+
+        $files = session('santa_cruz_scan_pending_files');
+        if (! is_array($files) || $files === []) {
+            return redirect()
+                ->route('lab.santa-cruz.sync')
+                ->with('warning', 'No hay sincronización FTP en curso. Volvé a presionar «Sincronizar desde FTP».');
+        }
+
+        $batchSize = (int) config('santacruz.scan_batch_size', 10);
+        $offset = (int) session('santa_cruz_scan_pending_offset', 0);
+        $rows = session('santa_cruz_scan_accumulated_rows', []);
+        if (! is_array($rows)) {
+            $rows = [];
+        }
+
+        $total = count($files);
+        $slice = array_slice($files, $offset, $batchSize);
+        foreach ($slice as $file) {
+            $rows[] = $this->buildRowForFile($file, $ftp, $parser, $importService);
+        }
+        $offset += count($slice);
+
+        session([
+            'santa_cruz_scan_pending_offset' => $offset,
+            'santa_cruz_scan_accumulated_rows' => $rows,
+        ]);
+
+        if ($offset < $total) {
+            return $this->scanProgressResponse($offset, $total);
+        }
+
+        $this->forgetPendingScanSession();
+
+        return $this->commitScanSession($rows, $insuranceId);
     }
 
     public function import(
@@ -231,5 +274,101 @@ class SantaCruzSyncController extends Controller
             ->paginate(30);
 
         return view('lab.santa-cruz.mappings-index', compact('mappings'));
+    }
+
+    /**
+     * @param  list<string>  $files
+     */
+    private function finalizeScanFromFiles(
+        array $files,
+        SantaCruzFtpClientInterface $ftp,
+        SantaCruzXmlParser $parser,
+        SantaCruzImportService $importService,
+        int $insuranceId,
+    ): RedirectResponse {
+        $rows = [];
+        foreach ($files as $file) {
+            $rows[] = $this->buildRowForFile($file, $ftp, $parser, $importService);
+        }
+
+        return $this->commitScanSession($rows, $insuranceId);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $rows
+     */
+    private function commitScanSession(array $rows, int $insuranceId): RedirectResponse
+    {
+        session([
+            'santa_cruz_scan' => [
+                'rows' => $rows,
+                'insurance_id' => $insuranceId,
+            ],
+        ]);
+
+        return redirect()
+            ->route('lab.santa-cruz.sync')
+            ->with('success', 'Sincronización: '.count($rows).' archivo(s) leídos desde el FTP.');
+    }
+
+    private function forgetPendingScanSession(): void
+    {
+        session()->forget([
+            'santa_cruz_scan_pending_files',
+            'santa_cruz_scan_pending_offset',
+            'santa_cruz_scan_accumulated_rows',
+        ]);
+    }
+
+    private function scanProgressResponse(int $done, int $total): Response
+    {
+        $nextUrl = route('lab.santa-cruz.sync.scan.continue');
+
+        return response()->view('lab.santa-cruz.scan-continue', [
+            'done' => $done,
+            'total' => $total,
+            'nextUrl' => $nextUrl,
+        ]);
+    }
+
+    /**
+     * @return array{file: string, error: ?string, parsed: ?array, practicas_resolved: array, ready: bool}
+     */
+    private function buildRowForFile(
+        string $file,
+        SantaCruzFtpClientInterface $ftp,
+        SantaCruzXmlParser $parser,
+        SantaCruzImportService $importService,
+    ): array {
+        try {
+            $xml = $ftp->getFileContents($file);
+            $parsed = $parser->parse($xml);
+            $resolved = $importService->resolvePracticas($parsed['practicas']);
+            $ready = collect($resolved)->every(fn ($p) => $p['mapped']);
+
+            return [
+                'file' => $file,
+                'error' => null,
+                'parsed' => $parsed,
+                'practicas_resolved' => $resolved,
+                'ready' => $ready,
+            ];
+        } catch (SantaCruzXmlParseException $e) {
+            return [
+                'file' => $file,
+                'error' => $e->getMessage(),
+                'parsed' => null,
+                'practicas_resolved' => [],
+                'ready' => false,
+            ];
+        } catch (Throwable $e) {
+            return [
+                'file' => $file,
+                'error' => $e->getMessage(),
+                'parsed' => null,
+                'practicas_resolved' => [],
+                'ready' => false,
+            ];
+        }
     }
 }
