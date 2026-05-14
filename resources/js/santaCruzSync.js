@@ -5,9 +5,6 @@ export function registerSantaCruzSyncAlpine() {
         Alpine.data('santaCruzSync', (cfg) => ({
             insuranceId: cfg.insuranceId,
             searchTestsUrl: cfg.searchTestsUrl,
-            /** Pantalla completa mientras el POST síncrono (FTP) sigue en curso. */
-            scanBusy: false,
-            importBusy: false,
             modalOpen: false,
             mapCode: '',
             mapName: '',
