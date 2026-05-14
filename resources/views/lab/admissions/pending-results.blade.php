@@ -4,7 +4,7 @@
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">Resultados pendientes</h1>
                 <p class="mt-1 text-sm text-gray-600">
-                    Protocolos con al menos una práctica sin resultado cargado. Clic en el protocolo para abrir la carga.
+                    Protocolos con al menos una práctica sin resultado cargado. El protocolo se abre en una <strong>nueva pestaña</strong>; al volver aquí la lista se actualiza sola.
                 </p>
             </div>
             <a href="{{ route('lab.admissions.index') }}"
@@ -53,10 +53,20 @@
                         </select>
                     </div>
                 @endif
+                <div class="w-40">
+                    <label class="sr-only" for="pending-results-date-from">Fecha desde</label>
+                    <input id="pending-results-date-from" type="date" name="date_from" value="{{ request('date_from') }}"
+                           class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                </div>
+                <div class="w-40">
+                    <label class="sr-only" for="pending-results-date-to">Fecha hasta</label>
+                    <input id="pending-results-date-to" type="date" name="date_to" value="{{ request('date_to') }}"
+                           class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                </div>
                 <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
                     Filtrar
                 </button>
-                @if(request()->hasAny(['search', 'insurance', 'status', 'lab_branch_id']))
+                @if(request()->hasAny(['search', 'insurance', 'status', 'lab_branch_id', 'date_from', 'date_to']))
                     <a href="{{ route('lab.admissions.pending-results') }}" class="px-4 py-2 text-gray-500 hover:text-gray-700 self-center">
                         Limpiar
                     </a>
@@ -81,7 +91,8 @@
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3 whitespace-nowrap">
                                         <a href="{{ route('lab.admissions.show', $admission) }}#lab-admission-results"
-                                           class="text-teal-700 hover:underline font-medium">
+                                           target="_blank" rel="noopener noreferrer"
+                                           class="pending-protocol-link text-teal-700 hover:underline font-medium">
                                             {{ $admission->protocol_number }}
                                         </a>
                                     </td>
@@ -116,4 +127,23 @@
             @endif
         </div>
     </div>
+    <script>
+        (function () {
+            document.querySelectorAll('a.pending-protocol-link').forEach(function (el) {
+                el.addEventListener('click', function () {
+                    try {
+                        sessionStorage.setItem('labPendingResultsOpenProtocol', '1');
+                    } catch (e) {}
+                });
+            });
+            window.addEventListener('focus', function () {
+                try {
+                    if (sessionStorage.getItem('labPendingResultsOpenProtocol') === '1') {
+                        sessionStorage.removeItem('labPendingResultsOpenProtocol');
+                        window.location.reload();
+                    }
+                } catch (e) {}
+            });
+        })();
+    </script>
 </x-lab-layout>

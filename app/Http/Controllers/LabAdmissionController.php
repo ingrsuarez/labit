@@ -59,25 +59,19 @@ class LabAdmissionController extends Controller
     {
         $this->authorize('lab-admissions.index');
 
-        $filterRequest = Request::create(
-            $request->url(),
-            'GET',
-            $request->except(['date_from', 'date_to'])
-        );
-
         $query = Admission::query()
             ->with(['patient', 'admissionTests.test.parentTests']);
 
         $query->where('status', '!=', Admission::STATUS_CANCELLED);
 
-        $this->applyLabAdmissionIndexFilters($filterRequest, $query);
+        $this->applyLabAdmissionIndexFilters($request, $query);
 
         $isRecepcionLab = auth()->user()->hasRole('recepcion-lab')
             && ! auth()->user()->hasAnyRole(['bioquimico', 'tecnico-lab']);
 
         $candidates = $query
-            ->orderBy('protocol_number')
-            ->orderBy('id')
+            ->orderByDesc('date')
+            ->orderByDesc('id')
             ->get();
 
         $rows = [];
@@ -89,7 +83,19 @@ class LabAdmissionController extends Controller
             }
         }
 
-        $withPending = collect($rows);
+        $sortedRows = $rows;
+        usort($sortedRows, function (Admission $a, Admission $b) {
+            $da = $a->date?->toDateString() ?? '';
+            $db = $b->date?->toDateString() ?? '';
+            $cmp = strcmp($db, $da);
+            if ($cmp !== 0) {
+                return $cmp;
+            }
+
+            return $b->id <=> $a->id;
+        });
+
+        $withPending = collect($sortedRows);
         $page = max(1, (int) $request->input('page', 1));
         $perPage = 20;
         $total = $withPending->count();
