@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-13 (merge **develop**→**master**: **v1.97.0** Santa Cruz FTP e importación admisiones; tag **v1.97.0**; incluye **v1.96.0** quitar determinación hoja vía historial develop)
+> Última actualización: 2026-05-14 (**v1.97.1** completado: scroll detalle protocolo; **v1.98.0** planilla pendientes en `pendientes/`; merge **develop**→**master**: **v1.97.0** Santa Cruz FTP; tag **v1.97.0**)
 
 ---
 
@@ -11,13 +11,13 @@
 |---|---|
 | **Versión actual (línea v1.x)** | **master** y **develop** incluyen **v1.97.0**; tag **v1.97.0** |
 | **Última en master (releases v1.x previos)** | **v1.90.0** — Notas de crédito manuales independientes; merges desde develop hasta **v1.97.0** (Santa Cruz FTP) |
-| **Última completada (cola agente)** | **v1.97.0** — Santa Cruz O&G: FTP, parser XML, mapeos, import admisiones, UI `lab/santa-cruz/sync`, permiso `santacruz.import`; tests `SantaCruzXmlParserTest`, `SantaCruzImportTest` |
+| **Última completada (cola agente)** | **v1.97.1** — Scroll al bloque de resultados tras POST en show clínico/vet (`withFragment` + `vet-admission-results`); tests `RemoveLeafAdmissionDeterminationTest` |
 | **Hotfix aplicado** | 2026-05-09: vet doble submit + botón Eliminar protocolo; **sesión por inactividad** (`SESSION_IDLE_TIMEOUT_MINUTES`, `users.last_activity_at`, middleware `enforce.idle`) |
 | **Referencia acceso/roles (v2.x)** | **v2.4.1** — Hotfix redirect loop lab + condición Mi Portal |
 | **En proceso** | — |
-| **Próxima recomendada** | Por orden: **v1.90.0** (residual en carpeta) → **v1.94.0** Factura B sin cliente |
-| **Pendientes en cola** | 2 con prefijo `v` (**v1.90.0** residual + **v1.94.0**) + 1 diseño sin prefijo `v` |
-| **Completadas** | 155 |
+| **Próxima recomendada** | Por orden: **v1.90.0** (residual en carpeta) → **v1.94.0** Factura B sin cliente → **v1.98.0** planilla pendientes |
+| **Pendientes en cola** | 3 con prefijo `v` (**v1.90.0** residual + **v1.94.0** + **v1.98.0**) + 2 diseños/prompts asociados (`DISEÑO_v1.98.0-*`, `DISEÑO_v1.55.0-*`) |
+| **Completadas** | 156 |
 
 ---
 
@@ -27,8 +27,9 @@
 
 - `v1.90.0-notas-credito-manuales-independientes.md` — residual en carpeta (verificar si ya aplicado en producto).
 - `v1.94.0-factura-b-sin-cliente-fv-create.md` — Factura B manual sin alta de cliente (snapshot en FC).
+- `v1.98.0-planilla-resultados-pendientes-lab-clinico.md` — Planilla global resultados pendientes lab clínico (con diseño `DISEÑO_v1.98.0-planilla-resultados-pendientes-clinico.md`).
 
-Archivo adicional en `pendientes/` (no empieza con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
+Archivos adicionales en `pendientes/` (no empiezan con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`, `DISEÑO_v1.98.0-planilla-resultados-pendientes-clinico.md`.
 
 > v1.76.2 completado 2026-05-07 (hotfix: fix ingesta OUT_OF_BRANCH con key global — skip branch check en `ApiResultIngestionService`). v1.76.1 completado 2026-05-07 (hotfix: API key global sin sede para LISCOM). v1.76.0 completado 2026-05-07 (marca de ratificación en determinaciones). hotfix `pdf-mail-jerarquia` completado 2026-05-08 (fix PDF por mail: jerarquía padre-hijo idéntica al PDF directo). hotfix `pdf-filename-paciente-dni-fecha` completado 2026-05-08 (nombre de archivo PDF: nombre_paciente-dni-fecha.pdf en email y descarga manual — lab clínico, vet y muestras). hotfix `a25-mappings-buscador` completado 2026-05-08 (combobox Alpine.js con búsqueda client-side en create y edit de equivalencias A25; fix route model binding `{mapping}`). hotfix `a25-multi-test-mapping` completado 2026-05-09 (tabla pivot `a25_analyte_mapping_tests`; múltiples determinaciones Labit por equivalencia A25; parser aplica resultado a todas las mapeadas).
 
@@ -40,6 +41,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.97.1 | Scroll al bloque resultados tras POST en show protocolo clínico/vet (`withFragment`, `vet-admission-results`) | 2026-05-14 | (tag al release) |
 | v1.97.0 | Santa Cruz O&G: FTP (`SantaCruzFtpService`), parser XML, mapeos prestación↔test, importación admisiones, vistas sync + índice mapeos, permiso `santacruz.import` | 2026-05-13 | v1.97.0 |
 | v1.96.0 | Quitar determinación hoja sin resultado (lab + vet): `ClinicalAdmissionTestHierarchy`, `removeTest` hoja sin cascada indebida en vet; tests `RemoveLeafAdmissionDeterminationTest` | 2026-05-12 | v1.96.0 |
 | v1.95.0 | Encabezado sticky detalle protocolo (`md:top-20`); tests `ProtocolPendingNavigationTest` regresión layout + HTML sticky | 2026-05-12 | (tag al release) |

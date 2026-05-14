@@ -5,6 +5,18 @@
 
 ---
 
+## [v1.97.1] — 2026-05-14 — Scroll al bloque de resultados tras acciones en protocolo (clínico + vet)
+
+### Corregido
+- Tras POST desde el detalle de protocolo (validar, desvalidar, eliminar práctica, guardar resultados, sincronizar hijas, agregar práctica, etc.), el redirect vuelve con fragmento **`#lab-admission-results`** (lab clínico) o **`#vet-admission-results`** (vet), usando `RedirectResponse::withFragment()`.
+- Vista vet: **`id="vet-admission-results"`** en el formulario de carga de resultados del `show`.
+- Sin cambio de fragmento en flujos que no convienen anclar a la tabla (p. ej. registro de pago, errores de PDF/email en clínico).
+
+### Tests
+- `RemoveLeafAdmissionDeterminationTest`: redirects esperados con ancla; test de validación clínica con fragmento.
+
+---
+
 ## [v1.98.0] — 2026-05-13 — Planilla global resultados pendientes (lab clínico)
 
 ### Agregado

@@ -14,6 +14,7 @@ use App\Models\Test;
 use App\Models\VetAdmission;
 use App\Models\VetAdmissionTest;
 use App\Support\VetAdmissionTestDisplayOrder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use PDF;
@@ -425,7 +426,7 @@ class VetAdmissionController extends Controller
 
         $vetAdmission->logAudit('results_loaded', 'Cargó resultados en protocolo veterinario Nº '.$vetAdmission->protocol_number);
 
-        return redirect()->back()->with('success', 'Resultados guardados correctamente.');
+        return $this->redirectBackToVetAdmissionResults()->with('success', 'Resultados guardados correctamente.');
     }
 
     public function addTests(Request $request, VetAdmission $vetAdmission)
@@ -437,7 +438,7 @@ class VetAdmissionController extends Controller
 
         $customer = $vetAdmission->customer;
         if (! $customer || ! $customer->isVeterinary()) {
-            return redirect()->back()->with('error', 'El cliente del protocolo no es una veterinaria v?lida.');
+            return $this->redirectBackToVetAdmissionResults()->with('error', 'El cliente del protocolo no es una veterinaria v?lida.');
         }
 
         $rate = $customer->veterinaryNbuRate();
@@ -496,12 +497,12 @@ class VetAdmissionController extends Controller
         ]);
 
         if ($addedCount === 0) {
-            return redirect()->back()->with('error', 'Las pr?cticas seleccionadas ya estaban en el protocolo.');
+            return $this->redirectBackToVetAdmissionResults()->with('error', 'Las pr?cticas seleccionadas ya estaban en el protocolo.');
         }
 
         $vetAdmission->logAudit('tests_added', "Agregó {$addedCount} práctica(s) al protocolo veterinario Nº ".$vetAdmission->protocol_number);
 
-        return redirect()->back()->with('success', "Se agregaron {$addedCount} pr?ctica(s) al protocolo.");
+        return $this->redirectBackToVetAdmissionResults()->with('success', "Se agregaron {$addedCount} pr?ctica(s) al protocolo.");
     }
 
     public function removeTest(VetAdmission $vetAdmission, VetAdmissionTest $vetAdmissionTest)
@@ -514,21 +515,21 @@ class VetAdmissionController extends Controller
 
         if (auth()->user()->hasRole('recepcion-lab')) {
             if ($vetAdmissionTest->status !== 'pending') {
-                return redirect()->back()->with('error', 'No se puede eliminar una práctica en proceso o validada.');
+                return $this->redirectBackToVetAdmissionResults()->with('error', 'No se puede eliminar una práctica en proceso o validada.');
             }
         }
 
         if ($vetAdmissionTest->is_validated) {
-            return redirect()->back()->with('error', 'No se puede quitar una práctica ya validada.');
+            return $this->redirectBackToVetAdmissionResults()->with('error', 'No se puede quitar una práctica ya validada.');
         }
 
         if (VetAdmissionTestDisplayOrder::isProtocolSubParent($vetAdmission, $vetAdmissionTest)) {
-            return redirect()->back()->with('error', 'No se puede eliminar un grupo intermedio. Quite solo determinaciones hoja sin resultado.');
+            return $this->redirectBackToVetAdmissionResults()->with('error', 'No se puede eliminar un grupo intermedio. Quite solo determinaciones hoja sin resultado.');
         }
 
         if (VetAdmissionTestDisplayOrder::isProtocolLeafChild($vetAdmission, $vetAdmissionTest)) {
             if ($vetAdmissionTest->hasResult() || $vetAdmissionTest->is_ratified) {
-                return redirect()->back()->with('error', 'No se puede eliminar esta determinación: tiene resultado o está ratificada.');
+                return $this->redirectBackToVetAdmissionResults()->with('error', 'No se puede eliminar esta determinación: tiene resultado o está ratificada.');
             }
 
             $testName = $vetAdmissionTest->test->name ?? 'Desconocida';
@@ -539,7 +540,7 @@ class VetAdmissionController extends Controller
             $this->syncVetAdmissionProtocolStatus($vetAdmission);
             $vetAdmission->logAudit('test_removed', 'Eliminó determinación hoja '.$testName.' del protocolo veterinario Nº '.$vetAdmission->protocol_number);
 
-            return redirect()->back()->with('success', 'Determinación eliminada del protocolo (el grupo permanece).');
+            return $this->redirectBackToVetAdmissionResults()->with('success', 'Determinación eliminada del protocolo (el grupo permanece).');
         }
 
         $test = $vetAdmissionTest->test;
@@ -578,7 +579,7 @@ class VetAdmissionController extends Controller
             $msg = "Se eliminaron {$removedCount} prácticas (padre + hijos) del protocolo.";
         }
 
-        return redirect()->back()->with('success', $msg);
+        return $this->redirectBackToVetAdmissionResults()->with('success', $msg);
     }
 
     private function syncVetAdmissionProtocolStatus(VetAdmission $vetAdmission): void
@@ -588,10 +589,18 @@ class VetAdmissionController extends Controller
         $vetAdmission->update(['status' => $vetAdmission->calculated_status]);
     }
 
+    /**
+     * Tras POST desde el show de protocolo vet, ancla al bloque de resultados (#vet-admission-results).
+     */
+    private function redirectBackToVetAdmissionResults(): RedirectResponse
+    {
+        return redirect()->back()->withFragment('vet-admission-results');
+    }
+
     public function validateTest(VetAdmission $vetAdmission, VetAdmissionTest $vetAdmissionTest)
     {
         if (! $vetAdmissionTest->hasResult()) {
-            return redirect()->back()->with('error', 'No se puede validar sin resultado.');
+            return $this->redirectBackToVetAdmissionResults()->with('error', 'No se puede validar sin resultado.');
         }
 
         $vetAdmissionTest->update([
@@ -606,7 +615,7 @@ class VetAdmissionController extends Controller
 
         $vetAdmission->logAudit('validated', 'Validó práctica '.$vetAdmissionTest->test->name.' en protocolo veterinario Nº '.$vetAdmission->protocol_number);
 
-        return redirect()->back()->with('success', 'Pr?ctica validada.');
+        return $this->redirectBackToVetAdmissionResults()->with('success', 'Pr?ctica validada.');
     }
 
     public function unvalidateTest(VetAdmission $vetAdmission, VetAdmissionTest $vetAdmissionTest)
@@ -628,7 +637,7 @@ class VetAdmissionController extends Controller
 
         $vetAdmission->logAudit('unvalidated', 'Desvalidó práctica '.$testName.' en protocolo veterinario Nº '.$vetAdmission->protocol_number);
 
-        return redirect()->back()->with('success', 'Validaci?n removida.');
+        return $this->redirectBackToVetAdmissionResults()->with('success', 'Validaci?n removida.');
     }
 
     public function validateAll(VetAdmission $vetAdmission)
@@ -652,7 +661,7 @@ class VetAdmissionController extends Controller
 
         $vetAdmission->logAudit('validated', "Validó {$count} prácticas en protocolo veterinario Nº ".$vetAdmission->protocol_number);
 
-        return redirect()->back()->with('success', "Se validaron {$count} pr?cticas.");
+        return $this->redirectBackToVetAdmissionResults()->with('success', "Se validaron {$count} pr?cticas.");
     }
 
     public function getVeterinarians(Customer $customer)
@@ -669,7 +678,7 @@ class VetAdmissionController extends Controller
         if (auth()->user()->hasRole('recepcion-lab')) {
             $allPending = $vetAdmission->vetTests->every(fn ($t) => $t->status === 'pending');
             if (! $allPending) {
-                return redirect()->back()
+                return $this->redirectBackToVetAdmissionResults()
                     ->with('error', 'Solo se puede eliminar el protocolo si todas las prácticas están pendientes.');
             }
         }

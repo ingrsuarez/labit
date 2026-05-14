@@ -137,7 +137,7 @@ class RemoveLeafAdmissionDeterminationTest extends TestCase
         $this->actingAs($user)
             ->from(route('lab.admissions.show', $admission))
             ->delete(route('lab.admissions.removeTest', [$admission, $atA]))
-            ->assertRedirect(route('lab.admissions.show', $admission));
+            ->assertRedirect(route('lab.admissions.show', $admission).'#lab-admission-results');
 
         $this->assertDatabaseMissing('admission_tests', ['id' => $atA->id]);
         $this->assertDatabaseHas('admission_tests', [
@@ -198,7 +198,7 @@ class RemoveLeafAdmissionDeterminationTest extends TestCase
         $this->actingAs($user)
             ->from(route('lab.admissions.show', $admission))
             ->delete(route('lab.admissions.removeTest', [$admission, $atPending]))
-            ->assertRedirect(route('lab.admissions.show', $admission));
+            ->assertRedirect(route('lab.admissions.show', $admission).'#lab-admission-results');
 
         $admission->refresh();
         $this->assertSame(Admission::STATUS_VALIDATED, $admission->status);
@@ -236,13 +236,41 @@ class RemoveLeafAdmissionDeterminationTest extends TestCase
         $this->actingAs($user)
             ->from(route('lab.admissions.show', $admission))
             ->delete(route('lab.admissions.removeTest', [$admission, $atA]))
-            ->assertRedirect(route('lab.admissions.show', $admission));
+            ->assertRedirect(route('lab.admissions.show', $admission).'#lab-admission-results');
 
         $this->assertDatabaseHas('admission_tests', ['id' => $atA->id]);
 
         $this->assertFalse(
             $admission->fresh()->auditLogs()->where('action', 'test_removed')->exists()
         );
+    }
+
+    public function test_lab_validar_practica_redirect_incluye_fragmento_resultados(): void
+    {
+        $user = $this->userWithPermissions([
+            'lab.section',
+            'lab-admissions.index',
+            'lab-admissions.show',
+            'lab-results.validate',
+        ]);
+        $patient = $this->makePatient();
+        $admission = $this->makeAdmission($user, $patient);
+        $test = $this->makeTest('VAL-T', null, 1, 500);
+
+        $at = AdmissionTest::query()->create([
+            'admission_id' => $admission->id,
+            'test_id' => $test->id,
+            'price' => 500,
+            'result' => '10',
+            'authorization_status' => 'not_required',
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('lab.admissions.show', $admission))
+            ->post(route('lab.admissions.validateTest', [$admission, $at]))
+            ->assertRedirect(route('lab.admissions.show', $admission).'#lab-admission-results');
+
+        $this->assertTrue($at->fresh()->is_validated);
     }
 
     public function test_vet_elimina_solo_hoja_sin_resultado(): void
@@ -304,7 +332,7 @@ class RemoveLeafAdmissionDeterminationTest extends TestCase
         $this->actingAs($user)
             ->from(route('vet.admissions.show', $vetAdmission))
             ->delete(route('vet.admissions.removeTest', [$vetAdmission, $vatA]))
-            ->assertRedirect(route('vet.admissions.show', $vetAdmission));
+            ->assertRedirect(route('vet.admissions.show', $vetAdmission).'#vet-admission-results');
 
         $this->assertDatabaseMissing('vet_admission_tests', ['id' => $vatA->id]);
         $this->assertDatabaseHas('vet_admission_tests', [
@@ -380,7 +408,7 @@ class RemoveLeafAdmissionDeterminationTest extends TestCase
         $this->actingAs($user)
             ->from(route('vet.admissions.show', $vetAdmission))
             ->delete(route('vet.admissions.removeTest', [$vetAdmission, $vatPending]))
-            ->assertRedirect(route('vet.admissions.show', $vetAdmission));
+            ->assertRedirect(route('vet.admissions.show', $vetAdmission).'#vet-admission-results');
 
         $vetAdmission->refresh();
         $this->assertSame('validated', $vetAdmission->status);

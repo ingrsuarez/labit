@@ -19,6 +19,7 @@ use App\Models\Test;
 use App\Support\ClinicalAdmissionTestHierarchy;
 use App\Support\ClinicalPendingResultsPresenter;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -647,7 +648,7 @@ class LabAdmissionController extends Controller
             ->exists();
 
         if ($exists) {
-            return redirect()->back()->with('error', 'La práctica "'.$test->code.' - '.$test->name.'" ya existe en este protocolo.');
+            return $this->redirectBackToLabAdmissionResults()->with('error', 'La práctica "'.$test->code.' - '.$test->name.'" ya existe en este protocolo.');
         }
 
         AdmissionTest::create([
@@ -691,7 +692,7 @@ class LabAdmissionController extends Controller
             $message .= ' ('.$childrenAdded.' determinaciones hijas incluidas)';
         }
 
-        return redirect()->back()->with('success', $message);
+        return $this->redirectBackToLabAdmissionResults()->with('success', $message);
     }
 
     /**
@@ -715,7 +716,7 @@ class LabAdmissionController extends Controller
 
         $admission->calculateTotals();
 
-        return redirect()->back()->with('success', 'Práctica actualizada correctamente.');
+        return $this->redirectBackToLabAdmissionResults()->with('success', 'Práctica actualizada correctamente.');
     }
 
     /**
@@ -731,17 +732,17 @@ class LabAdmissionController extends Controller
 
         if (auth()->user()->hasRole('recepcion-lab')) {
             if ($test->is_validated || $test->hasResult()) {
-                return redirect()->back()->with('error', 'No se puede eliminar una práctica en proceso o validada.');
+                return $this->redirectBackToLabAdmissionResults()->with('error', 'No se puede eliminar una práctica en proceso o validada.');
             }
         }
 
         if (ClinicalAdmissionTestHierarchy::isProtocolSubParent($admission, $test)) {
-            return redirect()->back()->with('error', 'No se puede eliminar un grupo intermedio. Quite solo determinaciones hoja sin resultado.');
+            return $this->redirectBackToLabAdmissionResults()->with('error', 'No se puede eliminar un grupo intermedio. Quite solo determinaciones hoja sin resultado.');
         }
 
         if (ClinicalAdmissionTestHierarchy::isProtocolLeafChild($admission, $test)) {
             if ($test->hasResult() || $test->is_validated || $test->is_ratified) {
-                return redirect()->back()->with('error', 'No se puede eliminar esta determinación: tiene resultado, está validada o ratificada.');
+                return $this->redirectBackToLabAdmissionResults()->with('error', 'No se puede eliminar esta determinación: tiene resultado, está validada o ratificada.');
             }
             $test->loadMissing('test');
             $detLabel = $test->test
@@ -751,7 +752,7 @@ class LabAdmissionController extends Controller
             $this->syncAdmissionAfterTestsMutation($admission);
             $admission->logAudit('test_removed', 'Eliminó determinación hoja '.$detLabel.' de la admisión Nº '.$admission->protocol_number);
 
-            return redirect()->back()->with('success', 'Determinación eliminada del protocolo (el grupo permanece).');
+            return $this->redirectBackToLabAdmissionResults()->with('success', 'Determinación eliminada del protocolo (el grupo permanece).');
         }
 
         // Si es una práctica padre (precio > 0), eliminar también sus hijos
@@ -772,7 +773,7 @@ class LabAdmissionController extends Controller
         $this->syncAdmissionAfterTestsMutation($admission);
         $admission->logAudit('test_removed', 'Eliminó práctica '.$testName.' de la admisión Nº '.$admission->protocol_number);
 
-        return redirect()->back()->with('success', 'Práctica eliminada correctamente.');
+        return $this->redirectBackToLabAdmissionResults()->with('success', 'Práctica eliminada correctamente.');
     }
 
     /**
@@ -784,6 +785,14 @@ class LabAdmissionController extends Controller
         $admission->load(['admissionTests.test.childTests', 'admissionTests.test.children']);
         $admission->calculateTotals();
         $admission->update(['status' => $admission->calculated_status]);
+    }
+
+    /**
+     * Tras POST desde el show de admisión, ancla el viewport al bloque de resultados (#lab-admission-results).
+     */
+    private function redirectBackToLabAdmissionResults(): RedirectResponse
+    {
+        return redirect()->back()->withFragment('lab-admission-results');
     }
 
     /**
@@ -981,7 +990,7 @@ class LabAdmissionController extends Controller
         $admission->load('admissionTests');
         $admission->update(['status' => $admission->calculated_status]);
 
-        return redirect()->back()->with('success', 'Resultado guardado correctamente.');
+        return $this->redirectBackToLabAdmissionResults()->with('success', 'Resultado guardado correctamente.');
     }
 
     /**
@@ -1044,7 +1053,7 @@ class LabAdmissionController extends Controller
         $admission->load('admissionTests');
         $admission->update(['status' => $admission->calculated_status]);
 
-        return redirect()->back()->with('success', 'Resultados guardados correctamente.');
+        return $this->redirectBackToLabAdmissionResults()->with('success', 'Resultados guardados correctamente.');
     }
 
     /**
@@ -1054,7 +1063,7 @@ class LabAdmissionController extends Controller
     {
         $this->authorize('lab-results.validate');
         if (! $admissionTest->hasResult()) {
-            return redirect()->back()->with('error', 'No se puede validar una práctica sin resultado.');
+            return $this->redirectBackToLabAdmissionResults()->with('error', 'No se puede validar una práctica sin resultado.');
         }
 
         $admissionTest->update([
@@ -1068,7 +1077,7 @@ class LabAdmissionController extends Controller
         $admission->load('admissionTests');
         $admission->update(['status' => $admission->calculated_status]);
 
-        return redirect()->back()->with('success', 'Práctica validada correctamente.');
+        return $this->redirectBackToLabAdmissionResults()->with('success', 'Práctica validada correctamente.');
     }
 
     /**
@@ -1091,7 +1100,7 @@ class LabAdmissionController extends Controller
         $admission->load('admissionTests');
         $admission->update(['status' => $admission->calculated_status]);
 
-        return redirect()->back()->with('success', 'Validación removida.');
+        return $this->redirectBackToLabAdmissionResults()->with('success', 'Validación removida.');
     }
 
     /**
@@ -1117,7 +1126,7 @@ class LabAdmissionController extends Controller
         $admission->load('admissionTests');
         $admission->update(['status' => $admission->calculated_status]);
 
-        return redirect()->back()->with('success', "Se validaron {$count} prácticas.");
+        return $this->redirectBackToLabAdmissionResults()->with('success', "Se validaron {$count} prácticas.");
     }
 
     /**
@@ -1152,7 +1161,7 @@ class LabAdmissionController extends Controller
             }
         }
 
-        return redirect()->back()->with('success', "Se sincronizaron {$count} determinaciones.");
+        return $this->redirectBackToLabAdmissionResults()->with('success', "Se sincronizaron {$count} determinaciones.");
     }
 
     public function destroy(Admission $admission)
@@ -1162,7 +1171,7 @@ class LabAdmissionController extends Controller
         if (auth()->user()->hasRole('recepcion-lab')) {
             $hasInProcess = $admission->admissionTests->contains(fn ($t) => $t->is_validated || $t->hasResult());
             if ($hasInProcess) {
-                return redirect()->back()
+                return $this->redirectBackToLabAdmissionResults()
                     ->with('error', 'Solo se puede eliminar el protocolo si todas las prácticas están pendientes.');
             }
         }
