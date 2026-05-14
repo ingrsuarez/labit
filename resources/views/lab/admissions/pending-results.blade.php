@@ -4,7 +4,7 @@
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">Resultados pendientes</h1>
                 <p class="mt-1 text-sm text-gray-600">
-                    Protocolos con al menos una práctica sin resultado cargado. El protocolo se abre en una <strong>nueva pestaña</strong>; al volver aquí la lista se actualiza sola.
+                    Laboratorio <strong>clínico</strong> y <strong>veterinario</strong>: protocolos con al menos una práctica sin resultado. El enlace abre en una <strong>nueva pestaña</strong>; al volver aquí la lista se actualiza sola.
                 </p>
             </div>
             <a href="{{ route('lab.admissions.index') }}"
@@ -17,7 +17,7 @@
             <form action="{{ route('lab.admissions.pending-results') }}" method="GET" class="flex flex-wrap gap-4">
                 <div class="flex-1 min-w-[200px]">
                     <input type="text" name="search" value="{{ request('search') }}"
-                           placeholder="Buscar por protocolo, nombre o DNI..."
+                           placeholder="Protocolo, paciente, DNI, animal o dueño…"
                            class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500">
                 </div>
                 <div class="w-48">
@@ -53,6 +53,20 @@
                         </select>
                     </div>
                 @endif
+                @if(($canVetProtocols ?? false) && isset($species) && $species->count() > 0)
+                    <div class="w-44">
+                        <label class="sr-only" for="pending-results-species">Especie (vet.)</label>
+                        <select id="pending-results-species" name="species_id"
+                                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                            <option value="">Todas las especies</option>
+                            @foreach($species as $sp)
+                                <option value="{{ $sp->id }}" {{ (string) request('species_id') === (string) $sp->id ? 'selected' : '' }}>
+                                    {{ $sp->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
                 <div class="w-40">
                     <label class="sr-only" for="pending-results-date-from">Fecha desde</label>
                     <input id="pending-results-date-from" type="date" name="date_from" value="{{ request('date_from') }}"
@@ -66,7 +80,7 @@
                 <button type="submit" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
                     Filtrar
                 </button>
-                @if(request()->hasAny(['search', 'insurance', 'status', 'lab_branch_id', 'date_from', 'date_to']))
+                @if(request()->hasAny(['search', 'insurance', 'status', 'lab_branch_id', 'date_from', 'date_to', 'species_id']))
                     <a href="{{ route('lab.admissions.pending-results') }}" class="px-4 py-2 text-gray-500 hover:text-gray-700 self-center">
                         Limpiar
                     </a>
@@ -80,35 +94,39 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Tipo</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Protocolo</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paciente / Animal</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Fecha</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Determinaciones pendientes</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($admissions as $admission)
+                            @foreach($admissions as $row)
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3 whitespace-nowrap">
-                                        <a href="{{ route('lab.admissions.show', $admission) }}#lab-admission-results"
+                                        @if(($row->kind ?? 'clinical') === 'vet')
+                                            <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-900">Veterinario</span>
+                                        @else
+                                            <span class="inline-flex items-center rounded-full bg-teal-100 px-2.5 py-0.5 text-xs font-medium text-teal-900">Clínico</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <a href="{{ $row->show_url }}"
                                            target="_blank" rel="noopener noreferrer"
                                            class="pending-protocol-link text-teal-700 hover:underline font-medium">
-                                            {{ $admission->protocol_number }}
+                                            {{ $row->protocol_number }}
                                         </a>
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-900">
-                                        @if($admission->patient)
-                                            {{ $admission->patient->full_name }}
-                                        @else
-                                            <span class="text-gray-400">Sin paciente</span>
-                                        @endif
+                                        {{ $row->subject ?? '—' }}
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                                        {{ $admission->date?->format('d/m/Y') ?? '—' }}
+                                        {{ $row->date?->format('d/m/Y') ?? '—' }}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-800 max-w-xl">
-                                        <span class="break-words" title="{{ e($admission->pending_determinations_label ?? '') }}">
-                                            {{ $admission->pending_determinations_label ?? '' }}
+                                        <span class="break-words" title="{{ e($row->pending_determinations_label ?? '') }}">
+                                            {{ $row->pending_determinations_label ?? '' }}
                                         </span>
                                     </td>
                                 </tr>

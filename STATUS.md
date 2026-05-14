@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-14 (**v1.97.1** completado: scroll detalle protocolo; **v1.98.0** planilla pendientes en `pendientes/`; merge **develop**→**master**: **v1.97.0** Santa Cruz FTP; tag **v1.97.0**)
+> Última actualización: 2026-05-14 (**release master**: **v1.98.1** planilla pendientes clínico+vet y sidebar; incluye **v1.97.1** scroll con fragmento en show; **v1.98.0** planilla pendientes base; merge previo **v1.97.0** Santa Cruz FTP, tag **v1.97.0**)
 
 ---
 
@@ -9,8 +9,8 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **master** y **develop** incluyen **v1.97.0**; tag **v1.97.0** |
-| **Última en master (releases v1.x previos)** | **v1.90.0** — Notas de crédito manuales independientes; merges desde develop hasta **v1.97.0** (Santa Cruz FTP) |
+| **Versión actual (línea v1.x)** | **master** y **develop**: **v1.98.1**; tags **v1.98.1**, **v1.97.1**, **v1.97.0** |
+| **Última en master (releases v1.x previos)** | **v1.98.1** — Planilla pendientes clínico+vet, sidebar; **v1.97.1** — scroll con fragmento; **v1.97.0** — Santa Cruz FTP |
 | **Última completada (cola agente)** | **v1.97.1** — Scroll al bloque de resultados tras POST en show clínico/vet (`withFragment` + `vet-admission-results`); tests `RemoveLeafAdmissionDeterminationTest` |
 | **Hotfix aplicado** | 2026-05-09: vet doble submit + botón Eliminar protocolo; **sesión por inactividad** (`SESSION_IDLE_TIMEOUT_MINUTES`, `users.last_activity_at`, middleware `enforce.idle`) |
 | **Referencia acceso/roles (v2.x)** | **v2.4.1** — Hotfix redirect loop lab + condición Mi Portal |

@@ -5,6 +5,18 @@
 
 ---
 
+## [v1.98.1] — 2026-05-14 — Planilla pendientes clínico+veterinario y sidebar
+
+### Cambiado
+- **Resultados pendientes**: unifica filas clínico y veterinario (orden por fecha reciente); columna **Tipo**, enlace al `show` en **nueva pestaña** con recarga al volver al foco; filtros opcionales por fechas, especie (vet) y resto alineados a índices clínico/vet.
+- **Permisos vet en planilla**: protocolos vet visibles si el usuario puede `vet-admissions.edit`, `lab-results.create` o `vet-labels.print` (evita `canAny`, inexistente en el framework).
+- **Sidebar lab**: se quita el ítem **Santa Cruz (FTP)**; el highlight de «Laboratorio Clínico» ya no depende de `lab.santa-cruz.*`.
+
+### Agregado
+- `App\Support\VeterinaryPendingResultsPresenter` y ampliación de tests en `LabPendingResultsPlanillaTest`.
+
+---
+
 ## [v1.97.1] — 2026-05-14 — Scroll al bloque de resultados tras acciones en protocolo (clínico + vet)
 
 ### Corregido
