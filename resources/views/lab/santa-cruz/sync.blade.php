@@ -4,16 +4,32 @@
             insuranceId: {{ json_encode($insuranceId) }},
             searchTestsUrl: @json(route('lab.admissions.searchTests')),
          })">
+        {{-- El scan/import son POST síncronos (FTP + XML); sin feedback parece “congelado”. --}}
+        <div x-show="scanBusy || importBusy" x-cloak
+             class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-6"
+             aria-live="polite" aria-busy="true">
+            <div class="max-w-md rounded-xl bg-white p-6 shadow-xl text-center space-y-3">
+                <p class="text-lg font-semibold text-gray-900" x-text="importBusy ? 'Importando…' : 'Sincronizando con el FTP…'"></p>
+                <p class="text-sm text-gray-600">
+                    La petición sigue en el servidor (lista y descarga de XML puede tardar varios minutos con FTPS y muchos archivos).
+                    No cierres esta pestaña; cuando termine, la página se recargará sola.
+                </p>
+                <p class="text-xs text-gray-500">Si falla por tiempo, subí <code class="bg-gray-100 px-1 rounded">SANTA_CRUZ_SCAN_MAX_SECONDS</code> o <code class="bg-gray-100 px-1 rounded">SANTA_CRUZ_FTP_TIMEOUT</code> en <code>.env</code>.</p>
+            </div>
+        </div>
+
         <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">Santa Cruz O&amp;G — importación XML</h1>
                 <p class="mt-1 text-sm text-gray-600">Sincronizar carpeta FTP, revisar mapeos de prácticas e importar admisiones clínicas.</p>
             </div>
             <div class="flex flex-wrap gap-2">
-                <form action="{{ route('lab.santa-cruz.sync.scan') }}" method="POST">
+                <form action="{{ route('lab.santa-cruz.sync.scan') }}" method="POST" @submit="scanBusy = true">
                     @csrf
-                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-medium">
-                        Sincronizar desde FTP
+                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-medium disabled:opacity-60"
+                            :disabled="scanBusy || importBusy">
+                        <span x-show="! scanBusy">Sincronizar desde FTP</span>
+                        <span x-show="scanBusy" x-cloak>Sincronizando…</span>
                     </button>
                 </form>
                 @can('santacruz.import')
@@ -58,12 +74,13 @@
             <p class="text-gray-500 text-sm">Todavía no hay una vista previa. Presioná <strong>Sincronizar desde FTP</strong> para listar los archivos <code>.xml</code>.</p>
         @else
             <form action="{{ route('lab.santa-cruz.sync.import') }}" method="POST" id="import-form" class="space-y-4"
-                  onsubmit="return confirm('¿Importar los archivos seleccionados? Se crearán admisiones y se moverán los XML a la carpeta procesados en el FTP.');">
+                  @submit="if (! confirm('¿Importar los archivos seleccionados? Se crearán admisiones y se moverán los XML a la carpeta procesados en el FTP.')) { $event.preventDefault(); return; } importBusy = true;">
                 @csrf
                 <div class="flex justify-end">
                     <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium disabled:opacity-50"
-                            {{ !$insuranceId ? 'disabled' : '' }}>
-                        Importar seleccionados
+                            :disabled="scanBusy || importBusy || ! insuranceId">
+                        <span x-show="! importBusy">Importar seleccionados</span>
+                        <span x-show="importBusy" x-cloak>Importando…</span>
                     </button>
                 </div>
 
