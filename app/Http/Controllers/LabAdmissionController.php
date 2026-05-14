@@ -15,9 +15,12 @@ use App\Models\Insurance;
 use App\Models\InsuranceTest;
 use App\Models\LabSetting;
 use App\Models\Patient;
+use App\Models\Species;
 use App\Models\Test;
+use App\Models\VetAdmission;
 use App\Support\ClinicalAdmissionTestHierarchy;
 use App\Support\ClinicalPendingResultsPresenter;
+use App\Support\VeterinaryPendingResultsPresenter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -52,43 +55,87 @@ class LabAdmissionController extends Controller
     }
 
     /**
-     * Planilla global: admisiones con al menos una determinación sin resultado (todas las fechas).
+     * Planilla global: protocolos clínico y veterinario con al menos una determinación sin resultado.
      */
     public function pendingResults(Request $request)
     {
         $this->authorize('lab-admissions.index');
 
-        $filterRequest = Request::create(
-            $request->url(),
-            'GET',
-            $request->except(['date_from', 'date_to'])
-        );
-
-        $query = Admission::query()
-            ->with(['patient', 'admissionTests.test.parentTests']);
-
-        $query->where('status', '!=', Admission::STATUS_CANCELLED);
-
-        $this->applyLabAdmissionIndexFilters($filterRequest, $query);
-
         $isRecepcionLab = auth()->user()->hasRole('recepcion-lab')
             && ! auth()->user()->hasAnyRole(['bioquimico', 'tecnico-lab']);
 
-        $candidates = $query
-            ->orderBy('protocol_number')
-            ->orderBy('id')
-            ->get();
+        // Roles de lab no tienen vet-admissions.index/show en seeder; sí edit, resultados o etiquetas vet.
+        $user = auth()->user();
+        $canVetProtocols = $user->can('vet-admissions.edit')
+            || $user->can('lab-results.create')
+            || $user->can('vet-labels.print');
 
-        $rows = [];
-        foreach ($candidates as $admission) {
+        $merged = [];
+
+        $clinicalQuery = Admission::query()
+            ->with(['patient', 'admissionTests.test.parentTests']);
+
+        $clinicalQuery->where('status', '!=', Admission::STATUS_CANCELLED);
+
+        $this->applyLabAdmissionIndexFilters($request, $clinicalQuery);
+
+        foreach ($clinicalQuery->orderByDesc('date')->orderByDesc('id')->get() as $admission) {
             $label = ClinicalPendingResultsPresenter::pendingDeterminationsLabel($admission, $isRecepcionLab);
-            if ($label !== '') {
-                $admission->pending_determinations_label = $label;
-                $rows[] = $admission;
+            if ($label === '') {
+                continue;
+            }
+
+            $d = $admission->date?->format('Y-m-d') ?? '';
+            $merged[] = (object) [
+                'kind' => 'clinical',
+                'date' => $admission->date,
+                'sort_key' => $d.'-c-'.str_pad((string) $admission->id, 10, '0', STR_PAD_LEFT),
+                'protocol_number' => $admission->protocol_number,
+                'subject' => $admission->patient?->full_name ?? '—',
+                'pending_determinations_label' => $label,
+                'show_url' => route('lab.admissions.show', $admission).'#lab-admission-results',
+            ];
+        }
+
+        if ($canVetProtocols) {
+            $vetQuery = VetAdmission::query()
+                ->with(['vetTests.test.parentTests', 'species', 'customer']);
+
+            $vetQuery->where(function ($q) {
+                $q->whereNull('status')->orWhere('status', '!=', 'cancelled');
+            });
+
+            $this->applyVetAdmissionIndexFilters($request, $vetQuery);
+
+            foreach ($vetQuery->orderByDesc('date')->orderByDesc('id')->get() as $vetAdmission) {
+                $label = VeterinaryPendingResultsPresenter::pendingDeterminationsLabel($vetAdmission, $isRecepcionLab);
+                if ($label === '') {
+                    continue;
+                }
+
+                $subject = trim(($vetAdmission->animal_name ?: '').($vetAdmission->owner_name ? ' — '.$vetAdmission->owner_name : ''));
+                if ($subject === '') {
+                    $subject = '—';
+                }
+
+                $d = $vetAdmission->date?->format('Y-m-d') ?? '';
+                $merged[] = (object) [
+                    'kind' => 'vet',
+                    'date' => $vetAdmission->date,
+                    'sort_key' => $d.'-v-'.str_pad((string) $vetAdmission->id, 10, '0', STR_PAD_LEFT),
+                    'protocol_number' => $vetAdmission->protocol_number,
+                    'subject' => $subject,
+                    'pending_determinations_label' => $label,
+                    'show_url' => route('vet.admissions.show', $vetAdmission).'#vet-admission-results',
+                ];
             }
         }
 
-        $withPending = collect($rows);
+        usort($merged, function ($a, $b) {
+            return strcmp($b->sort_key, $a->sort_key);
+        });
+
+        $withPending = collect($merged);
         $page = max(1, (int) $request->input('page', 1));
         $perPage = 20;
         $total = $withPending->count();
@@ -108,7 +155,11 @@ class LabAdmissionController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('lab.admissions.pending-results', compact('admissions', 'branches', 'insurances'));
+        $species = $canVetProtocols
+            ? Species::where('is_active', true)->orderBy('name')->get()
+            : collect();
+
+        return view('lab.admissions.pending-results', compact('admissions', 'branches', 'insurances', 'species', 'canVetProtocols'));
     }
 
     /**

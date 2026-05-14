@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-13 (merge **develop**→**master**: **v1.97.0** Santa Cruz FTP e importación admisiones; tag **v1.97.0**; incluye **v1.96.0** quitar determinación hoja vía historial develop)
+> Última actualización: 2026-05-14 (**v1.98.1** en develop: planilla resultados pendientes clínico+veterinario, sidebar sin Santa Cruz FTP; merge previo 2026-05-13 **develop**→**master** **v1.97.0**)
 
 ---
 
