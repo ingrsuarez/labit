@@ -5,6 +5,17 @@
 
 ---
 
+## [v1.98.3] — 2026-05-15 — Hotfix: listado de presupuestos (totales, paginación, orden)
+
+### Corregido / Cambiado
+- **Índice `/quotes`**: pie de tabla con resumen siempre visible (“Mostrando … de … presupuesto(s)”) y bloque de paginación alineado al resto del módulo (Tailwind).
+- **Orden del listado**: `orderByDesc('quote_number')` en lugar de `created_at`, coherente con el formato `PRES-AAAA-#####`.
+
+### Tests
+- `QuoteIndexPaginationTest`: más de 15 ítems (paginación + resumen) y un solo ítem (pluralización).
+
+---
+
 ## [v1.98.2] — 2026-05-14 — Hotfix LISCOM: ingesta API sin deduplicación por mensaje HL7
 
 ### Cambiado

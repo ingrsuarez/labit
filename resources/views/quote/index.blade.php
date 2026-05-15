@@ -117,11 +117,20 @@
                     </table>
                 </div>
 
-                @if($quotes->hasPages())
-                    <div class="px-4 py-3 border-t border-gray-200">
-                        {{ $quotes->links() }}
-                    </div>
-                @endif
+                <div class="px-4 py-3 border-t border-gray-200 bg-gray-50/80 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p class="text-sm text-gray-600">
+                        Mostrando
+                        <span class="font-medium text-gray-800">{{ $quotes->firstItem() }}</span>
+                        –
+                        <span class="font-medium text-gray-800">{{ $quotes->lastItem() }}</span>
+                        de
+                        <span class="font-medium text-gray-800">{{ $quotes->total() }}</span>
+                        {{ $quotes->total() === 1 ? 'presupuesto' : 'presupuestos' }}
+                    </p>
+                    @if($quotes->hasPages())
+                        <div class="min-w-0 sm:shrink-0">{{ $quotes->links() }}</div>
+                    @endif
+                </div>
             @else
                 <div class="p-12 text-center">
                     <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
