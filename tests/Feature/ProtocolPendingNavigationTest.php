@@ -87,7 +87,7 @@ class ProtocolPendingNavigationTest extends TestCase
         $response->assertRedirect(route('lab.admissions.show', [
             'admission' => $a3,
             'lab_branch_id' => (string) $branch->id,
-        ]));
+        ]).'#lab-admission-results');
     }
 
     public function test_clinical_previous_pending_va_al_protocolo_menor(): void
@@ -120,7 +120,7 @@ class ProtocolPendingNavigationTest extends TestCase
         $response->assertRedirect(route('lab.admissions.show', [
             'admission' => $a1,
             'lab_branch_id' => (string) $branch->id,
-        ]));
+        ]).'#lab-admission-results');
     }
 
     public function test_clinical_next_pending_sin_candidato_redirige_al_index_con_aviso(): void

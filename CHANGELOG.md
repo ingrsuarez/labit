@@ -5,6 +5,19 @@
 
 ---
 
+## [v1.99.2] — 2026-05-14 — Hotfix: scroll al bloque resultados en protocolo lab clínico
+
+### Corregido / Cambiado
+
+- **`LabAdmissionController`**: helper `backToAdmissionResults()` — `redirect()->back()->withFragment('lab-admission-results')` para validar/desvalidar/validar todas, eliminar práctica, guardar resultado(s), agregar/actualizar práctica, sincronizar hijas, pago parcial, errores de PDF/vista/envío email, eliminar protocolo bloqueado (recepción-lab).
+- **Navegación pendiente**: `next-pending` / `previous-pending` clínico añaden el mismo fragmento al redirect a `lab.admissions.show`.
+
+### Tests
+
+- `RemoveLeafAdmissionDeterminationTest`, `ProtocolPendingNavigationTest` (expectativas de URL con `#lab-admission-results`).
+
+---
+
 ## [v1.99.1] — 2026-05-14 — Hotfix: NC electrónica desde factura — AFIP sin cuelgue
 
 ### Corregido / Cambiado
