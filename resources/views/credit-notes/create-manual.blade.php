@@ -61,7 +61,7 @@
                                     <button type="button" @click="customerSelectedId = c.id; customerSelectedName = c.name; customerSearch = c.name; customerOpen = false"
                                             class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex justify-between items-center">
                                         <span x-text="c.name"></span>
-                                        <span class="text-xs text-gray-400" x-text="c.cuit || ''"></span>
+                                        <span class="text-xs text-gray-400" x-text="c.taxId || ''"></span>
                                     </button>
                                 </template>
                                 <div x-show="filteredCustomers.length === 0" class="px-3 py-2 text-sm text-gray-400">Sin resultados</div>
@@ -270,7 +270,7 @@
                     const term = this.customerSearch.toLowerCase();
                     return this.customers.filter(c =>
                         c.name.toLowerCase().includes(term) ||
-                        (c.cuit && c.cuit.includes(term))
+                        (c.taxId && String(c.taxId).toLowerCase().includes(term))
                     ).slice(0, 50);
                 },
 

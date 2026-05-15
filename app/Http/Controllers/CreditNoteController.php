@@ -238,7 +238,7 @@ class CreditNoteController extends Controller
     {
         $customers = Customer::where('company_id', active_company_id())
             ->orderBy('name')
-            ->get(['id', 'name', 'tax', 'cuit']);
+            ->get(['id', 'name', 'tax', 'taxId']);
 
         $pointsOfSale = PointOfSale::where('company_id', active_company_id())
             ->where('is_electronic', false)
