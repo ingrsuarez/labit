@@ -6,6 +6,16 @@ return [
     'key_path' => env('AFIP_KEY_PATH', storage_path('app/afip/key.pem')),
     'production' => env('AFIP_PRODUCTION', false),
 
+    /*
+    |--------------------------------------------------------------------------
+    | SOAP / red AFIP (WSAA + WSFEv1)
+    |--------------------------------------------------------------------------
+    | connection_timeout: segundos para establecer TCP (SoapClient).
+    | read_timeout: segundos máximos de lectura por operación SOAP (ini default_socket_timeout).
+    */
+    'soap_connection_timeout_seconds' => (int) env('AFIP_SOAP_CONNECTION_TIMEOUT', 15),
+    'soap_read_timeout_seconds' => (int) env('AFIP_SOAP_READ_TIMEOUT', 90),
+
     'emisor' => [
         'razon_social' => env('AFIP_RAZON_SOCIAL', 'IPAC Laboratorio de Aguas y Alimentos'),
         'domicilio' => env('AFIP_DOMICILIO', 'Neuquén, Neuquén'),

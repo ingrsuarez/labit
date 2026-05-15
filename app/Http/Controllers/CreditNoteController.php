@@ -67,56 +67,96 @@ class CreditNoteController extends Controller
             'items.*.iva_rate' => 'required|numeric|in:0,10.5,21,27',
         ]);
 
-        $invoice = SalesInvoice::with(['pointOfSale', 'customer'])
+        $invoice = SalesInvoice::with(['pointOfSale', 'customer', 'company'])
             ->where('company_id', active_company_id())
             ->findOrFail($request->sales_invoice_id);
         $pointOfSale = $invoice->pointOfSale;
         $isElectronic = $pointOfSale && $pointOfSale->is_electronic;
 
-        DB::beginTransaction();
-
         try {
-            $creditNote = CreditNote::create([
-                'company_id' => active_company_id(),
-                'credit_note_number' => $isElectronic ? 'PENDIENTE-AFIP' : $this->getNextLocalNumber($invoice),
-                'voucher_type' => $invoice->voucher_type,
-                'point_of_sale_id' => $invoice->point_of_sale_id,
-                'customer_id' => $invoice->customer_id,
-                'sales_invoice_id' => $invoice->id,
-                'issue_date' => now()->toDateString(),
-                'reason' => $request->reason,
-                'percepciones' => $request->percepciones ?? 0,
-                'otros_impuestos' => $request->otros_impuestos ?? 0,
-                'status' => 'pendiente',
-                'is_electronic' => $isElectronic,
-                'created_by' => Auth::id(),
-            ]);
-
-            foreach ($request->items as $i => $itemData) {
-                $qty = floatval($itemData['quantity']);
-                $price = floatval($itemData['unit_price']);
-                $ivaRate = floatval($itemData['iva_rate']);
-                $ivaAmount = round($qty * $price * $ivaRate / 100, 2);
-                $total = round($qty * $price + $ivaAmount, 2);
-
-                CreditNoteItem::create([
-                    'credit_note_id' => $creditNote->id,
-                    'description' => $itemData['description'],
-                    'quantity' => $qty,
-                    'unit_price' => $price,
-                    'iva_rate' => $ivaRate,
-                    'iva_amount' => $ivaAmount,
-                    'total' => $total,
-                    'sort_order' => $i,
+            $creditNote = DB::transaction(function () use ($request, $invoice, $isElectronic) {
+                $creditNote = CreditNote::create([
+                    'company_id' => active_company_id(),
+                    'credit_note_number' => $isElectronic ? 'PENDIENTE-AFIP' : $this->getNextLocalNumber($invoice),
+                    'voucher_type' => $invoice->voucher_type,
+                    'point_of_sale_id' => $invoice->point_of_sale_id,
+                    'customer_id' => $invoice->customer_id,
+                    'sales_invoice_id' => $invoice->id,
+                    'issue_date' => now()->toDateString(),
+                    'reason' => $request->reason,
+                    'percepciones' => $request->percepciones ?? 0,
+                    'otros_impuestos' => $request->otros_impuestos ?? 0,
+                    'status' => 'pendiente',
+                    'is_electronic' => $isElectronic,
+                    'created_by' => Auth::id(),
                 ]);
+
+                foreach ($request->items as $i => $itemData) {
+                    $qty = floatval($itemData['quantity']);
+                    $price = floatval($itemData['unit_price']);
+                    $ivaRate = floatval($itemData['iva_rate']);
+                    $ivaAmount = round($qty * $price * $ivaRate / 100, 2);
+                    $total = round($qty * $price + $ivaAmount, 2);
+
+                    CreditNoteItem::create([
+                        'credit_note_id' => $creditNote->id,
+                        'description' => $itemData['description'],
+                        'quantity' => $qty,
+                        'unit_price' => $price,
+                        'iva_rate' => $ivaRate,
+                        'iva_amount' => $ivaAmount,
+                        'total' => $total,
+                        'sort_order' => $i,
+                    ]);
+                }
+
+                $creditNote->recalculate();
+
+                return $creditNote->fresh([
+                    'items',
+                    'company',
+                    'pointOfSale',
+                    'customer',
+                    'salesInvoice' => fn ($q) => $q->with('pointOfSale'),
+                ]);
+            });
+
+            if (! $isElectronic) {
+                $this->recordCreditNoteJournalEntry($creditNote);
+
+                return redirect()->route('credit-notes.show', $creditNote)
+                    ->with('success', 'Nota de crédito creada exitosamente.');
             }
 
-            $creditNote->recalculate();
+            $creditNote->load(['items', 'pointOfSale', 'customer', 'company', 'salesInvoice.pointOfSale']);
 
-            if ($isElectronic) {
-                $afip = new AfipService($creditNote->company);
-                $afipResponse = $afip->createCreditNote($creditNote);
+            $afip = app(AfipService::class);
+            $afipResponse = $afip->createCreditNote($creditNote);
 
+            if (in_array($afipResponse['result'], ['A', 'O'], true)) {
+                DB::transaction(function () use ($creditNote, $afipResponse) {
+                    $creditNote->update([
+                        'cae' => $afipResponse['cae'],
+                        'cae_expiration' => $afipResponse['cae_expiration'],
+                        'afip_voucher_number' => $afipResponse['voucher_number'],
+                        'afip_result' => $afipResponse['result'],
+                        'afip_response' => $afipResponse['full_response'],
+                    ]);
+                    $number = str_pad((string) $afipResponse['voucher_number'], 8, '0', STR_PAD_LEFT);
+                    $creditNote->update([
+                        'credit_note_number' => $number,
+                        'status' => 'confirmada',
+                    ]);
+                });
+
+                $creditNote->refresh();
+                $this->recordCreditNoteJournalEntry($creditNote);
+
+                return redirect()->route('credit-notes.show', $creditNote)
+                    ->with('success', 'Nota de crédito creada exitosamente.');
+            }
+
+            DB::transaction(function () use ($creditNote, $afipResponse) {
                 $creditNote->update([
                     'cae' => $afipResponse['cae'],
                     'cae_expiration' => $afipResponse['cae_expiration'],
@@ -124,42 +164,13 @@ class CreditNoteController extends Controller
                     'afip_result' => $afipResponse['result'],
                     'afip_response' => $afipResponse['full_response'],
                 ]);
+            });
 
-                if (in_array($afipResponse['result'], ['A', 'O'])) {
-                    $number = str_pad($afipResponse['voucher_number'], 8, '0', STR_PAD_LEFT);
-                    $creditNote->update([
-                        'credit_note_number' => $number,
-                        'status' => 'confirmada',
-                    ]);
-                } else {
-                    DB::commit();
-                    $obs = '';
-                    if (isset($afipResponse['full_response']['FeDetResp']['FECAEDetResponse']['Observaciones'])) {
-                        $observations = $afipResponse['full_response']['FeDetResp']['FECAEDetResponse']['Observaciones'];
-                        if (isset($observations['Obs'])) {
-                            $obsList = is_array($observations['Obs']) && isset($observations['Obs'][0])
-                                ? $observations['Obs']
-                                : [$observations['Obs']];
-                            foreach ($obsList as $ob) {
-                                $obs .= ($ob['Msg'] ?? '').' ';
-                            }
-                        }
-                    }
-
-                    return redirect()->route('credit-notes.show', $creditNote)
-                        ->with('error', 'AFIP rechazó la nota de crédito. '.trim($obs));
-                }
-            }
-
-            DB::commit();
-
-            $this->recordCreditNoteJournalEntry($creditNote);
+            $creditNote->refresh();
 
             return redirect()->route('credit-notes.show', $creditNote)
-                ->with('success', 'Nota de crédito creada exitosamente.');
-
+                ->with('error', 'AFIP rechazó la nota de crédito. '.$this->afipRejectionObservationsText($afipResponse));
         } catch (\Exception $e) {
-            DB::rollBack();
             Log::error('Credit note creation failed', ['error' => $e->getMessage()]);
 
             return back()->withInput()
@@ -199,7 +210,7 @@ class CreditNoteController extends Controller
         $creditNote->load(['pointOfSale', 'customer', 'items', 'salesInvoice.pointOfSale', 'company']);
 
         try {
-            $afip = new AfipService($creditNote->company);
+            $afip = app(AfipService::class);
             $afipResponse = $afip->createCreditNote($creditNote);
 
             $creditNote->update([
@@ -321,6 +332,24 @@ class CreditNoteController extends Controller
             return back()->withInput()
                 ->with('error', 'Error al registrar la nota de crédito: '.$e->getMessage());
         }
+    }
+
+    protected function afipRejectionObservationsText(array $afipResponse): string
+    {
+        $obs = '';
+        if (isset($afipResponse['full_response']['FeDetResp']['FECAEDetResponse']['Observaciones'])) {
+            $observations = $afipResponse['full_response']['FeDetResp']['FECAEDetResponse']['Observaciones'];
+            if (isset($observations['Obs'])) {
+                $obsList = is_array($observations['Obs']) && isset($observations['Obs'][0])
+                    ? $observations['Obs']
+                    : [$observations['Obs']];
+                foreach ($obsList as $ob) {
+                    $obs .= ($ob['Msg'] ?? '').' ';
+                }
+            }
+        }
+
+        return trim($obs);
     }
 
     protected function getNextLocalNumber(SalesInvoice $invoice): string
