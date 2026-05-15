@@ -92,6 +92,47 @@ class AfipService
         $this->production = $company?->afip_production ?? (bool) config('afip.production');
     }
 
+    protected function soapConnectionTimeoutSeconds(): int
+    {
+        return max(3, (int) config('afip.soap_connection_timeout_seconds', 15));
+    }
+
+    protected function soapReadTimeoutSeconds(): int
+    {
+        return max(10, (int) config('afip.soap_read_timeout_seconds', 90));
+    }
+
+    /**
+     * Acota el tiempo de espera de lectura en llamadas SOAP (default_socket_timeout).
+     * Restaura el valor previo de PHP al salir.
+     */
+    protected function withAfipSoapReadTimeout(callable $callback): mixed
+    {
+        $seconds = $this->soapReadTimeoutSeconds();
+        $previous = ini_get('default_socket_timeout');
+        try {
+            ini_set('default_socket_timeout', (string) $seconds);
+
+            return $callback();
+        } finally {
+            ini_set('default_socket_timeout', $previous !== false ? (string) $previous : '60');
+        }
+    }
+
+    /**
+     * @return resource
+     */
+    protected function soapClientStreamContext()
+    {
+        return stream_context_create([
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'ciphers' => 'DEFAULT@SECLEVEL=0',
+            ],
+        ]);
+    }
+
     protected function resolveCertPath(string $path): string
     {
         // Si ya es ruta absoluta (Linux: empieza con /, Windows: C:\...), no la prefijes con base_path.
@@ -140,17 +181,12 @@ class AfipService
             'soap_version' => SOAP_1_1,
             'trace' => true,
             'exceptions' => true,
-            'stream_context' => stream_context_create([
-                'ssl' => [
-                    'verify_peer' => false,
-                    'verify_peer_name' => false,
-                    'ciphers' => 'DEFAULT@SECLEVEL=0',
-                ],
-            ]),
+            'connection_timeout' => $this->soapConnectionTimeoutSeconds(),
+            'stream_context' => $this->soapClientStreamContext(),
         ]);
 
         try {
-            $response = $client->loginCms(['in0' => $cms]);
+            $response = $this->withAfipSoapReadTimeout(fn () => $client->loginCms(['in0' => $cms]));
         } catch (\SoapFault $e) {
             if (str_contains($e->getMessage(), 'ya posee un TA')) {
                 Log::warning('AFIP WSAA: TA still valid, waiting and retrying', ['service' => $service]);
@@ -160,7 +196,7 @@ class AfipService
                 $cms = $this->signTRA($tra);
 
                 try {
-                    $response = $client->loginCms(['in0' => $cms]);
+                    $response = $this->withAfipSoapReadTimeout(fn () => $client->loginCms(['in0' => $cms]));
                 } catch (\SoapFault $retryEx) {
                     if (str_contains($retryEx->getMessage(), 'ya posee un TA')) {
                         throw new Exception(
@@ -264,13 +300,8 @@ XML;
             'trace' => true,
             'exceptions' => true,
             'cache_wsdl' => WSDL_CACHE_NONE,
-            'stream_context' => stream_context_create([
-                'ssl' => [
-                    'verify_peer' => false,
-                    'verify_peer_name' => false,
-                    'ciphers' => 'DEFAULT@SECLEVEL=0',
-                ],
-            ]),
+            'connection_timeout' => $this->soapConnectionTimeoutSeconds(),
+            'stream_context' => $this->soapClientStreamContext(),
         ]);
     }
 
@@ -288,8 +319,11 @@ XML;
     public function getServerStatus(): array
     {
         try {
-            $client = $this->getWsfeClient();
-            $result = $client->FEDummy();
+            $result = $this->withAfipSoapReadTimeout(function () {
+                $client = $this->getWsfeClient();
+
+                return $client->FEDummy();
+            });
 
             return [
                 'success' => true,
@@ -309,14 +343,16 @@ XML;
 
     public function getLastVoucher(int $pointOfSale, int $voucherType): int
     {
-        $client = $this->getWsfeClient();
-        $result = $client->FECompUltimoAutorizado([
-            'Auth' => $this->getAuthParams(),
-            'PtoVta' => $pointOfSale,
-            'CbteTipo' => $voucherType,
-        ]);
+        return (int) $this->withAfipSoapReadTimeout(function () use ($pointOfSale, $voucherType) {
+            $client = $this->getWsfeClient();
+            $result = $client->FECompUltimoAutorizado([
+                'Auth' => $this->getAuthParams(),
+                'PtoVta' => $pointOfSale,
+                'CbteTipo' => $voucherType,
+            ]);
 
-        return $result->FECompUltimoAutorizadoResult->CbteNro;
+            return $result->FECompUltimoAutorizadoResult->CbteNro;
+        });
     }
 
     public static function getVoucherTypeId(string $letter, string $type = 'factura'): int
@@ -466,36 +502,37 @@ XML;
         }
 
         try {
-            $client = $this->getWsfeClient();
-            $client->setCondicionIvaReceptorId($condIvaReceptor);
-            $result = $client->FECAESolicitar([
-                'Auth' => $this->getAuthParams(),
-                'FeCAEReq' => $feCaeReq,
-            ]);
+            return $this->withAfipSoapReadTimeout(function () use ($condIvaReceptor, $feCaeReq, $nextNumber, $invoice) {
+                $client = $this->getWsfeClient();
+                $client->setCondicionIvaReceptorId($condIvaReceptor);
+                $result = $client->FECAESolicitar([
+                    'Auth' => $this->getAuthParams(),
+                    'FeCAEReq' => $feCaeReq,
+                ]);
 
-            $feCaeResult = $result->FECAESolicitarResult;
-            $detResponse = $feCaeResult->FeDetResp->FECAEDetResponse;
+                $feCaeResult = $result->FECAESolicitarResult;
+                $detResponse = $feCaeResult->FeDetResp->FECAEDetResponse;
 
-            $response = [
-                'cae' => $detResponse->CAE ?? null,
-                'cae_expiration' => isset($detResponse->CAEFchVto) ? $this->formatAfipDate($detResponse->CAEFchVto) : null,
-                'voucher_number' => $nextNumber,
-                'result' => $detResponse->Resultado ?? null,
-                'observations' => isset($detResponse->Observaciones)
-                    ? json_decode(json_encode($detResponse->Observaciones), true)
-                    : null,
-                'full_response' => json_decode(json_encode($feCaeResult), true),
-            ];
+                $response = [
+                    'cae' => $detResponse->CAE ?? null,
+                    'cae_expiration' => isset($detResponse->CAEFchVto) ? $this->formatAfipDate($detResponse->CAEFchVto) : null,
+                    'voucher_number' => $nextNumber,
+                    'result' => $detResponse->Resultado ?? null,
+                    'observations' => isset($detResponse->Observaciones)
+                        ? json_decode(json_encode($detResponse->Observaciones), true)
+                        : null,
+                    'full_response' => json_decode(json_encode($feCaeResult), true),
+                ];
 
-            Log::info('AFIP voucher created', [
-                'invoice_id' => $invoice->id,
-                'cae' => $response['cae'],
-                'voucher_number' => $nextNumber,
-                'result' => $response['result'],
-            ]);
+                Log::info('AFIP voucher created', [
+                    'invoice_id' => $invoice->id,
+                    'cae' => $response['cae'],
+                    'voucher_number' => $nextNumber,
+                    'result' => $response['result'],
+                ]);
 
-            return $response;
-
+                return $response;
+            });
         } catch (Exception $e) {
             Log::error('AFIP voucher creation failed', [
                 'invoice_id' => $invoice->id,
@@ -625,36 +662,37 @@ XML;
         }
 
         try {
-            $client = $this->getWsfeClient();
-            $client->setCondicionIvaReceptorId($condIvaReceptor);
-            $result = $client->FECAESolicitar([
-                'Auth' => $this->getAuthParams(),
-                'FeCAEReq' => $feCaeReq,
-            ]);
+            return $this->withAfipSoapReadTimeout(function () use ($condIvaReceptor, $feCaeReq, $nextNumber, $creditNote) {
+                $client = $this->getWsfeClient();
+                $client->setCondicionIvaReceptorId($condIvaReceptor);
+                $result = $client->FECAESolicitar([
+                    'Auth' => $this->getAuthParams(),
+                    'FeCAEReq' => $feCaeReq,
+                ]);
 
-            $feCaeResult = $result->FECAESolicitarResult;
-            $detResponse = $feCaeResult->FeDetResp->FECAEDetResponse;
+                $feCaeResult = $result->FECAESolicitarResult;
+                $detResponse = $feCaeResult->FeDetResp->FECAEDetResponse;
 
-            $response = [
-                'cae' => $detResponse->CAE ?? null,
-                'cae_expiration' => isset($detResponse->CAEFchVto) ? $this->formatAfipDate($detResponse->CAEFchVto) : null,
-                'voucher_number' => $nextNumber,
-                'result' => $detResponse->Resultado ?? null,
-                'observations' => isset($detResponse->Observaciones)
-                    ? json_decode(json_encode($detResponse->Observaciones), true)
-                    : null,
-                'full_response' => json_decode(json_encode($feCaeResult), true),
-            ];
+                $response = [
+                    'cae' => $detResponse->CAE ?? null,
+                    'cae_expiration' => isset($detResponse->CAEFchVto) ? $this->formatAfipDate($detResponse->CAEFchVto) : null,
+                    'voucher_number' => $nextNumber,
+                    'result' => $detResponse->Resultado ?? null,
+                    'observations' => isset($detResponse->Observaciones)
+                        ? json_decode(json_encode($detResponse->Observaciones), true)
+                        : null,
+                    'full_response' => json_decode(json_encode($feCaeResult), true),
+                ];
 
-            Log::info('AFIP credit note created', [
-                'credit_note_id' => $creditNote->id,
-                'cae' => $response['cae'],
-                'voucher_number' => $nextNumber,
-                'result' => $response['result'],
-            ]);
+                Log::info('AFIP credit note created', [
+                    'credit_note_id' => $creditNote->id,
+                    'cae' => $response['cae'],
+                    'voucher_number' => $nextNumber,
+                    'result' => $response['result'],
+                ]);
 
-            return $response;
-
+                return $response;
+            });
         } catch (Exception $e) {
             Log::error('AFIP credit note creation failed', [
                 'credit_note_id' => $creditNote->id,
@@ -719,7 +757,7 @@ XML;
                 'trace' => true,
                 'exceptions' => true,
                 'cache_wsdl' => WSDL_CACHE_NONE,
-                'connection_timeout' => 15,
+                'connection_timeout' => $this->soapConnectionTimeoutSeconds(),
                 'stream_context' => stream_context_create([
                     'ssl' => [
                         'verify_peer' => false,
@@ -727,17 +765,17 @@ XML;
                         'ciphers' => 'DEFAULT@SECLEVEL=0',
                     ],
                     'http' => [
-                        'timeout' => 30,
+                        'timeout' => $this->soapReadTimeoutSeconds(),
                     ],
                 ]),
             ]);
 
-            $result = $client->getPersona([
+            $result = $this->withAfipSoapReadTimeout(fn () => $client->getPersona([
                 'token' => $ta->token,
                 'sign' => $ta->sign,
                 'cuitRepresentada' => $this->cuit,
                 'idPersona' => $cuit,
-            ]);
+            ]));
 
             $persona = $result->personaReturn->datosGenerales ?? null;
 

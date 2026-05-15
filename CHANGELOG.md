@@ -5,7 +5,20 @@
 
 ---
 
-## [v1.98.3] — 2026-05-15 — Hotfix: listado de presupuestos (totales, paginación, orden)
+## [v1.99.1] — 2026-05-14 — Hotfix: NC electrónica desde factura — AFIP sin cuelgue
+
+### Corregido / Cambiado
+
+- **AFIP (`AfipService`)**: timeouts de conexión SOAP configurables; límite de lectura con `default_socket_timeout` restaurable en llamadas WSAA/WSFE (incluye `FECompUltimoAutorizado`, `FECAESolicitar`, padrón, `FEDummy`).
+- **NC desde factura (`CreditNoteController@store`)**: la transacción de BD ya no envuelve la llamada a AFIP; commit tras persistir ítems y otra transacción corta al aplicar CAE/número o respuesta de rechazo.
+- **UI** (`credit-notes/create`): el estado “Autorizando en AFIP…” se activa con `@submit` del formulario (evita spinner si la validación HTML5 bloquea el envío).
+- **Reintento AFIP**: `retryAfip` resuelve `AfipService` vía contenedor (`app(AfipService::class)`), alineado al store.
+
+### Tests
+
+- `CreditNoteElectronicStoreTest`: éxito AFIP simulado (NC confirmada) y rechazo (NC pendiente reintentable).
+
+---
 
 ### Corregido / Cambiado
 - **Índice `/quotes`**: pie de tabla con resumen siempre visible (“Mostrando … de … presupuesto(s)”) y bloque de paginación alineado al resto del módulo (Tailwind).

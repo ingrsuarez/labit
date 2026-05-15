@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-15 (**master**: **v1.98.3** hotfix índice presupuestos; **v1.99.0** deducciones RRHH base configurable en código; **develop**: **v1.98.2** API LISCOM ingesta batch; **v1.97.1** scroll detalle protocolo; **v1.98.0** planilla pendientes pendiente; merge develop→master reciente: **v1.98.1** / **v1.97.0** Santa Cruz FTP)
+> Última actualización: 2026-05-14 (**v1.99.1** completada: hotfix NC AFIP; **master**: **v1.98.3** hotfix índice presupuestos; **v1.99.0** deducciones RRHH base configurable en código; **develop**: **v1.98.2** API LISCOM ingesta batch; **v1.97.1** scroll detalle protocolo; **v1.98.0** planilla pendientes pendiente; merge develop→master reciente: **v1.98.1** / **v1.97.0** Santa Cruz FTP)
 
 ---
 
@@ -152,6 +152,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
 | v1.99.0 | RRHH: base de cálculo configurable por deducción (liquidación mensual; default = subtotal remunerativo; `total_haberes` incluye no remunerativos; sin `custom`; SAC sin cambio) | ✅ Completada (2026-05-14) | `completados/v1.99.0-deducciones-base-calculo-configurable.md` |
+| v1.99.1 | Hotfix: NC electrónica desde factura — no colgar en AFIP (timeouts SOAP, transacción DB sin bloquear durante WS, UX create) | ✅ Completada (2026-05-14) | `completados/v1.99.1-nc-desde-factura-afip-no-colgar.md` |
 | v1.95.0 | Encabezado sticky detalle protocolo (clínico, vet, muestras); `md:top-20`; tests regresión layout | ✅ Completada (2026-05-12) | `completados/v1.95.0-encabezado-sticky-detalle-protocolos.md` |
 | v1.97.0 | Santa Cruz O&G: FTP, preview XML, mapeos prestación↔test, importación admisiones clínicas, mover XML a `/procesados/` | ✅ Completada (2026-05-13) | `completados/v1.97.0-santacruz-ftp-import-admisiones.md` |
 | v1.97.1 | Detalle protocolo (clínico + vet): tras validar/desvalidar/eliminar determinación, `redirect()->back()->withFragment` hacia bloque de resultados (`#lab-admission-results` / `#vet-admission-results`) | ✅ Completada (2026-05-14) | `completados/v1.97.1-fix-scroll-detalle-protocolo-tras-acciones-determinacion.md` |
@@ -234,5 +235,5 @@ Release master: ver tags; develop incluye v1.53.0
 ---
 
 > Este documento se actualiza al finalizar cada versión o sesión de planificación.
-> Última actualización: 2026-05-13 (**v1.98.0** planificada: planilla global resultados pendientes lab clínico; **v1.97.0** en **master** vía merge develop)
+> Última actualización: 2026-05-14 (**v1.99.1** completada: hotfix NC AFIP; **v1.98.0** planificada: planilla global resultados pendientes lab clínico; **v1.97.0** en **master** vía merge develop)
 

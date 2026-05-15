@@ -44,7 +44,11 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('credit-notes.store') }}">
+        <form method="POST" action="{{ route('credit-notes.store') }}"
+              @if($isElectronic)
+                  @submit="submitting = true"
+              @endif
+        >
             @csrf
             <input type="hidden" name="sales_invoice_id" value="{{ $invoice->id }}">
 
@@ -194,8 +198,7 @@
 
             <div class="flex justify-end">
                 <button type="submit" :disabled="items.length === 0 || submitting"
-                        class="px-6 py-3 text-white font-semibold rounded-lg transition-colors text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed {{ $isElectronic ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-zinc-700 hover:bg-zinc-800' }}"
-                        @click="submitting = {{ $isElectronic ? 'true' : 'false' }}">
+                        class="px-6 py-3 text-white font-semibold rounded-lg transition-colors text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed {{ $isElectronic ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-zinc-700 hover:bg-zinc-800' }}">
                     <span x-show="!submitting">{{ $isElectronic ? 'Emitir Nota de Crédito Electrónica' : 'Emitir Nota de Crédito' }}</span>
                     <span x-show="submitting" class="flex items-center gap-2">
                         <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
