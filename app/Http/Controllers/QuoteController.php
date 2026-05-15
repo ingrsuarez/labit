@@ -15,9 +15,10 @@ class QuoteController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Quote::with(['customer', 'creator', 'items'])
-            ->where('company_id', active_company_id())
+        $query = Quote::with(['customer', 'creator', 'items', 'company'])
             ->orderByDesc('quote_number');
+
+        $this->applyIndexCompanyScope($query);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -100,7 +101,7 @@ class QuoteController extends Controller
 
     public function show(Quote $quote)
     {
-        abort_if($quote->company_id !== active_company_id(), 403);
+        $this->authorizeQuoteAccess($quote);
         $quote->load(['customer', 'creator', 'items.test']);
 
         return view('quote.show', compact('quote'));
@@ -108,7 +109,7 @@ class QuoteController extends Controller
 
     public function edit(Quote $quote)
     {
-        abort_if($quote->company_id !== active_company_id(), 403);
+        $this->authorizeQuoteAccess($quote);
         $quote->load(['items.test']);
 
         return view('quote.edit', compact('quote'));
@@ -116,7 +117,7 @@ class QuoteController extends Controller
 
     public function update(Request $request, Quote $quote)
     {
-        abort_if($quote->company_id !== active_company_id(), 403);
+        $this->authorizeQuoteAccess($quote);
         $validated = $request->validate([
             'customer_id' => 'nullable|exists:customers,id',
             'customer_name' => 'required|string|max:255',
@@ -172,7 +173,7 @@ class QuoteController extends Controller
 
     public function destroy(Quote $quote)
     {
-        abort_if($quote->company_id !== active_company_id(), 403);
+        $this->authorizeQuoteAccess($quote);
         $number = $quote->quote_number;
         $quote->delete();
 
@@ -237,7 +238,7 @@ class QuoteController extends Controller
 
     public function downloadPdf(Quote $quote)
     {
-        abort_if($quote->company_id !== active_company_id(), 403);
+        $this->authorizeQuoteAccess($quote);
         $quote->load(['customer', 'creator', 'items.test']);
 
         $pdf = PDF::loadView('quote.pdf', compact('quote'), [], [
@@ -252,7 +253,7 @@ class QuoteController extends Controller
 
     public function sendEmail(Quote $quote)
     {
-        abort_if($quote->company_id !== active_company_id(), 403);
+        $this->authorizeQuoteAccess($quote);
         if (! $quote->customer_email) {
             return back()->with('error', 'El presupuesto no tiene un email de cliente configurado.');
         }
@@ -270,7 +271,7 @@ class QuoteController extends Controller
 
     public function updateStatus(Request $request, Quote $quote)
     {
-        abort_if($quote->company_id !== active_company_id(), 403);
+        $this->authorizeQuoteAccess($quote);
         $validated = $request->validate([
             'status' => 'required|in:draft,sent,accepted,rejected',
         ]);
@@ -282,7 +283,7 @@ class QuoteController extends Controller
 
     public function duplicate(Quote $quote)
     {
-        abort_if($quote->company_id !== active_company_id(), 403);
+        $this->authorizeQuoteAccess($quote);
         $quote->load('items');
 
         $newQuote = $quote->replicate();
@@ -300,5 +301,49 @@ class QuoteController extends Controller
 
         return redirect()->route('quotes.show', $newQuote)
             ->with('success', 'Presupuesto duplicado como '.$newQuote->quote_number);
+    }
+
+    /**
+     * Índice: los administradores ven presupuestos de todas las empresas; el resto,
+     * los de cualquier empresa a la que esté asignado (no solo la empresa activa en el header).
+     */
+    private function applyIndexCompanyScope($query): void
+    {
+        if (auth()->user()->hasRole('admin')) {
+            return;
+        }
+
+        $ids = auth()->user()->companies->pluck('id')->filter()->unique()->values();
+
+        if ($ids->isNotEmpty()) {
+            $query->whereIn('company_id', $ids);
+
+            return;
+        }
+
+        if ($activeId = active_company_id()) {
+            $query->where('company_id', $activeId);
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+    }
+
+    /**
+     * Ver / editar / PDF / etc.: misma regla que el índice (admin = todo; resto = empresas asignadas).
+     */
+    private function authorizeQuoteAccess(Quote $quote): void
+    {
+        if (auth()->user()->hasRole('admin')) {
+            return;
+        }
+
+        if ($quote->company_id === null) {
+            return;
+        }
+
+        abort_unless(
+            auth()->user()->companies->pluck('id')->contains($quote->company_id),
+            403
+        );
     }
 }

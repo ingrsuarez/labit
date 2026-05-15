@@ -64,6 +64,7 @@
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Número</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Cliente</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Empresa</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Fecha</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Ítems</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Total</th>
@@ -81,6 +82,9 @@
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
                                         {{ $quote->customer_name }}
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 max-w-[10rem] truncate" title="{{ $quote->company?->name }}">
+                                        {{ $quote->company?->name ?? '—' }}
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                                         {{ $quote->created_at->format('d/m/Y') }}
