@@ -236,7 +236,7 @@ class CreditNoteController extends Controller
 
     public function createManual()
     {
-        $customers = Customer::where('company_id', active_company_id())
+        $customers = Customer::where('status', 'activo')
             ->orderBy('name')
             ->get(['id', 'name', 'tax', 'taxId']);
 
