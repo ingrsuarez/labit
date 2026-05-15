@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-14 (**develop**: **v1.98.2** hotfix API LISCOM ingesta batch; **v1.97.1** fix scroll detalle protocolo; **v1.98.0** planilla pendientes; merge develop→master reciente: **v1.98.1** / **v1.97.0** Santa Cruz FTP)
+> Última actualización: 2026-05-15 (**develop**: **v1.98.3** hotfix índice presupuestos; **v1.98.2** hotfix API LISCOM ingesta batch; **v1.97.1** fix scroll detalle protocolo; **v1.98.0** planilla pendientes pendiente; merge develop→master reciente: **v1.98.1** / **v1.97.0** Santa Cruz FTP)
 
 ---
 
@@ -154,6 +154,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 | v1.95.0 | Encabezado sticky detalle protocolo (clínico, vet, muestras); `md:top-20`; tests regresión layout | ✅ Completada (2026-05-12) | `completados/v1.95.0-encabezado-sticky-detalle-protocolos.md` |
 | v1.97.0 | Santa Cruz O&G: FTP, preview XML, mapeos prestación↔test, importación admisiones clínicas, mover XML a `/procesados/` | ✅ Completada (2026-05-13) | `completados/v1.97.0-santacruz-ftp-import-admisiones.md` |
 | v1.97.1 | Detalle protocolo (clínico + vet): tras validar/desvalidar/eliminar determinación, `redirect()->back()->withFragment` hacia bloque de resultados (`#lab-admission-results` / `#vet-admission-results`) | ✅ Completada (2026-05-14) | `completados/v1.97.1-fix-scroll-detalle-protocolo-tras-acciones-determinacion.md` |
+| v1.98.3 | Hotfix: índice de presupuestos — resumen “Mostrando X–Y de Z”, paginación en pie con layout; orden `quote_number` descendente; tests `QuoteIndexPaginationTest` | ✅ Completada (2026-05-15) | `completados/v1.98.3-hotfix-presupuestos-listado-paginacion.md` |
 | v1.98.0 | Lab clínico: planilla global de protocolos con ≥1 determinación sin resultado; columna texto solo padres o hijos huérfanos; link a `show` + ancla `#lab-admission-results`; diseño en `pendientes/DISEÑO_v1.98.0-*.md` | Pendiente | `pendientes/v1.98.0-planilla-resultados-pendientes-lab-clinico.md` |
 | v1.94.0 | Factura B desde `/sales-invoices/create` sin cliente maestro: `customer_id` nullable, snapshot receptor, AFIP/PDF/asientos | Pendiente | `pendientes/v1.94.0-factura-b-sin-cliente-fv-create.md` |
 | v1.93.0 | Navegación “Siguiente protocolo” en validación: filtros vivos del listado, no validado ni enviado, orden ascendente `protocol_number` (clínico + vet + muestras) | ✅ Completada (2026-05-12) | `completados/v1.93.0-navegacion-siguiente-protocolo-validacion.md` |
