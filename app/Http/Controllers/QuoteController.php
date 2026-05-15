@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Quote;
-use App\Models\QuoteItem;
-use App\Models\Customer;
-use App\Models\Test;
-use App\Models\Service;
 use App\Mail\QuoteMail;
+use App\Models\Customer;
+use App\Models\Quote;
+use App\Models\Service;
+use App\Models\Test;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use PDF;
@@ -18,13 +17,13 @@ class QuoteController extends Controller
     {
         $query = Quote::with(['customer', 'creator', 'items'])
             ->where('company_id', active_company_id())
-            ->orderByDesc('created_at');
+            ->orderByDesc('quote_number');
 
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('quote_number', 'like', "%{$search}%")
-                  ->orWhere('customer_name', 'like', "%{$search}%");
+                    ->orWhere('customer_name', 'like', "%{$search}%");
             });
         }
 
@@ -96,13 +95,14 @@ class QuoteController extends Controller
         $quote->recalculate();
 
         return redirect()->route('quotes.show', $quote)
-            ->with('success', 'Presupuesto ' . $quote->quote_number . ' creado correctamente.');
+            ->with('success', 'Presupuesto '.$quote->quote_number.' creado correctamente.');
     }
 
     public function show(Quote $quote)
     {
         abort_if($quote->company_id !== active_company_id(), 403);
         $quote->load(['customer', 'creator', 'items.test']);
+
         return view('quote.show', compact('quote'));
     }
 
@@ -110,6 +110,7 @@ class QuoteController extends Controller
     {
         abort_if($quote->company_id !== active_company_id(), 403);
         $quote->load(['items.test']);
+
         return view('quote.edit', compact('quote'));
     }
 
@@ -190,8 +191,8 @@ class QuoteController extends Controller
         $customers = Customer::where('status', 'activo')
             ->where(function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%")
-                      ->orWhere('taxId', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('taxId', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             })
             ->limit(10)
             ->get(['id', 'name', 'taxId', 'email', 'phone', 'address']);
@@ -208,9 +209,9 @@ class QuoteController extends Controller
         }
 
         $tests = Test::where(function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                      ->orWhere('code', 'like', "%{$search}%");
-            })
+            $query->where('name', 'like', "%{$search}%")
+                ->orWhere('code', 'like', "%{$search}%");
+        })
             ->whereNull('parent')
             ->limit(15)
             ->get(['id', 'code', 'name', 'price', 'unit']);
@@ -246,13 +247,13 @@ class QuoteController extends Controller
             'margin_right' => 15,
         ]);
 
-        return $pdf->download('Presupuesto_' . $quote->quote_number . '.pdf');
+        return $pdf->download('Presupuesto_'.$quote->quote_number.'.pdf');
     }
 
     public function sendEmail(Quote $quote)
     {
         abort_if($quote->company_id !== active_company_id(), 403);
-        if (!$quote->customer_email) {
+        if (! $quote->customer_email) {
             return back()->with('error', 'El presupuesto no tiene un email de cliente configurado.');
         }
 
@@ -264,7 +265,7 @@ class QuoteController extends Controller
             $quote->update(['status' => 'sent']);
         }
 
-        return back()->with('success', 'Presupuesto enviado por correo a ' . $quote->customer_email);
+        return back()->with('success', 'Presupuesto enviado por correo a '.$quote->customer_email);
     }
 
     public function updateStatus(Request $request, Quote $quote)
@@ -276,7 +277,7 @@ class QuoteController extends Controller
 
         $quote->update(['status' => $validated['status']]);
 
-        return back()->with('success', 'Estado actualizado a: ' . $quote->status_label);
+        return back()->with('success', 'Estado actualizado a: '.$quote->status_label);
     }
 
     public function duplicate(Quote $quote)
@@ -298,6 +299,6 @@ class QuoteController extends Controller
         }
 
         return redirect()->route('quotes.show', $newQuote)
-            ->with('success', 'Presupuesto duplicado como ' . $newQuote->quote_number);
+            ->with('success', 'Presupuesto duplicado como '.$newQuote->quote_number);
     }
 }
