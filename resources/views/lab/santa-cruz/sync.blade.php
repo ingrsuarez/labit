@@ -140,7 +140,7 @@
                                                             @else
                                                                 <span class="text-red-600">sin mapeo</span>
                                                                 <button type="button" class="text-teal-700 hover:underline"
-                                                                        @click="openMappingModal(@js($p['prestacion_code']), @js($p['prestacion_name']))">
+                                                                        x-on:click="openMappingModal({{ json_encode($p['prestacion_code']) }}, {{ json_encode($p['prestacion_name'] ?? '') }})">
                                                                     Crear mapeo
                                                                 </button>
                                                             @endif
@@ -157,8 +157,8 @@
                 </form>
 
                 {{-- Modal mapeo --}}
-                <div x-show="modalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @keydown.escape.window="modalOpen = false">
-                    <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 space-y-4" @click.outside="modalOpen = false">
+                <div x-show="modalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" x-on:keydown.escape.window="modalOpen = false">
+                    <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 space-y-4" x-on:click.outside="modalOpen = false">
                         <h3 class="text-lg font-semibold text-gray-900">Nuevo mapeo Santa Cruz → Labit</h3>
                         <form action="{{ route('lab.santa-cruz.mappings.store') }}" method="POST" class="space-y-3">
                             @csrf
@@ -170,7 +170,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Buscar determinación Labit</label>
-                                <input type="text" x-model="searchQ" @input.debounce.300ms="searchTests()" class="w-full rounded-lg border-gray-300 text-sm" placeholder="Código o nombre…">
+                                <input type="text" x-model="searchQ" x-on:input.debounce.300ms="searchTests()" class="w-full rounded-lg border-gray-300 text-sm" placeholder="Código o nombre…">
                             </div>
                             <input type="hidden" name="test_id" :value="selectedTestId">
                             <div x-show="selectedTestLabel" class="text-sm text-gray-800 bg-teal-50 border border-teal-100 rounded px-2 py-1" x-text="selectedTestLabel"></div>
@@ -178,7 +178,7 @@
                                 <template x-for="t in searchResults" :key="t.id">
                                     <li>
                                         <button type="button" class="w-full text-left px-3 py-2 hover:bg-gray-50"
-                                                @click="pickTest(t)">
+                                                x-on:click="pickTest(t)">
                                             <span class="font-mono text-xs text-gray-500" x-text="t.code"></span>
                                             <span x-text="t.name"></span>
                                         </button>
@@ -186,7 +186,7 @@
                                 </template>
                             </ul>
                             <div class="flex justify-end gap-2 pt-2">
-                                <button type="button" class="px-3 py-1.5 text-sm text-gray-600" @click="modalOpen = false">Cancelar</button>
+                                <button type="button" class="px-3 py-1.5 text-sm text-gray-600" x-on:click="modalOpen = false">Cancelar</button>
                                 <button type="submit" class="px-4 py-2 text-sm bg-teal-600 text-white rounded-lg disabled:opacity-40" :disabled="!selectedTestId">Guardar mapeo</button>
                             </div>
                         </form>
