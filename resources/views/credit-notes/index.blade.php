@@ -136,8 +136,11 @@
                                             {{ $cn->status_label }}
                                         </span>
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-right text-sm">
+                                    <td class="px-4 py-3 whitespace-nowrap text-right text-sm space-x-3">
                                         <a href="{{ route('credit-notes.show', $cn) }}" class="text-gray-500 hover:text-zinc-700">Ver</a>
+                                        @if($cn->status === 'confirmada')
+                                            <a href="{{ route('credit-notes.pdf', $cn) }}" class="text-red-600 hover:text-red-800 font-medium">PDF</a>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach

@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use PDF;
 
 class CreditNoteController extends Controller
 {
@@ -183,6 +184,100 @@ class CreditNoteController extends Controller
         $creditNote->load(['items', 'customer', 'pointOfSale', 'salesInvoice', 'creator']);
 
         return view('credit-notes.show', compact('creditNote'));
+    }
+
+    public function pdf(CreditNote $creditNote)
+    {
+        $this->authorize('sales-invoices.index');
+        abort_if($creditNote->company_id !== active_company_id(), 403);
+
+        if ($creditNote->status !== 'confirmada') {
+            return redirect()->route('credit-notes.show', $creditNote)
+                ->with('error', 'Solo se puede descargar el PDF de notas de crédito confirmadas.');
+        }
+
+        $creditNote->load(['customer', 'pointOfSale', 'items', 'creator', 'company', 'salesInvoice.pointOfSale']);
+
+        $qrDataUri = null;
+        $barcodeComplete = null;
+
+        if ($creditNote->cae) {
+            $company = $creditNote->company;
+            $cuit = $company ? str_replace('-', '', $company->cuit) : config('afip.cuit');
+            $pos = $creditNote->pointOfSale;
+            $afipCodes = ['A' => '03', 'B' => '08', 'C' => '13'];
+
+            $barcode = $cuit
+                .str_pad($afipCodes[$creditNote->voucher_type] ?? '00', 3, '0', STR_PAD_LEFT)
+                .str_pad($pos ? $pos->afip_pos_number : '1', 5, '0', STR_PAD_LEFT)
+                .$creditNote->cae
+                .($creditNote->cae_expiration ? $creditNote->cae_expiration->format('Ymd') : '');
+            $sumOdd = 0;
+            $sumEven = 0;
+            for ($i = 0; $i < strlen($barcode); $i++) {
+                if (($i + 1) % 2 === 0) {
+                    $sumEven += intval($barcode[$i]);
+                } else {
+                    $sumOdd += intval($barcode[$i]);
+                }
+            }
+            $barcodeComplete = $barcode.((10 - (($sumOdd + $sumEven * 3) % 10)) % 10);
+
+            $customer = $creditNote->customer;
+            $netAmount = $creditNote->items->sum(fn ($i) => $i->quantity * $i->unit_price);
+            $totalIva = $creditNote->items->sum('iva_amount');
+            $voucherNumber = (int) ($creditNote->afip_voucher_number ?? preg_replace('/\D/', '', $creditNote->credit_note_number));
+
+            $qrJson = json_encode([
+                'ver' => 1,
+                'fecha' => $creditNote->issue_date->format('Y-m-d'),
+                'cuit' => (int) $cuit,
+                'ptoVta' => $pos ? $pos->afip_pos_number : 1,
+                'tipoCmp' => (int) ($afipCodes[$creditNote->voucher_type] ?? 0),
+                'nroCmp' => $voucherNumber,
+                'importe' => round($netAmount + $totalIva + $creditNote->percepciones + $creditNote->otros_impuestos, 2),
+                'moneda' => 'PES',
+                'ctz' => 1,
+                'tipoDocRec' => $customer->tax && strtolower($customer->tax) === 'consumidor final' ? 99 : 80,
+                'nroDocRec' => (int) str_replace('-', '', $customer->taxId ?? '0'),
+                'tipoCodAut' => 'E',
+                'codAut' => (int) $creditNote->cae,
+            ]);
+            $qrUrl = 'https://www.afip.gob.ar/fe/qr/?p='.base64_encode($qrJson);
+
+            $renderer = new \BaconQrCode\Renderer\ImageRenderer(
+                new \BaconQrCode\Renderer\RendererStyle\RendererStyle(200),
+                new \BaconQrCode\Renderer\Image\SvgImageBackEnd
+            );
+            $qrSvg = (new \BaconQrCode\Writer($renderer))->writeString($qrUrl);
+            $qrDataUri = 'data:image/svg+xml;base64,'.base64_encode($qrSvg);
+        }
+
+        $hasFooter = $creditNote->cae && $qrDataUri;
+
+        $pdf = PDF::loadView('credit-notes.pdf', [
+            'creditNote' => $creditNote,
+            'qrDataUri' => $qrDataUri,
+            'barcodeComplete' => $barcodeComplete,
+        ], [], [
+            'margin_top' => 10,
+            'margin_bottom' => $hasFooter ? 52 : 15,
+            'margin_footer' => $hasFooter ? 5 : 5,
+            'margin_left' => 12,
+            'margin_right' => 12,
+            'format' => 'A4',
+        ]);
+
+        $posCode = $creditNote->pointOfSale ? $creditNote->pointOfSale->code : '00000';
+        $number = str_pad(
+            (string) ($creditNote->afip_voucher_number ?? preg_replace('/\D/', '', $creditNote->credit_note_number)),
+            8,
+            '0',
+            STR_PAD_LEFT
+        );
+        $filename = 'NotaCredito_'.$creditNote->voucher_type.'_'.$posCode.'-'.$number.'.pdf';
+
+        return $pdf->download($filename);
     }
 
     public function destroy(CreditNote $creditNote)
