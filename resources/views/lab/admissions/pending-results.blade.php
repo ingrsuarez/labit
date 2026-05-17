@@ -36,6 +36,7 @@
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pendiente</option>
                         <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>En Proceso</option>
                         <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completado</option>
+                        <option value="partially_validated" {{ request('status') === 'partially_validated' ? 'selected' : '' }}>Validado parcial</option>
                         <option value="validated" {{ request('status') === 'validated' ? 'selected' : '' }}>Validado</option>
                         <option value="enviado" {{ request('status') === 'enviado' ? 'selected' : '' }}>Enviado</option>
                     </select>

@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-17 (**v1.101.1** completada: Livewire vet sin recarga; **v1.101.0** lab clínico; **v1.100.0** hub RRHH)
+> Última actualización: 2026-05-17 (**v1.102.0** estados unificados de protocolo; **v1.101.1** Livewire vet; **v1.101.0** lab clínico)
 
 ---
 
@@ -11,11 +11,11 @@
 |---|---|
 | **Versión actual (línea v1.x)** | **master**: **v1.98.3**; **develop**: **v1.98.3** (presupuestos) + **v1.98.2** (ingesta API); tags **v1.98.3**, **v1.98.1**, **v1.97.1**, **v1.97.0** |
 | **Última en master (releases v1.x previos)** | **v1.98.1** — Planilla pendientes clínico+vet, sidebar; **v1.97.1** — scroll con fragmento; **v1.97.0** — Santa Cruz FTP |
-| **Última completada (cola agente)** | **v1.101.1** — Protocolo vet: validar/quitar sin recarga (Livewire); **v1.101.0** — Lab clínico: mismo patrón + toast fijo |
+| **Última completada (cola agente)** | **v1.102.0** — Estados unificados de protocolo (5 estados + envío por `sent_at`); **v1.101.1** — Vet Livewire; **v1.101.0** — Lab clínico Livewire |
 | **Hotfix aplicado** | **v1.99.2** (2026-05-14): detalle protocolo lab clínico — redirect con fragmento `#lab-admission-results` tras validar/eliminar/guardar/PDF/email/siguiente-pendiente. **v1.99.1** (2026-05-14): NC electrónica desde factura — timeouts WSAA/WSFE, sin transacción abierta durante SOAP, UX submit en create. **v1.98.3** (2026-05-15): listado `/quotes`. **v1.98.2** (2026-05-14): ingesta API… |
 | **Referencia acceso/roles (v2.x)** | **v2.4.1** — Hotfix redirect loop lab + condición Mi Portal |
 | **En proceso** | — |
-| **Próxima recomendada** | Archivar residual **v1.90.0** o planificar nuevas versiones |
+| **Próxima recomendada** | **v1.98.0** planilla pendientes o archivar residual **v1.90.0** |
 | **Pendientes en cola** | 1 residual (`v1.90.0`, tag ya existe) + diseños sueltos |
 | **Completadas** | 162 |
 
@@ -39,6 +39,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.102.0 | Estados unificados de protocolo: `ProtocolStatusCalculator`, validado parcial, envío desacoplado (`sent_at`) | 2026-05-17 | v1.102.0 |
 | v1.100.0 | Hub RRHH: `/rrhh` navegación por secciones, `/rrhh/resumen` panel analítico, sidebar unificado, redirects legacy | 2026-05-17 | v1.100.0 |
 | v1.94.0 | Factura B sin cliente maestro en FV create — `customer_id` nullable, snapshot receptor, AFIP/PDF/QR/asientos | 2026-05-17 | v1.94.0 |
 | v1.99.2 | Hotfix: scroll al bloque resultados en detalle protocolo lab clínico (`#lab-admission-results`, `LabAdmissionController`) | 2026-05-14 | (tag al release) |
