@@ -71,6 +71,7 @@
         $afipCodes = ['A' => '03', 'B' => '08', 'C' => '13'];
         $afipCode = 'Cód. ' . ($afipCodes[$creditNote->voucher_type] ?? '00');
 
+        $posCode = str_pad((string) ($pos?->code ?? '1'), 5, '0', STR_PAD_LEFT);
         $voucherNumber = str_pad(
             (string) ($creditNote->afip_voucher_number ?? preg_replace('/\D/', '', $creditNote->credit_note_number)),
             8,
@@ -149,7 +150,7 @@
             <td class="header-right">
                 <div class="invoice-title">NOTA DE CRÉDITO</div>
                 <div class="invoice-number">
-                    Punto de Venta: {{ $pos ? $pos->code : '00001' }}&nbsp;&nbsp;&nbsp;Comp. Nro: {{ $voucherNumber }}
+                    Comp. Nro: {{ $posCode }}-{{ $voucherNumber }}
                 </div>
                 <div class="invoice-date">
                     Fecha de Emisión: {{ $creditNote->issue_date->format('d/m/Y') }}
