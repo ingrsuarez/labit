@@ -65,8 +65,8 @@ class RrhhNavigation
             [
                 'key' => 'ausencias',
                 'permission' => 'ausencias.section',
-                'title' => 'Ausencias',
-                'description' => 'Vacaciones, licencias y calendario de ausencias',
+                'title' => 'Licencias',
+                'description' => 'Vacaciones, licencias y calendario',
                 'items' => [
                     [
                         'name' => 'Vacaciones',

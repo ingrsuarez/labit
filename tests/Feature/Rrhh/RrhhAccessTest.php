@@ -84,7 +84,7 @@ class RrhhAccessTest extends TestCase
         $this->actingAs($user)
             ->get(route('rrhh.index'))
             ->assertOk()
-            ->assertSee('Ausencias')
+            ->assertSee('Licencias')
             ->assertSee('Vacaciones')
             ->assertDontSee('Liquidaciones')
             ->assertDontSee('Generar Recibos');
