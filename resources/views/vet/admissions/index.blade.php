@@ -61,7 +61,9 @@
                                 <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pendientes (sin validar)</option>
                                 <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>En Proceso</option>
                                 <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Completado</option>
+                                <option value="partially_validated" {{ request('status') === 'partially_validated' ? 'selected' : '' }}>Validado parcial</option>
                                 <option value="validated" {{ request('status') === 'validated' ? 'selected' : '' }}>Validado</option>
+                                <option value="enviado" {{ request('status') === 'enviado' ? 'selected' : '' }}>Enviado</option>
                                 <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Cancelado</option>
                             </select>
                         </div>
@@ -185,8 +187,13 @@
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-900">{{ $adm->customer->name ?? '-' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ $color }}-100 text-{{ $color }}-800">
-                                            {{ $adm->status_label }}
+                                        <span class="inline-flex items-center justify-center gap-1 flex-wrap">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ $color }}-100 text-{{ $color }}-800">
+                                                {{ $adm->status_label }}
+                                            </span>
+                                            @if($adm->sent_at)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-800">Enviado</span>
+                                            @endif
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right">

@@ -51,6 +51,11 @@ class LabDashboardService
             ->where('status', 'completed')
             ->count();
 
+        $admPartiallyValidated = Admission::query()
+            ->when($this->labBranchId, fn ($q) => $q->where('lab_branch_id', $this->labBranchId))
+            ->where('status', 'partially_validated')
+            ->count();
+
         $admValidated = Admission::query()
             ->when($this->labBranchId, fn ($q) => $q->where('lab_branch_id', $this->labBranchId))
             ->where('status', 'validated')
@@ -80,6 +85,11 @@ class LabDashboardService
             ->where('status', 'completed')
             ->count();
 
+        $vetPartiallyValidated = VetAdmission::query()
+            ->when($this->labBranchId, fn ($q) => $q->where('lab_branch_id', $this->labBranchId))
+            ->where('status', 'partially_validated')
+            ->count();
+
         $vetValidated = VetAdmission::query()
             ->when($this->labBranchId, fn ($q) => $q->where('lab_branch_id', $this->labBranchId))
             ->where('status', 'validated')
@@ -92,28 +102,27 @@ class LabDashboardService
 
         $samplePending = Sample::query()
             ->when($this->labBranchId, fn ($q) => $q->where('lab_branch_id', $this->labBranchId))
-            ->where('status', '!=', 'cancelled')
-            ->where(function ($q) {
-                $q->whereNull('validation_status')
-                    ->orWhere('validation_status', 'pending');
-            })
+            ->where('status', 'pending')
             ->count();
 
         $sampleInProgress = Sample::query()
             ->when($this->labBranchId, fn ($q) => $q->where('lab_branch_id', $this->labBranchId))
-            ->where('status', '!=', 'cancelled')
-            ->where('validation_status', 'partial')
+            ->where('status', 'in_progress')
             ->count();
 
         $sampleCompleted = Sample::query()
             ->when($this->labBranchId, fn ($q) => $q->where('lab_branch_id', $this->labBranchId))
             ->where('status', 'completed')
-            ->where('validation_status', '!=', 'validated')
+            ->count();
+
+        $samplePartiallyValidated = Sample::query()
+            ->when($this->labBranchId, fn ($q) => $q->where('lab_branch_id', $this->labBranchId))
+            ->where('status', 'partially_validated')
             ->count();
 
         $sampleValidated = Sample::query()
             ->when($this->labBranchId, fn ($q) => $q->where('lab_branch_id', $this->labBranchId))
-            ->where('validation_status', 'validated')
+            ->where('status', 'validated')
             ->count();
 
         $sampleSent = Sample::query()
@@ -125,6 +134,7 @@ class LabDashboardService
             'pending' => $admPending + $vetPending + $samplePending,
             'in_progress' => $admInProgress + $vetInProgress + $sampleInProgress,
             'completed' => $admCompleted + $vetCompleted + $sampleCompleted,
+            'partially_validated' => $admPartiallyValidated + $vetPartiallyValidated + $samplePartiallyValidated,
             'validated' => $admValidated + $vetValidated + $sampleValidated,
             'sent' => $admSent + $vetSent + $sampleSent,
         ];
@@ -307,26 +317,24 @@ class LabDashboardService
 
     private function countPendingValidation(): int
     {
+        $pendingStatuses = ['pending', 'in_progress', 'completed', 'partially_validated', ''];
+
         $adm = Admission::query()
             ->when($this->labBranchId, fn ($q) => $q->where('lab_branch_id', $this->labBranchId))
-            ->where(function ($q) {
+            ->where(function ($q) use ($pendingStatuses) {
                 $q->whereNull('status')
-                    ->orWhereIn('status', ['pending', 'in_progress', 'completed', '']);
+                    ->orWhereIn('status', $pendingStatuses);
             })
             ->count();
 
         $vet = VetAdmission::query()
             ->when($this->labBranchId, fn ($q) => $q->where('lab_branch_id', $this->labBranchId))
-            ->whereIn('status', ['pending', 'in_progress', 'completed'])
+            ->whereIn('status', ['pending', 'in_progress', 'completed', 'partially_validated'])
             ->count();
 
         $sample = Sample::query()
             ->when($this->labBranchId, fn ($q) => $q->where('lab_branch_id', $this->labBranchId))
-            ->where('status', '!=', 'cancelled')
-            ->where(function ($q) {
-                $q->whereNull('validation_status')
-                    ->orWhere('validation_status', '!=', 'validated');
-            })
+            ->whereIn('status', ['pending', 'in_progress', 'completed', 'partially_validated'])
             ->count();
 
         return $adm + $vet + $sample;

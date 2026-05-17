@@ -57,6 +57,7 @@
                         <option value="pending"      {{ request('status') === 'pending'      ? 'selected' : '' }}>Pendiente</option>
                         <option value="in_progress"  {{ request('status') === 'in_progress'  ? 'selected' : '' }}>En Proceso</option>
                         <option value="completed"    {{ request('status') === 'completed'    ? 'selected' : '' }}>Completado</option>
+                        <option value="partially_validated" {{ request('status') === 'partially_validated' ? 'selected' : '' }}>Validado parcial</option>
                         <option value="validated"    {{ request('status') === 'validated'    ? 'selected' : '' }}>Validado</option>
                         <option value="enviado"      {{ request('status') === 'enviado'      ? 'selected' : '' }}>Enviado</option>
                         <option value="cancelled"    {{ request('status') === 'cancelled'    ? 'selected' : '' }}>Cancelado</option>
@@ -212,13 +213,19 @@
                                                 'yellow' => 'bg-yellow-100 text-yellow-800',
                                                 'blue'   => 'bg-blue-100 text-blue-800',
                                                 'green'  => 'bg-green-100 text-green-800',
+                                                'indigo' => 'bg-indigo-100 text-indigo-800',
                                                 'purple' => 'bg-purple-100 text-purple-800',
                                                 'red'    => 'bg-red-100 text-red-800',
                                             ];
                                             $colorClass = $statusColorMap[$admission->status_color] ?? 'bg-gray-100 text-gray-700';
                                         @endphp
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $colorClass }}">
-                                            {{ $admission->status_label }}
+                                        <span class="inline-flex items-center gap-1">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $colorClass }}">
+                                                {{ $admission->status_label }}
+                                            </span>
+                                            @if($admission->isSent())
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-800">Enviado</span>
+                                            @endif
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 align-top whitespace-nowrap text-sm text-right font-medium text-gray-900">

@@ -800,45 +800,36 @@ class SampleController extends Controller
     }
 
     /**
-     * Actualiza el estado de validación del protocolo basado en sus determinaciones
-     * - Validado: TODAS las determinaciones están validadas
-     * - Completo: Todos los resultados cargados O algunas validadas
-     * - Incompleto: No tiene todas las determinaciones con resultado
+     * Sincroniza status y validation_status según ProtocolStatusCalculator (v1.102.0).
      */
     private function updateSampleValidationStatus(Sample $sample)
     {
         $sample->refresh();
+        $sample->load('determinations');
 
-        $total = $sample->determinations()->count();
-        $totalCompleted = $sample->determinations()->where('status', 'completed')->count();
-        $totalValidated = $sample->determinations()->where('is_validated', true)->count();
+        $workStatus = $sample->calculated_status;
+        $totalValidated = $sample->determinations->where('is_validated', true)->count();
 
-        // Determinar validation_status
-        if ($total > 0 && $totalValidated === $total) {
-            // TODAS validadas = Validado
-            $sample->update([
-                'validation_status' => 'validated',
-                'status' => 'completed',
-                'validated_by' => $sample->validated_by ?? auth()->id(),
-                'validated_at' => $sample->validated_at ?? now(),
-            ]);
-        } elseif ($totalValidated > 0 || $totalCompleted === $total) {
-            // Algunas validadas O todas completadas = Completo (parcialmente validado)
-            $sample->update([
-                'validation_status' => $totalValidated > 0 ? 'partial' : 'pending',
-                'status' => 'completed',
-                'validated_by' => $totalValidated > 0 ? ($sample->validated_by ?? auth()->id()) : null,
-                'validated_at' => $totalValidated > 0 ? ($sample->validated_at ?? now()) : null,
-            ]);
-        } else {
-            // Incompleto
-            $sample->update([
-                'validation_status' => 'pending',
-                'status' => $totalCompleted > 0 ? 'in_progress' : 'pending',
-                'validated_by' => null,
-                'validated_at' => null,
-            ]);
+        $validationStatus = match ($workStatus) {
+            \App\Services\ProtocolStatusCalculator::STATUS_VALIDATED => 'validated',
+            \App\Services\ProtocolStatusCalculator::STATUS_PARTIALLY_VALIDATED => 'partial',
+            default => 'pending',
+        };
+
+        $payload = [
+            'status' => $workStatus,
+            'validation_status' => $validationStatus,
+        ];
+
+        if ($totalValidated > 0) {
+            $payload['validated_by'] = $sample->validated_by ?? auth()->id();
+            $payload['validated_at'] = $sample->validated_at ?? now();
+        } elseif ($workStatus !== \App\Services\ProtocolStatusCalculator::STATUS_VALIDATED) {
+            $payload['validated_by'] = null;
+            $payload['validated_at'] = null;
         }
+
+        $sample->update($payload);
     }
 
     /**

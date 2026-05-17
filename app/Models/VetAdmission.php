@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Services\ProtocolStatusCalculator;
+use App\Support\ProtocolCountableTestFilter;
 use App\Support\VetAdmissionTestDisplayOrder;
 use App\Traits\Auditable;
 use App\Traits\GeneratesProtocolNumber;
@@ -11,7 +13,7 @@ use Illuminate\Support\Collection;
 
 class VetAdmission extends Model
 {
-    use Auditable, GeneratesProtocolNumber, HasFactory;
+    use Auditable, GeneratesProtocolNumber, HasFactory, ProtocolCountableTestFilter;
 
     protected $fillable = [
         'protocol_number', 'external_equipment_sample_id', 'date', 'customer_id', 'veterinarian_id',
@@ -83,79 +85,27 @@ class VetAdmission extends Model
 
     public function getStatusLabelAttribute(): string
     {
-        if ($this->sent_at !== null && $this->status === 'validated') {
-            return 'Enviado';
+        if ($this->status === 'cancelled') {
+            return 'Cancelado';
         }
 
-        return match ($this->status) {
-            'pending' => 'Pendiente',
-            'in_progress' => 'En Proceso',
-            'completed' => 'Completado',
-            'validated' => 'Validado',
-            'cancelled' => 'Cancelado',
-            default => $this->status,
-        };
+        return ProtocolStatusCalculator::labelFor($this->status);
     }
 
     public function getStatusColorAttribute(): string
     {
-        if ($this->sent_at !== null && $this->status === 'validated') {
-            return 'sky';
+        if ($this->status === 'cancelled') {
+            return 'red';
         }
 
-        return match ($this->status) {
-            'pending' => 'yellow',
-            'in_progress' => 'blue',
-            'completed' => 'green',
-            'validated' => 'purple',
-            'cancelled' => 'red',
-            default => 'gray',
-        };
+        return ProtocolStatusCalculator::colorFor($this->status);
     }
 
     public function getCalculatedStatusAttribute(): string
     {
-        // Excluir padres-título: tests sin resultado cuyo Test tiene hijos
-        // (agrupadores que no llevan resultado propio).
-        // Solo aplica si la relación test.childTests está cargada; si no,
-        // se incluye por defecto para no ocultar determinaciones pendientes reales.
-        $countable = $this->vetTests->filter(function (VetAdmissionTest $vt) {
-            if ($vt->hasResult() || $vt->is_validated) {
-                return true;
-            }
+        $countable = $this->filterCountableVetTests($this->vetTests);
 
-            if (! $vt->relationLoaded('test') || ! $vt->test) {
-                return true;
-            }
-            $t = $vt->test;
-            if ($t->relationLoaded('childTests') && $t->childTests->isNotEmpty()) {
-                return false;
-            }
-            if ($t->relationLoaded('children') && $t->children->isNotEmpty()) {
-                return false;
-            }
-
-            return true;
-        });
-
-        $total = $countable->count();
-
-        if ($total === 0) {
-            return 'pending';
-        }
-
-        $validated = $countable->where('is_validated', true)->count();
-        $completed = $countable->whereIn('status', ['completed', 'validated'])->count();
-
-        if ($validated === $total) {
-            return 'validated';
-        }
-
-        if ($completed === $total || $validated > 0) {
-            return 'completed';
-        }
-
-        return 'pending';
+        return app(ProtocolStatusCalculator::class)->calculate($countable);
     }
 
     public function invoiceProtocols()

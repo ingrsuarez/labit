@@ -5,6 +5,21 @@
 
 ---
 
+## [v1.102.0] — 2026-05-17 — Estados unificados de protocolo
+
+### Agregado / Cambiado
+
+- **`ProtocolStatusCalculator`**: máquina de estados compartida (pendiente, en proceso, completo, validado parcial, validado) para lab clínico, veterinario y muestras.
+- **Enviado desacoplado**: `sent_at` + badge/filtro independiente; ya no reemplaza el estado de trabajo ni aparece en `calculated_status`.
+- **Migración ENUM** (`partially_validated`, `validated` en muestras) + comando `protocols:recalculate-status`.
+- **Filtros y dashboard**: opción «Validado parcial»; KPIs y gráficos actualizados.
+
+### Tests
+
+- `ProtocolStatusCalculatorTest`, `ProtocolStatusUnifiedTest`.
+
+---
+
 ## [v1.100.0] — 2026-05-17 — Hub de navegación RRHH unificado
 
 ### Agregado / Cambiado
