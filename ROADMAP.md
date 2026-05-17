@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-14 (**v1.99.2** completada: hotfix scroll lab clínico `#lab-admission-results`; **v1.99.1** hotfix NC AFIP; **master**: **v1.98.3** hotfix índice presupuestos; **v1.99.0** deducciones RRHH base configurable en código; **develop**: **v1.98.2** API LISCOM ingesta batch; **v1.97.1** scroll detalle protocolo (vet + tests lab en v1.99.2); **v1.98.0** planilla pendientes pendiente; merge develop→master reciente: **v1.98.1** / **v1.97.0** Santa Cruz FTP)
+> Última actualización: 2026-05-17 (**v1.101.0** / **v1.101.1** completadas: Livewire sin recarga validar/eliminar lab clínico + vet; **v1.100.0** RRHH hub; **v1.99.2** hotfix fragmento scroll)
 
 ---
 
@@ -151,6 +151,8 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
+| v1.101.0 | Lab clínico: validar / desvalidar / eliminar determinación sin recarga (Livewire; scroll estable; toast fijo) | ✅ Completada (2026-05-17) | `completados/v1.101.0-lab-admission-results-livewire-sin-recarga.md` |
+| v1.101.1 | Veterinario: validar / desvalidar / quitar determinación sin recarga (Livewire; paridad v1.101.0; `status` + `total_price`) | ✅ Completada (2026-05-17) | `completados/v1.101.1-vet-admission-results-livewire-sin-recarga.md` |
 | v1.99.0 | RRHH: base de cálculo configurable por deducción (liquidación mensual; default = subtotal remunerativo; `total_haberes` incluye no remunerativos; sin `custom`; SAC sin cambio) | ✅ Completada (2026-05-14) | `completados/v1.99.0-deducciones-base-calculo-configurable.md` |
 | v1.99.1 | Hotfix: NC electrónica desde factura — no colgar en AFIP (timeouts SOAP, transacción DB sin bloquear durante WS, UX create) | ✅ Completada (2026-05-14) | `completados/v1.99.1-nc-desde-factura-afip-no-colgar.md` |
 | v1.99.2 | Hotfix: lab clínico — `LabAdmissionController`: `backToAdmissionResults()` (`withFragment('lab-admission-results')`) en acciones desde show + navegación pendiente; tests `RemoveLeafAdmissionDeterminationTest`, `ProtocolPendingNavigationTest` | ✅ Completada (2026-05-14) | `completados/v1.99.2-hotfix-lab-clinico-withfragment-scroll-resultados.md` |

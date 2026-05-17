@@ -18,7 +18,6 @@ use App\Models\Patient;
 use App\Models\Species;
 use App\Models\Test;
 use App\Models\VetAdmission;
-use App\Support\ClinicalAdmissionTestHierarchy;
 use App\Support\ClinicalPendingResultsPresenter;
 use App\Support\VeterinaryPendingResultsPresenter;
 use Carbon\Carbon;
@@ -787,54 +786,11 @@ class LabAdmissionController extends Controller
     {
         $this->authorize('lab-admissions.delete');
 
-        if ($test->admission_id !== $admission->id) {
-            abort(404);
-        }
+        $result = app(\App\Actions\Lab\MutateAdmissionTest::class)->remove($admission, $test);
 
-        if (auth()->user()->hasRole('recepcion-lab')) {
-            if ($test->is_validated || $test->hasResult()) {
-                return $this->backToAdmissionResults()->with('error', 'No se puede eliminar una práctica en proceso o validada.');
-            }
-        }
-
-        if (ClinicalAdmissionTestHierarchy::isProtocolSubParent($admission, $test)) {
-            return $this->backToAdmissionResults()->with('error', 'No se puede eliminar un grupo intermedio. Quite solo determinaciones hoja sin resultado.');
-        }
-
-        if (ClinicalAdmissionTestHierarchy::isProtocolLeafChild($admission, $test)) {
-            if ($test->hasResult() || $test->is_validated || $test->is_ratified) {
-                return $this->backToAdmissionResults()->with('error', 'No se puede eliminar esta determinación: tiene resultado, está validada o ratificada.');
-            }
-            $test->loadMissing('test');
-            $detLabel = $test->test
-                ? trim(($test->test->code ? $test->test->code.' — ' : '').$test->test->name)
-                : 'Desconocida';
-            $test->delete();
-            $this->syncAdmissionAfterTestsMutation($admission);
-            $admission->logAudit('test_removed', 'Eliminó determinación hoja '.$detLabel.' de la admisión Nº '.$admission->protocol_number);
-
-            return $this->backToAdmissionResults()->with('success', 'Determinación eliminada del protocolo (el grupo permanece).');
-        }
-
-        // Si es una práctica padre (precio > 0), eliminar también sus hijos
-        if ($test->price > 0) {
-            $parentTest = $test->test;
-            $children = $parentTest->getAllChildren(false);
-
-            foreach ($children as $childTest) {
-                AdmissionTest::where('admission_id', $admission->id)
-                    ->where('test_id', $childTest->id)
-                    ->delete();
-            }
-        }
-
-        $test->loadMissing('test');
-        $testName = $test->test->name ?? 'Desconocida';
-        $test->delete();
-        $this->syncAdmissionAfterTestsMutation($admission);
-        $admission->logAudit('test_removed', 'Eliminó práctica '.$testName.' de la admisión Nº '.$admission->protocol_number);
-
-        return $this->backToAdmissionResults()->with('success', 'Práctica eliminada correctamente.');
+        return $result['ok']
+            ? $this->backToAdmissionResults()->with('success', $result['message'])
+            : $this->backToAdmissionResults()->with('error', $result['message']);
     }
 
     /**
@@ -1115,22 +1071,12 @@ class LabAdmissionController extends Controller
     public function validateTest(Request $request, Admission $admission, AdmissionTest $admissionTest)
     {
         $this->authorize('lab-results.validate');
-        if (! $admissionTest->hasResult()) {
-            return $this->backToAdmissionResults()->with('error', 'No se puede validar una práctica sin resultado.');
-        }
 
-        $admissionTest->update([
-            'is_validated' => true,
-            'validated_by' => auth()->id(),
-            'validated_at' => now(),
-        ]);
+        $result = app(\App\Actions\Lab\MutateAdmissionTest::class)->validate($admission, $admissionTest);
 
-        $admission->logAudit('validated', 'Validó práctica '.$admissionTest->test->name.' en admisión Nº '.$admission->protocol_number);
-
-        $admission->load('admissionTests');
-        $admission->update(['status' => $admission->calculated_status]);
-
-        return $this->backToAdmissionResults()->with('success', 'Práctica validada correctamente.');
+        return $result['ok']
+            ? $this->backToAdmissionResults()->with('success', $result['message'])
+            : $this->backToAdmissionResults()->with('error', $result['message']);
     }
 
     /**
@@ -1139,21 +1085,10 @@ class LabAdmissionController extends Controller
     public function unvalidateTest(Request $request, Admission $admission, AdmissionTest $admissionTest)
     {
         $this->authorize('lab-results.validate');
-        $admissionTest->update([
-            'is_validated' => false,
-            'validated_by' => null,
-            'validated_at' => null,
-            'is_ratified' => false,
-            'ratified_at' => null,
-            'ratified_by' => null,
-        ]);
 
-        $admission->logAudit('unvalidated', 'Desvalidó práctica '.$admissionTest->test->name.' en admisión Nº '.$admission->protocol_number);
+        $result = app(\App\Actions\Lab\MutateAdmissionTest::class)->unvalidate($admission, $admissionTest);
 
-        $admission->load('admissionTests');
-        $admission->update(['status' => $admission->calculated_status]);
-
-        return $this->backToAdmissionResults()->with('success', 'Validación removida.');
+        return $this->backToAdmissionResults()->with('success', $result['message']);
     }
 
     /**
