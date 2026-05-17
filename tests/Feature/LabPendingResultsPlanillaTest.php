@@ -109,6 +109,7 @@ class LabPendingResultsPlanillaTest extends TestCase
         ]);
         $patient = $this->makePatient();
         $admission = $this->makeAdmission($user, $patient, 'C-2026-PLAN-FEAT');
+        $admission->update(['status' => 'in_progress']);
 
         $parent = $this->makeTest('FE-P', null, 1, 1000);
         $child = $this->makeTest('FE-C', $parent->id, 2, 0);
@@ -131,6 +132,7 @@ class LabPendingResultsPlanillaTest extends TestCase
         $response->assertOk();
         $response->assertSee('C-2026-PLAN-FEAT', false);
         $response->assertSee('T FE-P', false);
+        $response->assertSee('En Proceso', false);
     }
 
     public function test_pending_results_sin_permiso_index_devuelve_403(): void

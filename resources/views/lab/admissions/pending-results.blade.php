@@ -99,6 +99,7 @@
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Protocolo</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paciente / Animal</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">Fecha</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-36">Estado</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Determinaciones pendientes</th>
                             </tr>
                         </thead>
@@ -124,6 +125,28 @@
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                                         {{ $row->date?->format('d/m/Y') ?? '—' }}
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-center">
+                                        @php
+                                            $statusColorMap = [
+                                                'sky' => 'bg-sky-100 text-sky-800',
+                                                'yellow' => 'bg-yellow-100 text-yellow-800',
+                                                'blue' => 'bg-blue-100 text-blue-800',
+                                                'green' => 'bg-green-100 text-green-800',
+                                                'indigo' => 'bg-indigo-100 text-indigo-800',
+                                                'purple' => 'bg-purple-100 text-purple-800',
+                                                'red' => 'bg-red-100 text-red-800',
+                                            ];
+                                            $statusClass = $statusColorMap[$row->status_color ?? ''] ?? 'bg-gray-100 text-gray-700';
+                                        @endphp
+                                        <span class="inline-flex flex-wrap items-center justify-center gap-1">
+                                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $statusClass }}">
+                                                {{ $row->status_label ?? '—' }}
+                                            </span>
+                                            @if($row->is_sent ?? false)
+                                                <span class="inline-flex items-center rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-800">Enviado</span>
+                                            @endif
+                                        </span>
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-800 max-w-xl">
                                         <span class="break-words" title="{{ e($row->pending_determinations_label ?? '') }}">
