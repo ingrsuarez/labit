@@ -5,6 +5,19 @@
 
 ---
 
+## [v1.102.1] — 2026-05-17 — Hotfix: estado “Completado” con padres-título (hemograma)
+
+### Corregido
+
+- **Padres-título sin resultado propio** (p. ej. hemograma): si los hijos tienen resultado, el padre ya no se cuenta como fila vacía al recalcular estado (aunque no venga `childTests` en eager load).
+- **`saveResults` / `saveResult` / `validateAll` / planilla**: usan `syncWorkStatusFromTests()` con la misma lógica que Livewire.
+
+### Tests
+
+- `ProtocolStatusUnifiedTest::test_admission_completed_when_parent_title_has_no_result_but_children_do`
+
+---
+
 ## [v1.102.0] — 2026-05-17 — Estados unificados de protocolo
 
 ### Agregado / Cambiado

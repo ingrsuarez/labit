@@ -343,9 +343,9 @@ class WorksheetController extends Controller
             }
 
             foreach ($admissionIds->unique() as $admId) {
-                $admission = Admission::with('admissionTests')->find($admId);
+                $admission = Admission::find($admId);
                 if ($admission) {
-                    $admission->update(['status' => $admission->calculated_status]);
+                    $admission->syncWorkStatusFromTests();
                 }
             }
         } else {

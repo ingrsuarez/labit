@@ -17,15 +17,17 @@ trait ProtocolCountableTestFilter
             return false;
         }
 
-        if ($test->relationLoaded('childTests') && $test->childTests->isNotEmpty()) {
-            return true;
+        if ($test->relationLoaded('childTests')) {
+            return $test->childTests->isNotEmpty();
         }
 
-        if ($test->relationLoaded('children') && $test->children->isNotEmpty()) {
-            return true;
+        if ($test->relationLoaded('children')) {
+            return $test->children->isNotEmpty();
         }
 
-        return false;
+        // Sin eager load (p. ej. tras saveResults): consultar hijos para no contar
+        // al padre-título como determinación vacía (hemograma, perfiles, etc.).
+        return $test->childTests()->exists() || $test->children()->exists();
     }
 
     protected function filterCountableAdmissionTests($admissionTests)

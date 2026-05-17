@@ -143,9 +143,7 @@ class MutateVetAdmissionTest
 
     private function syncVetAdmission(VetAdmission $vetAdmission): void
     {
-        $vetAdmission->unsetRelation('vetTests');
-        $vetAdmission->load(['vetTests.test.childTests', 'vetTests.test.children']);
-        $vetAdmission->update(['status' => $vetAdmission->calculated_status]);
+        $vetAdmission->syncWorkStatusFromTests();
     }
 
     private function validatedStatusValue(): string

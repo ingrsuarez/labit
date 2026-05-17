@@ -118,9 +118,8 @@ class MutateAdmissionTest
 
     private function syncAdmission(Admission $admission): void
     {
-        $admission->unsetRelation('admissionTests');
         $admission->load(['admissionTests.test.childTests', 'admissionTests.test.children']);
         $admission->calculateTotals();
-        $admission->update(['status' => $admission->calculated_status]);
+        $admission->syncWorkStatusFromTests();
     }
 }
