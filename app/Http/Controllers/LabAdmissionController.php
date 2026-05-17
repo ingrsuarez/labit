@@ -798,10 +798,9 @@ class LabAdmissionController extends Controller
      */
     private function syncAdmissionAfterTestsMutation(Admission $admission): void
     {
-        $admission->unsetRelation('admissionTests');
         $admission->load(['admissionTests.test.childTests', 'admissionTests.test.children']);
         $admission->calculateTotals();
-        $admission->update(['status' => $admission->calculated_status]);
+        $admission->syncWorkStatusFromTests();
     }
 
     /**
@@ -996,8 +995,7 @@ class LabAdmissionController extends Controller
             $admissionTest->update($update);
         }
 
-        $admission->load('admissionTests');
-        $admission->update(['status' => $admission->calculated_status]);
+        $admission->syncWorkStatusFromTests();
 
         return $this->backToAdmissionResults()->with('success', 'Resultado guardado correctamente.');
     }
@@ -1059,8 +1057,7 @@ class LabAdmissionController extends Controller
 
         $admission->logAudit('results_loaded', 'Cargó resultados en la admisión Nº '.$admission->protocol_number);
 
-        $admission->load('admissionTests');
-        $admission->update(['status' => $admission->calculated_status]);
+        $admission->syncWorkStatusFromTests();
 
         return $this->backToAdmissionResults()->with('success', 'Resultados guardados correctamente.');
     }
@@ -1111,8 +1108,7 @@ class LabAdmissionController extends Controller
 
         $admission->logAudit('validated', "Validó {$count} prácticas en admisión Nº ".$admission->protocol_number);
 
-        $admission->load('admissionTests');
-        $admission->update(['status' => $admission->calculated_status]);
+        $admission->syncWorkStatusFromTests();
 
         return $this->backToAdmissionResults()->with('success', "Se validaron {$count} prácticas.");
     }

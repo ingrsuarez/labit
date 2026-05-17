@@ -29,6 +29,39 @@ class ProtocolStatusUnifiedTest extends TestCase
         Role::findOrCreate('bioquimico')->givePermissionTo(['lab.section', 'lab-admissions.index']);
     }
 
+    public function test_admission_completed_when_parent_title_has_no_result_but_children_do(): void
+    {
+        $admission = $this->createAdmission();
+        $parent = $this->createTest('HEMO-P');
+        $child = $this->createTest('HEMO-C');
+        $parent->childTests()->attach($child->id, ['order' => 1]);
+
+        AdmissionTest::query()->create([
+            'admission_id' => $admission->id,
+            'test_id' => $parent->id,
+            'result' => null,
+            'is_validated' => false,
+            'authorization_status' => AdmissionTest::STATUS_AUTHORIZED,
+            'price' => 100,
+        ]);
+        AdmissionTest::query()->create([
+            'admission_id' => $admission->id,
+            'test_id' => $child->id,
+            'result' => '5.0',
+            'is_validated' => false,
+            'authorization_status' => AdmissionTest::STATUS_AUTHORIZED,
+            'price' => 50,
+        ]);
+
+        // Sin eager load de childTests (como saveResults antes del fix)
+        $admission->load('admissionTests.test');
+
+        $this->assertSame(
+            ProtocolStatusCalculator::STATUS_COMPLETED,
+            $admission->calculated_status
+        );
+    }
+
     public function test_admission_calculated_status_partially_validated(): void
     {
         $admission = $this->createAdmission();

@@ -222,6 +222,16 @@ class Admission extends Model
     }
 
     /**
+     * Recalcula y persiste status según prácticas contables (incluye detección de padres-título).
+     */
+    public function syncWorkStatusFromTests(): void
+    {
+        $this->unsetRelation('admissionTests');
+        $this->load(['admissionTests.test.childTests', 'admissionTests.test.children']);
+        $this->update(['status' => $this->calculated_status]);
+    }
+
+    /**
      * Obtiene la fecha formateada en español
      */
     public function getFormattedDateAttribute(): string

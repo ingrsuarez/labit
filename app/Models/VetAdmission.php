@@ -108,6 +108,13 @@ class VetAdmission extends Model
         return app(ProtocolStatusCalculator::class)->calculate($countable);
     }
 
+    public function syncWorkStatusFromTests(): void
+    {
+        $this->unsetRelation('vetTests');
+        $this->load(['vetTests.test.childTests', 'vetTests.test.children']);
+        $this->update(['status' => $this->calculated_status]);
+    }
+
     public function invoiceProtocols()
     {
         return $this->morphMany(InvoiceProtocol::class, 'protocol');
