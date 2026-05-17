@@ -130,8 +130,7 @@ class CreditNoteController extends Controller
 
             $creditNote->load(['items', 'pointOfSale', 'customer', 'company', 'salesInvoice.pointOfSale']);
 
-            $afip = app(AfipService::class);
-            $afipResponse = $afip->createCreditNote($creditNote);
+            $afipResponse = $this->afipServiceForCreditNote($creditNote)->createCreditNote($creditNote);
 
             if (in_array($afipResponse['result'], ['A', 'O'], true)) {
                 DB::transaction(function () use ($creditNote, $afipResponse) {
@@ -210,8 +209,7 @@ class CreditNoteController extends Controller
         $creditNote->load(['pointOfSale', 'customer', 'items', 'salesInvoice.pointOfSale', 'company']);
 
         try {
-            $afip = app(AfipService::class);
-            $afipResponse = $afip->createCreditNote($creditNote);
+            $afipResponse = $this->afipServiceForCreditNote($creditNote)->createCreditNote($creditNote);
 
             $creditNote->update([
                 'cae' => $afipResponse['cae'],
@@ -332,6 +330,21 @@ class CreditNoteController extends Controller
             return back()->withInput()
                 ->with('error', 'Error al registrar la nota de crédito: '.$e->getMessage());
         }
+    }
+
+    protected function afipServiceForCreditNote(CreditNote $creditNote): AfipService
+    {
+        $creditNote->loadMissing('company');
+
+        if (! $creditNote->company) {
+            throw new \RuntimeException('La nota de crédito no tiene empresa asociada.');
+        }
+
+        if (app()->runningUnitTests() && app()->bound(AfipService::class)) {
+            return app(AfipService::class);
+        }
+
+        return new AfipService($creditNote->company);
     }
 
     protected function afipRejectionObservationsText(array $afipResponse): string
