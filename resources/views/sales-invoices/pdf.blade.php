@@ -79,6 +79,14 @@
         $afipCodes = ['A' => '01', 'B' => '06', 'C' => '11'];
         $afipCode = 'Cód. ' . ($afipCodes[$invoice->voucher_type] ?? '00');
 
+        $posCode = str_pad((string) ($pos?->code ?? $invoice->point_of_sale ?? '1'), 5, '0', STR_PAD_LEFT);
+        $voucherNumber = str_pad(
+            (string) ($invoice->afip_voucher_number ?? preg_replace('/\D/', '', $invoice->invoice_number)),
+            8,
+            '0',
+            STR_PAD_LEFT
+        );
+
         $netAmount = $invoice->items->sum(fn($i) => $i->quantity * $i->unit_price);
         $totalIva = $invoice->items->sum('iva_amount');
     @endphp
@@ -152,7 +160,7 @@
             <td class="header-right">
                 <div class="invoice-title">{{ $voucherTypeName }}</div>
                 <div class="invoice-number">
-                    Punto de Venta: {{ $pos ? $pos->code : '00001' }}&nbsp;&nbsp;&nbsp;Comp. Nro: {{ $invoice->invoice_number }}
+                    Comp. Nro: {{ $posCode }}-{{ $voucherNumber }}
                 </div>
                 <div class="invoice-date">
                     Fecha de Emisión: {{ $invoice->issue_date->format('d/m/Y') }}<br>
