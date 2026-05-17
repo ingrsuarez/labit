@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-17 (**v1.102.0** planificada: estados unificados de protocolo; **v1.101.0** / **v1.101.1** completadas: Livewire sin recarga validar/eliminar lab clínico + vet; **v1.100.0** RRHH hub; **v1.99.2** hotfix fragmento scroll)
+> Última actualización: 2026-05-17 (**v1.102.0** completada: estados unificados de protocolo; **v1.101.0** / **v1.101.1** completadas: Livewire sin recarga validar/eliminar lab clínico + vet; **v1.100.0** RRHH hub; **v1.99.2** hotfix fragmento scroll)
 
 ---
 
@@ -151,7 +151,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
-| v1.102.0 | Estados unificados de protocolo: 5 estados (pendiente → validado) + envío separado por `sent_at`; calculator compartido; clínico + vet + muestras | Pendiente | `pendientes/v1.102.0-estados-protocolo-unificados.md` |
+| v1.102.0 | Estados unificados de protocolo: 5 estados (pendiente → validado) + envío separado por `sent_at`; calculator compartido; clínico + vet + muestras | ✅ Completada (2026-05-17) | `completados/v1.102.0-estados-protocolo-unificados.md` |
 | v1.101.0 | Lab clínico: validar / desvalidar / eliminar determinación sin recarga (Livewire; scroll estable; toast fijo) | ✅ Completada (2026-05-17) | `completados/v1.101.0-lab-admission-results-livewire-sin-recarga.md` |
 | v1.101.1 | Veterinario: validar / desvalidar / quitar determinación sin recarga (Livewire; paridad v1.101.0; `status` + `total_price`) | ✅ Completada (2026-05-17) | `completados/v1.101.1-vet-admission-results-livewire-sin-recarga.md` |
 | v1.99.0 | RRHH: base de cálculo configurable por deducción (liquidación mensual; default = subtotal remunerativo; `total_haberes` incluye no remunerativos; sin `custom`; SAC sin cambio) | ✅ Completada (2026-05-14) | `completados/v1.99.0-deducciones-base-calculo-configurable.md` |
