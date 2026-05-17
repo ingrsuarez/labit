@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-17 (**v1.94.0** completada: Factura B sin cliente maestro en FV create; **develop**: **v1.94.0** + **v1.99.2**; **master**: **v1.98.3**; **v1.100.0** planificada: hub RRHH)
+> Última actualización: 2026-05-17 (**v1.100.0** completada: hub RRHH unificado; **develop**: **v1.100.0** + **v1.94.0**; **master**: **v1.98.3**)
 
 ---
 
@@ -11,13 +11,13 @@
 |---|---|
 | **Versión actual (línea v1.x)** | **master**: **v1.98.3**; **develop**: **v1.98.3** (presupuestos) + **v1.98.2** (ingesta API); tags **v1.98.3**, **v1.98.1**, **v1.97.1**, **v1.97.0** |
 | **Última en master (releases v1.x previos)** | **v1.98.1** — Planilla pendientes clínico+vet, sidebar; **v1.97.1** — scroll con fragmento; **v1.97.0** — Santa Cruz FTP |
-| **Última completada (cola agente)** | **v1.94.0** — Factura B sin cliente maestro en `/sales-invoices/create` (snapshot receptor, AFIP/PDF/QR/asientos); **v1.99.2** — Scroll lab clínico; **v1.99.1** — Hotfix NC AFIP |
+| **Última completada (cola agente)** | **v1.100.0** — Hub RRHH en `/rrhh`, resumen en `/rrhh/resumen`, sidebar unificado; **v1.94.0** — Factura B sin cliente maestro en FV create |
 | **Hotfix aplicado** | **v1.99.2** (2026-05-14): detalle protocolo lab clínico — redirect con fragmento `#lab-admission-results` tras validar/eliminar/guardar/PDF/email/siguiente-pendiente. **v1.99.1** (2026-05-14): NC electrónica desde factura — timeouts WSAA/WSFE, sin transacción abierta durante SOAP, UX submit en create. **v1.98.3** (2026-05-15): listado `/quotes`. **v1.98.2** (2026-05-14): ingesta API… |
 | **Referencia acceso/roles (v2.x)** | **v2.4.1** — Hotfix redirect loop lab + condición Mi Portal |
 | **En proceso** | — |
-| **Próxima recomendada** | **v1.100.0** — Hub navegación RRHH (handoff PM listo) |
-| **Pendientes en cola** | 2 con prefijo `v` (**v1.90.0** residual con tag + **v1.100.0**) + diseños asociados |
-| **Completadas** | 161 |
+| **Próxima recomendada** | Archivar residual **v1.90.0** o planificar nuevas versiones |
+| **Pendientes en cola** | 1 residual (`v1.90.0`, tag ya existe) + diseños sueltos |
+| **Completadas** | 162 |
 
 ---
 
@@ -26,7 +26,6 @@
 ### Pendientes — próximo por orden de versión (`ls pendientes | sort | grep '^v'`)
 
 - `v1.90.0-notas-credito-manuales-independientes.md` — residual en carpeta (tag **v1.90.0** ya existe; archivo puede archivarse).
-- `v1.100.0-rrhh-hub-navegacion.md` — Hub RRHH unificado en `/rrhh` (handoff: `agent-bootstrap/handoffs/v1.100.0-pm-to-dev.md`).
 
 Archivos adicionales en `pendientes/` (no empiezan con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
 
@@ -40,6 +39,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.100.0 | Hub RRHH: `/rrhh` navegación por secciones, `/rrhh/resumen` panel analítico, sidebar unificado, redirects legacy | 2026-05-17 | v1.100.0 |
 | v1.94.0 | Factura B sin cliente maestro en FV create — `customer_id` nullable, snapshot receptor, AFIP/PDF/QR/asientos | 2026-05-17 | v1.94.0 |
 | v1.99.2 | Hotfix: scroll al bloque resultados en detalle protocolo lab clínico (`#lab-admission-results`, `LabAdmissionController`) | 2026-05-14 | (tag al release) |
 | v1.99.1 | Hotfix: NC electrónica desde factura — AFIP sin cuelgue (timeouts SOAP, transacción DB, UX create) | 2026-05-14 | (tag al release) |
