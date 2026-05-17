@@ -5,6 +5,23 @@
 
 ---
 
+## [v1.100.0] — 2026-05-17 — Hub de navegación RRHH unificado
+
+### Agregado / Cambiado
+
+- **`/rrhh`**: hub de navegación con bloques Personal, Ausencias y Liquidaciones (cards filtradas por permiso).
+- **`/rrhh/resumen`**: panel analítico (KPIs y gráficos) antes en `/rrhh`; solo admin y contador.
+- **`RrhhNavigation`**: definición centralizada de secciones e ítems RRHH.
+- **Sidebar**: un solo ítem «Recursos Humanos»; eliminados Personal, Ausencias y Liquidaciones.
+- **Rutas legacy** `admin/personal`, `admin/ausencias`, `admin/liquidaciones`: redirect 302 al hub con ancla.
+- **Partial** `section-cards`: filtra cards por `permission` (ej. Pagos de Haberes).
+
+### Tests
+
+- `RrhhAccessTest`: hub, resumen, redirects, filtro de permisos.
+
+---
+
 ## [v1.99.2] — 2026-05-14 — Hotfix: scroll al bloque resultados en protocolo lab clínico
 
 ### Corregido / Cambiado

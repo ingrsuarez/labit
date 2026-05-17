@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\Job;
 use App\Models\Leave;
 use App\Models\Payroll;
+use App\Support\RrhhNavigation;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,19 @@ use Illuminate\Support\Facades\DB;
 class RrhhController extends Controller
 {
     public function index(Request $request)
+    {
+        $user = Auth::user();
+
+        if (! RrhhNavigation::userCanAccessHub($user)) {
+            abort(403);
+        }
+
+        $sections = RrhhNavigation::sectionsForUser($user);
+
+        return view('rrhh.index', compact('sections'));
+    }
+
+    public function resumen(Request $request)
     {
         $user = Auth::user();
 
@@ -190,7 +204,7 @@ class RrhhController extends Controller
             ->limit(5)
             ->get();
 
-        return view('rrhh.index', compact(
+        return view('rrhh.resumen', compact(
             'totalEmpleados',
             'empleadosActivos',
             'empleadosInactivos',
