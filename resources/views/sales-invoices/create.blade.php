@@ -72,6 +72,7 @@
                          voucherType: '{{ old('voucher_type', $prefillVoucherType ?? '') }}',
                          pointOfSaleId: '{{ old('point_of_sale_id', '') }}',
                          invoiceNumber: '{{ old('invoice_number', '') }}',
+                         receiverMode: '{{ old('receiver_mode', 'customer') }}',
                          loading: false,
                          isElectronic: false,
                          posData: @js($pointsOfSale->mapWithKeys(fn($p) => [$p->id => ['is_electronic' => $p->is_electronic, 'afip_pos' => $p->afip_pos_number]])),
@@ -125,13 +126,48 @@
                         <p x-show="isElectronic && !loading" class="text-xs text-indigo-500 mt-1">AFIP asigna el número al autorizar</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Cliente <span class="text-red-500">*</span></label>
-                        <select name="customer_id" required class="w-full min-w-0 rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                        <div class="md:col-span-2 lg:col-span-4 mb-2" x-show="voucherType === 'B'">
+                            <label class="inline-flex items-center gap-2 text-sm text-gray-700 mr-4">
+                                <input type="radio" name="receiver_mode" value="customer" x-model="receiverMode" class="text-zinc-600 focus:ring-zinc-500">
+                                Cliente del maestro
+                            </label>
+                            <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                                <input type="radio" name="receiver_mode" value="occasional" x-model="receiverMode" class="text-zinc-600 focus:ring-zinc-500">
+                                Receptor ocasional (sin cliente)
+                            </label>
+                        </div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" x-show="voucherType !== 'B' || receiverMode === 'customer'">Cliente <span class="text-red-500">*</span></label>
+                        <select name="customer_id" :required="voucherType !== 'B' || receiverMode === 'customer'" :disabled="voucherType === 'B' && receiverMode === 'occasional'" x-show="voucherType !== 'B' || receiverMode === 'customer'" class="w-full min-w-0 rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500 disabled:bg-gray-100">
                             <option value="">Seleccionar...</option>
                             @foreach($customers as $cust)
                                 <option value="{{ $cust->id }}" {{ old('customer_id', $selectedCustomerId ?? $quote?->customer_id) == $cust->id ? 'selected' : '' }}>{{ $cust->name }}</option>
                             @endforeach
                         </select>
+                        <template x-if="voucherType === 'B' && receiverMode === 'occasional'">
+                            <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre / Razón social <span class="text-red-500">*</span></label>
+                                    <input type="text" name="receiver_name" value="{{ old('receiver_name') }}" required
+                                           class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Condición IVA <span class="text-red-500">*</span></label>
+                                    <select name="receiver_tax_condition" required class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                        <option value="">Seleccionar...</option>
+                                        <option value="consumidor final" @selected(old('receiver_tax_condition') === 'consumidor final')>Consumidor final</option>
+                                        <option value="monotributista" @selected(old('receiver_tax_condition') === 'monotributista')>Monotributista</option>
+                                        <option value="exento" @selected(old('receiver_tax_condition') === 'exento')>Exento</option>
+                                        <option value="responsable inscripto" @selected(old('receiver_tax_condition') === 'responsable inscripto')>Responsable inscripto</option>
+                                    </select>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">CUIT / DNI</label>
+                                    <input type="text" name="receiver_document_number" value="{{ old('receiver_document_number') }}"
+                                           placeholder="Opcional para consumidor final"
+                                           class="w-full rounded-lg border-gray-300 text-sm focus:border-zinc-500 focus:ring-zinc-500">
+                                </div>
+                            </div>
+                        </template>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Fecha Emisión <span class="text-red-500">*</span></label>

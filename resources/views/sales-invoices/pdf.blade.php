@@ -65,7 +65,9 @@
         $cuit = $company ? str_replace('-', '', $company->cuit) : config('afip.cuit');
         $formattedCuit = $company ? $company->cuit : (substr($cuit, 0, 2) . '-' . substr($cuit, 2, 8) . '-' . substr($cuit, 10, 1));
         $pos = $invoice->pointOfSale;
-        $customer = $invoice->customer;
+        $receiverName = $invoice->receiverDisplayName();
+        $receiverTaxId = $invoice->receiverDocumentNumber() ?? '-';
+        $receiverTax = $invoice->receiverTaxCondition();
 
         $voucherTypeName = match($invoice->voucher_type) {
             'A' => 'FACTURA',
@@ -169,15 +171,15 @@
         <table width="100%">
             <tr>
                 <td class="client-label">Razón Social:</td>
-                <td class="client-value">{{ $customer->name }}</td>
+                <td class="client-value">{{ $receiverName }}</td>
                 <td class="client-label" style="width: 100px;">CUIT/DNI:</td>
-                <td class="client-value">{{ $customer->taxId ?? '-' }}</td>
+                <td class="client-value">{{ $receiverTaxId }}</td>
             </tr>
             <tr>
                 <td class="client-label">Domicilio:</td>
-                <td class="client-value">{{ $customer->address ?? '-' }}{{ $customer->city ? ', ' . $customer->city : '' }}{{ $customer->state ? ', ' . $customer->state : '' }}</td>
+                <td class="client-value">{{ $invoice->customer?->address ?? '-' }}{{ $invoice->customer?->city ? ', ' . $invoice->customer->city : '' }}{{ $invoice->customer?->state ? ', ' . $invoice->customer->state : '' }}</td>
                 <td class="client-label">Cond. IVA:</td>
-                <td class="client-value">{{ $customer->tax ?? '-' }}</td>
+                <td class="client-value">{{ $receiverTax }}</td>
             </tr>
             @if($invoice->admission_id)
             <tr>

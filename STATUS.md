@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-14 (**v1.99.2** completada: scroll lab clínico `#lab-admission-results`; **v1.99.1** NC AFIP; **master**: **v1.98.3** hotfix presupuestos + **v1.99.0** deducciones RRHH; **develop**: alineado; **release** previo **v1.98.1** planilla pendientes / **v1.97.0** Santa Cruz FTP)
+> Última actualización: 2026-05-17 (**v1.101.1** completada: Livewire vet sin recarga; **v1.101.0** lab clínico; **v1.100.0** hub RRHH)
 
 ---
 
@@ -11,13 +11,13 @@
 |---|---|
 | **Versión actual (línea v1.x)** | **master**: **v1.98.3**; **develop**: **v1.98.3** (presupuestos) + **v1.98.2** (ingesta API); tags **v1.98.3**, **v1.98.1**, **v1.97.1**, **v1.97.0** |
 | **Última en master (releases v1.x previos)** | **v1.98.1** — Planilla pendientes clínico+vet, sidebar; **v1.97.1** — scroll con fragmento; **v1.97.0** — Santa Cruz FTP |
-| **Última completada (cola agente)** | **v1.99.2** — Scroll al bloque resultados tras POST en show lab clínico (`LabAdmissionController`, `#lab-admission-results`); **v1.99.1** — Hotfix NC AFIP; **v1.98.3** — Índice presupuestos; **v1.99.0** — Deducciones RRHH |
+| **Última completada (cola agente)** | **v1.101.1** — Protocolo vet: validar/quitar sin recarga (Livewire); **v1.101.0** — Lab clínico: mismo patrón + toast fijo |
 | **Hotfix aplicado** | **v1.99.2** (2026-05-14): detalle protocolo lab clínico — redirect con fragmento `#lab-admission-results` tras validar/eliminar/guardar/PDF/email/siguiente-pendiente. **v1.99.1** (2026-05-14): NC electrónica desde factura — timeouts WSAA/WSFE, sin transacción abierta durante SOAP, UX submit en create. **v1.98.3** (2026-05-15): listado `/quotes`. **v1.98.2** (2026-05-14): ingesta API… |
 | **Referencia acceso/roles (v2.x)** | **v2.4.1** — Hotfix redirect loop lab + condición Mi Portal |
 | **En proceso** | — |
-| **Próxima recomendada** | **v1.90.0** (residual en carpeta) → **v1.94.0** Factura B sin cliente → **v1.98.0** planilla pendientes |
-| **Pendientes en cola** | 3 con prefijo `v` (**v1.90.0** residual + **v1.94.0** + **v1.98.0**) + 2 diseños/prompts asociados (`DISEÑO_v1.98.0-*`, `DISEÑO_v1.55.0-*`) |
-| **Completadas** | 160 |
+| **Próxima recomendada** | Archivar residual **v1.90.0** o planificar nuevas versiones |
+| **Pendientes en cola** | 1 residual (`v1.90.0`, tag ya existe) + diseños sueltos |
+| **Completadas** | 162 |
 
 ---
 
@@ -25,11 +25,9 @@
 
 ### Pendientes — próximo por orden de versión (`ls pendientes | sort | grep '^v'`)
 
-- `v1.90.0-notas-credito-manuales-independientes.md` — residual en carpeta (verificar si ya aplicado en producto).
-- `v1.94.0-factura-b-sin-cliente-fv-create.md` — Factura B manual sin alta de cliente (snapshot en FC).
-- `v1.98.0-planilla-resultados-pendientes-lab-clinico.md` — Planilla global resultados pendientes lab clínico (con diseño `DISEÑO_v1.98.0-planilla-resultados-pendientes-clinico.md`).
+- `v1.90.0-notas-credito-manuales-independientes.md` — residual en carpeta (tag **v1.90.0** ya existe; archivo puede archivarse).
 
-Archivos adicionales en `pendientes/` (no empiezan con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`, `DISEÑO_v1.98.0-planilla-resultados-pendientes-clinico.md`.
+Archivos adicionales en `pendientes/` (no empiezan con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
 
 > v1.76.2 completado 2026-05-07 (hotfix: fix ingesta OUT_OF_BRANCH con key global — skip branch check en `ApiResultIngestionService`). v1.76.1 completado 2026-05-07 (hotfix: API key global sin sede para LISCOM). v1.76.0 completado 2026-05-07 (marca de ratificación en determinaciones). hotfix `pdf-mail-jerarquia` completado 2026-05-08 (fix PDF por mail: jerarquía padre-hijo idéntica al PDF directo). hotfix `pdf-filename-paciente-dni-fecha` completado 2026-05-08 (nombre de archivo PDF: nombre_paciente-dni-fecha.pdf en email y descarga manual — lab clínico, vet y muestras). hotfix `a25-mappings-buscador` completado 2026-05-08 (combobox Alpine.js con búsqueda client-side en create y edit de equivalencias A25; fix route model binding `{mapping}`). hotfix `a25-multi-test-mapping` completado 2026-05-09 (tabla pivot `a25_analyte_mapping_tests`; múltiples determinaciones Labit por equivalencia A25; parser aplica resultado a todas las mapeadas).
 
@@ -41,6 +39,8 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.100.0 | Hub RRHH: `/rrhh` navegación por secciones, `/rrhh/resumen` panel analítico, sidebar unificado, redirects legacy | 2026-05-17 | v1.100.0 |
+| v1.94.0 | Factura B sin cliente maestro en FV create — `customer_id` nullable, snapshot receptor, AFIP/PDF/QR/asientos | 2026-05-17 | v1.94.0 |
 | v1.99.2 | Hotfix: scroll al bloque resultados en detalle protocolo lab clínico (`#lab-admission-results`, `LabAdmissionController`) | 2026-05-14 | (tag al release) |
 | v1.99.1 | Hotfix: NC electrónica desde factura — AFIP sin cuelgue (timeouts SOAP, transacción DB, UX create) | 2026-05-14 | (tag al release) |
 | v1.99.0 | RRHH: base de cálculo configurable en deducciones (subtotal remunerativo default, `total_haberes`, bases `$bases`; SAC sin cambio) | 2026-05-14 | (tag al release) |

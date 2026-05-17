@@ -31,6 +31,8 @@ class SalesInvoiceController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('invoice_number', 'like', "%{$search}%")
+                    ->orWhere('receiver_name', 'like', "%{$search}%")
+                    ->orWhere('receiver_document_number', 'like', "%{$search}%")
                     ->orWhereHas('customer', fn ($cq) => $cq->where('name', 'like', "%{$search}%"));
             });
         }
@@ -167,59 +169,18 @@ class SalesInvoiceController extends Controller
             ? 'nullable|string'
             : 'required|string|unique:sales_invoices,invoice_number,NULL,id,voucher_type,'.$request->voucher_type.',point_of_sale_id,'.$request->point_of_sale_id;
 
-        $validated = $request->validate([
-            'invoice_number' => $invoiceNumberRules,
-            'voucher_type' => 'required|in:A,B,C',
-            'point_of_sale_id' => 'required|exists:points_of_sale,id',
-            'customer_id' => 'required|exists:customers,id',
-            'quote_id' => 'nullable|exists:quotes,id',
-            'admission_id' => 'nullable|integer',
-            'protocol_type' => 'nullable|string|in:admission,sample,vet_admission',
-            'protocol_id' => 'nullable|integer',
-            'issue_date' => 'required|date',
-            'due_date' => 'nullable|date',
-            'percepciones' => 'nullable|numeric|min:0',
-            'otros_impuestos' => 'nullable|numeric|min:0',
-            'notes' => 'nullable|string',
-            'items' => 'required|array|min:1',
-            'items.*.description' => 'required|string',
-            'items.*.test_id' => 'nullable|integer',
-            'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.iva_rate' => 'required|in:0,10.5,21,27',
-        ], [
-            'invoice_number.required' => 'El número de factura es obligatorio.',
-            'invoice_number.unique' => 'Ya existe una factura con ese número para el mismo tipo y punto de venta.',
-            'voucher_type.required' => 'El tipo de comprobante es obligatorio.',
-            'voucher_type.in' => 'El tipo de comprobante debe ser A, B o C.',
-            'customer_id.required' => 'Debe seleccionar un cliente.',
-            'customer_id.exists' => 'El cliente seleccionado no es válido.',
-            'issue_date.required' => 'La fecha de emisión es obligatoria.',
-            'issue_date.date' => 'La fecha de emisión no es válida.',
-            'due_date.date' => 'La fecha de vencimiento no es válida.',
-            'percepciones.numeric' => 'Las percepciones deben ser un valor numérico.',
-            'percepciones.min' => 'Las percepciones no pueden ser negativas.',
-            'otros_impuestos.numeric' => 'Otros impuestos debe ser un valor numérico.',
-            'otros_impuestos.min' => 'Otros impuestos no puede ser negativo.',
-            'items.required' => 'Debe agregar al menos un ítem.',
-            'items.min' => 'Debe agregar al menos un ítem.',
-            'items.*.description.required' => 'La descripción del ítem es obligatoria.',
-            'items.*.quantity.required' => 'La cantidad es obligatoria.',
-            'items.*.quantity.min' => 'La cantidad debe ser mayor a 0.',
-            'items.*.unit_price.required' => 'El precio unitario es obligatorio.',
-            'items.*.unit_price.min' => 'El precio unitario no puede ser negativo.',
-            'items.*.iva_rate.required' => 'La alícuota de IVA es obligatoria.',
-            'items.*.iva_rate.in' => 'La alícuota de IVA no es válida.',
-        ]);
+        $validated = $this->validateSalesInvoicePayload($request, $invoiceNumberRules);
 
         $companyId = $request->filled('force_company_id') ? (int) $request->force_company_id : active_company_id();
+        $receiverPayload = $this->receiverPayloadFromValidated($validated);
 
         $invoice = SalesInvoice::create([
             'company_id' => $companyId,
             'invoice_number' => $isElectronic ? 'PENDIENTE-AFIP' : $validated['invoice_number'],
             'voucher_type' => $validated['voucher_type'],
             'point_of_sale_id' => $validated['point_of_sale_id'],
-            'customer_id' => $validated['customer_id'],
+            'customer_id' => $receiverPayload['customer_id'],
+            ...$receiverPayload['receiver'],
             'quote_id' => $validated['quote_id'] ?? null,
             'admission_id' => $validated['admission_id'] ?? null,
             'issue_date' => $validated['issue_date'],
@@ -381,58 +342,20 @@ class SalesInvoiceController extends Controller
             ? 'nullable|string'
             : 'required|string|unique:sales_invoices,invoice_number,'.$salesInvoice->id.',id,voucher_type,'.$request->voucher_type.',point_of_sale_id,'.$request->point_of_sale_id;
 
-        $validated = $request->validate([
-            'invoice_number' => $invoiceNumberRules,
-            'voucher_type' => 'required|in:A,B,C',
-            'point_of_sale_id' => 'required|exists:points_of_sale,id',
-            'customer_id' => 'required|exists:customers,id',
-            'quote_id' => 'nullable|exists:quotes,id',
-            'admission_id' => 'nullable|integer',
-            'issue_date' => 'required|date',
-            'due_date' => 'nullable|date',
-            'percepciones' => 'nullable|numeric|min:0',
-            'otros_impuestos' => 'nullable|numeric|min:0',
-            'notes' => 'nullable|string',
-            'items' => 'required|array|min:1',
-            'items.*.description' => 'required|string',
-            'items.*.test_id' => 'nullable|integer',
-            'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.iva_rate' => 'required|in:0,10.5,21,27',
-        ], [
-            'invoice_number.required' => 'El número de factura es obligatorio.',
-            'invoice_number.unique' => 'Ya existe una factura con ese número para el mismo tipo y punto de venta.',
-            'voucher_type.required' => 'El tipo de comprobante es obligatorio.',
-            'voucher_type.in' => 'El tipo de comprobante debe ser A, B o C.',
-            'customer_id.required' => 'Debe seleccionar un cliente.',
-            'customer_id.exists' => 'El cliente seleccionado no es válido.',
-            'issue_date.required' => 'La fecha de emisión es obligatoria.',
-            'issue_date.date' => 'La fecha de emisión no es válida.',
-            'due_date.date' => 'La fecha de vencimiento no es válida.',
-            'percepciones.numeric' => 'Las percepciones deben ser un valor numérico.',
-            'percepciones.min' => 'Las percepciones no pueden ser negativas.',
-            'otros_impuestos.numeric' => 'Otros impuestos debe ser un valor numérico.',
-            'otros_impuestos.min' => 'Otros impuestos no puede ser negativo.',
-            'items.required' => 'Debe agregar al menos un ítem.',
-            'items.min' => 'Debe agregar al menos un ítem.',
-            'items.*.description.required' => 'La descripción del ítem es obligatoria.',
-            'items.*.quantity.required' => 'La cantidad es obligatoria.',
-            'items.*.quantity.min' => 'La cantidad debe ser mayor a 0.',
-            'items.*.unit_price.required' => 'El precio unitario es obligatorio.',
-            'items.*.unit_price.min' => 'El precio unitario no puede ser negativo.',
-            'items.*.iva_rate.required' => 'La alícuota de IVA es obligatoria.',
-            'items.*.iva_rate.in' => 'La alícuota de IVA no es válida.',
-        ]);
+        $validated = $this->validateSalesInvoicePayload($request, $invoiceNumberRules, $salesInvoice);
 
         $newInvoiceNumber = $isAfipDraft
             ? ($salesInvoice->invoice_number ?: 'PENDIENTE-AFIP')
             : $validated['invoice_number'];
 
+        $receiverPayload = $this->receiverPayloadFromValidated($validated);
+
         $salesInvoice->update([
             'invoice_number' => $newInvoiceNumber,
             'voucher_type' => $validated['voucher_type'],
             'point_of_sale_id' => $validated['point_of_sale_id'],
-            'customer_id' => $validated['customer_id'],
+            'customer_id' => $receiverPayload['customer_id'],
+            ...$receiverPayload['receiver'],
             'quote_id' => $validated['quote_id'] ?? null,
             'admission_id' => $validated['admission_id'] ?? null,
             'issue_date' => $validated['issue_date'],
@@ -616,9 +539,9 @@ class SalesInvoiceController extends Controller
             }
             $barcodeComplete = $barcode.((10 - (($sumOdd + $sumEven * 3) % 10)) % 10);
 
-            $customer = $salesInvoice->customer;
             $netAmount = $salesInvoice->items->sum(fn ($i) => $i->quantity * $i->unit_price);
             $totalIva = $salesInvoice->items->sum('iva_amount');
+            $docTipo = $salesInvoice->receiverDocTipo();
 
             $qrJson = json_encode([
                 'ver' => 1,
@@ -630,8 +553,8 @@ class SalesInvoiceController extends Controller
                 'importe' => round($netAmount + $totalIva + $salesInvoice->percepciones + $salesInvoice->otros_impuestos, 2),
                 'moneda' => 'PES',
                 'ctz' => 1,
-                'tipoDocRec' => $customer->tax && strtolower($customer->tax) === 'consumidor final' ? 99 : 80,
-                'nroDocRec' => (int) str_replace('-', '', $customer->taxId ?? '0'),
+                'tipoDocRec' => $docTipo,
+                'nroDocRec' => $salesInvoice->receiverDocNro(),
                 'tipoCodAut' => 'E',
                 'codAut' => (int) $salesInvoice->cae,
             ]);
@@ -677,5 +600,152 @@ class SalesInvoiceController extends Controller
         } catch (\Throwable $e) {
             Log::error('Error generando asiento para FC venta #'.$invoice->id.': '.$e->getMessage());
         }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function validateSalesInvoicePayload(Request $request, string|array $invoiceNumberRules, ?SalesInvoice $existing = null): array
+    {
+        $voucherType = $request->input('voucher_type');
+        $occasional = $this->isOccasionalReceiverRequest($request, $existing);
+
+        $customerRules = match (true) {
+            $voucherType === 'A', $voucherType === 'C' => ['required', 'exists:customers,id'],
+            $occasional => ['nullable', 'prohibited'],
+            default => ['required', 'exists:customers,id'],
+        };
+
+        $rules = [
+            'invoice_number' => $invoiceNumberRules,
+            'voucher_type' => 'required|in:A,B,C',
+            'point_of_sale_id' => 'required|exists:points_of_sale,id',
+            'receiver_mode' => 'nullable|in:customer,occasional',
+            'customer_id' => $customerRules,
+            'receiver_name' => $occasional ? 'required|string|max:255' : 'nullable|prohibited',
+            'receiver_tax_condition' => $occasional
+                ? 'required|in:consumidor final,cf,monotributista,monotributo,exento,iva exento,responsable inscripto,ri'
+                : 'nullable|prohibited',
+            'receiver_document_number' => $occasional
+                ? 'nullable|string|max:20'
+                : 'nullable|prohibited',
+            'quote_id' => 'nullable|exists:quotes,id',
+            'admission_id' => 'nullable|integer',
+            'protocol_type' => 'nullable|string|in:admission,sample,vet_admission',
+            'protocol_id' => 'nullable|integer',
+            'issue_date' => 'required|date',
+            'due_date' => 'nullable|date',
+            'percepciones' => 'nullable|numeric|min:0',
+            'otros_impuestos' => 'nullable|numeric|min:0',
+            'notes' => 'nullable|string',
+            'items' => 'required|array|min:1',
+            'items.*.description' => 'required|string',
+            'items.*.test_id' => 'nullable|integer',
+            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.iva_rate' => 'required|in:0,10.5,21,27',
+        ];
+
+        if (! $request->has('protocol_type')) {
+            unset($rules['protocol_type'], $rules['protocol_id']);
+        }
+
+        $validated = $request->validate($rules, [
+            'invoice_number.required' => 'El número de factura es obligatorio.',
+            'invoice_number.unique' => 'Ya existe una factura con ese número para el mismo tipo y punto de venta.',
+            'voucher_type.required' => 'El tipo de comprobante es obligatorio.',
+            'voucher_type.in' => 'El tipo de comprobante debe ser A, B o C.',
+            'customer_id.required' => 'Debe seleccionar un cliente.',
+            'customer_id.exists' => 'El cliente seleccionado no es válido.',
+            'customer_id.prohibited' => 'No puede combinar receptor ocasional con un cliente del maestro.',
+            'receiver_name.required' => 'El nombre del receptor es obligatorio.',
+            'receiver_tax_condition.required' => 'La condición frente al IVA del receptor es obligatoria.',
+            'receiver_tax_condition.in' => 'La condición frente al IVA del receptor no es válida.',
+            'issue_date.required' => 'La fecha de emisión es obligatoria.',
+            'issue_date.date' => 'La fecha de emisión no es válida.',
+            'due_date.date' => 'La fecha de vencimiento no es válida.',
+            'percepciones.numeric' => 'Las percepciones deben ser un valor numérico.',
+            'percepciones.min' => 'Las percepciones no pueden ser negativas.',
+            'otros_impuestos.numeric' => 'Otros impuestos debe ser un valor numérico.',
+            'otros_impuestos.min' => 'Otros impuestos no puede ser negativo.',
+            'items.required' => 'Debe agregar al menos un ítem.',
+            'items.min' => 'Debe agregar al menos un ítem.',
+            'items.*.description.required' => 'La descripción del ítem es obligatoria.',
+            'items.*.quantity.required' => 'La cantidad es obligatoria.',
+            'items.*.quantity.min' => 'La cantidad debe ser mayor a 0.',
+            'items.*.unit_price.required' => 'El precio unitario es obligatorio.',
+            'items.*.unit_price.min' => 'El precio unitario no puede ser negativo.',
+            'items.*.iva_rate.required' => 'La alícuota de IVA es obligatoria.',
+            'items.*.iva_rate.in' => 'La alícuota de IVA no es válida.',
+        ]);
+
+        if ($occasional) {
+            $tax = strtolower($validated['receiver_tax_condition']);
+            $requiresDocument = ! in_array($tax, ['consumidor final', 'cf'], true);
+            if ($requiresDocument && empty($validated['receiver_document_number'])) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'receiver_document_number' => 'El documento del receptor es obligatorio para esta condición de IVA.',
+                ]);
+            }
+            $validated['receiver_document_type'] = AfipService::getDocTipo($validated['receiver_tax_condition']);
+        } elseif ($existing?->hasOccasionalReceiver() && $voucherType === 'B') {
+            // Mantener snapshot en borradores B sin cliente al editar sin cambiar modo
+        }
+
+        return $validated;
+    }
+
+    protected function isOccasionalReceiverRequest(Request $request, ?SalesInvoice $existing = null): bool
+    {
+        if ($request->input('voucher_type') !== 'B') {
+            return false;
+        }
+
+        if ($request->input('receiver_mode') === 'occasional') {
+            return true;
+        }
+
+        if ($request->input('receiver_mode') === 'customer') {
+            return false;
+        }
+
+        if (! $request->filled('customer_id')) {
+            return true;
+        }
+
+        return $existing?->hasOccasionalReceiver() && ! $request->filled('customer_id');
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array{customer_id: ?int, receiver: array<string, mixed>}
+     */
+    protected function receiverPayloadFromValidated(array $validated): array
+    {
+        $occasional = ($validated['voucher_type'] ?? '') === 'B'
+            && empty($validated['customer_id'])
+            && ! empty($validated['receiver_name']);
+
+        if (! $occasional) {
+            return [
+                'customer_id' => $validated['customer_id'] ?? null,
+                'receiver' => [
+                    'receiver_name' => null,
+                    'receiver_tax_condition' => null,
+                    'receiver_document_type' => null,
+                    'receiver_document_number' => null,
+                ],
+            ];
+        }
+
+        return [
+            'customer_id' => null,
+            'receiver' => [
+                'receiver_name' => $validated['receiver_name'],
+                'receiver_tax_condition' => $validated['receiver_tax_condition'],
+                'receiver_document_type' => $validated['receiver_document_type'] ?? AfipService::getDocTipo($validated['receiver_tax_condition']),
+                'receiver_document_number' => $validated['receiver_document_number'] ?? null,
+            ],
+        ];
     }
 }

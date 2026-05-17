@@ -1,4 +1,5 @@
 <x-lab-layout title="Admisión {{ $admission->protocol_number }}">
+    <x-protocol-action-toast />
     <div class="py-6 px-4 md:px-6 lg:px-8 mt-14 md:mt-0">
         <!-- Header: sticky en viewport; top-14 = barra móvil; md:top-20 ≈ altura real header lab (py-4 + título) -->
         <div class="sticky top-14 z-20 mb-6 border-b border-gray-200 bg-gray-100 pb-4 pt-2 shadow-sm md:top-20">
@@ -73,14 +74,18 @@
                             </svg>
                         </a>
                     </div>
-                    <form action="{{ route('lab.admissions.syncChildren', $admission) }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" 
-                                class="px-4 py-2 bg-teal-100 text-teal-700 rounded-lg hover:bg-teal-200 transition-colors"
-                                title="Sincronizar determinaciones hijas de las prácticas">
-                            Sincronizar Det.
-                        </button>
-                    </form>
+                    @can('lab-results.create')
+                        @if($admission->admissionTests->count() > 0)
+                            <button type="submit"
+                                    form="lab-admission-results"
+                                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium inline-flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Guardar
+                            </button>
+                        @endif
+                    @endcan
                     <a href="{{ route('lab.admissions.edit', $admission) }}" 
                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
                         Editar
@@ -331,323 +336,12 @@
                     @endif
 
                     @if($admission->admissionTests->count() > 0)
-                        @php
-                            $allProtocolTestIds = $admission->admissionTests->pluck('test_id')->toArray();
-
-                            $itemsByTestId = [];
-                            foreach ($admission->admissionTests as $at) {
-                                $itemsByTestId[$at->test_id] = $at;
-                            }
-
-                            $parentMap = [];
-                            $childOf = [];
-                            $isSubParentMap = [];
-
-                            foreach ($admission->admissionTests as $at) {
-                                if (!$at->test) continue;
-                                $parentIds = $at->test->parentTests->pluck('id')->toArray();
-                                if ($at->test->parent) {
-                                    $parentIds[] = $at->test->parent;
-                                    $parentIds = array_unique($parentIds);
-                                }
-                                $parentsInProtocol = array_intersect($parentIds, $allProtocolTestIds);
-
-                                if (count($parentsInProtocol) > 0) {
-                                    $parentId = reset($parentsInProtocol);
-                                    $childOf[$at->test_id] = $parentId;
-                                    if (!isset($parentMap[$parentId])) {
-                                        $parentMap[$parentId] = [];
-                                    }
-                                    $parentMap[$parentId][] = $at->test_id;
-                                }
-                            }
-
-                            foreach ($parentMap as $testId => $children) {
-                                if (isset($childOf[$testId])) {
-                                    $isSubParentMap[$testId] = true;
-                                }
-                            }
-
-                            // Ordenar hijos dentro de cada padre por sort_order
-                            foreach ($parentMap as $parentId => &$childIds) {
-                                usort($childIds, function ($a, $b) use ($itemsByTestId) {
-                                    $sortA = $itemsByTestId[$a]->test->sort_order ?? 0;
-                                    $sortB = $itemsByTestId[$b]->test->sort_order ?? 0;
-                                    return $sortA <=> $sortB;
-                                });
-                            }
-                            unset($childIds);
-
-                            $roots = [];
-                            foreach ($admission->admissionTests as $at) {
-                                if (!isset($childOf[$at->test_id]) && !in_array($at->test_id, $roots)) {
-                                    $roots[] = $at->test_id;
-                                }
-                            }
-
-                            usort($roots, function ($a, $b) use ($itemsByTestId) {
-                                $sortA = $itemsByTestId[$a]->test->sort_order ?? 0;
-                                $sortB = $itemsByTestId[$b]->test->sort_order ?? 0;
-                                return $sortA <=> $sortB;
-                            });
-
-                            $orderedItems = collect();
-                            $addWithChildren = function ($testId, $level) use (
-                                &$addWithChildren, $parentMap, $isSubParentMap, $itemsByTestId, &$orderedItems
-                            ) {
-                                if (!isset($itemsByTestId[$testId])) return;
-                                $isParent = isset($parentMap[$testId]);
-
-                                $orderedItems->push([
-                                    'at' => $itemsByTestId[$testId],
-                                    'level' => $level,
-                                    'isParent' => $isParent,
-                                    'isSubParent' => isset($isSubParentMap[$testId]),
-                                    'isChild' => $level > 0,
-                                    'childCount' => $isParent ? count($parentMap[$testId]) : 0,
-                                ]);
-
-                                if ($isParent) {
-                                    foreach ($parentMap[$testId] as $childId) {
-                                        $addWithChildren($childId, $level + 1);
-                                    }
-                                }
-                            };
-
-                            foreach ($roots as $rootId) {
-                                $addWithChildren($rootId, 0);
-                            }
-
-                            $formIndex = 0;
-                            $canEditResults = auth()->user()->can('lab-results.create');
-                            $canValidate = auth()->user()->can('lab-results.validate');
-                        @endphp
-                        
                         <form id="lab-admission-results" action="{{ route('lab.admissions.saveResults', $admission) }}" method="POST">
                             @csrf
-                            <div>
-                                <table class="w-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Práctica</th>
-                                            <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase w-28">Resultado</th>
-                                            <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">Unidad</th>
-                                            <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase w-28">Valor Ref.</th>
-                                            <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase w-12" title="Ratificado: valor anormal/atípico verificado por bioquímico">Ratif.</th>
-                                            <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase w-20">Estado</th>
-                                            <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase w-20">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200">
-                                        @foreach($orderedItems as $item)
-                                            @php
-                                                $admissionTest = $item['at'];
-                                                $level = $item['level'];
-                                                $hasChildren = $item['isParent'];
-                                                $isChild = $item['isChild'];
-                                                $isSubParent = $item['isSubParent'] ?? false;
-                                                $childCount = $item['childCount'] ?? 0;
-                                            @endphp
-                                            @if($isRecepcionLab && $isChild && !$hasChildren)
-                                                @continue
-                                            @endif
-                                            @php
-                                                $paddingLeft = $level === 0 ? 'px-4' : ($level === 1 ? 'pl-10 pr-4' : 'pl-16 pr-4');
-
-                                                $testUnit = null;
-                                                $refValue = null;
-                                                $needsConfig = false;
-                                                if (!$hasChildren) {
-                                                    $testUnit = $admissionTest->test->unit;
-                                                    $primaryRef = null;
-                                                    $defaultRef = $admissionTest->test->referenceValues->where('is_default', true)->first();
-                                                    if ($defaultRef) {
-                                                        if ($defaultRef->min_value !== null && $defaultRef->max_value !== null) {
-                                                            $primaryRef = $defaultRef->min_value . ' - ' . $defaultRef->max_value;
-                                                        } elseif ($defaultRef->value) {
-                                                            $primaryRef = $defaultRef->value;
-                                                        }
-                                                    } elseif ($admissionTest->test->low !== null && $admissionTest->test->high !== null) {
-                                                        $primaryRef = $admissionTest->test->low . ' - ' . $admissionTest->test->high;
-                                                    }
-                                                    $refValue = \App\Support\ProtocolReferenceDisplay::line($primaryRef, $admissionTest->test->other_reference ?? null);
-                                                    $needsConfig = empty($testUnit) || $refValue === '';
-                                                }
-                                            @endphp
-                                            @php
-                                                $directParentKey = (string) ($childOf[$admissionTest->test_id] ?? '');
-                                                $grandParentKey  = ($directParentKey !== '') ? (string) ($childOf[(int) $directParentKey] ?? '') : '';
-                                            @endphp
-                                            <tr @if($isChild) data-group="{{ $directParentKey }}" {{ $grandParentKey !== '' ? "data-parent-group=\"{$grandParentKey}\"" : '' }} @endif
-                                                @if($hasChildren) onclick="labAccordion.toggle(this, '{{ (string) $admissionTest->test_id }}')" @endif
-                                                @if($isChild && $hasChildren) data-sub-parent-id="{{ (string) $admissionTest->test_id }}" @endif
-                                                class="{{ $hasChildren ? 'bg-teal-50' . ($level === 0 ? ' border-l-4 border-teal-500' : ' border-l-4 border-teal-300') : 'hover:bg-gray-50' }} {{ $isChild && !$hasChildren ? 'bg-gray-50/50' : '' }} {{ $admissionTest->is_validated ? 'bg-green-50' : '' }}{{ $hasChildren ? ' cursor-pointer select-none' : '' }}">
-                                                <td class="{{ $paddingLeft }} py-{{ $hasChildren ? '3' : '2' }}">
-                                                    <input type="hidden" name="results[{{ $formIndex }}][id]" value="{{ $admissionTest->id }}">
-                                                    <div class="flex items-center">
-                                                        @if($isChild && !$hasChildren)
-                                                            <span class="text-xs text-gray-400 mr-1">└</span>
-                                                        @endif
-                                                        @if($hasChildren && !$isChild)
-                                                            <svg data-chevron
-                                                                 class="w-4 h-4 text-teal-500 mr-1 flex-shrink-0 transition-transform duration-200"
-                                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                                            </svg>
-                                                            <span class="text-sm font-bold text-teal-700 mr-2">{{ $admissionTest->test->code }}</span>
-                                                            <span class="text-sm font-semibold text-gray-900">{{ $admissionTest->test->name }}</span>
-                                                            <span class="ml-2 text-xs text-teal-600">({{ $childCount }} det.)</span>
-                                                            <span class="ml-2 text-xs text-gray-500">${{ number_format($admissionTest->price, 0, ',', '.') }}</span>
-                                                        @elseif($isSubParent)
-                                                            <svg data-chevron
-                                                                 class="w-3.5 h-3.5 text-teal-400 mr-1 flex-shrink-0 transition-transform duration-200"
-                                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                                            </svg>
-                                                            <span class="text-xs font-bold text-teal-600 mr-2">{{ $admissionTest->test->code }}</span>
-                                                            <span class="text-sm font-semibold text-gray-800">{{ $admissionTest->test->name }}</span>
-                                                            <span class="ml-2 text-xs text-teal-500">({{ $childCount }} det.)</span>
-                                                        @else
-                                                            <span class="text-xs font-medium text-gray-500 mr-2">{{ $admissionTest->test->code }}</span>
-                                                            <span class="text-sm text-gray-700">{{ $admissionTest->test->name }}</span>
-                                                            @if(auth()->user()->hasRole('admin'))
-                                                                <button type="button"
-                                                                        onclick="openConfigModal({{ $admissionTest->test->id }}, '{{ $admissionTest->test->code }}', '{{ addslashes($admissionTest->test->name) }}', '{{ $admissionTest->test->unit }}', '{{ $admissionTest->test->low }}', '{{ $admissionTest->test->high }}', '{{ addslashes($admissionTest->test->method) }}')"
-                                                                        class="ml-2 inline-flex shrink-0 items-center justify-center rounded p-0.5 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1"
-                                                                        title="Configurar unidad y valores de referencia de la práctica"
-                                                                        aria-label="Configurar unidad y valores de referencia de la práctica">
-                                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                                                    </svg>
-                                                                </button>
-                                                            @endif
-                                                            @if(!$isChild)
-                                                                <span class="ml-2 text-xs text-gray-500">${{ number_format($admissionTest->price, 0, ',', '.') }}</span>
-                                                            @endif
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                                @if($hasChildren)
-                                                    <td class="px-2 py-2 text-center text-xs text-gray-400" colspan="4">
-                                                        Cargar resultados en las determinaciones ↓
-                                                    </td>
-                                                @else
-                                                    <td class="px-2 py-1">
-                                                        <input type="text"
-                                                               name="results[{{ $formIndex }}][result]"
-                                                               value="{{ $admissionTest->result }}"
-                                                               placeholder="Resultado"
-                                                               {{ $admissionTest->is_validated || !$canEditResults ? 'disabled' : '' }}
-                                                               class="w-full text-center border-gray-300 rounded text-sm {{ $admissionTest->is_validated || !$canEditResults ? 'bg-gray-100' : '' }}">
-                                                    </td>
-                                                    <td class="px-2 py-1">
-                                                        <input type="hidden" name="results[{{ $formIndex }}][unit]" value="{{ $testUnit ?? '' }}">
-                                                        @if($testUnit)
-                                                            <span class="text-sm text-gray-600">{{ $testUnit }}</span>
-                                                        @else
-                                                            <span class="text-xs text-orange-500">Sin unidad</span>
-                                                        @endif
-                                                    </td>
-                                                    <td class="px-2 py-1">
-                                                        <input type="hidden" name="results[{{ $formIndex }}][reference_value]" value="{{ $refValue ?? '' }}">
-                                                        @if($refValue)
-                                                            <span class="text-sm text-gray-600">{{ $refValue }}</span>
-                                                        @else
-                                                            <span class="text-xs text-orange-500">Sin ref.</span>
-                                                        @endif
-                                                    </td>
-                                                    <td class="px-2 py-1 text-center">
-                                                        @php
-                                                            $ratifyDisabled = ! $canValidate;
-                                                        @endphp
-                                                        <input type="hidden" name="results[{{ $formIndex }}][is_ratified]" value="0">
-                                                        <input type="checkbox"
-                                                               name="results[{{ $formIndex }}][is_ratified]"
-                                                               value="1"
-                                                               {{ $admissionTest->is_ratified ? 'checked' : '' }}
-                                                               {{ $ratifyDisabled ? 'disabled' : '' }}
-                                                               title="Valor anormal/atípico — verificado por bioquímico (editable también después de validar)"
-                                                               class="h-4 w-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 {{ $ratifyDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer' }}">
-                                                    </td>
-                                                @endif
-                                                <td class="px-2 py-2 text-center">
-                                                    @if($admissionTest->is_validated)
-                                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                            <svg class="w-3 h-3 {{ !$isChild ? 'mr-1' : '' }}" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                                            </svg>
-                                                            @if(!$isChild) Validado @endif
-                                                        </span>
-                                                    @elseif($admissionTest->hasResult())
-                                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                            @if($isChild) ● @else Con resultado @endif
-                                                        </span>
-                                                    @elseif(!$hasChildren)
-                                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                                                            @if($isChild) ○ @else Pendiente @endif
-                                                        </span>
-                                                    @else
-                                                        <span class="text-xs text-gray-400">-</span>
-                                                    @endif
-                                                </td>
-                                                <td class="px-2 py-2 text-center">
-                                                    @php
-                                                        $hasValidatedChildren = false;
-                                                        if ($hasChildren && isset($parentMap[$admissionTest->test_id])) {
-                                                            foreach ($parentMap[$admissionTest->test_id] as $cId) {
-                                                                if (isset($itemsByTestId[$cId]) && $itemsByTestId[$cId]->is_validated) {
-                                                                    $hasValidatedChildren = true;
-                                                                    break;
-                                                                }
-                                                            }
-                                                        }
-                                                        $canDelete = !$admissionTest->is_validated && !$hasValidatedChildren;
-                                                        if ($isRecepcionLab && $admissionTest->hasResult()) {
-                                                            $canDelete = false;
-                                                        }
-                                                    @endphp
-                                                    <div class="flex items-center justify-center gap-2">
-                                                        @if(!$hasChildren && $canValidate)
-                                                            @if($admissionTest->is_validated)
-                                                                <button type="button" onclick="submitAction('{{ route('lab.admissions.unvalidateTest', [$admission, $admissionTest]) }}')" class="text-orange-500 hover:text-orange-700 text-xs" title="Quitar validación">
-                                                                    Desvalidar
-                                                                </button>
-                                                            @elseif($admissionTest->hasResult())
-                                                                <button type="button" onclick="submitAction('{{ route('lab.admissions.validateTest', [$admission, $admissionTest]) }}')" class="text-green-500 hover:text-green-700 text-xs">
-                                                                    ✓
-                                                                </button>
-                                                            @else
-                                                                <span class="text-gray-300 text-xs">-</span>
-                                                            @endif
-                                                        @endif
-                                                        @if($canDelete && !$isChild)
-                                                            <button type="button" onclick="if(confirm('¿Eliminar esta práctica del protocolo?{{ $hasChildren ? " (Se eliminarán también las determinaciones hijas)" : "" }}')) submitAction('{{ route('lab.admissions.removeTest', [$admission, $admissionTest]) }}', 'DELETE')" class="text-red-400 hover:text-red-600" title="Eliminar práctica">
-                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                                </svg>
-                                                            </button>
-                                                        @elseif($canDelete && $isChild && !$hasChildren && !$admissionTest->is_ratified)
-                                                            <button type="button" onclick="if(confirm('¿Quitar solo esta determinación del protocolo? (El grupo y las demás determinaciones no se eliminan)')) submitAction('{{ route('lab.admissions.removeTest', [$admission, $admissionTest]) }}', 'DELETE')" class="text-red-400 hover:text-red-600" title="Quitar determinación hoja">
-                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                                </svg>
-                                                            </button>
-                                                        @elseif($hasValidatedChildren)
-                                                            <span class="text-gray-300 text-xs" title="Desvalide las determinaciones hijas primero">
-                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                                </svg>
-                                                            </span>
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            @php $formIndex++; @endphp
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
+                            @livewire('lab.lab-admission-results-table', [
+                                'admissionId' => $admission->id,
+                                'isRecepcionLab' => $isRecepcionLab,
+                            ], key('lab-results-'.$admission->id))
                             @can('lab-results.create')
                             <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
                                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">

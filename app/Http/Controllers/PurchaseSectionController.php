@@ -26,6 +26,17 @@ class PurchaseSectionController extends Controller
             ];
         }
 
+        $perceptionItems = [];
+        if (auth()->user()?->can('purchase-perceptions.index')) {
+            $perceptionItems[] = [
+                'name' => 'Percepciones',
+                'description' => 'Percepciones en facturas de compra',
+                'route' => route('purchase-perceptions.index'),
+                'icon' => 'M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z',
+                'permission' => 'purchase-perceptions.index',
+            ];
+        }
+
         $section = [
             'title' => 'Compras',
             'description' => 'Gestión de proveedores, insumos, stock y órdenes de compra',
@@ -55,11 +66,18 @@ class PurchaseSectionController extends Controller
                     'icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
                 ],
                 [
+                    'name' => 'Cta. Cte. Proveedores',
+                    'description' => 'Cuenta corriente y saldos por proveedor',
+                    'route' => route('suppliers.statement'),
+                    'icon' => 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+                ],
+                [
                     'name' => 'Notas de Crédito (proveedor)',
                     'description' => 'NC recibidas de proveedores',
                     'route' => route('purchase-credit-notes.index'),
                     'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
                 ],
+            ], $perceptionItems, [
                 [
                     'name' => 'Órdenes de Compra',
                     'description' => 'Órdenes de compra a proveedores',

@@ -58,11 +58,31 @@
 
             <div class="border-t border-zinc-700 my-2"></div>
 
-            {{-- Recursos Humanos (panel general — v1.66.0) --}}
-            @if (auth()->user()?->hasAnyRole(['admin', 'contador']))
+            {{-- Recursos Humanos (hub unificado — v1.100.0) --}}
+            @if (
+                auth()->user()?->hasAnyRole(['admin', 'contador'])
+                || auth()->user()?->can('personal.section')
+                || auth()->user()?->can('ausencias.section')
+                || auth()->user()?->can('liquidaciones.section')
+            )
             <a href="{{ route('rrhh.index') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
                 {{ request()->routeIs('rrhh.*')
+                    || request()->routeIs('admin.section.personal')
+                    || request()->routeIs('admin.section.ausencias')
+                    || request()->routeIs('admin.section.liquidaciones')
+                    || request()->routeIs('employee.*')
+                    || request()->routeIs('job.*')
+                    || request()->routeIs('category.*')
+                    || request()->routeIs('documents.*')
+                    || request()->routeIs('circular.*')
+                    || request()->routeIs('manage.chart')
+                    || request()->routeIs('non-conformity.*')
+                    || request()->routeIs('vacation.*')
+                    || request()->routeIs('leave.*')
+                    || request()->routeIs('payroll.*')
+                    || request()->routeIs('salary.*')
+                    || request()->routeIs('payroll-payments.*')
                     ? 'bg-zinc-700 text-white'
                     : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,53 +93,11 @@
             </a>
             @endif
 
-            @can('personal.section')
-            <!-- Personal -->
-            <a href="{{ route('admin.section.personal') }}"
-               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('admin.section.personal') || request()->routeIs('employee.*') || request()->routeIs('job.*') || request()->routeIs('category.*') || request()->routeIs('documents.*') || request()->routeIs('circular.*') || request()->routeIs('manage.chart') || request()->routeIs('non-conformity.*')
-                    ? 'bg-zinc-700 text-white'
-                    : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                </svg>
-                Personal
-            </a>
-            @endcan
-
-            @can('ausencias.section')
-            <!-- Ausencias -->
-            <a href="{{ route('admin.section.ausencias') }}"
-               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('admin.section.ausencias') || request()->routeIs('vacation.*') || request()->routeIs('leave.*')
-                    ? 'bg-zinc-700 text-white'
-                    : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-                Ausencias
-            </a>
-            @endcan
-
-            @can('liquidaciones.section')
-            <!-- Liquidaciones -->
-            <a href="{{ route('admin.section.liquidaciones') }}"
-               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('admin.section.liquidaciones') || request()->routeIs('payroll.*') || request()->routeIs('salary.*') || request()->routeIs('payroll-payments.*')
-                    ? 'bg-zinc-700 text-white'
-                    : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                Liquidaciones
-            </a>
-            @endcan
-
             <!-- Compras -->
             @can('compras.section')
             <a href="{{ route('purchases.section') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('purchases.*') || request()->routeIs('suppliers.*') || request()->routeIs('supplies.*') || request()->routeIs('supply-categories.*') || request()->routeIs('purchase-service-categories.*') || request()->routeIs('purchase-services.*') || request()->routeIs('stock-movements.*') || request()->routeIs('purchase-quotation-requests.*') || request()->routeIs('purchase-orders.*') || request()->routeIs('delivery-notes.*') || request()->routeIs('purchase-invoices.*') || request()->routeIs('purchase-credit-notes.*') || request()->routeIs('payment-orders.*') || request()->routeIs('purchase-perceptions.*')
+                {{ request()->routeIs('purchases.*') || request()->routeIs('suppliers.*') || request()->routeIs('suppliers.statement*') || request()->routeIs('supplies.*') || request()->routeIs('supply-categories.*') || request()->routeIs('purchase-service-categories.*') || request()->routeIs('purchase-services.*') || request()->routeIs('stock-movements.*') || request()->routeIs('purchase-quotation-requests.*') || request()->routeIs('purchase-orders.*') || request()->routeIs('delivery-notes.*') || request()->routeIs('purchase-invoices.*') || request()->routeIs('purchase-credit-notes.*') || request()->routeIs('payment-orders.*') || request()->routeIs('purchase-perceptions.*')
                     ? 'bg-zinc-700 text-white'
                     : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,29 +105,13 @@
                 </svg>
                 Compras
             </a>
-            <a href="{{ route('suppliers.statement') }}"
-               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('suppliers.statement*') ? 'bg-zinc-700 text-white' : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                Cta. Cte. Proveedores
-            </a>
-            @can('purchase-perceptions.index')
-            <a href="{{ route('purchase-perceptions.index') }}"
-               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('purchase-perceptions.*') ? 'bg-zinc-700 text-white' : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
-                <i class="bi bi-percent w-5 h-5 mr-3 text-base flex-shrink-0"></i>
-                Percepciones
-            </a>
-            @endcan
             @endcan
 
             <!-- Ventas -->
             @can('ventas.section')
             <a href="{{ route('sales.section') }}"
                class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('sales.*') || request()->routeIs('sales-invoices.*') || request()->routeIs('collection-receipts.*') || request()->routeIs('points-of-sale.*') || request()->routeIs('customer.*') || request()->routeIs('quotes.*') || request()->routeIs('credit-notes.*')
+                {{ request()->routeIs('sales.*') || request()->routeIs('sales-invoices.*') || request()->routeIs('collection-receipts.*') || request()->routeIs('points-of-sale.*') || request()->routeIs('customer.*') || request()->routeIs('quotes.*') || request()->routeIs('credit-notes.*') || request()->routeIs('billing.*')
                     ? 'bg-zinc-700 text-white'
                     : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,16 +128,6 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
                 Libro IVA
-            </a>
-            <a href="{{ route('billing.uninvoiced') }}"
-               class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                {{ request()->routeIs('billing.*')
-                    ? 'bg-zinc-700 text-white'
-                    : 'text-zinc-300 hover:bg-zinc-700/50 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
-                </svg>
-                Sin facturar
             </a>
             @endcan
 

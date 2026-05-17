@@ -49,7 +49,7 @@
                 <dl class="space-y-3">
                     <div class="flex justify-between">
                         <dt class="text-sm text-gray-500">Cliente</dt>
-                        <dd class="text-sm font-medium text-gray-800">{{ $invoice->customer->name }}</dd>
+                        <dd class="text-sm font-medium text-gray-800">{{ $invoice->receiverDisplayName() }}</dd>
                     </div>
                     <div class="flex justify-between">
                         <dt class="text-sm text-gray-500">Tipo Comprobante</dt>
@@ -325,6 +325,7 @@
 
         @if($invoice->balance > 0 && !in_array($invoice->status, ['anulada']))
             <div class="flex justify-end mb-6">
+                @if($invoice->customer_id)
                 <a href="{{ route('collection-receipts.create', ['customer_id' => $invoice->customer_id]) }}"
                    class="inline-flex items-center px-4 py-2.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -332,6 +333,7 @@
                     </svg>
                     Generar Recibo de Cobro
                 </a>
+                @endif
             </div>
         @endif
 

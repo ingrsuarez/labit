@@ -13,7 +13,6 @@ use App\Models\Species;
 use App\Models\Test;
 use App\Models\VetAdmission;
 use App\Models\VetAdmissionTest;
-use App\Support\VetAdmissionTestDisplayOrder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -509,77 +508,11 @@ class VetAdmissionController extends Controller
     {
         $this->authorize('vet-admissions.delete');
 
-        if ($vetAdmissionTest->vet_admission_id !== $vetAdmission->id) {
-            abort(404);
-        }
+        $result = app(\App\Actions\Vet\MutateVetAdmissionTest::class)->remove($vetAdmission, $vetAdmissionTest);
 
-        if (auth()->user()->hasRole('recepcion-lab')) {
-            if ($vetAdmissionTest->status !== 'pending') {
-                return $this->redirectBackToVetAdmissionResults()->with('error', 'No se puede eliminar una práctica en proceso o validada.');
-            }
-        }
-
-        if ($vetAdmissionTest->is_validated) {
-            return $this->redirectBackToVetAdmissionResults()->with('error', 'No se puede quitar una práctica ya validada.');
-        }
-
-        if (VetAdmissionTestDisplayOrder::isProtocolSubParent($vetAdmission, $vetAdmissionTest)) {
-            return $this->redirectBackToVetAdmissionResults()->with('error', 'No se puede eliminar un grupo intermedio. Quite solo determinaciones hoja sin resultado.');
-        }
-
-        if (VetAdmissionTestDisplayOrder::isProtocolLeafChild($vetAdmission, $vetAdmissionTest)) {
-            if ($vetAdmissionTest->hasResult() || $vetAdmissionTest->is_ratified) {
-                return $this->redirectBackToVetAdmissionResults()->with('error', 'No se puede eliminar esta determinación: tiene resultado o está ratificada.');
-            }
-
-            $testName = $vetAdmissionTest->test->name ?? 'Desconocida';
-            $removedPrice = (float) $vetAdmissionTest->price;
-            $vetAdmissionTest->delete();
-            $newTotal = max(0, (float) $vetAdmission->total_price - $removedPrice);
-            $vetAdmission->update(['total_price' => $newTotal]);
-            $this->syncVetAdmissionProtocolStatus($vetAdmission);
-            $vetAdmission->logAudit('test_removed', 'Eliminó determinación hoja '.$testName.' del protocolo veterinario Nº '.$vetAdmission->protocol_number);
-
-            return $this->redirectBackToVetAdmissionResults()->with('success', 'Determinación eliminada del protocolo (el grupo permanece).');
-        }
-
-        $test = $vetAdmissionTest->test;
-        $testName = $test->name ?? 'Desconocida';
-        $removedPrice = (float) $vetAdmissionTest->price;
-        $removedCount = 1;
-
-        $vetAdmissionTest->delete();
-
-        if ($test) {
-            $children = $test->getAllChildren(false);
-            $childTestIds = $children->pluck('id')->toArray();
-
-            if (! empty($childTestIds)) {
-                $childVats = VetAdmissionTest::where('vet_admission_id', $vetAdmission->id)
-                    ->whereIn('test_id', $childTestIds)
-                    ->where('is_validated', false)
-                    ->get();
-
-                foreach ($childVats as $childVat) {
-                    $removedPrice += (float) $childVat->price;
-                    $removedCount++;
-                    $childVat->delete();
-                }
-            }
-        }
-
-        $newTotal = max(0, $vetAdmission->total_price - $removedPrice);
-        $vetAdmission->update(['total_price' => $newTotal]);
-        $this->syncVetAdmissionProtocolStatus($vetAdmission);
-
-        $vetAdmission->logAudit('test_removed', 'Eliminó práctica '.$testName.' del protocolo veterinario Nº '.$vetAdmission->protocol_number);
-
-        $msg = 'Práctica eliminada del protocolo.';
-        if ($removedCount > 1) {
-            $msg = "Se eliminaron {$removedCount} prácticas (padre + hijos) del protocolo.";
-        }
-
-        return $this->redirectBackToVetAdmissionResults()->with('success', $msg);
+        return $result['ok']
+            ? $this->redirectBackToVetAdmissionResults()->with('success', $result['message'])
+            : $this->redirectBackToVetAdmissionResults()->with('error', $result['message']);
     }
 
     private function syncVetAdmissionProtocolStatus(VetAdmission $vetAdmission): void
@@ -599,45 +532,18 @@ class VetAdmissionController extends Controller
 
     public function validateTest(VetAdmission $vetAdmission, VetAdmissionTest $vetAdmissionTest)
     {
-        if (! $vetAdmissionTest->hasResult()) {
-            return $this->redirectBackToVetAdmissionResults()->with('error', 'No se puede validar sin resultado.');
-        }
+        $result = app(\App\Actions\Vet\MutateVetAdmissionTest::class)->validate($vetAdmission, $vetAdmissionTest);
 
-        $vetAdmissionTest->update([
-            'is_validated' => true,
-            'validated_by' => auth()->id(),
-            'validated_at' => now(),
-            'status' => 'validated',
-        ]);
-
-        $vetAdmission->load(['vetTests.test.childTests']);
-        $vetAdmission->update(['status' => $vetAdmission->calculated_status]);
-
-        $vetAdmission->logAudit('validated', 'Validó práctica '.$vetAdmissionTest->test->name.' en protocolo veterinario Nº '.$vetAdmission->protocol_number);
-
-        return $this->redirectBackToVetAdmissionResults()->with('success', 'Pr?ctica validada.');
+        return $result['ok']
+            ? $this->redirectBackToVetAdmissionResults()->with('success', $result['message'])
+            : $this->redirectBackToVetAdmissionResults()->with('error', $result['message']);
     }
 
     public function unvalidateTest(VetAdmission $vetAdmission, VetAdmissionTest $vetAdmissionTest)
     {
-        $testName = $vetAdmissionTest->test->name ?? 'Desconocida';
+        $result = app(\App\Actions\Vet\MutateVetAdmissionTest::class)->unvalidate($vetAdmission, $vetAdmissionTest);
 
-        $vetAdmissionTest->update([
-            'is_validated' => false,
-            'validated_by' => null,
-            'validated_at' => null,
-            'status' => $vetAdmissionTest->hasResult() ? 'completed' : 'pending',
-            'is_ratified' => false,
-            'ratified_at' => null,
-            'ratified_by' => null,
-        ]);
-
-        $vetAdmission->load(['vetTests.test.childTests']);
-        $vetAdmission->update(['status' => $vetAdmission->calculated_status]);
-
-        $vetAdmission->logAudit('unvalidated', 'Desvalidó práctica '.$testName.' en protocolo veterinario Nº '.$vetAdmission->protocol_number);
-
-        return $this->redirectBackToVetAdmissionResults()->with('success', 'Validaci?n removida.');
+        return $this->redirectBackToVetAdmissionResults()->with('success', $result['message']);
     }
 
     public function validateAll(VetAdmission $vetAdmission)
