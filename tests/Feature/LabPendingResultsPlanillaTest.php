@@ -51,7 +51,7 @@ class LabPendingResultsPlanillaTest extends TestCase
         ]);
     }
 
-    private function makeTest(string $code, ?int $parent = null, int $sortOrder = 0, int $price = 0): Test
+    private function makeTest(string $code, ?int $parent = null, int $sortOrder = 0, int $price = 0, bool $emptyResultExempt = false): Test
     {
         return Test::query()->create([
             'code' => $code,
@@ -75,6 +75,7 @@ class LabPendingResultsPlanillaTest extends TestCase
             'nbu' => 1,
             'categories' => ['lab'],
             'sort_order' => $sortOrder,
+            'empty_result_exempt' => $emptyResultExempt,
         ]);
     }
 
@@ -390,5 +391,64 @@ class LabPendingResultsPlanillaTest extends TestCase
         $response = $this->actingAs($user)->get(route('lab.admissions.pending-results'));
         $response->assertOk();
         $response->assertDontSee('V-2026-NOVET-IDX', false);
+    }
+
+    public function test_pending_results_omits_empty_result_exempt_and_hides_fully_loaded_vet_protocol(): void
+    {
+        $user = $this->userWithPermissions([
+            'lab.section',
+            'lab-admissions.index',
+            'lab-admissions.show',
+            'lab-results.create',
+        ]);
+
+        $customer = Customer::query()->create([
+            'name' => 'Vet Exempt Pend',
+            'taxId' => '30-44444444-4',
+            'status' => 'activo',
+            'type' => ['veterinario'],
+        ]);
+        $species = Species::query()->create([
+            'name' => 'Canino',
+            'code' => 'DOG-EX-PEND',
+            'is_active' => true,
+        ]);
+
+        $vetAdmission = VetAdmission::query()->create([
+            'date' => '2026-05-15',
+            'protocol_number' => 'V-2026-EXEMPT-ONLY',
+            'status' => 'in_progress',
+            'customer_id' => $customer->id,
+            'species_id' => $species->id,
+            'animal_name' => 'Rulo',
+            'owner_name' => 'Crespo',
+            'total_price' => 100,
+            'created_by' => $user->id,
+        ]);
+
+        $loaded = $this->makeTest('VEX-LOAD', null, 1, 100);
+        $formula = $this->makeTest('VEX-FL', null, 2, 0, true);
+        $formula->update(['name' => 'formula leucocitaria']);
+
+        VetAdmissionTest::query()->create([
+            'vet_admission_id' => $vetAdmission->id,
+            'test_id' => $loaded->id,
+            'result' => '10',
+            'price' => 100,
+            'status' => 'completed',
+        ]);
+        VetAdmissionTest::query()->create([
+            'vet_admission_id' => $vetAdmission->id,
+            'test_id' => $formula->id,
+            'result' => null,
+            'price' => 0,
+            'status' => 'pending',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('lab.admissions.pending-results'));
+
+        $response->assertOk();
+        $response->assertDontSee('formula leucocitaria', false);
+        $response->assertDontSee('V-2026-EXEMPT-ONLY', false);
     }
 }

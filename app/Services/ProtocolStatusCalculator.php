@@ -85,10 +85,15 @@ class ProtocolStatusCalculator
         callable $hasResult,
         callable $isValidated,
         callable $isTitleParent,
+        ?callable $isExemptWhenEmpty = null,
     ): Collection {
-        return $items->filter(function ($item) use ($hasResult, $isValidated, $isTitleParent) {
+        return $items->filter(function ($item) use ($hasResult, $isValidated, $isTitleParent, $isExemptWhenEmpty) {
             if ($isValidated($item) || $hasResult($item)) {
                 return true;
+            }
+
+            if ($isExemptWhenEmpty && $isExemptWhenEmpty($item)) {
+                return false;
             }
 
             return ! $isTitleParent($item);

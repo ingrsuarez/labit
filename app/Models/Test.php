@@ -33,10 +33,12 @@ class Test extends Model
         'nbu',
         'categories',
         'sort_order',
+        'empty_result_exempt',
     ];
 
     protected $casts = [
         'categories' => 'array',
+        'empty_result_exempt' => 'boolean',
     ];
 
     /**
