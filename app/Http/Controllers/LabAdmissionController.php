@@ -100,6 +100,9 @@ class LabAdmissionController extends Controller
                 'sort_key' => $d.'-c-'.str_pad((string) $admission->id, 10, '0', STR_PAD_LEFT),
                 'protocol_number' => $admission->protocol_number,
                 'subject' => $admission->patient?->full_name ?? '—',
+                'status_label' => $admission->status_label,
+                'status_color' => $admission->status_color,
+                'is_sent' => $admission->isSent(),
                 'pending_determinations_label' => $label,
                 'show_url' => route('lab.admissions.show', $admission).'#lab-admission-results',
             ];
@@ -133,6 +136,9 @@ class LabAdmissionController extends Controller
                     'sort_key' => $d.'-v-'.str_pad((string) $vetAdmission->id, 10, '0', STR_PAD_LEFT),
                     'protocol_number' => $vetAdmission->protocol_number,
                     'subject' => $subject,
+                    'status_label' => $vetAdmission->status_label,
+                    'status_color' => $vetAdmission->status_color,
+                    'is_sent' => $vetAdmission->isSent(),
                     'pending_determinations_label' => $label,
                     'show_url' => route('vet.admissions.show', $vetAdmission).'#vet-admission-results',
                 ];
