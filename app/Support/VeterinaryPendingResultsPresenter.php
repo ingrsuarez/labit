@@ -80,6 +80,10 @@ final class VeterinaryPendingResultsPresenter
                 continue;
             }
 
+            if (ProtocolEmptyResultExempt::isExemptAndEmpty($vt)) {
+                continue;
+            }
+
             if ($vt->hasResult()) {
                 continue;
             }

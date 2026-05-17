@@ -5,6 +5,23 @@
 
 ---
 
+## [v1.102.2] — 2026-05-17 — Determinaciones exentas si vacías + NBU
+
+### Agregado
+
+- **`empty_result_exempt`** en nomenclador: prácticas que pueden quedar vacías sin observación (p. ej. fórmula leucocitaria) no bloquean el estado del protocolo ni aparecen en resultados pendientes.
+- **`ProtocolEmptyResultExempt`**: integrado en cálculo de estado (clínico, vet, muestras) y planilla de pendientes.
+
+### Corregido
+
+- **NBU con un decimal**: acepta `1,50` / `1,5` normalizando antes de validar (`TestNbuInput`).
+
+### Tests
+
+- `ProtocolEmptyResultExemptTest`, `TestNbuInputTest`, casos en `ProtocolStatusUnifiedTest` y `LabPendingResultsPlanillaTest`.
+
+---
+
 ## [v1.102.1] — 2026-05-17 — Hotfix: estado “Completado” con padres-título (hemograma)
 
 ### Corregido

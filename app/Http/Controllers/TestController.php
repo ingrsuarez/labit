@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Test;
+use App\Support\TestNbuInput;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -90,6 +91,7 @@ class TestController extends Controller
             return $value === '' ? null : $value;
         }, $data);
         $request->merge($data);
+        $this->mergeNormalizedNbu($request);
 
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:tests,code',
@@ -109,6 +111,7 @@ class TestController extends Controller
             'categories' => 'nullable|array',
             'categories.*' => 'string|in:clinico,aguas_alimentos,veterinario',
             'sort_order' => 'nullable|integer|min:0',
+            'empty_result_exempt' => 'nullable|boolean',
             '_context' => 'nullable|string|in:vet_nomenclator',
         ], [
             'code.required' => 'El código es obligatorio.',
@@ -146,6 +149,7 @@ class TestController extends Controller
             'cost' => 0,
             'categories' => $validated['categories'] ?? ['clinico'],
             'sort_order' => $validated['sort_order'] ?? 0,
+            'empty_result_exempt' => $request->boolean('empty_result_exempt'),
         ]);
 
         // Asignar múltiples padres si se seleccionaron
@@ -181,6 +185,7 @@ class TestController extends Controller
             return $value === '' ? null : $value;
         }, $data);
         $request->merge($data);
+        $this->mergeNormalizedNbu($request);
 
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:tests,code,'.$test->id,
@@ -200,6 +205,7 @@ class TestController extends Controller
             'categories' => 'nullable|array',
             'categories.*' => 'string|in:clinico,aguas_alimentos,veterinario',
             'sort_order' => 'nullable|integer|min:0',
+            'empty_result_exempt' => 'nullable|boolean',
             '_context' => 'nullable|string|in:vet_nomenclator',
         ], [
             'code.required' => 'El código es obligatorio.',
@@ -236,6 +242,7 @@ class TestController extends Controller
             'price' => $validated['price'] ?? $test->price,
             'categories' => $validated['categories'] ?? $test->categories ?? ['clinico'],
             'sort_order' => $validated['sort_order'] ?? $test->sort_order,
+            'empty_result_exempt' => $request->boolean('empty_result_exempt'),
         ]);
 
         // Sincronizar múltiples padres (esto reemplaza los existentes)
@@ -298,6 +305,19 @@ class TestController extends Controller
 
         return redirect()->back()
             ->with('success', 'Determinación configurada correctamente.');
+    }
+
+    private function mergeNormalizedNbu(Request $request): void
+    {
+        if (! $request->has('nbu')) {
+            return;
+        }
+
+        $request->merge([
+            'nbu' => TestNbuInput::normalize(
+                $request->input('nbu') === null ? null : (string) $request->input('nbu')
+            ),
+        ]);
     }
 
     /**

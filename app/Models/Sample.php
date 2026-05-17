@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\ProtocolStatusCalculator;
+use App\Support\ProtocolCountableTestFilter;
 use App\Traits\Auditable;
 use App\Traits\GeneratesProtocolNumber;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Sample extends Model
 {
-    use Auditable, GeneratesProtocolNumber, HasFactory;
+    use Auditable, GeneratesProtocolNumber, HasFactory, ProtocolCountableTestFilter;
 
     protected $fillable = [
         'protocol_number',
@@ -107,7 +108,9 @@ class Sample extends Model
             return 'cancelled';
         }
 
-        return app(ProtocolStatusCalculator::class)->calculate($this->determinations);
+        $countable = $this->filterCountableSampleDeterminations($this->determinations);
+
+        return app(ProtocolStatusCalculator::class)->calculate($countable);
     }
 
     /**

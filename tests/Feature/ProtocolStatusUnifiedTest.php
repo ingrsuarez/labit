@@ -7,8 +7,11 @@ use App\Models\AdmissionTest;
 use App\Models\Customer;
 use App\Models\Sample;
 use App\Models\SampleDetermination;
+use App\Models\Species;
 use App\Models\Test;
 use App\Models\User;
+use App\Models\VetAdmission;
+use App\Models\VetAdmissionTest;
 use App\Services\ProtocolStatusCalculator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
@@ -59,6 +62,59 @@ class ProtocolStatusUnifiedTest extends TestCase
         $this->assertSame(
             ProtocolStatusCalculator::STATUS_COMPLETED,
             $admission->calculated_status
+        );
+    }
+
+    public function test_vet_admission_completed_when_exempt_determination_is_empty(): void
+    {
+        $user = User::factory()->create();
+        $customer = Customer::query()->create([
+            'name' => 'Vet Exempt',
+            'taxId' => '30-33333333-3',
+            'status' => 'activo',
+            'type' => ['veterinario'],
+        ]);
+        $species = Species::query()->create([
+            'name' => 'Canino',
+            'code' => 'DOG-EXEMPT',
+            'is_active' => true,
+        ]);
+
+        $vetAdmission = VetAdmission::query()->create([
+            'date' => now()->toDateString(),
+            'protocol_number' => 'V-2026-EXEMPT',
+            'status' => 'pending',
+            'customer_id' => $customer->id,
+            'species_id' => $species->id,
+            'animal_name' => 'Rulo',
+            'owner_name' => 'Crespo',
+            'total_price' => 100,
+            'created_by' => $user->id,
+        ]);
+
+        $loaded = $this->createTest('VET-LOAD');
+        $formula = $this->createTest('VET-FL', ['empty_result_exempt' => true, 'name' => 'formula leucocitaria']);
+
+        VetAdmissionTest::query()->create([
+            'vet_admission_id' => $vetAdmission->id,
+            'test_id' => $loaded->id,
+            'result' => '12.5',
+            'price' => 100,
+            'status' => 'completed',
+        ]);
+        VetAdmissionTest::query()->create([
+            'vet_admission_id' => $vetAdmission->id,
+            'test_id' => $formula->id,
+            'result' => null,
+            'price' => 0,
+            'status' => 'pending',
+        ]);
+
+        $vetAdmission->load('vetTests.test');
+
+        $this->assertSame(
+            ProtocolStatusCalculator::STATUS_COMPLETED,
+            $vetAdmission->calculated_status
         );
     }
 
@@ -153,9 +209,12 @@ class ProtocolStatusUnifiedTest extends TestCase
         $response->assertDontSee($notSent->protocol_number);
     }
 
-    private function createTest(string $code): Test
+    /**
+     * @param  array<string, mixed>  $extra
+     */
+    private function createTest(string $code, array $extra = []): Test
     {
-        return Test::query()->create([
+        return Test::query()->create(array_merge([
             'code' => $code,
             'name' => 'Test '.$code,
             'unit' => 'mg/dL',
@@ -177,7 +236,8 @@ class ProtocolStatusUnifiedTest extends TestCase
             'nbu' => 1,
             'categories' => ['lab'],
             'sort_order' => 0,
-        ]);
+            'empty_result_exempt' => false,
+        ], $extra));
     }
 
     private function createAdmission(array $attrs = []): Admission

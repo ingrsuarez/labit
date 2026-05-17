@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\AdmissionTest;
+use App\Models\SampleDetermination;
 use App\Models\Test;
 use App\Models\VetAdmissionTest;
 
@@ -39,6 +40,7 @@ trait ProtocolCountableTestFilter
             fn (AdmissionTest $at) => $this->isTitleParentTest(
                 $at->relationLoaded('test') ? $at->test : null
             ),
+            fn (AdmissionTest $at) => ProtocolEmptyResultExempt::isExemptAndEmpty($at),
         );
     }
 
@@ -51,6 +53,14 @@ trait ProtocolCountableTestFilter
             fn (VetAdmissionTest $vt) => $this->isTitleParentTest(
                 $vt->relationLoaded('test') ? $vt->test : null
             ),
+            fn (VetAdmissionTest $vt) => ProtocolEmptyResultExempt::isExemptAndEmpty($vt),
         );
+    }
+
+    protected function filterCountableSampleDeterminations($determinations)
+    {
+        return $determinations->filter(
+            fn (SampleDetermination $d) => ! ProtocolEmptyResultExempt::isExemptAndEmpty($d)
+        )->values();
     }
 }

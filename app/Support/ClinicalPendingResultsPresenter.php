@@ -65,6 +65,10 @@ final class ClinicalPendingResultsPresenter
                 continue;
             }
 
+            if (ProtocolEmptyResultExempt::isExemptAndEmpty($rowAt)) {
+                continue;
+            }
+
             if ($rowAt->hasResult()) {
                 continue;
             }

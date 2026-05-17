@@ -121,7 +121,7 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($tests as $test)
                         <tr class="hover:bg-teal-50 cursor-pointer transition-colors"
-                            onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}', {{ json_encode($test->categories ?? ['clinico']) }}, '{{ addslashes($test->other_reference) }}', '{{ $test->sort_order }}')">
+                            onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}', {{ json_encode($test->categories ?? ['clinico']) }}, '{{ addslashes($test->other_reference) }}', '{{ $test->sort_order }}', {{ $test->empty_result_exempt ? 'true' : 'false' }})">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="text-teal-600 font-medium">{{ $test->code }}</span>
                             </td>
@@ -164,7 +164,7 @@
                                     Refs
                                 </a>
                                 <button type="button" 
-                                        onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}', {{ json_encode($test->categories ?? ['clinico']) }}, '{{ addslashes($test->other_reference) }}', '{{ $test->sort_order }}')"
+                                        onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}', {{ json_encode($test->categories ?? ['clinico']) }}, '{{ addslashes($test->other_reference) }}', '{{ $test->sort_order }}', {{ $test->empty_result_exempt ? 'true' : 'false' }})"
                                         class="text-indigo-600 hover:text-indigo-900">
                                     Editar
                                 </button>
@@ -280,6 +280,17 @@
                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500"
                                    placeholder="0">
                             <p class="text-xs text-gray-500 mt-1">Orden global para padres/standalone. Menor = primero.</p>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="inline-flex items-start gap-2 cursor-pointer">
+                                <input type="checkbox" name="empty_result_exempt" value="1"
+                                       {{ old('empty_result_exempt') ? 'checked' : '' }}
+                                       class="mt-1 rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                <span class="text-sm text-gray-700">
+                                    <span class="font-medium">Exenta si queda vacía</span>
+                                    <span class="block text-xs text-gray-500 mt-0.5">Si no se observa nada y no se carga resultado, no bloquea el estado del protocolo ni aparece en resultados pendientes (p. ej. fórmula leucocitaria).</span>
+                                </span>
+                            </label>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Precio</label>
@@ -439,6 +450,16 @@
                                    class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
                             <p class="text-xs text-gray-500 mt-1">Orden global para padres/standalone. Menor = primero.</p>
                         </div>
+                        <div class="md:col-span-2">
+                            <label class="inline-flex items-start gap-2 cursor-pointer">
+                                <input type="checkbox" name="empty_result_exempt" value="1" id="edit-empty_result_exempt"
+                                       class="mt-1 rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                <span class="text-sm text-gray-700">
+                                    <span class="font-medium">Exenta si queda vacía</span>
+                                    <span class="block text-xs text-gray-500 mt-0.5">Si no se observa nada y no se carga resultado, no bloquea el estado del protocolo ni aparece en resultados pendientes (p. ej. fórmula leucocitaria).</span>
+                                </span>
+                            </label>
+                        </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Precio</label>
                             <input type="number" name="price" id="edit-price" step="0.01" min="0"
@@ -566,7 +587,7 @@
             }
         }
 
-        function openEditModal(id, code, name, unit, method, low, high, decimals, nbu, instructions, material, parentIds, price, categories, otherReference, sortOrder) {
+        function openEditModal(id, code, name, unit, method, low, high, decimals, nbu, instructions, material, parentIds, price, categories, otherReference, sortOrder, emptyResultExempt) {
             document.getElementById('form-edit').action = testsUpdateBase + '/' + id;
             document.getElementById('edit-code').value = code;
             document.getElementById('edit-name').value = name;
@@ -581,6 +602,7 @@
             document.getElementById('edit-instructions').value = instructions || '';
             document.getElementById('edit-material').value = material || '';
             document.getElementById('edit-sort_order').value = sortOrder || 0;
+            document.getElementById('edit-empty_result_exempt').checked = !!emptyResultExempt;
 
             // Setear categorías (solo si existen los checkboxes — no en nomenclador veterinario)
             categories = categories || ['clinico'];
@@ -652,7 +674,8 @@
                         test.price,
                         test.categories || ['clinico'],
                         test.other_reference || '',
-                        test.sort_order || 0
+                        test.sort_order || 0,
+                        !!test.empty_result_exempt
                     );
                 }
             }
