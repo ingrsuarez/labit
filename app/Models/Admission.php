@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Services\ProtocolStatusCalculator;
+use App\Support\ProtocolCountableTestFilter;
 use App\Traits\Auditable;
 use App\Traits\GeneratesProtocolNumber;
 use Carbon\Carbon;
@@ -10,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Admission extends Model
 {
-    use Auditable, GeneratesProtocolNumber, HasFactory;
+    use Auditable, GeneratesProtocolNumber, HasFactory, ProtocolCountableTestFilter;
 
     protected $fillable = [
         'date',
@@ -73,6 +75,8 @@ class Admission extends Model
     const STATUS_COMPLETED = 'completed';
 
     const STATUS_VALIDATED = 'validated';
+
+    const STATUS_PARTIALLY_VALIDATED = 'partially_validated';
 
     const STATUS_CANCELLED = 'cancelled';
 
@@ -187,18 +191,11 @@ class Admission extends Model
      */
     public function getStatusLabelAttribute(): string
     {
-        if ($this->sent_at !== null && $this->status === self::STATUS_VALIDATED) {
-            return 'Enviado';
+        if ($this->status === self::STATUS_CANCELLED) {
+            return 'Cancelado';
         }
 
-        return match ($this->status) {
-            self::STATUS_PENDING => 'Pendiente',
-            self::STATUS_IN_PROGRESS => 'En Proceso',
-            self::STATUS_COMPLETED => 'Completado',
-            self::STATUS_VALIDATED => 'Validado',
-            self::STATUS_CANCELLED => 'Cancelado',
-            default => $this->status,
-        };
+        return ProtocolStatusCalculator::labelFor($this->status);
     }
 
     /**
@@ -206,18 +203,11 @@ class Admission extends Model
      */
     public function getStatusColorAttribute(): string
     {
-        if ($this->sent_at !== null && $this->status === self::STATUS_VALIDATED) {
-            return 'sky';
+        if ($this->status === self::STATUS_CANCELLED) {
+            return 'red';
         }
 
-        return match ($this->status) {
-            self::STATUS_PENDING => 'yellow',
-            self::STATUS_IN_PROGRESS => 'blue',
-            self::STATUS_COMPLETED => 'green',
-            self::STATUS_VALIDATED => 'purple',
-            self::STATUS_CANCELLED => 'red',
-            default => 'gray',
-        };
+        return ProtocolStatusCalculator::colorFor($this->status);
     }
 
     /**
@@ -226,46 +216,9 @@ class Admission extends Model
      */
     public function getCalculatedStatusAttribute(): string
     {
-        $countable = $this->admissionTests->filter(function (AdmissionTest $at) {
-            if ($at->hasResult() || $at->is_validated) {
-                return true;
-            }
-            if (! $at->relationLoaded('test') || ! $at->test) {
-                return true;
-            }
-            $t = $at->test;
-            if ($t->relationLoaded('childTests') && $t->childTests->isNotEmpty()) {
-                return false;
-            }
-            if ($t->relationLoaded('children') && $t->children->isNotEmpty()) {
-                return false;
-            }
+        $countable = $this->filterCountableAdmissionTests($this->admissionTests);
 
-            return true;
-        });
-
-        $total = $countable->count();
-
-        if ($total === 0) {
-            return self::STATUS_PENDING;
-        }
-
-        $validated = $countable->where('is_validated', true)->count();
-        $withResult = $countable->filter(fn ($at) => $at->hasResult())->count();
-
-        if ($validated === $total) {
-            return self::STATUS_VALIDATED;
-        }
-
-        if ($withResult === $total || $validated > 0) {
-            return self::STATUS_COMPLETED;
-        }
-
-        if ($withResult > 0) {
-            return self::STATUS_IN_PROGRESS;
-        }
-
-        return self::STATUS_PENDING;
+        return app(ProtocolStatusCalculator::class)->calculate($countable);
     }
 
     /**

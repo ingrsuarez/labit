@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers\Concerns;
 
-use App\Models\Admission;
 use App\Models\Sample;
-use App\Models\VetAdmission;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
@@ -56,7 +54,7 @@ trait AppliesProtocolIndexFilters
 
         if ($request->filled('status')) {
             if ($request->status === 'enviado') {
-                $query->where('status', Admission::STATUS_VALIDATED)->whereNotNull('sent_at');
+                $query->whereNotNull('sent_at');
             } else {
                 $query->where('status', $request->status);
             }
@@ -107,7 +105,9 @@ trait AppliesProtocolIndexFilters
 
         if ($request->filled('status')) {
             $status = $request->status;
-            if ($status === 'pending') {
+            if ($status === 'enviado') {
+                $query->whereNotNull('sent_at');
+            } elseif ($status === 'pending') {
                 $query->where(function ($q) {
                     $q->whereNull('status')
                         ->orWhereNotIn('status', ['validated', 'cancelled']);
@@ -220,6 +220,10 @@ trait AppliesProtocolIndexFilters
         $want = strtolower((string) $request->list_status);
 
         return $samples->filter(function (Sample $sample) use ($want) {
+            if ($want === 'enviado') {
+                return $sample->sent_at !== null;
+            }
+
             return strtolower($sample->calculated_status) === $want;
         })->values();
     }

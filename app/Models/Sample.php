@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ProtocolStatusCalculator;
 use App\Traits\Auditable;
 use App\Traits\GeneratesProtocolNumber;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -98,37 +99,15 @@ class Sample extends Model
     }
 
     /**
-     * Calcula el estado real del protocolo basado en determinaciones
-     * - Validado: TODAS las determinaciones están validadas
-     * - Completo: Todos los resultados cargados O algunas validadas
-     * - Incompleto: No tiene todas las determinaciones con resultado
+     * Estado de trabajo calculado a partir de determinaciones (envío aparte: sent_at).
      */
     public function getCalculatedStatusAttribute(): string
     {
-        if ($this->sent_at !== null && $this->validation_status === 'validated') {
-            return 'enviado';
+        if ($this->status === 'cancelled') {
+            return 'cancelled';
         }
 
-        $total = $this->determinations->count();
-        if ($total === 0) {
-            return 'pending';
-        }
-
-        $completed = $this->determinations->where('status', 'completed')->count();
-        $validated = $this->determinations->where('is_validated', true)->count();
-
-        // Todas validadas = Validado
-        if ($validated === $total && $total > 0) {
-            return 'validated';
-        }
-
-        // Todas completadas O algunas validadas = Completo
-        if ($completed === $total || $validated > 0) {
-            return 'completed';
-        }
-
-        // No todas completadas = Incompleto
-        return 'incomplete';
+        return app(ProtocolStatusCalculator::class)->calculate($this->determinations);
     }
 
     /**
@@ -136,18 +115,11 @@ class Sample extends Model
      */
     public function getStatusLabelAttribute(): string
     {
-        $calculated = $this->calculated_status;
+        if ($this->calculated_status === 'cancelled') {
+            return 'Cancelado';
+        }
 
-        return match ($calculated) {
-            'enviado' => 'Enviado',
-            'validated' => 'Validado',
-            'completed' => 'Completo',
-            'incomplete' => 'Incompleto',
-            'pending' => 'Pendiente',
-            'in_progress' => 'En Proceso',
-            'cancelled' => 'Cancelado',
-            default => $this->status,
-        };
+        return ProtocolStatusCalculator::labelFor($this->calculated_status);
     }
 
     /**
@@ -155,18 +127,11 @@ class Sample extends Model
      */
     public function getStatusColorAttribute(): string
     {
-        $calculated = $this->calculated_status;
+        if ($this->calculated_status === 'cancelled') {
+            return 'red';
+        }
 
-        return match ($calculated) {
-            'enviado' => 'sky',
-            'validated' => 'green',
-            'completed' => 'blue',
-            'incomplete' => 'yellow',
-            'pending' => 'yellow',
-            'in_progress' => 'blue',
-            'cancelled' => 'red',
-            default => 'gray',
-        };
+        return ProtocolStatusCalculator::colorFor($this->calculated_status);
     }
 
     /**

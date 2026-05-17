@@ -112,8 +112,9 @@
                     ['key' => 'pending', 'label' => 'Pendiente', 'color' => 'bg-yellow-400', 'value' => $byStatus['pending'], 'link' => route('lab.admissions.index', ['status' => 'pending'])],
                     ['key' => 'in_progress', 'label' => 'En Proceso', 'color' => 'bg-blue-400', 'value' => $byStatus['in_progress'], 'link' => route('lab.admissions.index', ['status' => 'in_progress'])],
                     ['key' => 'completed', 'label' => 'Completado', 'color' => 'bg-green-400', 'value' => $byStatus['completed'], 'link' => route('lab.admissions.index', ['status' => 'completed'])],
+                    ['key' => 'partially_validated', 'label' => 'Validado parcial', 'color' => 'bg-indigo-400', 'value' => $byStatus['partially_validated'] ?? 0, 'link' => route('lab.admissions.index', ['status' => 'partially_validated'])],
                     ['key' => 'validated', 'label' => 'Validado', 'color' => 'bg-purple-400', 'value' => $byStatus['validated'], 'link' => route('lab.admissions.index', ['status' => 'validated'])],
-                    ['key' => 'sent', 'label' => 'Enviado', 'color' => 'bg-sky-400', 'value' => $byStatus['sent'], 'link' => route('lab.admissions.index', ['status' => 'validated'])],
+                    ['key' => 'sent', 'label' => 'Enviado', 'color' => 'bg-sky-400', 'value' => $byStatus['sent'], 'link' => route('lab.admissions.index', ['status' => 'enviado'])],
                 ];
                 $statusMax = max(1, max(array_column($statusData, 'value')));
             @endphp

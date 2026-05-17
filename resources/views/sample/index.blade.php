@@ -52,10 +52,11 @@
                     <select x-model="filterStatus" class="rounded-lg border-gray-300 shadow-sm text-sm focus:ring-teal-500 focus:border-teal-500">
                         <option value="">Todos los estados</option>
                         <option value="validated">Validado</option>
-                        <option value="enviado">Enviado</option>
+                        <option value="partially_validated">Validado parcial</option>
                         <option value="completed">Completado</option>
-                        <option value="incomplete">Incompleto</option>
+                        <option value="in_progress">En Proceso</option>
                         <option value="pending">Pendiente</option>
+                        <option value="enviado">Enviado</option>
                     </select>
                 </div>
                 @if(isset($branches) && $branches->count() > 1)
@@ -126,12 +127,13 @@
                                 '{{ strtolower(addslashes($sample->location ?? '')) }}',
                                 '{{ strtolower($sample->sample_type ?? '') }}',
                                 '{{ strtolower($calcStatus) }}',
-                                '{{ $sample->lab_branch_id }}'
+                                '{{ $sample->lab_branch_id }}',
+                                {{ $sample->sent_at ? 'true' : 'false' }}
                             )">
                             <td class="px-3 py-4">
                                 <input type="checkbox" :value="{{ $sample->id }}"
                                        x-model="selectedIds"
-                                       @if($calcStatus !== 'validated' && $calcStatus !== 'enviado') disabled @endif
+                                       @if($calcStatus !== 'validated') disabled @endif
                                        class="rounded border-gray-300 text-teal-600 focus:ring-teal-500 disabled:opacity-30">
                             </td>
                             <td class="px-3 py-4 whitespace-nowrap">
@@ -182,16 +184,21 @@
                                 @endif
                             </td>
                             <td class="px-2 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                    @switch($calcStatus)
-                                        @case('enviado') bg-sky-100 text-sky-800 @break
-                                        @case('validated') bg-green-100 text-green-800 @break
-                                        @case('completed') bg-blue-100 text-blue-800 @break
-                                        @case('incomplete') bg-yellow-100 text-yellow-800 @break
-                                        @case('pending') bg-gray-100 text-gray-800 @break
-                                        @default bg-gray-100 text-gray-800 @break
-                                    @endswitch">
-                                    {{ $sample->status_label }}
+                                <span class="inline-flex flex-wrap items-center gap-1">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        @switch($calcStatus)
+                                            @case('validated') bg-purple-100 text-purple-800 @break
+                                            @case('partially_validated') bg-indigo-100 text-indigo-800 @break
+                                            @case('completed') bg-green-100 text-green-800 @break
+                                            @case('in_progress') bg-blue-100 text-blue-800 @break
+                                            @case('pending') bg-yellow-100 text-yellow-800 @break
+                                            @default bg-gray-100 text-gray-800 @break
+                                        @endswitch">
+                                        {{ $sample->status_label }}
+                                    </span>
+                                    @if($sample->isSent())
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-800">Enviado</span>
+                                    @endif
                                 </span>
                             </td>
                             <td class="px-2 py-4 whitespace-nowrap text-right text-sm font-medium space-x-1">
@@ -377,14 +384,16 @@
                     window.history.replaceState({}, '', url);
                 },
 
-                matchesFilter(protocol, customer, place, type, status, branchId) {
+                matchesFilter(protocol, customer, place, type, status, branchId, isSent) {
                     const q = this.search.toLowerCase().trim();
                     const matchesSearch = !q ||
                         protocol.includes(q) ||
                         customer.includes(q) ||
                         place.includes(q);
                     const matchesType = !this.filterType || type === this.filterType.toLowerCase();
-                    const matchesStatus = !this.filterStatus || status === this.filterStatus.toLowerCase();
+                    const fs = this.filterStatus.toLowerCase();
+                    const matchesStatus = !this.filterStatus
+                        || (fs === 'enviado' ? isSent : status === fs);
                     const matchesBranch = !this.filterBranch || (this.filterBranch === 'none' ? !branchId : branchId === this.filterBranch);
                     const visible = matchesSearch && matchesType && matchesStatus && matchesBranch;
                     this.$nextTick(() => this.updateCount());
