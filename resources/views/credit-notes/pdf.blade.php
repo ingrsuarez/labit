@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Factura {{ $invoice->full_number }}</title>
+    <title>Nota de Crédito {{ $creditNote->full_number }}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; font-size: 11px; line-height: 1.4; color: #333; }
@@ -61,38 +61,28 @@
 </head>
 <body>
     @php
-        $company = $invoice->company;
+        $company = $creditNote->company;
         $cuit = $company ? str_replace('-', '', $company->cuit) : config('afip.cuit');
         $formattedCuit = $company ? $company->cuit : (substr($cuit, 0, 2) . '-' . substr($cuit, 2, 8) . '-' . substr($cuit, 10, 1));
-        $pos = $invoice->pointOfSale;
-        $receiverName = $invoice->receiverDisplayName();
-        $receiverTaxId = $invoice->receiverDocumentNumber() ?? '-';
-        $receiverTax = $invoice->receiverTaxCondition();
+        $pos = $creditNote->pointOfSale;
+        $customer = $creditNote->customer;
+        $associatedInvoice = $creditNote->salesInvoice;
 
-        $voucherTypeName = match($invoice->voucher_type) {
-            'A' => 'FACTURA',
-            'B' => 'FACTURA',
-            'C' => 'FACTURA',
-            default => 'FACTURA',
-        };
+        $afipCodes = ['A' => '03', 'B' => '08', 'C' => '13'];
+        $afipCode = 'Cód. ' . ($afipCodes[$creditNote->voucher_type] ?? '00');
 
-        $afipCodes = ['A' => '01', 'B' => '06', 'C' => '11'];
-        $afipCode = 'Cód. ' . ($afipCodes[$invoice->voucher_type] ?? '00');
-
-        $posCode = str_pad((string) ($pos?->code ?? $invoice->point_of_sale ?? '1'), 5, '0', STR_PAD_LEFT);
         $voucherNumber = str_pad(
-            (string) ($invoice->afip_voucher_number ?? preg_replace('/\D/', '', $invoice->invoice_number)),
+            (string) ($creditNote->afip_voucher_number ?? preg_replace('/\D/', '', $creditNote->credit_note_number)),
             8,
             '0',
             STR_PAD_LEFT
         );
 
-        $netAmount = $invoice->items->sum(fn($i) => $i->quantity * $i->unit_price);
-        $totalIva = $invoice->items->sum('iva_amount');
+        $netAmount = $creditNote->items->sum(fn ($i) => $i->quantity * $i->unit_price);
+        $totalIva = $creditNote->items->sum('iva_amount');
     @endphp
 
-    {{-- PIE DE PÁGINA ARCA: se define ANTES del contenido para que mPDF lo aplique desde la pág 1 --}}
-    @if($invoice->cae && !empty($qrDataUri))
+    @if($creditNote->cae && !empty($qrDataUri))
         <htmlpagefooter name="arcaFooter">
             <div style="border-top: 2px solid #333; padding-top: 8px;">
                 <table width="100%" cellpadding="0" cellspacing="0">
@@ -107,11 +97,11 @@
                             </div>
                             <div style="font-size: 10px; margin-bottom: 2px;">
                                 <span style="color: #666;">CAE:</span>
-                                <span style="font-weight: bold; font-family: 'Courier New', monospace;">{{ $invoice->cae }}</span>
+                                <span style="font-weight: bold; font-family: 'Courier New', monospace;">{{ $creditNote->cae }}</span>
                             </div>
                             <div style="font-size: 10px;">
                                 <span style="color: #666;">Fecha de Vto. del CAE:</span>
-                                <span style="font-weight: bold;">{{ $invoice->cae_expiration?->format('d/m/Y') }}</span>
+                                <span style="font-weight: bold;">{{ $creditNote->cae_expiration?->format('d/m/Y') }}</span>
                             </div>
                         </td>
                     </tr>
@@ -135,7 +125,6 @@
         <sethtmlpagefooter name="simpleFooter" value="on" />
     @endif
 
-    {{-- ENCABEZADO --}}
     <table class="header-table">
         <tr>
             <td class="header-left" style="border-right: 1px solid #000;">
@@ -154,19 +143,16 @@
                 </div>
             </td>
             <td class="header-center" style="border-right: 1px solid #000; padding-top: 5px;">
-                <div class="voucher-letter">{{ $invoice->voucher_type }}</div>
+                <div class="voucher-letter">{{ $creditNote->voucher_type }}</div>
                 <div class="voucher-code">{{ $afipCode }}</div>
             </td>
             <td class="header-right">
-                <div class="invoice-title">{{ $voucherTypeName }}</div>
+                <div class="invoice-title">NOTA DE CRÉDITO</div>
                 <div class="invoice-number">
-                    Comp. Nro: {{ $posCode }}-{{ $voucherNumber }}
+                    Punto de Venta: {{ $pos ? $pos->code : '00001' }}&nbsp;&nbsp;&nbsp;Comp. Nro: {{ $voucherNumber }}
                 </div>
                 <div class="invoice-date">
-                    Fecha de Emisión: {{ $invoice->issue_date->format('d/m/Y') }}<br>
-                    @if($invoice->due_date)
-                        Fecha de Vto. para el pago: {{ $invoice->due_date->format('d/m/Y') }}
-                    @endif
+                    Fecha de Emisión: {{ $creditNote->issue_date->format('d/m/Y') }}
                 </div>
             </td>
         </tr>
@@ -174,31 +160,32 @@
 
     <div class="original-label">ORIGINAL</div>
 
-    {{-- DATOS DEL RECEPTOR --}}
     <div class="client-box">
         <table width="100%">
             <tr>
                 <td class="client-label">Razón Social:</td>
-                <td class="client-value">{{ $receiverName }}</td>
+                <td class="client-value">{{ $customer->name }}</td>
                 <td class="client-label" style="width: 100px;">CUIT/DNI:</td>
-                <td class="client-value">{{ $receiverTaxId }}</td>
+                <td class="client-value">{{ $customer->taxId ?? '-' }}</td>
             </tr>
             <tr>
                 <td class="client-label">Domicilio:</td>
-                <td class="client-value">{{ $invoice->customer?->address ?? '-' }}{{ $invoice->customer?->city ? ', ' . $invoice->customer->city : '' }}{{ $invoice->customer?->state ? ', ' . $invoice->customer->state : '' }}</td>
+                <td class="client-value">{{ $customer->address ?? '-' }}{{ $customer->city ? ', ' . $customer->city : '' }}{{ $customer->state ? ', ' . $customer->state : '' }}</td>
                 <td class="client-label">Cond. IVA:</td>
-                <td class="client-value">{{ $receiverTax }}</td>
+                <td class="client-value">{{ $customer->tax ?? '-' }}</td>
             </tr>
-            @if($invoice->admission_id)
+            @if($associatedInvoice)
             <tr>
-                <td class="client-label">Admisión:</td>
-                <td class="client-value" colspan="3">#{{ $invoice->admission_id }}</td>
+                <td class="client-label">Comp. Asociado:</td>
+                <td class="client-value" colspan="3">
+                    Factura {{ $associatedInvoice->voucher_type }} — Pto. Vta. {{ $associatedInvoice->pointOfSale?->code ?? '00001' }} — Nro. {{ str_pad($associatedInvoice->afip_voucher_number ?? $associatedInvoice->invoice_number, 8, '0', STR_PAD_LEFT) }}
+                    ({{ $associatedInvoice->issue_date->format('d/m/Y') }})
+                </td>
             </tr>
             @endif
         </table>
     </div>
 
-    {{-- ITEMS --}}
     <table class="items-table">
         <thead>
             <tr>
@@ -206,7 +193,7 @@
                 <th>Descripción</th>
                 <th class="center" style="width: 55px;">Cant.</th>
                 <th class="right" style="width: 85px;">P. Unitario</th>
-                @if($invoice->voucher_type === 'A')
+                @if($creditNote->voucher_type === 'A')
                     <th class="center" style="width: 55px;">IVA %</th>
                     <th class="right" style="width: 75px;">IVA</th>
                 @endif
@@ -214,18 +201,18 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($invoice->items as $index => $item)
+            @foreach($creditNote->items as $index => $item)
                 <tr>
                     <td class="center" style="color: #999;">{{ $index + 1 }}</td>
                     <td>{{ $item->description }}</td>
                     <td class="center">{{ number_format($item->quantity, 2, ',', '.') }}</td>
                     <td class="right">${{ number_format($item->unit_price, 2, ',', '.') }}</td>
-                    @if($invoice->voucher_type === 'A')
+                    @if($creditNote->voucher_type === 'A')
                         <td class="center">{{ number_format($item->iva_rate, 1) }}%</td>
                         <td class="right">${{ number_format($item->iva_amount, 2, ',', '.') }}</td>
                     @endif
                     <td class="right" style="font-weight: bold;">
-                        @if($invoice->voucher_type === 'A')
+                        @if($creditNote->voucher_type === 'A')
                             ${{ number_format($item->quantity * $item->unit_price, 2, ',', '.') }}
                         @else
                             ${{ number_format($item->total, 2, ',', '.') }}
@@ -236,29 +223,28 @@
         </tbody>
     </table>
 
-    {{-- TOTALES --}}
     <table class="totals-table">
-        @if($invoice->voucher_type === 'A')
+        @if($creditNote->voucher_type === 'A')
             <tr>
                 <td class="totals-label">Importe Neto Gravado:</td>
                 <td class="totals-value">${{ number_format($netAmount, 2, ',', '.') }}</td>
             </tr>
-            @if($invoice->iva_10_5 > 0)
+            @if($creditNote->iva_10_5 > 0)
             <tr>
                 <td class="totals-label">IVA 10,5%:</td>
-                <td class="totals-value">${{ number_format($invoice->iva_10_5, 2, ',', '.') }}</td>
+                <td class="totals-value">${{ number_format($creditNote->iva_10_5, 2, ',', '.') }}</td>
             </tr>
             @endif
-            @if($invoice->iva_21 > 0)
+            @if($creditNote->iva_21 > 0)
             <tr>
                 <td class="totals-label">IVA 21%:</td>
-                <td class="totals-value">${{ number_format($invoice->iva_21, 2, ',', '.') }}</td>
+                <td class="totals-value">${{ number_format($creditNote->iva_21, 2, ',', '.') }}</td>
             </tr>
             @endif
-            @if($invoice->iva_27 > 0)
+            @if($creditNote->iva_27 > 0)
             <tr>
                 <td class="totals-label">IVA 27%:</td>
-                <td class="totals-value">${{ number_format($invoice->iva_27, 2, ',', '.') }}</td>
+                <td class="totals-value">${{ number_format($creditNote->iva_27, 2, ',', '.') }}</td>
             </tr>
             @endif
         @else
@@ -267,28 +253,27 @@
                 <td class="totals-value">${{ number_format($netAmount + $totalIva, 2, ',', '.') }}</td>
             </tr>
         @endif
-        @if($invoice->percepciones > 0)
+        @if($creditNote->percepciones > 0)
         <tr>
             <td class="totals-label">Percepciones:</td>
-            <td class="totals-value">${{ number_format($invoice->percepciones, 2, ',', '.') }}</td>
+            <td class="totals-value">${{ number_format($creditNote->percepciones, 2, ',', '.') }}</td>
         </tr>
         @endif
-        @if($invoice->otros_impuestos > 0)
+        @if($creditNote->otros_impuestos > 0)
         <tr>
             <td class="totals-label">Otros Impuestos:</td>
-            <td class="totals-value">${{ number_format($invoice->otros_impuestos, 2, ',', '.') }}</td>
+            <td class="totals-value">${{ number_format($creditNote->otros_impuestos, 2, ',', '.') }}</td>
         </tr>
         @endif
         <tr class="totals-total">
             <td class="totals-label" style="font-weight: bold;">IMPORTE TOTAL: $</td>
-            <td class="totals-value" style="font-size: 14px;">${{ number_format($netAmount + $totalIva + $invoice->percepciones + $invoice->otros_impuestos, 2, ',', '.') }}</td>
+            <td class="totals-value" style="font-size: 14px;">${{ number_format($creditNote->total, 2, ',', '.') }}</td>
         </tr>
     </table>
 
-    {{-- NOTAS --}}
-    @if($invoice->notes)
+    @if($creditNote->reason)
         <div class="notes-box">
-            <strong>Observaciones:</strong> {{ $invoice->notes }}
+            <strong>Motivo:</strong> {{ $creditNote->reason }}
         </div>
     @endif
 </body>
