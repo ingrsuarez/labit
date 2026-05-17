@@ -407,14 +407,13 @@ XML;
     public function createVoucher(SalesInvoice $invoice): array
     {
         $pointOfSale = $invoice->pointOfSale;
-        $customer = $invoice->customer;
 
         $voucherTypeId = self::getVoucherTypeId($invoice->voucher_type);
         $afipPosNumber = $pointOfSale->afip_pos_number;
 
-        $docTipo = self::getDocTipo($customer->tax ?? 'consumidor final');
-        $docNro = $docTipo === 99 ? 0 : intval(str_replace('-', '', $customer->taxId ?? '0'));
-        $condIvaReceptor = self::getCondicionIvaReceptor($customer->tax ?? 'consumidor final', $invoice->voucher_type);
+        $docTipo = $invoice->receiverDocTipo();
+        $docNro = $invoice->receiverDocNro();
+        $condIvaReceptor = self::getCondicionIvaReceptor($invoice->receiverTaxCondition(), $invoice->voucher_type);
 
         $lastVoucher = $this->getLastVoucher($afipPosNumber, $voucherTypeId);
         $nextNumber = $lastVoucher + 1;

@@ -113,7 +113,7 @@ class AccountingEntryService
                 'account_code' => '1.1.04',
                 'debit' => $total,
                 'credit' => 0,
-                'description' => 'FC '.$invoice->full_number.' — '.($invoice->customer->name ?? ''),
+                'description' => 'FC '.$invoice->full_number.' — '.$invoice->receiverDisplayName(),
             ],
             [
                 'account_code' => '4.1.01',

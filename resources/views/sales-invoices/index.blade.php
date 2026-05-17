@@ -156,7 +156,7 @@
                                         </a>
                                     </td>
                                     <td class="px-3 py-3 text-sm text-gray-700 align-top">
-                                        <span class="line-clamp-2 break-words block max-w-[180px]" title="{{ $invoice->customer->name }}">{{ $invoice->customer->name }}</span>
+                                        <span class="line-clamp-2 break-words block max-w-[180px]" title="{{ $invoice->receiverDisplayName() }}">{{ $invoice->receiverDisplayName() }}</span>
                                     </td>
                                     <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-500 align-top">{{ $invoice->issue_date->format('d/m/Y') }}</td>
                                     <td class="px-3 py-3 whitespace-nowrap text-sm align-top {{ $isPastDue ? 'text-red-600 font-medium' : 'text-gray-500' }}"

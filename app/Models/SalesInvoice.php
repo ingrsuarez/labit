@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AfipService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,7 @@ class SalesInvoice extends Model
     protected $fillable = [
         'company_id',
         'invoice_number', 'voucher_type', 'point_of_sale', 'point_of_sale_id', 'customer_id',
+        'receiver_name', 'receiver_tax_condition', 'receiver_document_type', 'receiver_document_number',
         'quote_id', 'admission_id', 'issue_date', 'due_date',
         'subtotal', 'iva_21', 'iva_10_5', 'iva_27', 'percepciones', 'otros_impuestos',
         'total', 'amount_collected', 'balance', 'status', 'notes', 'created_by',
@@ -27,16 +29,50 @@ class SalesInvoice extends Model
         'afip_response' => 'array', 'is_electronic' => 'boolean',
     ];
 
-    public function customer() { return $this->belongsTo(Customer::class); }
-    public function company() { return $this->belongsTo(Company::class); }
-    public function quote() { return $this->belongsTo(Quote::class); }
-    public function pointOfSale() { return $this->belongsTo(PointOfSale::class); }
-    public function creator() { return $this->belongsTo(User::class, 'created_by'); }
-    public function items() { return $this->hasMany(SalesInvoiceItem::class)->orderBy('sort_order'); }
-    public function collectionReceiptItems() { return $this->hasMany(CollectionReceiptItem::class); }
-    public function creditNotes() { return $this->hasMany(CreditNote::class); }
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
 
-    public function invoiceProtocols() { return $this->hasMany(InvoiceProtocol::class); }
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function quote()
+    {
+        return $this->belongsTo(Quote::class);
+    }
+
+    public function pointOfSale()
+    {
+        return $this->belongsTo(PointOfSale::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function items()
+    {
+        return $this->hasMany(SalesInvoiceItem::class)->orderBy('sort_order');
+    }
+
+    public function collectionReceiptItems()
+    {
+        return $this->hasMany(CollectionReceiptItem::class);
+    }
+
+    public function creditNotes()
+    {
+        return $this->hasMany(CreditNote::class);
+    }
+
+    public function invoiceProtocols()
+    {
+        return $this->hasMany(InvoiceProtocol::class);
+    }
 
     public function recalculate(): void
     {
@@ -92,7 +128,8 @@ class SalesInvoice extends Model
 
     public function getFullNumberAttribute(): string
     {
-        $pv = $this->pointOfSale ? $this->pointOfSale->code . '-' : ($this->point_of_sale ? str_pad($this->point_of_sale, 5, '0', STR_PAD_LEFT) . '-' : '');
+        $pv = $this->pointOfSale ? $this->pointOfSale->code.'-' : ($this->point_of_sale ? str_pad($this->point_of_sale, 5, '0', STR_PAD_LEFT).'-' : '');
+
         return "FC {$this->voucher_type} {$pv}{$this->invoice_number}";
     }
 
@@ -113,5 +150,45 @@ class SalesInvoice extends Model
         return $this->status === 'pendiente'
             && (bool) $this->is_electronic
             && empty($this->cae);
+    }
+
+    public function hasOccasionalReceiver(): bool
+    {
+        return $this->customer_id === null && filled($this->receiver_name);
+    }
+
+    public function receiverDisplayName(): string
+    {
+        return $this->customer?->name ?? $this->receiver_name ?? '';
+    }
+
+    public function receiverTaxCondition(): string
+    {
+        return $this->customer?->tax ?? $this->receiver_tax_condition ?? 'consumidor final';
+    }
+
+    public function receiverDocumentNumber(): ?string
+    {
+        return $this->customer?->taxId ?? $this->receiver_document_number;
+    }
+
+    public function receiverDocTipo(): int
+    {
+        if ($this->receiver_document_type !== null) {
+            return (int) $this->receiver_document_type;
+        }
+
+        return AfipService::getDocTipo($this->receiverTaxCondition());
+    }
+
+    public function receiverDocNro(): int
+    {
+        $docTipo = $this->receiverDocTipo();
+
+        if ($docTipo === 99) {
+            return 0;
+        }
+
+        return (int) str_replace('-', '', $this->receiverDocumentNumber() ?? '0');
     }
 }
