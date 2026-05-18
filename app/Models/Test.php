@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\TestFormulaDefinition;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -39,6 +40,7 @@ class Test extends Model
     protected $casts = [
         'categories' => 'array',
         'empty_result_exempt' => 'boolean',
+        'formula' => 'array',
     ];
 
     /**
@@ -217,7 +219,9 @@ class Test extends Model
     public function getMaterialAbbreviationAttribute(): string
     {
         $mat = $this->materialRelation;
-        if (!$mat) return '?';
+        if (! $mat) {
+            return '?';
+        }
 
         return $mat->code ?: mb_strtoupper(mb_substr($mat->name, 0, 3));
     }
@@ -235,5 +239,30 @@ class Test extends Model
     public function isVeterinary(): bool
     {
         return in_array('veterinario', $this->categories ?? []);
+    }
+
+    public function hasFormula(): bool
+    {
+        $definition = $this->formula;
+
+        return is_array($definition) && ! empty($definition['tokens']);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function formulaDefinition(): ?array
+    {
+        return $this->hasFormula() ? $this->formula : null;
+    }
+
+    public function formulaDisplay(): ?string
+    {
+        if (! $this->hasFormula()) {
+            return null;
+        }
+
+        return $this->formula['expression_display']
+            ?? TestFormulaDefinition::buildDisplay($this->formula['tokens'] ?? []);
     }
 }

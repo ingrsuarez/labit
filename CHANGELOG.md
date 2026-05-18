@@ -5,6 +5,26 @@
 
 ---
 
+## [v1.103.0] — 2026-05-17 — Determinaciones calculadas por fórmula
+
+### Agregado
+
+- **Fórmulas en nomenclador:** editor con prácticas del catálogo y operadores `+ − × ÷` y paréntesis; columna «Calc.» en el listado.
+- **`TestFormulaEvaluator`:** cálculo seguro en protocolo (clínico, vet, muestras) con recálculo en vivo al cambiar operandos.
+- **Ingesta API/LISCOM:** resultados entrantes ignorados en prácticas con fórmula (`FORMULA_CALCULATED`).
+
+### Reglas
+
+- Campo calculado editable en UI; al cambiar un operando el valor se recalcula y reemplaza el anterior.
+- Sin operandos numéricos válidos o con división por cero → campo vacío.
+- Decimales según configuración de la práctica (default 2).
+
+### Tests
+
+- `TestFormulaEvaluatorTest`, `CalculatedDeterminationFormulaTest`.
+
+---
+
 ## [v1.102.2] — 2026-05-17 — Determinaciones exentas si vacías + NBU
 
 ### Agregado

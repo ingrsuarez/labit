@@ -9,6 +9,7 @@ use App\Models\ResultBatch;
 use App\Models\ResultIngestion;
 use App\Models\Sample;
 use App\Models\SampleDetermination;
+use App\Models\Test;
 use App\Models\VetAdmissionTest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -30,6 +31,8 @@ class ApiResultIngestionService
     public const REASON_PROTOCOL_NOT_FOUND = 'PROTOCOL_NOT_FOUND';
 
     public const REASON_PROTOCOL_OUT_OF_BRANCH = 'PROTOCOL_OUT_OF_BRANCH';
+
+    public const REASON_FORMULA_CALCULATED = 'FORMULA_CALCULATED';
 
     /**
      * Procesa un batch completo. Devuelve estructura para serializar al cliente.
@@ -190,6 +193,16 @@ class ApiResultIngestionService
                 'obx_index' => $result['obx_index'],
                 'status' => self::STATUS_REJECTED,
                 'reason' => self::REASON_DETERMINATION_NOT_FOUND,
+                'labit_test_id' => $result['labit_test_id'],
+            ];
+        }
+
+        $test = Test::query()->find($result['labit_test_id']);
+        if ($test?->hasFormula()) {
+            return [
+                'obx_index' => $result['obx_index'],
+                'status' => self::STATUS_REJECTED,
+                'reason' => self::REASON_FORMULA_CALCULATED,
                 'labit_test_id' => $result['labit_test_id'],
             ];
         }

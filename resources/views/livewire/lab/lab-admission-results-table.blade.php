@@ -67,6 +67,9 @@
                                 @else
                                     <span class="text-xs font-medium text-gray-500 mr-2">{{ $admissionTest->test->code }}</span>
                                     <span class="text-sm text-gray-700">{{ $admissionTest->test->name }}</span>
+                                    @if($admissionTest->test->hasFormula())
+                                        <i class="bi bi-calculator ml-1 text-violet-600" title="Resultado calculado"></i>
+                                    @endif
                                     @if(auth()->user()->hasRole('admin'))
                                         <button type="button"
                                                 onclick="openConfigModal({{ $admissionTest->test->id }}, '{{ $admissionTest->test->code }}', '{{ addslashes($admissionTest->test->name) }}', '{{ $admissionTest->test->unit }}', '{{ $admissionTest->test->low }}', '{{ $admissionTest->test->high }}', '{{ addslashes($admissionTest->test->method) }}')"
@@ -89,9 +92,19 @@
                             <td class="px-2 py-2 text-center text-xs text-gray-400" colspan="4">Cargar resultados en las determinaciones ↓</td>
                         @else
                             <td class="px-2 py-1">
-                                <input type="text" name="results[{{ $formIndex }}][result]" value="{{ $admissionTest->result }}" placeholder="Resultado"
+                                @php $hasFormula = $admissionTest->test->hasFormula(); @endphp
+                                <input type="text" name="results[{{ $formIndex }}][result]" value="{{ $admissionTest->result }}"
+                                       placeholder="{{ $hasFormula ? '—' : 'Resultado' }}"
+                                       data-test-id="{{ $admissionTest->test_id }}"
+                                       @if($hasFormula)
+                                           data-formula-calculated="1"
+                                           data-formula-definition="{{ json_encode($admissionTest->test->formulaDefinition()) }}"
+                                           data-formula-decimals="{{ $admissionTest->test->decimals ?? 2 }}"
+                                       @else
+                                           data-formula-operand="1"
+                                       @endif
                                        {{ $admissionTest->is_validated || !$canEditResults ? 'disabled' : '' }}
-                                       class="w-full text-center border-gray-300 rounded text-sm {{ $admissionTest->is_validated || !$canEditResults ? 'bg-gray-100' : '' }}">
+                                       class="w-full text-center rounded text-sm {{ $admissionTest->is_validated || !$canEditResults ? 'bg-gray-100 border-gray-300' : ($hasFormula ? 'border-violet-300 bg-violet-50/50' : 'border-gray-300') }}">
                             </td>
                             <td class="px-2 py-1">
                                 <input type="hidden" name="results[{{ $formIndex }}][unit]" value="{{ $testUnit ?? '' }}">
@@ -195,3 +208,22 @@
         </table>
     </div>
 </div>
+
+@once
+    @push('scripts')
+        <script src="{{ asset('js/test-formula-runtime.js') }}"></script>
+        <script>
+            function labBindFormulaRecalc() {
+                const form = document.getElementById('lab-admission-results');
+                if (form && window.LabitTestFormula) {
+                    delete form.dataset.formulaBound;
+                    window.LabitTestFormula.bindFormulaRecalculation(form);
+                }
+            }
+            document.addEventListener('DOMContentLoaded', labBindFormulaRecalc);
+            document.addEventListener('livewire:init', () => {
+                Livewire.hook('morph.updated', () => labBindFormulaRecalc());
+            });
+        </script>
+    @endpush
+@endonce

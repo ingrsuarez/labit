@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-17 (**v1.102.0** completada: estados unificados de protocolo; **v1.101.0** / **v1.101.1** completadas: Livewire sin recarga validar/eliminar lab clínico + vet; **v1.100.0** RRHH hub; **v1.99.2** hotfix fragmento scroll)
+> Última actualización: 2026-05-17 (**v1.103.0** planificada: determinaciones calculadas por fórmula; **v1.102.x** completada: estados unificados + exenta vacía; **v1.101.0** / **v1.101.1** Livewire lab + vet)
 
 ---
 
@@ -151,6 +151,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
+| v1.103.0 | Determinaciones calculadas por fórmula: editor nomenclador, autocompletado en vivo (clínico + vet + muestras), ingesta LISCOM ignora tests con fórmula | Pendiente | `pendientes/v1.103.0-determinaciones-calculadas-formula.md` — diseño: `docs/designs/DISEÑO_v1.103.0-determinaciones-calculadas-formula.md` |
 | v1.102.0 | Estados unificados de protocolo: 5 estados (pendiente → validado) + envío separado por `sent_at`; calculator compartido; clínico + vet + muestras | ✅ Completada (2026-05-17) | `completados/v1.102.0-estados-protocolo-unificados.md` |
 | v1.101.0 | Lab clínico: validar / desvalidar / eliminar determinación sin recarga (Livewire; scroll estable; toast fijo) | ✅ Completada (2026-05-17) | `completados/v1.101.0-lab-admission-results-livewire-sin-recarga.md` |
 | v1.101.1 | Veterinario: validar / desvalidar / quitar determinación sin recarga (Livewire; paridad v1.101.0; `status` + `total_price`) | ✅ Completada (2026-05-17) | `completados/v1.101.1-vet-admission-results-livewire-sin-recarga.md` |
@@ -224,6 +225,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 - **DevOps**: CI/CD, ambientes de staging, deploy automatizado
 - **Seguridad**: 2FA, protección adicional (auditoría base cubierta por v2.5.0/v2.7.0, acceso por rol por v2.4.0)
 - **Integración LISCOM**: cadena v1.46.0–v1.53.0 (ver sección Planificado). Áreas relacionadas pendientes: webhook push de labit→liscom (alternativa a polling), rate limiting de la API pública, replicación multi-instancia avanzada.
+- **Determinaciones calculadas**: índices derivados (Castelli, etc.) → **v1.103.0** (planificada; diseño en `docs/designs/DISEÑO_v1.103.0-determinaciones-calculadas-formula.md`).
 
 ---
 

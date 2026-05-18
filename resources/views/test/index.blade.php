@@ -104,6 +104,9 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Nombre
                         </th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                            Calc.
+                        </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Unidad
                         </th>
@@ -121,7 +124,7 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($tests as $test)
                         <tr class="hover:bg-teal-50 cursor-pointer transition-colors"
-                            onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}', {{ json_encode($test->categories ?? ['clinico']) }}, '{{ addslashes($test->other_reference) }}', '{{ $test->sort_order }}', {{ $test->empty_result_exempt ? 'true' : 'false' }})">
+                            onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}', {{ json_encode($test->categories ?? ['clinico']) }}, '{{ addslashes($test->other_reference) }}', '{{ $test->sort_order }}', {{ $test->empty_result_exempt ? 'true' : 'false' }}, {{ json_encode($test->formula) }})">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="text-teal-600 font-medium">{{ $test->code }}</span>
                             </td>
@@ -131,6 +134,16 @@
                                     @foreach($test->parentTests as $pt)
                                         <span class="ml-1 text-xs bg-teal-100 text-teal-600 px-1.5 py-0.5 rounded">{{ ucfirst($pt->name) }}</span>
                                     @endforeach
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
+                                @if($test->hasFormula())
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-800"
+                                          title="{{ $test->formulaDisplay() }}">
+                                        <i class="bi bi-calculator"></i>
+                                    </span>
+                                @else
+                                    <span class="text-gray-300">—</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -164,7 +177,7 @@
                                     Refs
                                 </a>
                                 <button type="button" 
-                                        onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}', {{ json_encode($test->categories ?? ['clinico']) }}, '{{ addslashes($test->other_reference) }}', '{{ $test->sort_order }}', {{ $test->empty_result_exempt ? 'true' : 'false' }})"
+                                        onclick="openEditModal({{ $test->id }}, '{{ $test->code }}', '{{ addslashes($test->name) }}', '{{ $test->unit }}', '{{ $test->method }}', '{{ $test->low }}', '{{ $test->high }}', '{{ $test->decimals }}', '{{ $test->nbu }}', '{{ addslashes($test->instructions) }}', '{{ $test->material }}', {{ json_encode($test->parentTests->pluck('id')->toArray()) }}, '{{ $test->price }}', {{ json_encode($test->categories ?? ['clinico']) }}, '{{ addslashes($test->other_reference) }}', '{{ $test->sort_order }}', {{ $test->empty_result_exempt ? 'true' : 'false' }}, {{ json_encode($test->formula) }})"
                                         class="text-indigo-600 hover:text-indigo-900">
                                     Editar
                                 </button>
@@ -178,7 +191,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                            <td colspan="7" class="px-6 py-12 text-center text-gray-500">
                                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
                                 </svg>
@@ -200,7 +213,7 @@
 
     <!-- Modal Crear -->
     <div id="modal-create" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <form action="{{ route('test.store') }}" method="POST">
                 @csrf
                 @if($vetNomenclator ?? false)
@@ -292,6 +305,7 @@
                                 </span>
                             </label>
                         </div>
+                        @include('test.partials.formula-editor', ['prefix' => 'create', 'formulaCatalog' => $parents])
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Precio</label>
                             <input type="number" name="price" value="{{ old('price') }}" step="0.01" min="0"
@@ -382,7 +396,7 @@
 
     <!-- Modal Editar -->
     <div id="modal-edit" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <form id="form-edit" method="POST">
                 @csrf
                 @method('PUT')
@@ -460,6 +474,7 @@
                                 </span>
                             </label>
                         </div>
+                        @include('test.partials.formula-editor', ['prefix' => 'edit', 'formulaCatalog' => $parents])
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Precio</label>
                             <input type="number" name="price" id="edit-price" step="0.01" min="0"
@@ -587,7 +602,12 @@
             }
         }
 
-        function openEditModal(id, code, name, unit, method, low, high, decimals, nbu, instructions, material, parentIds, price, categories, otherReference, sortOrder, emptyResultExempt) {
+        function openEditModal(id, code, name, unit, method, low, high, decimals, nbu, instructions, material, parentIds, price, categories, otherReference, sortOrder, emptyResultExempt, formula) {
+            window.__editFormulaState = {
+                enabled: !!(formula && formula.tokens && formula.tokens.length),
+                tokens: formula && formula.tokens ? formula.tokens : [],
+            };
+            window.dispatchEvent(new CustomEvent('edit-formula-load', { detail: window.__editFormulaState }));
             document.getElementById('form-edit').action = testsUpdateBase + '/' + id;
             document.getElementById('edit-code').value = code;
             document.getElementById('edit-name').value = name;
@@ -675,7 +695,8 @@
                         test.categories || ['clinico'],
                         test.other_reference || '',
                         test.sort_order || 0,
-                        !!test.empty_result_exempt
+                        !!test.empty_result_exempt,
+                        test.formula || null
                     );
                 }
             }

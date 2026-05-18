@@ -33,12 +33,25 @@
                             <div class="min-w-0">
                                 <span class="text-xs font-mono text-gray-400">{{ $vt->test->code }}</span>
                                 <span class="text-sm {{ $isParentHeader ? 'font-semibold text-gray-900' : 'font-medium text-gray-900' }} ml-1">{{ $vt->test->name }}</span>
+                                @if(! $isParentHeader && $vt->test->hasFormula())
+                                    <i class="bi bi-calculator ml-1 text-violet-600" title="Resultado calculado"></i>
+                                @endif
                             </div>
                         </div>
                     </td>
                     <td class="px-4 py-2">
+                        @php $hasFormula = ! $isParentHeader && $vt->test->hasFormula(); @endphp
                         <input type="text" name="results[{{ $idx }}][result]" value="{{ $vt->result }}"
-                               class="w-full border-gray-300 rounded text-sm {{ $disabled ? 'bg-gray-100' : '' }}"
+                               data-test-id="{{ $vt->test_id }}"
+                               @if($hasFormula)
+                                   data-formula-calculated="1"
+                                   data-formula-definition="{{ json_encode($vt->test->formulaDefinition()) }}"
+                                   data-formula-decimals="{{ $vt->test->decimals ?? 2 }}"
+                               @elseif(! $isParentHeader)
+                                   data-formula-operand="1"
+                               @endif
+                               placeholder="{{ $hasFormula ? '—' : '' }}"
+                               class="w-full rounded text-sm {{ $disabled ? 'bg-gray-100' : ($hasFormula ? 'border-violet-300 bg-violet-50/50' : 'border-gray-300') }}"
                                {{ $disabled ? 'disabled' : '' }}>
                     </td>
                     <td class="px-4 py-2">
@@ -101,3 +114,22 @@
         </tbody>
     </table>
 </div>
+
+@once
+    @push('scripts')
+        <script src="{{ asset('js/test-formula-runtime.js') }}"></script>
+        <script>
+            function vetBindFormulaRecalc() {
+                const form = document.getElementById('vet-admission-results');
+                if (form && window.LabitTestFormula) {
+                    delete form.dataset.formulaBound;
+                    window.LabitTestFormula.bindFormulaRecalculation(form);
+                }
+            }
+            document.addEventListener('DOMContentLoaded', vetBindFormulaRecalc);
+            document.addEventListener('livewire:init', () => {
+                Livewire.hook('morph.updated', () => vetBindFormulaRecalc());
+            });
+        </script>
+    @endpush
+@endonce
