@@ -34,6 +34,7 @@
 
         <form action="{{ route('patient.save') }}" method="POST">
             @csrf
+            <input type="hidden" name="current_patient" value="{{ old('current_patient', $patient->patientId) }}">
 
             <!-- Datos Personales -->
             <div class="bg-white rounded-lg shadow-sm p-6 mb-6">

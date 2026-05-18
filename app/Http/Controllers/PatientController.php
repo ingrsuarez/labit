@@ -71,6 +71,10 @@ class PatientController extends Controller
             ->orderBy('name')
             ->get();
         $patient = Patient::where('patientId', $request->current_patient)->first();
+        if (! $patient) {
+            return redirect()->route('patient.show')
+                ->with('error', 'Paciente no encontrado.');
+        }
         $patient->load('auditLogs');
 
         return view('patient.edit', compact('insurances', 'patient'));
@@ -78,8 +82,17 @@ class PatientController extends Controller
 
     public function save_changes(Request $request)
     {
+        $lookupId = $request->input('current_patient', $request->id);
+        $patient = Patient::where('patientId', $lookupId)->first();
 
-        $patient = Patient::where('patientId', $request->id)->first();
+        if (! $patient) {
+            return redirect()->back()->with('error', 'Paciente no encontrado.');
+        }
+
+        if ($request->id !== $lookupId && Patient::where('patientId', $request->id)->exists()) {
+            return redirect()->back()->with('error', 'El DNI ingresado ya existe!');
+        }
+
         $patient->name = strtolower($request->name);
         $patient->lastName = strtolower($request->last_name);
         $patient->patientId = $request->id;
@@ -91,6 +104,9 @@ class PatientController extends Controller
         $patient->address = strtolower($request->address);
         $patient->country = $request->country;
         $patient->state = $request->state;
+        if ($request->has('insurance')) {
+            $patient->insurance = $request->insurance;
+        }
 
         try {
             $patient->save();
