@@ -140,4 +140,43 @@ class TestFormulaEvaluatorTest extends TestCase
 
         $this->assertSame('1.75', $result);
     }
+
+    public function test_evaluates_with_numeric_constant(): void
+    {
+        $glucose = $this->makeTest(['code' => 'GLU']);
+        $calc = $this->makeTest([
+            'decimals' => 2,
+            'formula' => [
+                'tokens' => [
+                    ['type' => 'test', 'test_id' => $glucose->id],
+                    ['type' => 'op', 'value' => '*'],
+                    ['type' => 'number', 'value' => '0.0556'],
+                ],
+            ],
+        ]);
+
+        $result = $this->evaluator->evaluateForTest($calc, [
+            $glucose->id => '100',
+        ]);
+
+        $this->assertSame('5.56', $result);
+    }
+
+    public function test_evaluates_subtraction_with_constant(): void
+    {
+        $total = $this->makeTest();
+        $calc = $this->makeTest([
+            'formula' => [
+                'tokens' => [
+                    ['type' => 'test', 'test_id' => $total->id],
+                    ['type' => 'op', 'value' => '-'],
+                    ['type' => 'number', 'value' => '5'],
+                ],
+            ],
+        ]);
+
+        $this->assertSame('195.00', $this->evaluator->evaluateForTest($calc, [
+            $total->id => '200',
+        ]));
+    }
 }

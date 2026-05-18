@@ -81,6 +81,10 @@
                 const numeric = parseNumeric(raw);
                 if (numeric === null) return null;
                 parts.push(String(numeric));
+            } else if (token.type === 'number') {
+                const numeric = parseNumeric(token.value);
+                if (numeric === null) return null;
+                parts.push(String(numeric));
             } else if (token.type === 'op') {
                 if (!['+', '-', '*', '/'].includes(token.value)) return null;
                 parts.push(token.value);

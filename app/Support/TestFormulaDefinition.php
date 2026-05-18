@@ -62,12 +62,24 @@ class TestFormulaDefinition
                         'formula_json' => 'La fórmula no puede incluir esta misma determinación.',
                     ]);
                 }
-                if ($lastType === 'test') {
+                if (self::isValueToken($lastType)) {
                     throw ValidationException::withMessages([
-                        'formula_json' => 'Falta un operador entre prácticas.',
+                        'formula_json' => 'Falta un operador entre valores.',
                     ]);
                 }
                 $lastType = 'test';
+            } elseif ($type === 'number') {
+                if (! self::isValidConstant($token['value'] ?? null)) {
+                    throw ValidationException::withMessages([
+                        'formula_json' => 'El número constante no es válido.',
+                    ]);
+                }
+                if (self::isValueToken($lastType)) {
+                    throw ValidationException::withMessages([
+                        'formula_json' => 'Falta un operador entre valores.',
+                    ]);
+                }
+                $lastType = 'number';
             } elseif ($type === 'op') {
                 $op = $token['value'] ?? '';
                 if (! in_array($op, ['+', '-', '*', '/'], true)) {
@@ -85,7 +97,7 @@ class TestFormulaDefinition
                 $paren = $token['value'] ?? '';
                 if ($paren === '(') {
                     $openParens++;
-                    if ($lastType === 'test' || ($lastType === 'paren' && ($tokens[$index - 1]['value'] ?? '') === ')')) {
+                    if (self::isValueToken($lastType) || ($lastType === 'paren' && ($tokens[$index - 1]['value'] ?? '') === ')')) {
                         throw ValidationException::withMessages([
                             'formula_json' => 'Falta un operador antes del paréntesis.',
                         ]);
@@ -151,12 +163,24 @@ class TestFormulaDefinition
                     '/' => '÷',
                     default => $token['value'] ?? '',
                 };
+            } elseif (($token['type'] ?? '') === 'number') {
+                $parts[] = (string) ($token['value'] ?? '');
             } elseif (($token['type'] ?? '') === 'paren') {
                 $parts[] = $token['value'] ?? '';
             }
         }
 
         return implode(' ', $parts);
+    }
+
+    public static function isValidConstant(mixed $value): bool
+    {
+        return TestFormulaEvaluator::parseNumeric($value === null ? null : (string) $value) !== null;
+    }
+
+    private static function isValueToken(?string $lastType): bool
+    {
+        return in_array($lastType, ['test', 'number'], true);
     }
 
     /**

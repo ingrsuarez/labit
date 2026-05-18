@@ -65,6 +65,13 @@ class TestFormulaEvaluator
                 }
 
                 $parts[] = self::formatFloatForExpression($numeric);
+            } elseif ($type === 'number') {
+                $numeric = self::parseNumeric($token['value'] ?? null);
+                if ($numeric === null) {
+                    return null;
+                }
+
+                $parts[] = self::formatFloatForExpression($numeric);
             } elseif ($type === 'op') {
                 $op = $token['value'] ?? '';
                 if (! in_array($op, ['+', '-', '*', '/'], true)) {

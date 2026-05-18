@@ -33,6 +33,19 @@
             </select>
         </div>
 
+        <div class="flex flex-wrap items-end gap-2">
+            <div class="flex-1 min-w-[120px]">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Número constante</label>
+                <input type="text" x-model="constantInput" placeholder="Ej: 100 o 0,055"
+                       @keydown.enter.prevent="addConstant()"
+                       class="w-full rounded-lg border-gray-300 text-sm font-mono focus:border-teal-500 focus:ring-teal-500">
+            </div>
+            <button type="button" @click="addConstant()"
+                    class="px-3 py-2 mb-0.5 border border-amber-300 rounded-lg text-sm font-mono bg-amber-50 text-amber-900 hover:bg-amber-100">
+                + Número
+            </button>
+        </div>
+
         <div class="flex flex-wrap gap-1">
             <template x-for="op in ['(', ')', '+', '-', '*', '/']" :key="op">
                 <button type="button" @click="addOp(op)"
@@ -47,12 +60,15 @@
             <label class="block text-xs font-medium text-gray-600 mb-1">Expresión</label>
             <div class="min-h-[3rem] rounded-lg border border-gray-300 bg-white p-3 flex flex-wrap gap-1 items-center">
                 <template x-if="tokens.length === 0">
-                    <span class="text-sm text-gray-400">Agregue prácticas y operadores</span>
+                    <span class="text-sm text-gray-400">Agregue prácticas, números y operadores</span>
                 </template>
                 <template x-for="(token, index) in tokens" :key="index">
                     <span x-show="token.type === 'test'"
                           class="inline-flex items-center rounded-full bg-teal-100 text-teal-800 px-2 py-0.5 text-xs font-medium"
                           x-text="token.code"></span>
+                    <span x-show="token.type === 'number'"
+                          class="inline-flex items-center rounded-full bg-amber-100 text-amber-900 px-2 py-0.5 text-xs font-mono font-medium"
+                          x-text="token.value"></span>
                     <span x-show="token.type === 'op' || token.type === 'paren'"
                           class="text-sm font-mono text-gray-700"
                           x-text="displayOp(token.value)"></span>
@@ -76,6 +92,7 @@
                     enabled: false,
                     tokens: [],
                     pickerId: '',
+                    constantInput: '',
                     init() {
                         if (prefix === 'edit') {
                             window.addEventListener('edit-formula-load', (event) => {
@@ -102,9 +119,26 @@
                     displayExpression() {
                         return this.tokens.map(t => {
                             if (t.type === 'test') return t.name || t.code;
+                            if (t.type === 'number') return t.value;
                             if (t.type === 'op' || t.type === 'paren') return this.displayOp(t.value);
                             return '';
                         }).join(' ');
+                    },
+                    parseConstantInput(raw) {
+                        const trimmed = String(raw ?? '').trim();
+                        if (trimmed === '') return null;
+                        const normalized = trimmed.replace(',', '.');
+                        if (normalized === '' || Number.isNaN(Number(normalized))) return null;
+                        return normalized;
+                    },
+                    addConstant() {
+                        const value = this.parseConstantInput(this.constantInput);
+                        if (value === null) {
+                            alert('Ingrese un número válido (ej: 100 o 0,055).');
+                            return;
+                        }
+                        this.tokens.push({ type: 'number', value });
+                        this.constantInput = '';
                     },
                     addTestFromPicker() {
                         if (!this.pickerId) return;
