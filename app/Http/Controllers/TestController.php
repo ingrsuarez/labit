@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Test;
+use App\Support\TestFormulaDefinition;
 use App\Support\TestNbuInput;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -112,6 +113,8 @@ class TestController extends Controller
             'categories.*' => 'string|in:clinico,aguas_alimentos,veterinario',
             'sort_order' => 'nullable|integer|min:0',
             'empty_result_exempt' => 'nullable|boolean',
+            'formula_enabled' => 'nullable|boolean',
+            'formula_json' => 'nullable|string',
             '_context' => 'nullable|string|in:vet_nomenclator',
         ], [
             'code.required' => 'El código es obligatorio.',
@@ -132,6 +135,11 @@ class TestController extends Controller
             'price.min' => 'El precio no puede ser negativo.',
         ]);
 
+        $formula = TestFormulaDefinition::fromRequest(
+            $request->input('formula_json'),
+            $request->boolean('formula_enabled')
+        );
+
         $test = Test::create([
             'code' => strtoupper($validated['code']),
             'name' => strtolower($validated['name']),
@@ -150,6 +158,7 @@ class TestController extends Controller
             'categories' => $validated['categories'] ?? ['clinico'],
             'sort_order' => $validated['sort_order'] ?? 0,
             'empty_result_exempt' => $request->boolean('empty_result_exempt'),
+            'formula' => $formula,
         ]);
 
         // Asignar múltiples padres si se seleccionaron
@@ -206,6 +215,8 @@ class TestController extends Controller
             'categories.*' => 'string|in:clinico,aguas_alimentos,veterinario',
             'sort_order' => 'nullable|integer|min:0',
             'empty_result_exempt' => 'nullable|boolean',
+            'formula_enabled' => 'nullable|boolean',
+            'formula_json' => 'nullable|string',
             '_context' => 'nullable|string|in:vet_nomenclator',
         ], [
             'code.required' => 'El código es obligatorio.',
@@ -226,6 +237,12 @@ class TestController extends Controller
             'price.min' => 'El precio no puede ser negativo.',
         ]);
 
+        $formula = TestFormulaDefinition::fromRequest(
+            $request->input('formula_json'),
+            $request->boolean('formula_enabled'),
+            $test->id
+        );
+
         $test->update([
             'code' => strtoupper($validated['code']),
             'name' => strtolower($validated['name']),
@@ -243,6 +260,7 @@ class TestController extends Controller
             'categories' => $validated['categories'] ?? $test->categories ?? ['clinico'],
             'sort_order' => $validated['sort_order'] ?? $test->sort_order,
             'empty_result_exempt' => $request->boolean('empty_result_exempt'),
+            'formula' => $formula,
         ]);
 
         // Sincronizar múltiples padres (esto reemplaza los existentes)

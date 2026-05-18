@@ -10,6 +10,8 @@ Endpoint batch que recibe los resultados ya validados humanamente por LISCOM y l
 
 **Regla crítica:** si una determinación ya fue validada por un bioquímico de labit (`is_validated = true`), el valor entrante **NO se sobrescribe**. El ítem se rechaza con `ALREADY_VALIDATED` y se devuelve la información de auditoría para que LISCOM lo marque como definitivamente bloqueado.
 
+**Determinaciones calculadas (v1.103.0):** si la práctica tiene fórmula definida en el nomenclador, el valor entrante **se ignora** (`FORMULA_CALCULATED`). El resultado solo se obtiene por cálculo en el protocolo a partir de otras prácticas.
+
 ---
 
 ## Endpoint

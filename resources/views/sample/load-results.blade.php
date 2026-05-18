@@ -264,14 +264,28 @@
                                 @endphp
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
                                     <!-- Resultado -->
+                                    @php $hasFormula = $det->test->hasFormula(); @endphp
                                     <div>
-                                        <label class="block text-xs font-medium text-gray-600 mb-1">Resultado</label>
-                                        <input type="text" 
-                                               name="determinations[{{ $index }}][result]" 
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">
+                                            Resultado
+                                            @if($hasFormula)
+                                                <i class="bi bi-calculator text-violet-600" title="Resultado calculado"></i>
+                                            @endif
+                                        </label>
+                                        <input type="text"
+                                               name="determinations[{{ $index }}][result]"
                                                value="{{ $det->result }}"
-                                               class="result-only-input w-full text-sm rounded border-teal-400 border-2 focus:border-teal-500 focus:ring-teal-500 font-medium bg-teal-50"
+                                               data-test-id="{{ $det->test_id }}"
+                                               @if($hasFormula)
+                                                   data-formula-calculated="1"
+                                                   data-formula-definition="{{ json_encode($det->test->formulaDefinition()) }}"
+                                                   data-formula-decimals="{{ $det->test->decimals ?? 2 }}"
+                                               @else
+                                                   data-formula-operand="1"
+                                               @endif
+                                               class="result-only-input w-full text-sm rounded border-2 focus:border-teal-500 focus:ring-teal-500 font-medium {{ $hasFormula ? 'border-violet-300 bg-violet-50/50' : 'border-teal-400 bg-teal-50' }}"
                                                data-index="{{ $index }}"
-                                               placeholder="Ej: < 0, Ausente">
+                                               placeholder="{{ $hasFormula ? '—' : 'Ej: < 0, Ausente' }}">
                                     </div>
 
                                     <!-- Valor de Referencia (Select o Input según disponibilidad) -->
@@ -480,7 +494,15 @@
         @endif
     </div>
 
+    <script src="{{ asset('js/test-formula-runtime.js') }}"></script>
     <script>
+        (function () {
+            const form = document.getElementById('resultsForm');
+            if (form && window.LabitTestFormula) {
+                window.LabitTestFormula.bindFormulaRecalculation(form);
+            }
+        })();
+
         // Navegación con Enter y Tab SOLO entre campos de RESULTADO
         const resultOnlyInputs = Array.from(document.querySelectorAll('.result-only-input'));
         
