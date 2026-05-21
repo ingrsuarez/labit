@@ -23,7 +23,8 @@
             </div>
         @endif
 
-        <form action="{{ route('insurance.update', $insurance) }}" method="POST">
+        <form action="{{ route('insurance.update', $insurance) }}" method="POST"
+              onsubmit="return window.nbuRetroactiveConfirmFormSubmit(this, event)">
             @csrf
             @method('PUT')
 
@@ -196,7 +197,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Valor NBU</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
-                            <input type="number" step="0.01" name="nbu_value" 
+                            <input type="number" step="0.01" name="nbu_value" id="nbu_value"
                                    value="{{ old('nbu_value', $insurance->nbu_value) }}"
                                    placeholder="0.00"
                                    class="pl-8 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
@@ -226,6 +227,15 @@
                         <strong>${{ number_format(5 * $insurance->nbu_value, 2, ',', '.') }}</strong>
                     </p>
                 </div>
+                @endif
+
+                @if($insurance->type !== 'nomenclador')
+                    @include('partials.nbu-retroactive-panel', [
+                        'initialNbu' => old('nbu_value', $insurance->nbu_value ?? 0),
+                        'previewUrl' => route('nomenclator.previewRetroactiveNbu', $insurance),
+                        'entityLabel' => 'admisiones',
+                        'nbuInputId' => 'nbu_value',
+                    ])
                 @endif
             </div>
 
