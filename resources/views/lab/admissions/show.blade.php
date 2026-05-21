@@ -683,9 +683,12 @@
             form.submit();
         }
 
-        // Variables para el buscador de prácticas
-        let allTests = @json($availableTests);
+        // Buscador de prácticas para agregar al protocolo (API con insurance_id de la admisión)
+        const searchTestsUrl = @json(route('lab.admissions.searchTests'));
+        const insuranceId = @json($admission->insurance);
+        const existingTestIds = @json($admission->admissionTests->pluck('test_id')->values());
         let filteredTests = [];
+        let addTestSearchTimeout = null;
 
         function openConfigModal(testId, code, name, unit, low, high, method) {
             document.getElementById('form-config-test').action = '/tests/' + testId + '/quick';
@@ -714,82 +717,54 @@
 
         function searchTestsToAdd(query) {
             const resultsContainer = document.getElementById('add-test-results');
-            
+
             if (query.length < 2) {
                 resultsContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">Escriba al menos 2 caracteres...</p>';
                 filteredTests = [];
                 return;
             }
 
-            const lowerQuery = query.toLowerCase();
-            
-            // Filtrar y ordenar por relevancia
-            filteredTests = allTests
-                .filter(test => 
-                    test.code.toLowerCase().includes(lowerQuery) || 
-                    test.name.toLowerCase().includes(lowerQuery)
-                )
-                .sort((a, b) => {
-                    const aCode = a.code.toLowerCase();
-                    const bCode = b.code.toLowerCase();
-                    const aName = a.name.toLowerCase();
-                    const bName = b.name.toLowerCase();
-                    
-                    // Prioridad 1: Código exacto
-                    if (aCode === lowerQuery && bCode !== lowerQuery) return -1;
-                    if (bCode === lowerQuery && aCode !== lowerQuery) return 1;
-                    
-                    // Prioridad 2: Código empieza con el texto
-                    const aCodeStarts = aCode.startsWith(lowerQuery);
-                    const bCodeStarts = bCode.startsWith(lowerQuery);
-                    if (aCodeStarts && !bCodeStarts) return -1;
-                    if (bCodeStarts && !aCodeStarts) return 1;
-                    
-                    // Prioridad 3: Código contiene el texto
-                    const aCodeContains = aCode.includes(lowerQuery);
-                    const bCodeContains = bCode.includes(lowerQuery);
-                    if (aCodeContains && !bCodeContains) return -1;
-                    if (bCodeContains && !aCodeContains) return 1;
-                    
-                    // Prioridad 4: Nombre empieza con el texto
-                    const aNameStarts = aName.startsWith(lowerQuery);
-                    const bNameStarts = bName.startsWith(lowerQuery);
-                    if (aNameStarts && !bNameStarts) return -1;
-                    if (bNameStarts && !aNameStarts) return 1;
-                    
-                    // Por defecto, ordenar por código
-                    return aCode.localeCompare(bCode);
-                })
-                .slice(0, 10);
+            clearTimeout(addTestSearchTimeout);
+            addTestSearchTimeout = setTimeout(async () => {
+                resultsContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">Buscando...</p>';
+                try {
+                    const response = await fetch(`${searchTestsUrl}?q=${encodeURIComponent(query)}&insurance_id=${insuranceId}`);
+                    const tests = await response.json();
+                    filteredTests = tests.filter(t => !existingTestIds.includes(t.id));
+                    renderAddTestResults(filteredTests);
+                } catch (e) {
+                    resultsContainer.innerHTML = '<p class="text-sm text-red-500 text-center py-4">Error al buscar prácticas</p>';
+                    filteredTests = [];
+                }
+            }, 250);
+        }
 
-            if (filteredTests.length === 0) {
+        function renderAddTestResults(tests) {
+            const resultsContainer = document.getElementById('add-test-results');
+
+            if (tests.length === 0) {
                 resultsContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">No se encontraron prácticas</p>';
                 return;
             }
 
             const csrfToken = '{{ csrf_token() }}';
-            const insuranceNbu = {{ $admission->insuranceRelation->nbu_value ?? 1 }};
-            
-            resultsContainer.innerHTML = filteredTests.map((test, index) => {
-                // Calcular precio: usar precio del test, o NBU * NBU de obra social, mínimo 1
-                let price = test.price || 0;
-                if (price === 0 && test.nbu) {
-                    price = test.nbu * insuranceNbu;
-                }
-                if (price === 0) price = 1; // Mínimo 1 para que aparezca como padre
-                
+
+            resultsContainer.innerHTML = tests.map((test, index) => {
+                const price = parseFloat(test.calculated_price ?? test.price ?? 0);
+                const authStatus = test.requires_authorization ? 'pending' : 'not_required';
+
                 return `
                 <form action="{{ route('lab.admissions.addTest', $admission) }}" method="POST" class="block" id="add-test-form-${index}">
                     <input type="hidden" name="_token" value="${csrfToken}">
                     <input type="hidden" name="test_id" value="${test.id}">
                     <input type="hidden" name="price" value="${price}">
-                    <input type="hidden" name="authorization_status" value="not_required">
+                    <input type="hidden" name="authorization_status" value="${authStatus}">
                     <button type="submit" class="w-full text-left px-4 py-3 hover:bg-teal-50 rounded-lg border border-gray-200 mb-1 flex justify-between items-center ${index === 0 ? 'bg-teal-50 border-teal-300' : ''}">
                         <div>
                             <span class="font-medium text-teal-600">${test.code}</span>
                             <span class="text-gray-700 ml-2">${test.name}</span>
                         </div>
-                        <span class="text-sm text-gray-500">$${price.toLocaleString()}</span>
+                        <span class="text-sm text-gray-500">$${price.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </button>
                 </form>
             `}).join('');
