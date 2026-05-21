@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Group;
 use App\Models\Insurance;
+use App\Services\NbuRetroactivePricingService;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -104,9 +105,13 @@ class InsuranceController extends Controller
             'name' => 'required|string|max:255',
             'short_name' => 'nullable|string|max:50',
             'type' => 'required|in:particular,obra_social,prepaga',
+            'retroactive_from' => 'nullable|date|before_or_equal:today',
         ]);
 
         try {
+            $oldNbuValue = (float) ($insurance->nbu_value ?? 0);
+            $newNbuValue = (float) $request->nbu_value;
+
             $insurance->update([
                 'name' => strtolower($request->name),
                 'short_name' => $request->short_name ? strtolower($request->short_name) : null,
@@ -126,8 +131,11 @@ class InsuranceController extends Controller
                 'state' => $request->state,
             ]);
 
+            $retroResult = app(NbuRetroactivePricingService::class)
+                ->applyClinicalIfRequested($request, $insurance->fresh(), $newNbuValue, $oldNbuValue);
+
             return redirect()->route('insurance.index')
-                ->with('success', 'Cobertura actualizada correctamente');
+                ->with('success', NbuRetroactivePricingService::flashMessage($retroResult));
         } catch (Exception $e) {
             return redirect()->back()
                 ->with('error', 'Error al actualizar la cobertura: '.$e->getMessage())
