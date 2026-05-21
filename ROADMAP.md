@@ -151,7 +151,9 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
-| v1.103.0 | Determinaciones calculadas por fórmula: editor nomenclador, autocompletado en vivo (clínico + vet + muestras), ingesta LISCOM ignora tests con fórmula | Pendiente | `pendientes/v1.103.0-determinaciones-calculadas-formula.md` — diseño: `docs/designs/DISEÑO_v1.103.0-determinaciones-calculadas-formula.md` |
+| v1.104.1 | Hotfix: precio correcto al agregar determinación manual a admisión clínica existente | ✅ Completada (2026-05-21) | `completados/v1.104.1-hotfix-precio-agregar-determinacion-admision.md` |
+| v1.105.0 | Inmutabilidad precios NBU + recálculo retroactivo opt-in | ✅ Completada (2026-05-21) | `completados/v1.105.0-nbu-inmutabilidad-retroactivo.md` — diseño: `docs/designs/DISEÑO_v1.105.0-nbu-inmutabilidad-retroactivo.md` |
+| v1.104.0 | Email en protocolos de muestras: botón/modal en detalle, banner masivo en listado | Pendiente | `pendientes/v1.104.0-email-protocolos-muestras-ui.md` |
 | v1.102.0 | Estados unificados de protocolo: 5 estados (pendiente → validado) + envío separado por `sent_at`; calculator compartido; clínico + vet + muestras | ✅ Completada (2026-05-17) | `completados/v1.102.0-estados-protocolo-unificados.md` |
 | v1.101.0 | Lab clínico: validar / desvalidar / eliminar determinación sin recarga (Livewire; scroll estable; toast fijo) | ✅ Completada (2026-05-17) | `completados/v1.101.0-lab-admission-results-livewire-sin-recarga.md` |
 | v1.101.1 | Veterinario: validar / desvalidar / quitar determinación sin recarga (Livewire; paridad v1.101.0; `status` + `total_price`) | ✅ Completada (2026-05-17) | `completados/v1.101.1-vet-admission-results-livewire-sin-recarga.md` |

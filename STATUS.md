@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-17 (**v1.103.0** determinaciones calculadas por fórmula; **v1.102.0** estados unificados de protocolo)
+> Última actualización: 2026-05-21 (**v1.105.0** inmutabilidad NBU + recálculo retroactivo opt-in)
 
 ---
 
@@ -11,13 +11,12 @@
 |---|---|
 | **Versión actual (línea v1.x)** | **master**: **v1.98.3**; **develop**: **v1.98.3** (presupuestos) + **v1.98.2** (ingesta API); tags **v1.98.3**, **v1.98.1**, **v1.97.1**, **v1.97.0** |
 | **Última en master (releases v1.x previos)** | **v1.98.1** — Planilla pendientes clínico+vet, sidebar; **v1.97.1** — scroll con fragmento; **v1.97.0** — Santa Cruz FTP |
-| **Última completada (cola agente)** | **v1.103.0** — Determinaciones calculadas por fórmula (nomenclador + clínico/vet/muestras + ingesta API); **v1.102.0** — Estados unificados de protocolo |
-| **Hotfix aplicado** | **v1.99.2** (2026-05-14): detalle protocolo lab clínico — redirect con fragmento `#lab-admission-results` tras validar/eliminar/guardar/PDF/email/siguiente-pendiente. **v1.99.1** (2026-05-14): NC electrónica desde factura — timeouts WSAA/WSFE, sin transacción abierta durante SOAP, UX submit en create. **v1.98.3** (2026-05-15): listado `/quotes`. **v1.98.2** (2026-05-14): ingesta API… |
-| **Referencia acceso/roles (v2.x)** | **v2.4.1** — Hotfix redirect loop lab + condición Mi Portal |
+| **Última completada (cola agente)** | **v1.105.0** — Inmutabilidad NBU en admisiones + recálculo retroactivo opcional |
+| **Hotfix aplicado** | **v1.104.1** (2026-05-21): precio correcto al agregar práctica en detalle de admisión (`AdmissionInsuranceTestPricing` server-side + `searchTests` con `insurance_id`). **v1.99.2** (2026-05-14): detalle protocolo lab clínico — redirect con fragmento `#lab-admission-results`… |
 | **En proceso** | — |
-| **Próxima recomendada** | **v1.98.0** planilla pendientes o **v1.90.0** NC manuales |
-| **Pendientes en cola** | 1 residual (`v1.90.0`, tag ya existe) + diseños sueltos |
-| **Completadas** | 162 |
+| **Próxima recomendada** | **v1.104.0** — Email en protocolos de muestras (UI) |
+| **Pendientes en cola** | v1.104.0, v1.90.0 (residual) + diseños sueltos |
+| **Completadas** | 163+ |
 
 ---
 
@@ -25,6 +24,7 @@
 
 ### Pendientes — próximo por orden de versión (`ls pendientes | sort | grep '^v'`)
 
+- `v1.104.0-email-protocolos-muestras-ui.md` — Email en protocolos de muestras (UI).
 - `v1.90.0-notas-credito-manuales-independientes.md` — residual en carpeta (tag **v1.90.0** ya existe; archivo puede archivarse).
 
 Archivos adicionales en `pendientes/` (no empiezan con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
@@ -39,6 +39,8 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.105.0 | Inmutabilidad NBU en admisiones + recálculo retroactivo opcional (clínico y vet) | 2026-05-21 | v1.105.0 |
+| v1.104.1 | Hotfix: precio correcto al agregar determinación manual a admisión clínica existente | 2026-05-21 | v1.104.1 |
 | v1.103.0 | Determinaciones calculadas por fórmula: editor nomenclador, recálculo en protocolo, ingesta `FORMULA_CALCULATED` | 2026-05-17 | v1.103.0 |
 | v1.102.0 | Estados unificados de protocolo: `ProtocolStatusCalculator`, validado parcial, envío desacoplado (`sent_at`) | 2026-05-17 | v1.102.0 |
 | v1.100.0 | Hub RRHH: `/rrhh` navegación por secciones, `/rrhh/resumen` panel analítico, sidebar unificado, redirects legacy | 2026-05-17 | v1.100.0 |

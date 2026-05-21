@@ -39,29 +39,48 @@
         @if($insurance->type !== 'nomenclador')
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Valor NBU de la Obra Social</h2>
-            <form action="{{ route('nomenclator.updateNbu', $insurance) }}" method="POST" class="flex items-end gap-4">
+            <form action="{{ route('nomenclator.updateNbu', $insurance) }}" method="POST"
+                  x-data="nbuRetroactivePanelFactory(@js([
+                      'initialNbu' => (float) ($insurance->nbu_value ?? 0),
+                      'previewUrl' => route('nomenclator.previewRetroactiveNbu', $insurance),
+                      'entityLabel' => 'admisiones',
+                      'nbuInputId' => 'nbu_value',
+                      'today' => now()->toDateString(),
+                  ]))"
+                  @submit="confirmSubmit($event)">
                 @csrf
                 @method('PUT')
-                <div class="flex-1 max-w-xs">
-                    <label for="nbu_value" class="block text-sm font-medium text-gray-700 mb-1">Valor de 1 NBU</label>
-                    <div class="relative">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
-                        <input type="number" step="0.01" name="nbu_value" id="nbu_value" 
-                               value="{{ $insurance->nbu_value }}"
-                               class="pl-8 w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                <div class="flex flex-wrap items-end gap-4">
+                    <div class="flex-1 max-w-xs">
+                        <label for="nbu_value" class="block text-sm font-medium text-gray-700 mb-1">Valor de 1 NBU</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                            <input type="number" step="0.01" name="nbu_value" id="nbu_value"
+                                   value="{{ $insurance->nbu_value }}"
+                                   class="pl-8 w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Precio final = NBU práctica × Valor NBU obra social</p>
                     </div>
-                    <p class="text-xs text-gray-500 mt-1">Precio final = NBU práctica × Valor NBU obra social</p>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" name="recalculate_prices" id="recalculate_prices" value="1"
+                               class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <label for="recalculate_prices" class="text-sm text-gray-600"
+                               title="Solo actualiza precios en el nomenclador de la obra social, no en admisiones ya cargadas">
+                            Recalcular precios del nomenclador
+                        </label>
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
+                        Guardar
+                    </button>
                 </div>
-                <div class="flex items-center gap-2">
-                    <input type="checkbox" name="recalculate_prices" id="recalculate_prices" value="1"
-                           class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
-                    <label for="recalculate_prices" class="text-sm text-gray-600">Recalcular precios</label>
-                </div>
-                <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
-                    Guardar
-                </button>
-            </form>
-        </div>
+
+                @include('partials.nbu-retroactive-panel', [
+                    'initialNbu' => $insurance->nbu_value ?? 0,
+                    'previewUrl' => route('nomenclator.previewRetroactiveNbu', $insurance),
+                    'entityLabel' => 'admisiones',
+                    'nbuInputId' => 'nbu_value',
+                    'useParentAlpine' => true,
+                ])
         @endif
 
         @if(isset($hasBaseNomenclator) && $hasBaseNomenclator && $baseNomenclator)

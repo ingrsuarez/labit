@@ -18,6 +18,7 @@ use App\Models\Patient;
 use App\Models\Species;
 use App\Models\Test;
 use App\Models\VetAdmission;
+use App\Services\AdmissionInsuranceTestPricing;
 use App\Support\ClinicalPendingResultsPresenter;
 use App\Support\VeterinaryPendingResultsPresenter;
 use Carbon\Carbon;
@@ -562,11 +563,6 @@ class LabAdmissionController extends Controller
             'determinationProfileApplications.user',
         ]);
 
-        // Tests disponibles para agregar al protocolo
-        $availableTests = Test::whereNull('parent')
-            ->orderBy('code')
-            ->get(['id', 'code', 'name', 'nbu', 'price']);
-
         $clinicalProfiles = DeterminationProfile::active()
             ->forLabType(DeterminationProfileLabType::Clinico)
             ->orderBy('name')
@@ -575,7 +571,7 @@ class LabAdmissionController extends Controller
         $isRecepcionLab = auth()->user()->hasRole('recepcion-lab')
             && ! auth()->user()->hasAnyRole(['bioquimico', 'tecnico-lab']);
 
-        return view('lab.admissions.show', compact('admission', 'availableTests', 'clinicalProfiles', 'isRecepcionLab'));
+        return view('lab.admissions.show', compact('admission', 'clinicalProfiles', 'isRecepcionLab'));
     }
 
     /**
@@ -717,14 +713,37 @@ class LabAdmissionController extends Controller
             return $this->backToAdmissionResults()->with('error', 'La práctica "'.$test->code.' - '.$test->name.'" ya existe en este protocolo.');
         }
 
+        $admission->loadMissing('insuranceRelation');
+        $insurance = $admission->insuranceRelation;
+        if (! $insurance && $admission->insurance) {
+            $insurance = Insurance::find($admission->insurance);
+        }
+
+        if (! $insurance) {
+            return $this->backToAdmissionResults()->with('error', 'La admisión no tiene obra social asignada.');
+        }
+
+        $pricing = AdmissionInsuranceTestPricing::resolve($insurance, $test);
+
+        $authorizationStatus = $request->authorization_status;
+        if ($pricing['requires_authorization'] && $authorizationStatus === AdmissionTest::STATUS_NOT_REQUIRED) {
+            $authorizationStatus = AdmissionTest::STATUS_PENDING;
+        } elseif (! $pricing['requires_authorization']) {
+            $authorizationStatus = AdmissionTest::STATUS_NOT_REQUIRED;
+        }
+
+        $copago = $request->filled('copago')
+            ? (float) $request->copago
+            : (float) $pricing['copago'];
+
         AdmissionTest::create([
             'admission_id' => $admission->id,
             'test_id' => $request->test_id,
-            'price' => $request->price,
-            'nbu_units' => $test->nbu ?? 1,
-            'authorization_status' => $request->authorization_status,
+            'price' => $pricing['price'],
+            'nbu_units' => $pricing['nbu_units'] ?: ($test->nbu ?? 1),
+            'authorization_status' => $authorizationStatus,
             'paid_by_patient' => $request->boolean('paid_by_patient'),
-            'copago' => $request->copago ?? 0,
+            'copago' => $copago,
             'authorization_code' => $request->authorization_code,
             'observations' => $request->observations,
         ]);

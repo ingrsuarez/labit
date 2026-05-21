@@ -156,6 +156,7 @@ Route::middleware([
     Route::get('/nomenclator', [App\Http\Controllers\InsuranceNomenclatorController::class, 'index'])->name('nomenclator.index');
     Route::get('/nomenclator/{insurance}', [App\Http\Controllers\InsuranceNomenclatorController::class, 'show'])->name('nomenclator.show');
     Route::put('/nomenclator/{insurance}/nbu', [App\Http\Controllers\InsuranceNomenclatorController::class, 'updateNbuValue'])->name('nomenclator.updateNbu');
+    Route::post('/nomenclator/{insurance}/nbu/preview-retroactive', [App\Http\Controllers\InsuranceNomenclatorController::class, 'previewRetroactiveNbu'])->name('nomenclator.previewRetroactiveNbu');
     Route::post('/nomenclator/{insurance}', [App\Http\Controllers\InsuranceNomenclatorController::class, 'store'])->name('nomenclator.store');
     Route::put('/nomenclator/{insurance}/{insuranceTest}', [App\Http\Controllers\InsuranceNomenclatorController::class, 'update'])->name('nomenclator.update');
     Route::delete('/nomenclator/{insurance}/{insuranceTest}', [App\Http\Controllers\InsuranceNomenclatorController::class, 'destroy'])->name('nomenclator.destroy');
@@ -596,6 +597,7 @@ Route::middleware([
         Route::post('customer', [App\Http\Controllers\CustomerController::class, 'store'])->name('customer.store');
         Route::get('customer/{customer}/edit', [App\Http\Controllers\CustomerController::class, 'edit'])->name('customer.edit');
         Route::put('customer/{customer}', [App\Http\Controllers\CustomerController::class, 'update'])->name('customer.update');
+        Route::post('customer/{customer}/veterinary-nbu/preview-retroactive', [App\Http\Controllers\CustomerController::class, 'previewRetroactiveVetNbu'])->name('customer.previewRetroactiveVetNbu');
         Route::delete('customer/{customer}', [App\Http\Controllers\CustomerController::class, 'destroy'])->name('customer.destroy');
 
         // Veterinarios anidados en customer

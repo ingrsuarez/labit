@@ -9,6 +9,7 @@ use App\Models\SalesInvoice;
 use App\Models\Sample;
 use App\Models\VetAdmission;
 use App\Services\AfipService;
+use App\Services\NbuRetroactivePricingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -124,6 +125,7 @@ class CustomerController extends Controller
             'type' => 'nullable|array',
             'type.*' => 'in:obra_social,aguas,veterinario,clinico,particular,laborales',
             'veterinary_nbu_value' => 'nullable|numeric|min:0',
+            'retroactive_from' => 'nullable|date|before_or_equal:today',
         ]);
 
         $validated['type'] = $validated['type'] ?? $customer->type;
@@ -132,10 +134,39 @@ class CustomerController extends Controller
             $validated['afip_verified_at'] = \Carbon\Carbon::parse($validated['afip_verified_at']);
         }
 
+        $oldVetRate = (float) ($customer->veterinary_nbu_value ?? 0);
+        $newVetRate = (float) ($validated['veterinary_nbu_value'] ?? 0);
+
         $customer->update($validated);
 
+        $retroResult = null;
+        if ($customer->isVeterinary()) {
+            $retroResult = app(NbuRetroactivePricingService::class)
+                ->applyVetIfRequested($request, $customer->fresh(), $newVetRate, $oldVetRate);
+        }
+
         return redirect()->route('customer.index')
-            ->with('success', 'Cliente actualizado correctamente.');
+            ->with('success', NbuRetroactivePricingService::flashMessage($retroResult, 'protocolos veterinarios'));
+    }
+
+    public function previewRetroactiveVetNbu(Request $request, Customer $customer)
+    {
+        if (! $customer->isVeterinary()) {
+            return response()->json(['error' => 'Cliente no veterinario'], 422);
+        }
+
+        $validated = $request->validate([
+            'new_nbu_value' => 'required|numeric|min:0',
+            'from_date' => 'required|date|before_or_equal:today',
+        ]);
+
+        return response()->json(
+            app(NbuRetroactivePricingService::class)->previewVet(
+                $customer,
+                (float) $validated['new_nbu_value'],
+                $validated['from_date']
+            )
+        );
     }
 
     /**

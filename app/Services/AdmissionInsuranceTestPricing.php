@@ -14,8 +14,9 @@ class AdmissionInsuranceTestPricing
     /**
      * @return array{price: float, nbu_units: float, requires_authorization: bool, copago: float, in_nomenclator: bool, source: string}
      */
-    public static function resolve(Insurance $insurance, Test $test): array
+    public static function resolve(Insurance $insurance, Test $test, ?float $nbuValueOverride = null): array
     {
+        $nbuValue = $nbuValueOverride ?? ($insurance->nbu_value ?? 0);
         $insuranceId = $insurance->id;
         $testId = $test->id;
 
@@ -40,7 +41,7 @@ class AdmissionInsuranceTestPricing
                 ->first();
 
             if ($baseItem) {
-                $price = $baseItem->nbu_units * ($insurance->nbu_value ?? 0);
+                $price = $baseItem->nbu_units * $nbuValue;
 
                 return [
                     'price' => round((float) $price, 2),
@@ -54,7 +55,7 @@ class AdmissionInsuranceTestPricing
         }
 
         $nbuUnits = (float) ($test->nbu ?? 1);
-        $price = $nbuUnits * ($insurance->nbu_value ?? 0);
+        $price = $nbuUnits * $nbuValue;
 
         return [
             'price' => round((float) $price, 2),

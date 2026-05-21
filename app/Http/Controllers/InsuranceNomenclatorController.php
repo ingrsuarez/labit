@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Insurance;
 use App\Models\InsuranceTest;
 use App\Models\Test;
+use App\Services\NbuRetroactivePricingService;
 use Illuminate\Http\Request;
 
 class InsuranceNomenclatorController extends Controller
@@ -87,22 +88,47 @@ class InsuranceNomenclatorController extends Controller
     {
         $request->validate([
             'nbu_value' => 'required|numeric|min:0',
+            'retroactive_from' => 'nullable|date|before_or_equal:today',
         ]);
+
+        $oldNbuValue = (float) ($insurance->nbu_value ?? 0);
+        $newNbuValue = (float) $request->nbu_value;
 
         $insurance->update([
-            'nbu_value' => $request->nbu_value,
+            'nbu_value' => $newNbuValue,
         ]);
 
-        // Recalcular precios de todas las prácticas
         foreach ($insurance->nomenclator as $item) {
             if (! $item->price || $request->recalculate_prices) {
                 $item->update([
-                    'price' => $item->nbu_units * $request->nbu_value,
+                    'price' => $item->nbu_units * $newNbuValue,
                 ]);
             }
         }
 
-        return redirect()->back()->with('success', 'Valor NBU actualizado correctamente.');
+        $retroResult = app(NbuRetroactivePricingService::class)
+            ->applyClinicalIfRequested($request, $insurance->fresh(), $newNbuValue, $oldNbuValue);
+
+        return redirect()->back()->with(
+            'success',
+            NbuRetroactivePricingService::flashMessage($retroResult)
+        );
+    }
+
+    public function previewRetroactiveNbu(Request $request, Insurance $insurance)
+    {
+        $validated = $request->validate([
+            'new_nbu_value' => 'required|numeric|min:0',
+            'from_date' => 'required|date|before_or_equal:today',
+        ]);
+
+        return response()->json(
+            app(NbuRetroactivePricingService::class)->previewClinical(
+                $insurance,
+                (float) $validated['new_nbu_value'],
+                $validated['from_date']
+            )
+        );
     }
 
     /**
