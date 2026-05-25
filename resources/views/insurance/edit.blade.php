@@ -24,7 +24,19 @@
         @endif
 
         <form action="{{ route('insurance.update', $insurance) }}" method="POST"
-              onsubmit="return window.nbuRetroactiveConfirmFormSubmit(this, event)">
+              @if($insurance->type !== 'nomenclador')
+              x-data="nbuRetroactivePanelFactory(@js([
+                  'initialNbu' => (float) old('nbu_value', $insurance->nbu_value ?? 0),
+                  'previewUrl' => route('nomenclator.previewRetroactiveNbu', $insurance),
+                  'entityLabel' => 'admisiones',
+                  'nbuInputId' => 'nbu_value',
+                  'today' => now()->toDateString(),
+              ]))"
+              x-init="bindNbuInput()"
+              @submit="confirmSubmit($event)"
+              @else
+              onsubmit="return true"
+              @endif>
             @csrf
             @method('PUT')
 
@@ -235,6 +247,7 @@
                         'previewUrl' => route('nomenclator.previewRetroactiveNbu', $insurance),
                         'entityLabel' => 'admisiones',
                         'nbuInputId' => 'nbu_value',
+                        'useParentAlpine' => true,
                     ])
                 @endif
             </div>

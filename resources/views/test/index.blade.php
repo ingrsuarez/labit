@@ -37,6 +37,18 @@
                     </a>
                     <h1 class="text-2xl font-bold text-amber-900">Nomenclador veterinario</h1>
                     <p class="text-gray-600 mt-1">Prácticas raíz con categoría veterinaria: NBU, precio y valores de referencia por especie.</p>
+                    <div class="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-950 max-w-3xl">
+                        <p class="font-medium">Valor NBU por veterinaria y recálculo retroactivo</p>
+                        <p class="mt-1 text-amber-900">
+                            Este nomenclador define el <strong>NBU de cada práctica</strong> (unidades). El precio en pesos de cada veterinaria
+                            se configura en <strong>Clientes → Editar veterinaria → Valor NBU veterinario</strong>
+                            (precio práctica = NBU práctica × valor NBU de esa veterinaria).
+                        </p>
+                        <a href="{{ route('customer.index', ['type' => 'veterinario']) }}"
+                           class="inline-flex items-center mt-2 text-amber-800 font-medium hover:text-amber-950 underline">
+                            Ir a Veterinarias (clientes)
+                        </a>
+                    </div>
                 @else
                     <h1 class="text-2xl font-bold text-gray-800">Determinaciones</h1>
                     <p class="text-gray-600 mt-1">Gestión de análisis y determinaciones del laboratorio</p>

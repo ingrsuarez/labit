@@ -11,6 +11,7 @@
     window.nbuRetroactivePanelFactory = function (config) {
         return {
             initialNbu: config.initialNbu,
+            nbuDraft: config.initialNbu,
             retroactive: false,
             retroactiveFrom: config.today,
             previewLoading: false,
@@ -18,12 +19,22 @@
             previewUrl: config.previewUrl,
             entityLabel: config.entityLabel,
             nbuInputId: config.nbuInputId,
-            getNbuValue() {
+            bindNbuInput() {
                 const el = document.getElementById(this.nbuInputId);
-                return el ? (parseFloat(el.value) || 0) : 0;
+                if (!el || el.dataset.nbuRetroBound) {
+                    return;
+                }
+                el.dataset.nbuRetroBound = '1';
+                this.nbuDraft = parseFloat(el.value) || 0;
+                el.addEventListener('input', () => {
+                    this.nbuDraft = parseFloat(el.value) || 0;
+                });
+            },
+            getNbuValue() {
+                return this.nbuDraft;
             },
             nbuChanged() {
-                return Math.abs(this.getNbuValue() - this.initialNbu) > 0.001;
+                return Math.abs(this.nbuDraft - this.initialNbu) > 0.001;
             },
             async runPreview() {
                 if (!this.retroactive || !this.nbuChanged()) return;
@@ -83,6 +94,7 @@
          'nbuInputId' => $nbuInputId,
          'today' => now()->toDateString(),
      ]))"
+     x-init="bindNbuInput()"
      @endif
      x-show="nbuChanged()"
      x-cloak>
