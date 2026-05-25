@@ -47,6 +47,7 @@
                       'nbuInputId' => 'nbu_value',
                       'today' => now()->toDateString(),
                   ]))"
+                  x-init="bindNbuInput()"
                   @submit="confirmSubmit($event)">
                 @csrf
                 @method('PUT')
@@ -81,6 +82,8 @@
                     'nbuInputId' => 'nbu_value',
                     'useParentAlpine' => true,
                 ])
+            </form>
+        </div>
         @endif
 
         @if(isset($hasBaseNomenclator) && $hasBaseNomenclator && $baseNomenclator)
