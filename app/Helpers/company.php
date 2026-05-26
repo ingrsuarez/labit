@@ -30,3 +30,66 @@ if (! function_exists('ipac_sas_company_id')) {
         return $id;
     }
 }
+
+if (! function_exists('billing_summary_lab')) {
+    /**
+     * Datos del laboratorio para encabezados de resúmenes de facturación (pantalla, PDF, Excel).
+     *
+     * @return array{name: string, cuit: string, address_line: string, logo_url: string, logo_path: string, has_logo: bool}
+     */
+    function billing_summary_lab(): array
+    {
+        static $lab = null;
+        if ($lab !== null) {
+            return $lab;
+        }
+
+        $company = null;
+        $companyId = ipac_sas_company_id();
+        if ($companyId) {
+            $company = Company::find($companyId);
+        }
+
+        $addressParts = array_filter([
+            $company?->address,
+            $company?->city,
+            $company?->state,
+        ]);
+
+        $logoPath = public_path('images/logo_ipac.png');
+
+        $lab = [
+            'name' => $company?->name ?? 'IPAC LABORATORIOS S.A.S.',
+            'cuit' => $company?->cuit ?? '30-71922759-3',
+            'address_line' => $addressParts !== []
+                ? implode(', ', $addressParts)
+                : 'Leguizamon 356, Neuquén',
+            'logo_url' => asset('images/logo_ipac.png'),
+            'logo_path' => $logoPath,
+            'has_logo' => is_file($logoPath),
+        ];
+
+        return $lab;
+    }
+}
+
+if (! function_exists('billing_entity_display_name')) {
+    /**
+     * Nombre legible para resúmenes de facturación (obra social, cliente): título por palabra.
+     */
+    function billing_entity_display_name(string $name): string
+    {
+        $name = trim($name);
+        if ($name === '') {
+            return '';
+        }
+
+        $normalized = mb_convert_case(mb_strtolower($name, 'UTF-8'), MB_CASE_TITLE, 'UTF-8');
+
+        return preg_replace_callback(
+            '/\b([A-Za-z])\.([A-Za-z])(\.?)/u',
+            static fn (array $m): string => mb_strtoupper($m[1]).'.'.mb_strtoupper($m[2]).$m[3],
+            $normalized
+        ) ?? $normalized;
+    }
+}

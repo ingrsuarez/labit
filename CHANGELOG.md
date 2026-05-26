@@ -5,6 +5,19 @@
 
 ---
 
+## [v1.106.2] — 2026-05-26 — Encabezado IPAC en resúmenes de facturación
+
+### Agregado
+
+- **Encabezado del laboratorio** en resúmenes clínico, aguas y vet: logo IPAC, razón social, CUIT y domicilio (pantalla, PDF y Excel).
+- Helper `billing_summary_lab()` y partials reutilizables para encabezado.
+
+### Corregido
+
+- **Obra social** en resúmenes clínicos: nombre con iniciales mayúsculas (`billingDisplayName()`, ej. Medicus S.A.).
+
+---
+
 ## [v1.106.1] — 2026-05-26 — Resumen detallado de facturación
 
 ### Agregado

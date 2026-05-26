@@ -2,11 +2,13 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\InsertsBillingSummaryLabHeader;
 use App\Models\Insurance;
 use App\Services\BillingSummaryService;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -14,8 +16,10 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class MonthlyInsuranceReportExport implements FromCollection, ShouldAutoSize, WithHeadings, WithMapping, WithStyles, WithTitle
+class MonthlyInsuranceReportExport implements FromCollection, ShouldAutoSize, WithEvents, WithHeadings, WithMapping, WithStyles, WithTitle
 {
+    use InsertsBillingSummaryLabHeader;
+
     protected Insurance $insurance;
 
     protected $rows;
@@ -107,9 +111,23 @@ class MonthlyInsuranceReportExport implements FromCollection, ShouldAutoSize, Wi
         return strtoupper($this->insurance->name ?? 'Reporte')."{$suffix} ({$from} a {$to})";
     }
 
+    public function registerEvents(): array
+    {
+        $from = Carbon::parse($this->dateFrom)->format('d/m/Y');
+        $to = Carbon::parse($this->dateTo)->format('d/m/Y');
+
+        return $this->billingSummaryExcelEvents(
+            'Facturación — '.$from.' al '.$to,
+            'Obra social: '.$this->insurance->billingDisplayName(),
+        );
+    }
+
     public function styles(Worksheet $sheet)
     {
-        $sheet->getStyle('A1:F1')->applyFromArray([
+        $tableHead = $this->billingSummaryTableHeaderRow();
+        $lastRow = $tableHead + $this->rows->count() + 1;
+
+        $sheet->getStyle("A{$tableHead}:F{$tableHead}")->applyFromArray([
             'font' => ['bold' => true],
             'fill' => [
                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
@@ -117,8 +135,7 @@ class MonthlyInsuranceReportExport implements FromCollection, ShouldAutoSize, Wi
             ],
         ]);
 
-        $lastRow = $this->rows->count() + 2;
-        $sheet->getStyle("F2:F{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+        $sheet->getStyle('F'.($tableHead + 1).":F{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
 
         $sheet->getStyle("A{$lastRow}:F{$lastRow}")->applyFromArray([
             'font' => ['bold' => true],

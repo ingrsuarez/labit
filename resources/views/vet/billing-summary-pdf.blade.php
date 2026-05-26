@@ -5,20 +5,23 @@
     <title>Resumen vet {{ $customer->name }}</title>
     <style>
         body { font-family: Arial, sans-serif; font-size: 9px; }
-        h1 { font-size: 14px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #d97706; color: #fff; padding: 5px; text-align: left; font-size: 8px; }
-        th.right { text-align: right; }
-        td { padding: 4px 5px; border-bottom: 1px solid #ddd; }
-        td.right { text-align: right; }
-        td.codes { font-family: monospace; font-size: 8px; }
-        tfoot td { font-weight: bold; background: #fffbeb; }
+        table.data { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        table.data th { background: #d97706; color: #fff; padding: 5px; text-align: left; font-size: 8px; }
+        table.data th.right { text-align: right; }
+        table.data td { padding: 4px 5px; border-bottom: 1px solid #ddd; }
+        table.data td.right { text-align: right; }
+        table.data td.codes { font-family: monospace; font-size: 8px; }
+        table.data tfoot td { font-weight: bold; background: #fffbeb; }
     </style>
+    @include('partials.billing-summary-pdf-head')
 </head>
 <body>
-    <h1>{{ $customer->name }}</h1>
-    <p>Período: {{ $periodLabel }}</p>
-    <table>
+    @include('partials.billing-summary-lab-header-pdf', [
+        'reportTitle' => 'Facturación veterinaria — '.$periodLabel,
+        'counterpartyLabel' => 'Cliente: '.$customer->displayName(),
+    ])
+
+    <table class="data">
         <thead>
             <tr>
                 <th>Fecha</th>

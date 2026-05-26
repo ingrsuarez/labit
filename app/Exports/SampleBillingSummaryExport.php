@@ -2,11 +2,13 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\InsertsBillingSummaryLabHeader;
 use App\Models\Customer;
 use App\Services\BillingSummaryService;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -14,8 +16,10 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class SampleBillingSummaryExport implements FromCollection, ShouldAutoSize, WithHeadings, WithMapping, WithStyles, WithTitle
+class SampleBillingSummaryExport implements FromCollection, ShouldAutoSize, WithEvents, WithHeadings, WithMapping, WithStyles, WithTitle
 {
+    use InsertsBillingSummaryLabHeader;
+
     protected Customer $customer;
 
     protected $rows;
@@ -99,11 +103,23 @@ class SampleBillingSummaryExport implements FromCollection, ShouldAutoSize, With
         return ($this->customer->name ?? 'Cliente')."{$suffix} ({$from} a {$to})";
     }
 
+    public function registerEvents(): array
+    {
+        $from = Carbon::parse($this->dateFrom)->format('d/m/Y');
+        $to = Carbon::parse($this->dateTo)->format('d/m/Y');
+
+        return $this->billingSummaryExcelEvents(
+            'Facturación muestras — '.$from.' al '.$to,
+            $this->customer->displayName(),
+        );
+    }
+
     public function styles(Worksheet $sheet)
     {
         $col = $this->detailed ? 'E' : 'D';
-        $headerRange = $this->detailed ? 'A1:E1' : 'A1:D1';
-        $footerRange = $this->detailed ? 'A{lastRow}:E{lastRow}' : 'A{lastRow}:D{lastRow}';
+        $tableHead = $this->billingSummaryTableHeaderRow();
+        $lastRow = $tableHead + $this->rows->count() + 1;
+        $headerRange = $this->detailed ? "A{$tableHead}:E{$tableHead}" : "A{$tableHead}:D{$tableHead}";
 
         $sheet->getStyle($headerRange)->applyFromArray([
             'font' => ['bold' => true],
@@ -113,9 +129,8 @@ class SampleBillingSummaryExport implements FromCollection, ShouldAutoSize, With
             ],
         ]);
 
-        $lastRow = $this->rows->count() + 2;
-        $sheet->getStyle("{$col}2:{$col}{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-        $sheet->getStyle(str_replace('{lastRow}', (string) $lastRow, $footerRange))->applyFromArray(['font' => ['bold' => true]]);
+        $sheet->getStyle("{$col}".($tableHead + 1).":{$col}{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+        $sheet->getStyle("A{$lastRow}:{$col}{$lastRow}")->applyFromArray(['font' => ['bold' => true]]);
 
         return [];
     }

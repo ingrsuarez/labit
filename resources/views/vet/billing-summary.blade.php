@@ -81,11 +81,11 @@
             </div>
 
             <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
-                <div class="px-6 py-4 border-b bg-amber-50">
-                    <h2 class="text-lg font-semibold text-amber-900">
-                        {{ $selectedCustomer->displayName() }}
-                        <span class="text-sm font-normal text-gray-500">— {{ $periodLabel }}</span>
-                    </h2>
+                <div class="px-6 py-4 border-b">
+                    @include('partials.billing-summary-lab-header', [
+                        'reportTitle' => 'Facturación veterinaria — '.$periodLabel,
+                        'counterpartyLabel' => 'Cliente: '.$selectedCustomer->displayName(),
+                    ])
                 </div>
                 @if($rows->count() > 0)
                     <div class="overflow-x-auto">
