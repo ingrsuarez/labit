@@ -5,22 +5,23 @@
     <title>Resumen {{ $insurance->name }}</title>
     <style>
         body { font-family: Arial, sans-serif; font-size: 9px; color: #333; }
-        h1 { font-size: 14px; margin-bottom: 4px; }
-        .meta { font-size: 10px; color: #555; margin-bottom: 12px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #0d9488; color: #fff; padding: 5px 6px; text-align: left; font-size: 8px; text-transform: uppercase; }
-        th.right { text-align: right; }
-        td { padding: 4px 6px; border-bottom: 1px solid #ddd; vertical-align: top; }
-        td.right { text-align: right; }
-        td.codes { font-family: monospace; font-size: 8px; }
-        tfoot td { font-weight: bold; background: #ecfdf5; }
+        table.data { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        table.data th { background: #0d9488; color: #fff; padding: 5px 6px; text-align: left; font-size: 8px; text-transform: uppercase; }
+        table.data th.right { text-align: right; }
+        table.data td { padding: 4px 6px; border-bottom: 1px solid #ddd; vertical-align: top; }
+        table.data td.right { text-align: right; }
+        table.data td.codes { font-family: monospace; font-size: 8px; }
+        table.data tfoot td { font-weight: bold; background: #ecfdf5; }
     </style>
+    @include('partials.billing-summary-pdf-head')
 </head>
 <body>
-    <h1>{{ strtoupper($insurance->name) }}</h1>
-    <p class="meta">Período: {{ $periodLabel }}</p>
+    @include('partials.billing-summary-lab-header-pdf', [
+        'reportTitle' => 'Facturación — '.$periodLabel,
+        'counterpartyLabel' => 'Obra social: '.$insurance->billingDisplayName(),
+    ])
 
-    <table>
+    <table class="data">
         <thead>
             <tr>
                 <th>Fecha</th>
