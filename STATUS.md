@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-25 (**v1.105.1** hotfix UI panel NBU retroactivo)
+> Última actualización: 2026-05-26 (**v1.106.0** resumen por protocolo clínico/aguas/vet)
 
 ---
 
@@ -11,11 +11,11 @@
 |---|---|
 | **Versión actual (línea v1.x)** | **master**: **v1.98.3**; **develop**: **v1.98.3** (presupuestos) + **v1.98.2** (ingesta API); tags **v1.98.3**, **v1.98.1**, **v1.97.1**, **v1.97.0** |
 | **Última en master (releases v1.x previos)** | **v1.98.1** — Planilla pendientes clínico+vet, sidebar; **v1.97.1** — scroll con fragmento; **v1.97.0** — Santa Cruz FTP |
-| **Última completada (cola agente)** | **v1.105.0** — Inmutabilidad NBU en admisiones + recálculo retroactivo opcional |
+| **Última completada (cola agente)** | **v1.106.0** — Resumen por protocolo (1 fila/protocolo, códigos, PDF+Excel) |
 | **Hotfix aplicado** | **v1.105.1** (2026-05-25): reactividad Alpine en panel NBU retroactivo (`nbuDraft` + `bindNbuInput`), cierre HTML nomenclador, aclaración NBU vet en nomenclador prácticas. **v1.104.1** (2026-05-21): precio correcto al agregar práctica en detalle de admisión… |
 | **En proceso** | — |
 | **Próxima recomendada** | **v1.104.0** — Email en protocolos de muestras (UI) |
-| **Pendientes en cola** | v1.104.0, **v1.106.0** (resumen por protocolo), v1.90.0 (residual) + diseños sueltos |
+| **Pendientes en cola** | v1.104.0, v1.90.0 (residual) + diseños sueltos |
 | **Completadas** | 163+ |
 
 ---
@@ -25,7 +25,6 @@
 ### Pendientes — próximo por orden de versión (`ls pendientes | sort | grep '^v'`)
 
 - `v1.104.0-email-protocolos-muestras-ui.md` — Email en protocolos de muestras (UI).
-- `v1.106.0-resumen-protocolos-por-periodo.md` — Resumen por protocolo (clínico reemplaza monthly; aguas + vet; PDF + Excel).
 - `v1.90.0-notas-credito-manuales-independientes.md` — residual en carpeta (tag **v1.90.0** ya existe; archivo puede archivarse).
 
 Archivos adicionales en `pendientes/` (no empiezan con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
@@ -40,6 +39,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.106.0 | Resumen por protocolo por período: clínico (reemplaza monthly), aguas y vet; PDF + Excel | 2026-05-26 | v1.106.0 |
 | v1.105.1 | Hotfix: reactividad Alpine panel NBU retroactivo + cierre HTML nomenclador + info NBU vet | 2026-05-25 | v1.105.1 |
 | v1.105.0 | Inmutabilidad NBU en admisiones + recálculo retroactivo opcional (clínico y vet) | 2026-05-21 | v1.105.0 |
 | v1.104.1 | Hotfix: precio correcto al agregar determinación manual a admisión clínica existente | 2026-05-21 | v1.104.1 |

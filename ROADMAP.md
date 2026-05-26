@@ -151,7 +151,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
-| v1.106.0 | Resumen por protocolo por período: reemplaza reporte mensual clínico (1 fila/protocolo, códigos `-`, PDF+Excel); nuevas vistas aguas y vet con cards propias | Pendiente | `pendientes/v1.106.0-resumen-protocolos-por-periodo.md` — diseño: `docs/designs/DISEÑO_v1.106.0-resumen-protocolos-por-periodo.md` |
+| v1.106.0 | Resumen por protocolo por período: reemplaza reporte mensual clínico (1 fila/protocolo, códigos `-`, PDF+Excel); nuevas vistas aguas y vet con cards propias | ✅ Completada (2026-05-26) | `completados/v1.106.0-resumen-protocolos-por-periodo.md` — diseño: `docs/designs/DISEÑO_v1.106.0-resumen-protocolos-por-periodo.md` |
 | v1.104.1 | Hotfix: precio correcto al agregar determinación manual a admisión clínica existente | ✅ Completada (2026-05-21) | `completados/v1.104.1-hotfix-precio-agregar-determinacion-admision.md` |
 | v1.105.0 | Inmutabilidad precios NBU + recálculo retroactivo opt-in | ✅ Completada (2026-05-21) | `completados/v1.105.0-nbu-inmutabilidad-retroactivo.md` — diseño: `docs/designs/DISEÑO_v1.105.0-nbu-inmutabilidad-retroactivo.md` |
 | v1.104.0 | Email en protocolos de muestras: botón/modal en detalle, banner masivo en listado | Pendiente | `pendientes/v1.104.0-email-protocolos-muestras-ui.md` |
