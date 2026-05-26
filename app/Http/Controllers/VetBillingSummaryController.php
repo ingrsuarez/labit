@@ -2,52 +2,52 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\MonthlyInsuranceReportExport;
-use App\Models\Insurance;
+use App\Exports\VetBillingSummaryExport;
+use App\Models\Customer;
 use App\Services\BillingSummaryService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
-class LabReportController extends Controller
+class VetBillingSummaryController extends Controller
 {
     public function __construct(
         protected BillingSummaryService $billingSummary,
     ) {}
 
-    public function monthly(Request $request)
+    public function index(Request $request)
     {
-        $this->authorize('lab-reports.index');
+        $this->authorize('sales-invoices.index');
 
-        $insurances = Insurance::where('type', '!=', 'nomenclador')
-            ->orderByRaw("CASE WHEN type = 'particular' THEN 0 ELSE 1 END")
+        $customers = Customer::where('status', 'activo')
+            ->whereJsonContains('type', 'veterinario')
             ->orderBy('name')
             ->get();
 
-        $insuranceId = $request->get('insurance_id');
+        $customerId = $request->get('customer_id');
         $dateFrom = $request->get('date_from', now()->startOfMonth()->toDateString());
         $dateTo = $request->get('date_to', now()->toDateString());
 
         $rows = null;
         $totals = null;
-        $selectedInsurance = null;
+        $selectedCustomer = null;
         $periodLabel = null;
 
-        if ($insuranceId) {
-            $selectedInsurance = Insurance::find($insuranceId);
+        if ($customerId) {
+            $selectedCustomer = Customer::find($customerId);
             [$from, $to] = $this->billingSummary->parseDateRange($dateFrom, $dateTo);
-            $built = $this->billingSummary->buildClinicalRows($selectedInsurance, $from, $to);
+            $built = $this->billingSummary->buildVetRows($selectedCustomer, $from, $to);
             $rows = $built['rows'];
             $totals = $built['totals'];
             $periodLabel = $from->format('d/m/Y').' — '.$to->format('d/m/Y');
         }
 
-        return view('lab.reports.monthly', compact(
-            'insurances',
-            'insuranceId',
+        return view('vet.billing-summary', compact(
+            'customers',
+            'customerId',
             'dateFrom',
             'dateTo',
-            'selectedInsurance',
+            'selectedCustomer',
             'rows',
             'totals',
             'periodLabel',
@@ -56,43 +56,43 @@ class LabReportController extends Controller
 
     public function exportExcel(Request $request)
     {
-        $this->authorize('lab-reports.index');
-        $validated = $this->validateClinicalFilters($request);
+        $this->authorize('sales-invoices.index');
+        $validated = $this->validateFilters($request);
 
-        $insurance = Insurance::findOrFail($validated['insurance_id']);
+        $customer = Customer::findOrFail($validated['customer_id']);
         [$from, $to] = $this->billingSummary->parseDateRange(
             $validated['date_from'],
             $validated['date_to'],
         );
 
         $filename = sprintf(
-            'Resumen-%s_%s_%s.xlsx',
-            $insurance->id,
+            'Resumen-Vet-%s_%s_%s.xlsx',
+            $customer->id,
             $from->format('Y-m-d'),
             $to->format('Y-m-d'),
         );
 
         return Excel::download(
-            new MonthlyInsuranceReportExport($insurance->id, $from->toDateString(), $to->toDateString()),
+            new VetBillingSummaryExport($customer->id, $validated['date_from'], $validated['date_to']),
             $filename,
         );
     }
 
     public function exportPdf(Request $request)
     {
-        $this->authorize('lab-reports.index');
-        $validated = $this->validateClinicalFilters($request);
+        $this->authorize('sales-invoices.index');
+        $validated = $this->validateFilters($request);
 
-        $insurance = Insurance::findOrFail($validated['insurance_id']);
+        $customer = Customer::findOrFail($validated['customer_id']);
         [$from, $to] = $this->billingSummary->parseDateRange(
             $validated['date_from'],
             $validated['date_to'],
         );
 
-        $built = $this->billingSummary->buildClinicalRows($insurance, $from, $to);
+        $built = $this->billingSummary->buildVetRows($customer, $from, $to);
 
-        $pdf = Pdf::loadView('lab.reports.monthly-pdf', [
-            'insurance' => $insurance,
+        $pdf = Pdf::loadView('vet.billing-summary-pdf', [
+            'customer' => $customer,
             'rows' => $built['rows'],
             'totals' => $built['totals'],
             'periodLabel' => $from->format('d/m/Y').' al '.$to->format('d/m/Y'),
@@ -100,8 +100,8 @@ class LabReportController extends Controller
         $pdf->setPaper('A4', 'landscape');
 
         $filename = sprintf(
-            'Resumen-%s_%s_%s.pdf',
-            $insurance->id,
+            'Resumen-Vet-%s_%s_%s.pdf',
+            $customer->id,
             $from->format('Y-m-d'),
             $to->format('Y-m-d'),
         );
@@ -110,12 +110,12 @@ class LabReportController extends Controller
     }
 
     /**
-     * @return array{insurance_id: int, date_from: string, date_to: string}
+     * @return array{customer_id: int, date_from: string, date_to: string}
      */
-    private function validateClinicalFilters(Request $request): array
+    private function validateFilters(Request $request): array
     {
         return $request->validate([
-            'insurance_id' => 'required|exists:insurances,id',
+            'customer_id' => 'required|exists:customers,id',
             'date_from' => 'required|date',
             'date_to' => 'required|date',
         ]);

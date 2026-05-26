@@ -283,6 +283,15 @@ Route::middleware([
         // LAB REPORTS (Reportes del Laboratorio)
         Route::get('lab/reports/monthly', [App\Http\Controllers\LabReportController::class, 'monthly'])->name('lab.reports.monthly');
         Route::get('lab/reports/monthly/export', [App\Http\Controllers\LabReportController::class, 'exportExcel'])->name('lab.reports.exportExcel');
+        Route::get('lab/reports/monthly/export-pdf', [App\Http\Controllers\LabReportController::class, 'exportPdf'])->name('lab.reports.exportPdf');
+
+        Route::get('lab/muestras/resumen', [App\Http\Controllers\SampleBillingSummaryController::class, 'index'])->name('sample.billing-summary');
+        Route::get('lab/muestras/resumen/export-excel', [App\Http\Controllers\SampleBillingSummaryController::class, 'exportExcel'])->name('sample.billing-summary.exportExcel');
+        Route::get('lab/muestras/resumen/export-pdf', [App\Http\Controllers\SampleBillingSummaryController::class, 'exportPdf'])->name('sample.billing-summary.exportPdf');
+
+        Route::get('lab/veterinario/resumen', [App\Http\Controllers\VetBillingSummaryController::class, 'index'])->name('vet.billing-summary');
+        Route::get('lab/veterinario/resumen/export-excel', [App\Http\Controllers\VetBillingSummaryController::class, 'exportExcel'])->name('vet.billing-summary.exportExcel');
+        Route::get('lab/veterinario/resumen/export-pdf', [App\Http\Controllers\VetBillingSummaryController::class, 'exportPdf'])->name('vet.billing-summary.exportPdf');
 
         // WORKSHEETS (Planillas de Trabajo)
         Route::get('lab/worksheets', [App\Http\Controllers\WorksheetController::class, 'index'])->name('worksheets.index');
