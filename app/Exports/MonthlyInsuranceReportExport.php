@@ -22,14 +22,19 @@ class MonthlyInsuranceReportExport implements FromCollection, ShouldAutoSize, Wi
 
     protected array $totals;
 
+    protected bool $detailed;
+
     public function __construct(
         protected int $insuranceId,
         protected string $dateFrom,
         protected string $dateTo,
+        protected string $format = 'summary',
     ) {
         $this->insurance = Insurance::findOrFail($insuranceId);
-        [$from, $to] = app(BillingSummaryService::class)->parseDateRange($dateFrom, $dateTo);
-        $built = app(BillingSummaryService::class)->buildClinicalRows($this->insurance, $from, $to);
+        $service = app(BillingSummaryService::class);
+        [$from, $to] = $service->parseDateRange($dateFrom, $dateTo);
+        $this->detailed = $service->normalizeFormat($format) === 'detailed';
+        $built = $service->buildClinical($this->insurance, $from, $to, $format);
         $this->rows = $built['rows'];
         $this->totals = $built['totals'];
     }
@@ -38,33 +43,51 @@ class MonthlyInsuranceReportExport implements FromCollection, ShouldAutoSize, Wi
     {
         $data = $this->rows->map(fn (array $row) => (object) $row);
 
-        $data->push((object) [
-            'formatted_date' => '',
-            'name' => 'TOTAL',
-            'dni' => $this->totals['protocol_count'].' protocolo(s)',
-            'affiliate' => '',
-            'codes' => '',
-            'price' => $this->totals['total_amount'],
-            'is_total' => true,
-        ]);
+        if ($this->detailed) {
+            $data->push((object) [
+                'formatted_date' => '',
+                'patient_label' => 'TOTAL',
+                'dni' => ($this->totals['line_count'] ?? 0).' práctica(s)',
+                'code' => '',
+                'practice' => '',
+                'amount' => $this->totals['total_amount'],
+            ]);
+        } else {
+            $data->push((object) [
+                'formatted_date' => '',
+                'name' => 'TOTAL',
+                'dni' => $this->totals['protocol_count'].' protocolo(s)',
+                'affiliate' => '',
+                'codes' => '',
+                'price' => $this->totals['total_amount'],
+            ]);
+        }
 
         return $data;
     }
 
     public function headings(): array
     {
-        return [
-            'Fecha',
-            'Paciente',
-            'DNI',
-            'Afiliado',
-            'Determinaciones',
-            'Precio',
-        ];
+        if ($this->detailed) {
+            return ['Fecha', 'Paciente', 'DNI', 'Código', 'Práctica', 'Monto'];
+        }
+
+        return ['Fecha', 'Paciente', 'DNI', 'Afiliado', 'Determinaciones', 'Precio'];
     }
 
     public function map($row): array
     {
+        if ($this->detailed) {
+            return [
+                $row->formatted_date ?? '',
+                $row->patient_label ?? '',
+                $row->dni ?? '',
+                $row->code ?? '',
+                $row->practice ?? '',
+                $row->amount ?? 0,
+            ];
+        }
+
         return [
             $row->formatted_date ?? '',
             $row->name ?? '',
@@ -79,8 +102,9 @@ class MonthlyInsuranceReportExport implements FromCollection, ShouldAutoSize, Wi
     {
         $from = Carbon::parse($this->dateFrom)->format('d-m-Y');
         $to = Carbon::parse($this->dateTo)->format('d-m-Y');
+        $suffix = $this->detailed ? ' Detallado' : '';
 
-        return strtoupper($this->insurance->name ?? 'Reporte')." ({$from} a {$to})";
+        return strtoupper($this->insurance->name ?? 'Reporte')."{$suffix} ({$from} a {$to})";
     }
 
     public function styles(Worksheet $sheet)

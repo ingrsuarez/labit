@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-26 (**v1.106.0** resumen por protocolo clínico/aguas/vet)
+> Última actualización: 2026-05-26 (**v1.106.1** resumen detallado de facturación)
 
 ---
 
@@ -11,7 +11,7 @@
 |---|---|
 | **Versión actual (línea v1.x)** | **master**: **v1.98.3**; **develop**: **v1.98.3** (presupuestos) + **v1.98.2** (ingesta API); tags **v1.98.3**, **v1.98.1**, **v1.97.1**, **v1.97.0** |
 | **Última en master (releases v1.x previos)** | **v1.98.1** — Planilla pendientes clínico+vet, sidebar; **v1.97.1** — scroll con fragmento; **v1.97.0** — Santa Cruz FTP |
-| **Última completada (cola agente)** | **v1.106.0** — Resumen por protocolo (1 fila/protocolo, códigos, PDF+Excel) |
+| **Última completada (cola agente)** | **v1.106.1** — Resumen detallado (1 fila/práctica, total a facturar, PDF+Excel) |
 | **Hotfix aplicado** | **v1.105.1** (2026-05-25): reactividad Alpine en panel NBU retroactivo (`nbuDraft` + `bindNbuInput`), cierre HTML nomenclador, aclaración NBU vet en nomenclador prácticas. **v1.104.1** (2026-05-21): precio correcto al agregar práctica en detalle de admisión… |
 | **En proceso** | — |
 | **Próxima recomendada** | **v1.104.0** — Email en protocolos de muestras (UI) |
@@ -39,6 +39,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.106.1 | Resumen detallado facturación: formato por práctica en clínico/aguas/vet; total a facturar | 2026-05-26 | v1.106.1 |
 | v1.106.0 | Resumen por protocolo por período: clínico (reemplaza monthly), aguas y vet; PDF + Excel | 2026-05-26 | v1.106.0 |
 | v1.105.1 | Hotfix: reactividad Alpine panel NBU retroactivo + cierre HTML nomenclador + info NBU vet | 2026-05-25 | v1.105.1 |
 | v1.105.0 | Inmutabilidad NBU en admisiones + recálculo retroactivo opcional (clínico y vet) | 2026-05-21 | v1.105.0 |

@@ -2,7 +2,13 @@
     <div class="py-6 px-4 md:px-6 lg:px-8 mt-14 md:mt-0">
         <div class="mb-6">
             <h1 class="text-2xl font-bold text-gray-900">Resumen por período</h1>
-            <p class="mt-1 text-sm text-gray-600">Aguas y alimentos — un protocolo por fila</p>
+            <p class="mt-1 text-sm text-gray-600">
+                @if(($format ?? 'summary') === 'detailed')
+                    Detallado — una fila por práctica
+                @else
+                    Consolidado — un protocolo por fila
+                @endif
+            </p>
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
@@ -16,6 +22,13 @@
                                 {{ $cust->displayName() }}
                             </option>
                         @endforeach
+                    </select>
+                </div>
+                <div class="w-44">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Formato</label>
+                    <select name="format" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-cyan-500 focus:border-cyan-500">
+                        <option value="summary" {{ ($format ?? 'summary') === 'summary' ? 'selected' : '' }}>Consolidado</option>
+                        <option value="detailed" {{ ($format ?? '') === 'detailed' ? 'selected' : '' }}>Detallado</option>
                     </select>
                 </div>
                 <div class="w-40">
@@ -33,18 +46,31 @@
         </div>
 
         @if($rows !== null)
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <div class="bg-white rounded-xl shadow-sm border p-4">
                     <p class="text-sm text-gray-500">Protocolos</p>
                     <p class="text-2xl font-bold text-gray-900">{{ $totals['protocol_count'] }}</p>
                 </div>
+                @if(($format ?? 'summary') === 'detailed')
+                    <div class="bg-white rounded-xl shadow-sm border p-4">
+                        <p class="text-sm text-gray-500">Prácticas</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ $totals['line_count'] ?? 0 }}</p>
+                    </div>
+                @endif
                 <div class="bg-white rounded-xl shadow-sm border p-4">
-                    <p class="text-sm text-gray-500">Total período</p>
+                    <p class="text-sm text-gray-500">Total a facturar</p>
                     <p class="text-2xl font-bold text-cyan-600">${{ number_format($totals['total_amount'], 2, ',', '.') }}</p>
                 </div>
             </div>
 
-            @php $exportQuery = http_build_query(['customer_id' => $customerId, 'date_from' => $dateFrom, 'date_to' => $dateTo]); @endphp
+            @php
+                $exportQuery = http_build_query([
+                    'customer_id' => $customerId,
+                    'date_from' => $dateFrom,
+                    'date_to' => $dateTo,
+                    'format' => $format ?? 'summary',
+                ]);
+            @endphp
             <div class="mb-4 flex flex-wrap justify-end gap-2">
                 <a href="{{ route('sample.billing-summary.exportPdf') }}?{{ $exportQuery }}" class="inline-flex items-center px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 text-sm">
                     <i class="bi bi-file-earmark-pdf mr-2"></i> Exportar PDF
@@ -66,27 +92,53 @@
                         <table class="min-w-full divide-y divide-gray-200 text-sm">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Muestra</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Determinaciones</th>
-                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Precio</th>
+                                    @if(($format ?? 'summary') === 'detailed')
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Muestra</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Práctica</th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Monto</th>
+                                    @else
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Muestra</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Determinaciones</th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Precio</th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 @foreach($rows as $row)
                                     <tr class="hover:bg-gray-50">
-                                        <td class="px-4 py-3 text-gray-600">{{ $row['formatted_date'] }}</td>
-                                        <td class="px-4 py-3 text-gray-900">{{ $row['name'] }}</td>
-                                        <td class="px-4 py-3 font-mono text-xs max-w-md truncate" title="{{ $row['codes'] }}">{{ $row['codes'] }}</td>
-                                        <td class="px-4 py-3 text-right font-medium">${{ number_format($row['price'], 2, ',', '.') }}</td>
+                                        @if(($format ?? 'summary') === 'detailed')
+                                            <td class="px-4 py-2 text-gray-600 align-top">{{ $row['formatted_date'] }}</td>
+                                            <td class="px-4 py-2 text-gray-900 align-top">{{ $row['subject_label'] }}</td>
+                                            <td class="px-4 py-2 font-mono text-xs align-top">{{ $row['code'] }}</td>
+                                            <td class="px-4 py-2 text-gray-800 align-top">{{ $row['practice'] }}</td>
+                                            <td class="px-4 py-2 text-right font-medium align-top">${{ number_format($row['amount'], 2, ',', '.') }}</td>
+                                        @else
+                                            <td class="px-4 py-3 text-gray-600">{{ $row['formatted_date'] }}</td>
+                                            <td class="px-4 py-3 text-gray-900">{{ $row['name'] }}</td>
+                                            <td class="px-4 py-3 font-mono text-xs max-w-md truncate" title="{{ $row['codes'] }}">{{ $row['codes'] }}</td>
+                                            <td class="px-4 py-3 text-right font-medium">${{ number_format($row['price'], 2, ',', '.') }}</td>
+                                        @endif
                                     </tr>
                                 @endforeach
                             </tbody>
                             <tfoot class="bg-cyan-50">
                                 <tr>
-                                    <td colspan="2" class="px-4 py-4 text-sm font-bold text-right">TOTAL</td>
-                                    <td class="px-4 py-4 text-sm font-semibold">{{ $totals['protocol_count'] }} protocolo(s)</td>
-                                    <td class="px-4 py-4 text-right text-lg font-bold text-cyan-600">${{ number_format($totals['total_amount'], 2, ',', '.') }}</td>
+                                    @if(($format ?? 'summary') === 'detailed')
+                                        <td colspan="3" class="px-4 py-4 text-sm font-bold text-right">TOTAL A FACTURAR</td>
+                                        <td class="px-4 py-4 text-sm text-gray-700">
+                                            {{ $totals['line_count'] ?? 0 }} práctica(s) · {{ $totals['protocol_count'] }} protocolo(s)
+                                        </td>
+                                        <td class="px-4 py-4 text-right text-lg font-bold text-cyan-600">
+                                            ${{ number_format($totals['total_amount'], 2, ',', '.') }}
+                                        </td>
+                                    @else
+                                        <td colspan="2" class="px-4 py-4 text-sm font-bold text-right">TOTAL</td>
+                                        <td class="px-4 py-4 text-sm font-semibold">{{ $totals['protocol_count'] }} protocolo(s)</td>
+                                        <td class="px-4 py-4 text-right text-lg font-bold text-cyan-600">${{ number_format($totals['total_amount'], 2, ',', '.') }}</td>
+                                    @endif
                                 </tr>
                             </tfoot>
                         </table>
@@ -97,7 +149,7 @@
             </div>
         @else
             <div class="bg-white rounded-xl shadow-sm border p-12 text-center text-sm text-gray-500">
-                Seleccioná cliente y fechas para generar el resumen.
+                Seleccioná cliente, formato y fechas para generar el resumen.
             </div>
         @endif
     </div>
