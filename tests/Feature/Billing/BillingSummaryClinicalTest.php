@@ -95,6 +95,81 @@ class BillingSummaryClinicalTest extends TestCase
         $response->assertSee('1 protocolo', false);
     }
 
+    public function test_detailed_report_shows_one_row_per_practice_with_total(): void
+    {
+        $user = User::factory()->create();
+        $user->givePermissionTo(['lab.section', 'lab-reports.index']);
+
+        $insurance = Insurance::query()->create([
+            'name' => 'OS Detallado',
+            'type' => 'obra_social',
+            'state' => 'activo',
+        ]);
+
+        $patient = Patient::query()->create([
+            'name' => 'Ana',
+            'lastName' => 'Lopez',
+            'patientId' => '30111222',
+            'type' => 'humano',
+            'sex' => 'F',
+            'status' => 'activo',
+        ]);
+
+        $admission = $this->createAdmission([
+            'insurance' => $insurance->id,
+            'patient_id' => $patient->id,
+            'date' => '2026-05-05',
+            'affiliate_number' => '025494/01',
+        ]);
+
+        $parent = $this->createTest('475');
+        $child = $this->createTest('475-C');
+        $parent->childTests()->attach($child->id, ['order' => 1]);
+        $solo = $this->createTest('412');
+
+        AdmissionTest::query()->create([
+            'admission_id' => $admission->id,
+            'test_id' => $parent->id,
+            'price' => 3250,
+            'copago' => 0,
+            'paid_by_patient' => false,
+            'authorization_status' => AdmissionTest::STATUS_AUTHORIZED,
+        ]);
+        AdmissionTest::query()->create([
+            'admission_id' => $admission->id,
+            'test_id' => $child->id,
+            'price' => 500,
+            'copago' => 0,
+            'paid_by_patient' => false,
+            'authorization_status' => AdmissionTest::STATUS_AUTHORIZED,
+        ]);
+        AdmissionTest::query()->create([
+            'admission_id' => $admission->id,
+            'test_id' => $solo->id,
+            'price' => 975,
+            'copago' => 0,
+            'paid_by_patient' => false,
+            'authorization_status' => AdmissionTest::STATUS_AUTHORIZED,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('lab.reports.monthly', [
+            'insurance_id' => $insurance->id,
+            'date_from' => '2026-05-01',
+            'date_to' => '2026-05-31',
+            'format' => 'detailed',
+        ]));
+
+        $response->assertOk();
+        $response->assertSee('Lopez', false);
+        $response->assertSee('025494/01', false);
+        $response->assertSee('475', false);
+        $response->assertSee('412', false);
+        $response->assertDontSee('475-C', false);
+        $response->assertSee('TOTAL A FACTURAR', false);
+        $response->assertSee('$4.225,00', false);
+        $response->assertSee('2 práctica', false);
+    }
+
     public function test_exports_require_permission(): void
     {
         $insurance = Insurance::query()->create([

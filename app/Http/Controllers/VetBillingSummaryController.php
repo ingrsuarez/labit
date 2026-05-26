@@ -27,6 +27,7 @@ class VetBillingSummaryController extends Controller
         $customerId = $request->get('customer_id');
         $dateFrom = $request->get('date_from', now()->startOfMonth()->toDateString());
         $dateTo = $request->get('date_to', now()->toDateString());
+        $format = $this->billingSummary->normalizeFormat($request->get('format'));
 
         $rows = null;
         $totals = null;
@@ -36,7 +37,7 @@ class VetBillingSummaryController extends Controller
         if ($customerId) {
             $selectedCustomer = Customer::find($customerId);
             [$from, $to] = $this->billingSummary->parseDateRange($dateFrom, $dateTo);
-            $built = $this->billingSummary->buildVetRows($selectedCustomer, $from, $to);
+            $built = $this->billingSummary->buildVet($selectedCustomer, $from, $to, $format);
             $rows = $built['rows'];
             $totals = $built['totals'];
             $periodLabel = $from->format('d/m/Y').' — '.$to->format('d/m/Y');
@@ -47,6 +48,7 @@ class VetBillingSummaryController extends Controller
             'customerId',
             'dateFrom',
             'dateTo',
+            'format',
             'selectedCustomer',
             'rows',
             'totals',
@@ -64,16 +66,23 @@ class VetBillingSummaryController extends Controller
             $validated['date_from'],
             $validated['date_to'],
         );
+        $format = $this->billingSummary->normalizeFormat($validated['format'] ?? 'summary');
 
         $filename = sprintf(
-            'Resumen-Vet-%s_%s_%s.xlsx',
+            'Resumen-Vet-%s-%s_%s_%s.xlsx',
+            $format === 'detailed' ? 'Detallado' : 'Consolidado',
             $customer->id,
             $from->format('Y-m-d'),
             $to->format('Y-m-d'),
         );
 
         return Excel::download(
-            new VetBillingSummaryExport($customer->id, $validated['date_from'], $validated['date_to']),
+            new VetBillingSummaryExport(
+                $customer->id,
+                $validated['date_from'],
+                $validated['date_to'],
+                $format,
+            ),
             $filename,
         );
     }
@@ -88,10 +97,15 @@ class VetBillingSummaryController extends Controller
             $validated['date_from'],
             $validated['date_to'],
         );
+        $format = $this->billingSummary->normalizeFormat($validated['format'] ?? 'summary');
 
-        $built = $this->billingSummary->buildVetRows($customer, $from, $to);
+        $built = $this->billingSummary->buildVet($customer, $from, $to, $format);
 
-        $pdf = Pdf::loadView('vet.billing-summary-pdf', [
+        $view = $format === 'detailed'
+            ? 'vet.billing-summary-detailed-pdf'
+            : 'vet.billing-summary-pdf';
+
+        $pdf = Pdf::loadView($view, [
             'customer' => $customer,
             'rows' => $built['rows'],
             'totals' => $built['totals'],
@@ -100,7 +114,8 @@ class VetBillingSummaryController extends Controller
         $pdf->setPaper('A4', 'landscape');
 
         $filename = sprintf(
-            'Resumen-Vet-%s_%s_%s.pdf',
+            'Resumen-Vet-%s-%s_%s_%s.pdf',
+            $format === 'detailed' ? 'Detallado' : 'Consolidado',
             $customer->id,
             $from->format('Y-m-d'),
             $to->format('Y-m-d'),
@@ -110,7 +125,7 @@ class VetBillingSummaryController extends Controller
     }
 
     /**
-     * @return array{customer_id: int, date_from: string, date_to: string}
+     * @return array{customer_id: int, date_from: string, date_to: string, format?: string}
      */
     private function validateFilters(Request $request): array
     {
@@ -118,6 +133,7 @@ class VetBillingSummaryController extends Controller
             'customer_id' => 'required|exists:customers,id',
             'date_from' => 'required|date',
             'date_to' => 'required|date',
+            'format' => 'nullable|in:summary,detailed',
         ]);
     }
 }
