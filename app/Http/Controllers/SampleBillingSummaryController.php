@@ -27,6 +27,7 @@ class SampleBillingSummaryController extends Controller
         $customerId = $request->get('customer_id');
         $dateFrom = $request->get('date_from', now()->startOfMonth()->toDateString());
         $dateTo = $request->get('date_to', now()->toDateString());
+        $format = $this->billingSummary->normalizeFormat($request->get('format'));
 
         $rows = null;
         $totals = null;
@@ -36,7 +37,7 @@ class SampleBillingSummaryController extends Controller
         if ($customerId) {
             $selectedCustomer = Customer::find($customerId);
             [$from, $to] = $this->billingSummary->parseDateRange($dateFrom, $dateTo);
-            $built = $this->billingSummary->buildSampleRows($selectedCustomer, $from, $to);
+            $built = $this->billingSummary->buildSample($selectedCustomer, $from, $to, $format);
             $rows = $built['rows'];
             $totals = $built['totals'];
             $periodLabel = $from->format('d/m/Y').' — '.$to->format('d/m/Y');
@@ -47,6 +48,7 @@ class SampleBillingSummaryController extends Controller
             'customerId',
             'dateFrom',
             'dateTo',
+            'format',
             'selectedCustomer',
             'rows',
             'totals',
@@ -64,16 +66,23 @@ class SampleBillingSummaryController extends Controller
             $validated['date_from'],
             $validated['date_to'],
         );
+        $format = $this->billingSummary->normalizeFormat($validated['format'] ?? 'summary');
 
         $filename = sprintf(
-            'Resumen-Muestras-%s_%s_%s.xlsx',
+            'Resumen-Muestras-%s-%s_%s_%s.xlsx',
+            $format === 'detailed' ? 'Detallado' : 'Consolidado',
             $customer->id,
             $from->format('Y-m-d'),
             $to->format('Y-m-d'),
         );
 
         return Excel::download(
-            new SampleBillingSummaryExport($customer->id, $validated['date_from'], $validated['date_to']),
+            new SampleBillingSummaryExport(
+                $customer->id,
+                $validated['date_from'],
+                $validated['date_to'],
+                $format,
+            ),
             $filename,
         );
     }
@@ -88,10 +97,15 @@ class SampleBillingSummaryController extends Controller
             $validated['date_from'],
             $validated['date_to'],
         );
+        $format = $this->billingSummary->normalizeFormat($validated['format'] ?? 'summary');
 
-        $built = $this->billingSummary->buildSampleRows($customer, $from, $to);
+        $built = $this->billingSummary->buildSample($customer, $from, $to, $format);
 
-        $pdf = Pdf::loadView('sample.billing-summary-pdf', [
+        $view = $format === 'detailed'
+            ? 'sample.billing-summary-detailed-pdf'
+            : 'sample.billing-summary-pdf';
+
+        $pdf = Pdf::loadView($view, [
             'customer' => $customer,
             'rows' => $built['rows'],
             'totals' => $built['totals'],
@@ -100,7 +114,8 @@ class SampleBillingSummaryController extends Controller
         $pdf->setPaper('A4', 'landscape');
 
         $filename = sprintf(
-            'Resumen-Muestras-%s_%s_%s.pdf',
+            'Resumen-Muestras-%s-%s_%s_%s.pdf',
+            $format === 'detailed' ? 'Detallado' : 'Consolidado',
             $customer->id,
             $from->format('Y-m-d'),
             $to->format('Y-m-d'),
@@ -110,7 +125,7 @@ class SampleBillingSummaryController extends Controller
     }
 
     /**
-     * @return array{customer_id: int, date_from: string, date_to: string}
+     * @return array{customer_id: int, date_from: string, date_to: string, format?: string}
      */
     private function validateFilters(Request $request): array
     {
@@ -118,6 +133,7 @@ class SampleBillingSummaryController extends Controller
             'customer_id' => 'required|exists:customers,id',
             'date_from' => 'required|date',
             'date_to' => 'required|date',
+            'format' => 'nullable|in:summary,detailed',
         ]);
     }
 }

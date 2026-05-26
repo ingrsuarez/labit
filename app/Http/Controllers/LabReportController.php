@@ -27,6 +27,7 @@ class LabReportController extends Controller
         $insuranceId = $request->get('insurance_id');
         $dateFrom = $request->get('date_from', now()->startOfMonth()->toDateString());
         $dateTo = $request->get('date_to', now()->toDateString());
+        $format = $this->billingSummary->normalizeFormat($request->get('format'));
 
         $rows = null;
         $totals = null;
@@ -36,7 +37,7 @@ class LabReportController extends Controller
         if ($insuranceId) {
             $selectedInsurance = Insurance::find($insuranceId);
             [$from, $to] = $this->billingSummary->parseDateRange($dateFrom, $dateTo);
-            $built = $this->billingSummary->buildClinicalRows($selectedInsurance, $from, $to);
+            $built = $this->billingSummary->buildClinical($selectedInsurance, $from, $to, $format);
             $rows = $built['rows'];
             $totals = $built['totals'];
             $periodLabel = $from->format('d/m/Y').' — '.$to->format('d/m/Y');
@@ -47,6 +48,7 @@ class LabReportController extends Controller
             'insuranceId',
             'dateFrom',
             'dateTo',
+            'format',
             'selectedInsurance',
             'rows',
             'totals',
@@ -64,16 +66,24 @@ class LabReportController extends Controller
             $validated['date_from'],
             $validated['date_to'],
         );
+        $format = $this->billingSummary->normalizeFormat($validated['format'] ?? 'summary');
+        $prefix = $format === 'detailed' ? 'Resumen-Detallado' : 'Resumen';
 
         $filename = sprintf(
-            'Resumen-%s_%s_%s.xlsx',
+            '%s-%s_%s_%s.xlsx',
+            $prefix,
             $insurance->id,
             $from->format('Y-m-d'),
             $to->format('Y-m-d'),
         );
 
         return Excel::download(
-            new MonthlyInsuranceReportExport($insurance->id, $from->toDateString(), $to->toDateString()),
+            new MonthlyInsuranceReportExport(
+                $insurance->id,
+                $from->toDateString(),
+                $to->toDateString(),
+                $format,
+            ),
             $filename,
         );
     }
@@ -88,10 +98,15 @@ class LabReportController extends Controller
             $validated['date_from'],
             $validated['date_to'],
         );
+        $format = $this->billingSummary->normalizeFormat($validated['format'] ?? 'summary');
 
-        $built = $this->billingSummary->buildClinicalRows($insurance, $from, $to);
+        $built = $this->billingSummary->buildClinical($insurance, $from, $to, $format);
 
-        $pdf = Pdf::loadView('lab.reports.monthly-pdf', [
+        $view = $format === 'detailed'
+            ? 'lab.reports.monthly-detailed-pdf'
+            : 'lab.reports.monthly-pdf';
+
+        $pdf = Pdf::loadView($view, [
             'insurance' => $insurance,
             'rows' => $built['rows'],
             'totals' => $built['totals'],
@@ -99,8 +114,10 @@ class LabReportController extends Controller
         ]);
         $pdf->setPaper('A4', 'landscape');
 
+        $prefix = $format === 'detailed' ? 'Resumen-Detallado' : 'Resumen';
         $filename = sprintf(
-            'Resumen-%s_%s_%s.pdf',
+            '%s-%s_%s_%s.pdf',
+            $prefix,
             $insurance->id,
             $from->format('Y-m-d'),
             $to->format('Y-m-d'),
@@ -110,7 +127,7 @@ class LabReportController extends Controller
     }
 
     /**
-     * @return array{insurance_id: int, date_from: string, date_to: string}
+     * @return array{insurance_id: int, date_from: string, date_to: string, format?: string}
      */
     private function validateClinicalFilters(Request $request): array
     {
@@ -118,6 +135,7 @@ class LabReportController extends Controller
             'insurance_id' => 'required|exists:insurances,id',
             'date_from' => 'required|date',
             'date_to' => 'required|date',
+            'format' => 'nullable|in:summary,detailed',
         ]);
     }
 }

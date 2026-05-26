@@ -5,6 +5,21 @@
 
 ---
 
+## [v1.106.1] — 2026-05-26 — Resumen detallado de facturación
+
+### Agregado
+
+- **Formato detallado** en resúmenes clínico, aguas y vet: selector Consolidado / Detallado en pantalla y exportaciones.
+- Una fila por práctica (código, nombre, monto); fecha y sujeto solo en la primera fila de cada protocolo.
+- Pie **TOTAL A FACTURAR** con suma de montos, cantidad de prácticas y protocolos.
+- PDF y Excel específicos para modo detallado (3 módulos).
+
+### Tests
+
+- `BillingSummaryClinicalTest::test_detailed_report_shows_one_row_per_practice_with_total`
+
+---
+
 ## [v1.103.0] — 2026-05-17 — Determinaciones calculadas por fórmula
 
 ### Agregado
