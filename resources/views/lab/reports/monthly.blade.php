@@ -86,11 +86,11 @@
             </div>
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                    <h2 class="text-lg font-semibold text-gray-800">
-                        {{ strtoupper($selectedInsurance->name) }}
-                        <span class="text-sm font-normal text-gray-500">— {{ $periodLabel }}</span>
-                    </h2>
+                <div class="px-6 py-4 border-b border-gray-200">
+                    @include('partials.billing-summary-lab-header', [
+                        'reportTitle' => 'Facturación — '.$periodLabel,
+                        'counterpartyLabel' => 'Obra social: '.$selectedInsurance->billingDisplayName(),
+                    ])
                 </div>
 
                 @if($rows->count() > 0)

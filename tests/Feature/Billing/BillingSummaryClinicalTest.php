@@ -101,7 +101,7 @@ class BillingSummaryClinicalTest extends TestCase
         $user->givePermissionTo(['lab.section', 'lab-reports.index']);
 
         $insurance = Insurance::query()->create([
-            'name' => 'OS Detallado',
+            'name' => 'medicus s.a.',
             'type' => 'obra_social',
             'state' => 'activo',
         ]);
@@ -160,6 +160,8 @@ class BillingSummaryClinicalTest extends TestCase
         ]));
 
         $response->assertOk();
+        $response->assertSee('IPAC LABORATORIOS', false);
+        $response->assertSee('Obra social: Medicus S.A.', false);
         $response->assertSee('Lopez', false);
         $response->assertSee('025494/01', false);
         $response->assertSee('475', false);

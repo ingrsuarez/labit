@@ -5,23 +5,24 @@
     <title>Resumen detallado {{ $insurance->name }}</title>
     <style>
         body { font-family: Arial, sans-serif; font-size: 8px; color: #333; }
-        h1 { font-size: 13px; margin-bottom: 2px; }
-        .meta { font-size: 9px; color: #555; margin-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #0d9488; color: #fff; padding: 4px 5px; text-align: left; font-size: 7px; text-transform: uppercase; }
-        th.right { text-align: right; }
-        td { padding: 3px 5px; border-bottom: 1px solid #eee; vertical-align: top; }
-        td.right { text-align: right; }
-        td.mono { font-family: monospace; }
-        td.patient { white-space: pre-line; }
-        tfoot td { font-weight: bold; background: #ecfdf5; font-size: 9px; }
+        table.data { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        table.data th { background: #0d9488; color: #fff; padding: 4px 5px; text-align: left; font-size: 7px; text-transform: uppercase; }
+        table.data th.right { text-align: right; }
+        table.data td { padding: 3px 5px; border-bottom: 1px solid #eee; vertical-align: top; }
+        table.data td.right { text-align: right; }
+        table.data td.mono { font-family: monospace; }
+        table.data td.patient { white-space: pre-line; }
+        table.data tfoot td { font-weight: bold; background: #ecfdf5; font-size: 9px; }
     </style>
+    @include('partials.billing-summary-pdf-head')
 </head>
 <body>
-    <h1>{{ strtoupper($insurance->name) }} — Resumen detallado</h1>
-    <p class="meta">Período: {{ $periodLabel }}</p>
+    @include('partials.billing-summary-lab-header-pdf', [
+        'reportTitle' => 'Facturación detallada — '.$periodLabel,
+        'counterpartyLabel' => 'Obra social: '.$insurance->billingDisplayName(),
+    ])
 
-    <table>
+    <table class="data">
         <thead>
             <tr>
                 <th>Fecha</th>

@@ -39,6 +39,11 @@ class Insurance extends Model
         return $this->short_name ?? $this->name;
     }
 
+    public function billingDisplayName(): string
+    {
+        return billing_entity_display_name($this->displayName());
+    }
+
     /**
      * Relación con el nomenclador de prácticas
      */
