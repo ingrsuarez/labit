@@ -15,7 +15,7 @@
 | **Hotfix aplicado** | **v1.105.1** (2026-05-25): reactividad Alpine en panel NBU retroactivo (`nbuDraft` + `bindNbuInput`), cierre HTML nomenclador, aclaración NBU vet en nomenclador prácticas. **v1.104.1** (2026-05-21): precio correcto al agregar práctica en detalle de admisión… |
 | **En proceso** | — |
 | **Próxima recomendada** | **v1.104.0** — Email en protocolos de muestras (UI) |
-| **Pendientes en cola** | v1.104.0, v1.90.0 (residual) + diseños sueltos |
+| **Pendientes en cola** | v1.104.0, **v1.106.0** (resumen por protocolo), v1.90.0 (residual) + diseños sueltos |
 | **Completadas** | 163+ |
 
 ---
@@ -25,6 +25,7 @@
 ### Pendientes — próximo por orden de versión (`ls pendientes | sort | grep '^v'`)
 
 - `v1.104.0-email-protocolos-muestras-ui.md` — Email en protocolos de muestras (UI).
+- `v1.106.0-resumen-protocolos-por-periodo.md` — Resumen por protocolo (clínico reemplaza monthly; aguas + vet; PDF + Excel).
 - `v1.90.0-notas-credito-manuales-independientes.md` — residual en carpeta (tag **v1.90.0** ya existe; archivo puede archivarse).
 
 Archivos adicionales en `pendientes/` (no empiezan con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.

@@ -2,7 +2,7 @@
 
 namespace App\Exports;
 
-use App\Models\Insurance;
+use App\Models\Customer;
 use App\Services\BillingSummaryService;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -14,22 +14,22 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class MonthlyInsuranceReportExport implements FromCollection, ShouldAutoSize, WithHeadings, WithMapping, WithStyles, WithTitle
+class VetBillingSummaryExport implements FromCollection, ShouldAutoSize, WithHeadings, WithMapping, WithStyles, WithTitle
 {
-    protected Insurance $insurance;
+    protected Customer $customer;
 
     protected $rows;
 
     protected array $totals;
 
     public function __construct(
-        protected int $insuranceId,
+        protected int $customerId,
         protected string $dateFrom,
         protected string $dateTo,
     ) {
-        $this->insurance = Insurance::findOrFail($insuranceId);
+        $this->customer = Customer::findOrFail($customerId);
         [$from, $to] = app(BillingSummaryService::class)->parseDateRange($dateFrom, $dateTo);
-        $built = app(BillingSummaryService::class)->buildClinicalRows($this->insurance, $from, $to);
+        $built = app(BillingSummaryService::class)->buildVetRows($this->customer, $from, $to);
         $this->rows = $built['rows'];
         $this->totals = $built['totals'];
     }
@@ -37,15 +37,11 @@ class MonthlyInsuranceReportExport implements FromCollection, ShouldAutoSize, Wi
     public function collection()
     {
         $data = $this->rows->map(fn (array $row) => (object) $row);
-
         $data->push((object) [
             'formatted_date' => '',
             'name' => 'TOTAL',
-            'dni' => $this->totals['protocol_count'].' protocolo(s)',
-            'affiliate' => '',
-            'codes' => '',
+            'codes' => $this->totals['protocol_count'].' protocolo(s)',
             'price' => $this->totals['total_amount'],
-            'is_total' => true,
         ]);
 
         return $data;
@@ -53,14 +49,7 @@ class MonthlyInsuranceReportExport implements FromCollection, ShouldAutoSize, Wi
 
     public function headings(): array
     {
-        return [
-            'Fecha',
-            'Paciente',
-            'DNI',
-            'Afiliado',
-            'Determinaciones',
-            'Precio',
-        ];
+        return ['Fecha', 'Animal', 'Determinaciones', 'Precio'];
     }
 
     public function map($row): array
@@ -68,8 +57,6 @@ class MonthlyInsuranceReportExport implements FromCollection, ShouldAutoSize, Wi
         return [
             $row->formatted_date ?? '',
             $row->name ?? '',
-            $row->dni ?? '',
-            $row->affiliate ?? '',
             $row->codes ?? '',
             $row->price ?? 0,
         ];
@@ -80,12 +67,12 @@ class MonthlyInsuranceReportExport implements FromCollection, ShouldAutoSize, Wi
         $from = Carbon::parse($this->dateFrom)->format('d-m-Y');
         $to = Carbon::parse($this->dateTo)->format('d-m-Y');
 
-        return strtoupper($this->insurance->name ?? 'Reporte')." ({$from} a {$to})";
+        return ($this->customer->name ?? 'Cliente')." ({$from} a {$to})";
     }
 
     public function styles(Worksheet $sheet)
     {
-        $sheet->getStyle('A1:F1')->applyFromArray([
+        $sheet->getStyle('A1:D1')->applyFromArray([
             'font' => ['bold' => true],
             'fill' => [
                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
@@ -94,15 +81,8 @@ class MonthlyInsuranceReportExport implements FromCollection, ShouldAutoSize, Wi
         ]);
 
         $lastRow = $this->rows->count() + 2;
-        $sheet->getStyle("F2:F{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-
-        $sheet->getStyle("A{$lastRow}:F{$lastRow}")->applyFromArray([
-            'font' => ['bold' => true],
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'D4EDDA'],
-            ],
-        ]);
+        $sheet->getStyle("D2:D{$lastRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+        $sheet->getStyle("A{$lastRow}:D{$lastRow}")->applyFromArray(['font' => ['bold' => true]]);
 
         return [];
     }
