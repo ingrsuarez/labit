@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-28 (**v1.107.0** seeder nomenclador laborales)
+> Última actualización: 2026-05-28 (**v1.104.0** email UI protocolos de muestras)
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **develop**: **v1.107.0** (seeder nomenclador laborales) |
-| **Última completada (cola agente)** | **v1.107.0** — Seeder nomenclador laborales desde Excel |
+| **Versión actual (línea v1.x)** | **develop**: **v1.104.0** (email UI protocolos de muestras) |
+| **Última completada (cola agente)** | **v1.104.0** — Email en protocolos de muestras (UI + permisos) |
 | **En proceso** | — |
-| **Próxima recomendada** | **v1.104.0** — Email en protocolos de muestras (UI) |
-| **Pendientes en cola** | v1.104.0, v1.90.0 (residual) + diseños sueltos |
-| **Completadas** | 163+ |
+| **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
+| **Pendientes en cola** | Solo diseños sueltos (sin prefijo `v`) |
+| **Completadas** | 164+ |
 
 ---
 
@@ -22,8 +22,7 @@
 
 ### Pendientes — próximo por orden de versión (`ls pendientes | sort | grep '^v'`)
 
-- `v1.104.0-email-protocolos-muestras-ui.md` — Email en protocolos de muestras (UI).
-- `v1.90.0-notas-credito-manuales-independientes.md` — residual en carpeta (tag **v1.90.0** ya existe; archivo puede archivarse).
+_Sin prompts con prefijo `v` en cola._ v1.90.0 archivado 2026-05-28 (tag **v1.90.0** ya existía).
 
 Archivos adicionales en `pendientes/` (no empiezan con `v`): `DISEÑO_v1.55.0-buscador-unificado-fc.md`.
 
@@ -37,6 +36,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.104.0 | Email UI protocolos de muestras (detalle + listado masivo, permisos) | 2026-05-28 | v1.104.0 |
 | v1.107.0 | Seeder nomenclador laborales desde Excel (producción) | 2026-05-28 | v1.107.0 |
 | v1.108.0 | Hotfix: protocolos clínicos duplicados — UNIQUE + lockForUpdate + retry | 2026-05-28 | v1.108.0 |
 | v1.106.2 | Encabezado IPAC (logo, CUIT, domicilio) en resúmenes; obra social con iniciales mayúsculas | 2026-05-26 | v1.106.2 |
@@ -291,7 +291,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-**v1.97.0** mergeada a **master** (2026-05-13); tag **v1.97.0**. Pendientes en cola con prefijo `v`: **v1.90.0** (residual) y **v1.94.0** (Factura B); diseño **v1.55.0** (buscador FC) en `pendientes/`.
+**v1.104.0** mergeada a **develop** (2026-05-28); tag **v1.104.0**. Cola con prefijo `v` **vacía** (v1.90.0 residual archivado). Diseño **v1.55.0** (buscador FC) sigue en `pendientes/`.
 
 **Cadena LISCOM↔labit:** completada en labit (v1.46.0, v1.47.0, v1.48.5, v1.51.0, v1.53.0).
 Pendientes en repo `interfases` (Django): v1.48.0, v1.49.0, v1.50.0, v1.52.0.

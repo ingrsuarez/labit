@@ -1045,8 +1045,10 @@ class SampleController extends Controller
     public function sendEmail(Request $request, Sample $sample)
     {
         $this->authorize('samples-reports.send');
-        if (! $sample->isValidated()) {
-            return back()->with('error', 'El protocolo debe estar validado para poder enviarlo.');
+
+        $validatedCount = $sample->determinations()->where('is_validated', true)->count();
+        if ($validatedCount === 0) {
+            return back()->with('error', 'Debe validar al menos una determinación para enviar el informe.');
         }
 
         $validated = $request->validate([
@@ -1066,9 +1068,7 @@ class SampleController extends Controller
 
         $sample->logAudit('email_sent', 'Envió resultados por email a '.$validated['email']);
 
-        if ($sample->isValidated()) {
-            $sample->update(['sent_at' => now()]);
-        }
+        $sample->update(['sent_at' => now()]);
 
         return back()->with('success', 'Protocolo enviado correctamente a '.$validated['email']);
     }
