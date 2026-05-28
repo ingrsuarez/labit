@@ -92,60 +92,60 @@ class SampleController extends Controller
             'lab_branch_id' => 'nullable|exists:lab_branches,id',
         ]);
 
-        // Generar n?mero de protocolo
-        $validated['protocol_number'] = Sample::generateProtocolNumber();
-        $validated['created_by'] = auth()->id();
-        $validated['status'] = 'pending';
+        $sample = Sample::retryOnProtocolNumberCollision(function () use ($request, $validated) {
+            $validated['protocol_number'] = Sample::generateProtocolNumber();
+            $validated['created_by'] = auth()->id();
+            $validated['status'] = 'pending';
 
-        // Crear la muestra
-        $sample = Sample::create($validated);
+            $sample = Sample::create($validated);
 
-        // Calcular descuento del cliente
-        $customer = Customer::find($validated['customer_id']);
-        $discountPercent = $customer->discount_percent ?? 0;
-        $discountMultiplier = 1 - ($discountPercent / 100);
+            $customer = Customer::find($validated['customer_id']);
+            $discountPercent = $customer->discount_percent ?? 0;
+            $discountMultiplier = 1 - ($discountPercent / 100);
 
-        // Agregar las determinaciones (incluyendo hijos automáticamente)
-        foreach ($request->determinations as $testId) {
-            $test = Test::with(['children', 'childTests', 'referenceValues'])->find($testId);
+            foreach ($request->determinations as $testId) {
+                $test = Test::with(['children', 'childTests', 'referenceValues'])->find($testId);
 
-            $parentCategoryId = $test->default_reference_category_id;
+                $parentCategoryId = $test->default_reference_category_id;
 
-            $parentRef = $this->buildReferenceValue($test);
-            $basePrice = $test->price ?? 0;
-            $finalPrice = round($basePrice * $discountMultiplier, 2);
+                $parentRef = $this->buildReferenceValue($test);
+                $basePrice = $test->price ?? 0;
+                $finalPrice = round($basePrice * $discountMultiplier, 2);
 
-            SampleDetermination::create([
-                'sample_id' => $sample->id,
-                'test_id' => $testId,
-                'price' => $finalPrice,
-                'unit' => $test->unit,
-                'method' => $test->method,
-                'reference_value' => $parentRef['value'],
-                'reference_category_id' => $parentRef['category_id'],
-                'status' => 'pending',
-            ]);
+                SampleDetermination::create([
+                    'sample_id' => $sample->id,
+                    'test_id' => $testId,
+                    'price' => $finalPrice,
+                    'unit' => $test->unit,
+                    'method' => $test->method,
+                    'reference_value' => $parentRef['value'],
+                    'reference_category_id' => $parentRef['category_id'],
+                    'status' => 'pending',
+                ]);
 
-            $allChildren = $test->getAllChildren();
-            foreach ($allChildren as $childTest) {
-                $exists = $sample->determinations()->where('test_id', $childTest->id)->exists();
-                if (! $exists) {
-                    $childRef = $this->buildReferenceValue($childTest, $parentCategoryId);
-                    SampleDetermination::create([
-                        'sample_id' => $sample->id,
-                        'test_id' => $childTest->id,
-                        'price' => 0,
-                        'unit' => $childTest->unit,
-                        'method' => $childTest->method,
-                        'reference_value' => $childRef['value'],
-                        'reference_category_id' => $childRef['category_id'],
-                        'status' => 'pending',
-                    ]);
+                $allChildren = $test->getAllChildren();
+                foreach ($allChildren as $childTest) {
+                    $exists = $sample->determinations()->where('test_id', $childTest->id)->exists();
+                    if (! $exists) {
+                        $childRef = $this->buildReferenceValue($childTest, $parentCategoryId);
+                        SampleDetermination::create([
+                            'sample_id' => $sample->id,
+                            'test_id' => $childTest->id,
+                            'price' => 0,
+                            'unit' => $childTest->unit,
+                            'method' => $childTest->method,
+                            'reference_value' => $childRef['value'],
+                            'reference_category_id' => $childRef['category_id'],
+                            'status' => 'pending',
+                        ]);
+                    }
                 }
             }
-        }
 
-        $sample->logAudit('created', 'Creó el protocolo Nº '.$sample->protocol_number.' para '.$sample->customer->name);
+            $sample->logAudit('created', 'Creó el protocolo Nº '.$sample->protocol_number.' para '.$sample->customer->name);
+
+            return $sample->fresh(['customer']);
+        });
 
         return redirect()->route('sample.show', $sample)
             ->with('success', 'Protocolo '.$sample->protocol_number.' creado correctamente.');
