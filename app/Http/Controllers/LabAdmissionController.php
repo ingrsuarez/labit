@@ -360,7 +360,16 @@ class LabAdmissionController extends Controller
             'lab_branch_id' => 'nullable|exists:lab_branches,id',
         ]);
 
-        // Crear la admisión
+        $admission = Admission::retryOnProtocolNumberCollision(function () use ($request) {
+            return $this->createAdmissionFromRequest($request);
+        });
+
+        return redirect()->route('lab.admissions.show', $admission)
+            ->with('success', 'Admisión creada correctamente. Protocolo: '.$admission->protocol_number);
+    }
+
+    private function createAdmissionFromRequest(Request $request): Admission
+    {
         $admission = Admission::create([
             'date' => $request->date,
             'number' => Admission::max('id') + 1,
@@ -474,8 +483,7 @@ class LabAdmissionController extends Controller
 
         $admission->logAudit('created', 'Creó la admisión Nº '.$admission->protocol_number.' para '.$admission->patient->full_name);
 
-        return redirect()->route('lab.admissions.show', $admission)
-            ->with('success', 'Admisión creada correctamente. Protocolo: '.$admission->protocol_number);
+        return $admission->fresh(['patient']);
     }
 
     /**
