@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-28 (**v1.108.0** completada: hotfix protocolos duplicados; **v1.107.0** planificada: seeder nomenclador laborales)
+> Última actualización: 2026-05-28 (**v1.107.0** completada: seeder nomenclador laborales)
 
 ---
 
@@ -103,6 +103,7 @@
 | v1.67.0 | API: catálogo de tests/determinaciones para LISCOM | 2026-05-04 | `GET /api/v1/tests?search=...&category=...`. Búsqueda por name/code, filtro por categoría, flags is_parent/is_child, material. 12 tests Feature verde. Complementa v1.47.0 para que LISCOM configure EquipmentTestMapping (v1.49.0). |
 | v1.77.0 | Vista recepción-lab: leaf + CRUD restringido + eliminar protocolo pendiente (clínico/vet/muestras) | 2026-05-10 | Rutas `destroy`, `removeTest`/`removeDetermination` recepción-lab, vistas `isRecepcionLab`, permisos seeder |
 | v1.86.0 | Envío masivo protocolos clínicos validados: un correo con N PDFs (`AdmissionBatchMail`, `batch-email`) | 2026-05-10 | Índice admisiones: selección + FAB + modal; tests `AdmissionBatchEmailTest` |
+| v1.107.0 | Seeder nomenclador laborales (producción): importa Excel como nomenclador base `Nomenclador laborales` | 2026-05-28 | Ejecución manual: `php artisan db:seed --class=NomencladorLaboralesSeeder` |
 | v1.108.0 | Hotfix urgente: protocolos clínicos duplicados — UNIQUE en `admissions`, generación atómica (`lockForUpdate` + retry) | 2026-05-28 | Incidente `C2605280083`; race condition en `GeneratesProtocolNumber` |
 
 ---
@@ -151,7 +152,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
-| v1.107.0 | Seeder nomenclador laborales (producción): importa `docs/Nomenclador laborales.xlsx` como nomenclador base; asignación manual a coberturas laborales | Pendiente | `pendientes/v1.107.0-seeder-nomenclador-laborales.md` |
+| v1.107.0 | Seeder nomenclador laborales (producción): importa `docs/Nomenclador laborales.xlsx` como nomenclador base; asignación manual a coberturas laborales | ✅ Completada (2026-05-28) | `completados/v1.107.0-seeder-nomenclador-laborales.md` |
 | v1.106.0 | Resumen por protocolo por período: reemplaza reporte mensual clínico (1 fila/protocolo, códigos `-`, PDF+Excel); nuevas vistas aguas y vet con cards propias | ✅ Completada (2026-05-26) | `completados/v1.106.0-resumen-protocolos-por-periodo.md` — diseño: `docs/designs/DISEÑO_v1.106.0-resumen-protocolos-por-periodo.md` |
 | v1.104.1 | Hotfix: precio correcto al agregar determinación manual a admisión clínica existente | ✅ Completada (2026-05-21) | `completados/v1.104.1-hotfix-precio-agregar-determinacion-admision.md` |
 | v1.105.0 | Inmutabilidad precios NBU + recálculo retroactivo opt-in | ✅ Completada (2026-05-21) | `completados/v1.105.0-nbu-inmutabilidad-retroactivo.md` — diseño: `docs/designs/DISEÑO_v1.105.0-nbu-inmutabilidad-retroactivo.md` |

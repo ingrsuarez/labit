@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-28 (**v1.108.0** hotfix protocolos clínicos duplicados)
+> Última actualización: 2026-05-28 (**v1.107.0** seeder nomenclador laborales)
 
 ---
 
@@ -9,12 +9,11 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **develop**: **v1.108.0** (hotfix protocolos duplicados) |
-| **Última completada (cola agente)** | **v1.108.0** — Hotfix protocolos clínicos duplicados (UNIQUE + lockForUpdate + retry) |
-| **Hotfix aplicado** | **v1.108.0** (2026-05-28): race condition en generación de `protocol_number` clínico; UNIQUE en `admissions`. **v1.105.1** (2026-05-25): reactividad Alpine en panel NBU retroactivo… |
+| **Versión actual (línea v1.x)** | **develop**: **v1.107.0** (seeder nomenclador laborales) |
+| **Última completada (cola agente)** | **v1.107.0** — Seeder nomenclador laborales desde Excel |
 | **En proceso** | — |
-| **Próxima recomendada** | **v1.107.0** — Seeder nomenclador laborales |
-| **Pendientes en cola** | v1.107.0, v1.104.0, v1.90.0 (residual) + diseños sueltos |
+| **Próxima recomendada** | **v1.104.0** — Email en protocolos de muestras (UI) |
+| **Pendientes en cola** | v1.104.0, v1.90.0 (residual) + diseños sueltos |
 | **Completadas** | 163+ |
 
 ---
@@ -23,7 +22,6 @@
 
 ### Pendientes — próximo por orden de versión (`ls pendientes | sort | grep '^v'`)
 
-- `v1.107.0-seeder-nomenclador-laborales.md` — Seeder nomenclador laborales (producción).
 - `v1.104.0-email-protocolos-muestras-ui.md` — Email en protocolos de muestras (UI).
 - `v1.90.0-notas-credito-manuales-independientes.md` — residual en carpeta (tag **v1.90.0** ya existe; archivo puede archivarse).
 
@@ -39,6 +37,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.107.0 | Seeder nomenclador laborales desde Excel (producción) | 2026-05-28 | v1.107.0 |
 | v1.108.0 | Hotfix: protocolos clínicos duplicados — UNIQUE + lockForUpdate + retry | 2026-05-28 | v1.108.0 |
 | v1.106.2 | Encabezado IPAC (logo, CUIT, domicilio) en resúmenes; obra social con iniciales mayúsculas | 2026-05-26 | v1.106.2 |
 | v1.106.1 | Resumen detallado facturación: formato por práctica en clínico/aguas/vet; total a facturar | 2026-05-26 | v1.106.1 |
