@@ -1,5 +1,8 @@
 <x-lab-layout>
-    <div class="mt-14 py-6 px-4 md:mt-0 md:px-6">
+    @php
+        $validatedCount = $sample->determinations->where('is_validated', true)->count();
+    @endphp
+    <div class="mt-14 py-6 px-4 md:mt-0 md:px-6" x-data="{ showEmailModal: false }">
         <!-- Header: sticky en viewport; top-14 móvil; md:top-20 alineado al header lab -->
         <div class="sticky top-14 z-20 mb-6 flex flex-col border-b border-gray-200 bg-gray-100 pb-4 pt-2 shadow-sm md:top-20 md:flex-row md:items-start md:justify-between">
             <div>
@@ -43,7 +46,7 @@
                     </span>
                 </div>
             </div>
-            <div class="mt-4 md:mt-0 flex flex-wrap gap-2" x-data>
+            <div class="mt-4 md:mt-0 flex flex-wrap gap-2">
                 @can('samples.index')
                 <div class="inline-flex shrink-0 overflow-hidden rounded-lg border border-gray-700 shadow-sm" role="group" aria-label="Navegar protocolos pendientes">
                     <a href="{{ route('sample.previous-pending', array_merge(['sample' => $sample], request()->only(['search', 'sample_type', 'list_status', 'lab_branch_id']))) }}"
@@ -83,19 +86,19 @@
                 @endcan
                 
                 @can('samples-reports.preview')
-                @if($sample->determinations->where('is_validated', true)->count() > 0)
+                @if($validatedCount > 0)
                     <a href="{{ route('sample.pdf.view', $sample) }}" target="_blank"
                        class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                         </svg>
-                        Ver PDF ({{ $sample->determinations->where('is_validated', true)->count() }})
+                        Ver PDF ({{ $validatedCount }})
                     </a>
                 @endif
                 @endcan
                 @can('samples-reports.print')
-                @if($sample->determinations->where('is_validated', true)->count() > 0)
+                @if($validatedCount > 0)
                     <a href="{{ route('sample.pdf.download', $sample) }}" 
                        class="inline-flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,7 +108,20 @@
                     </a>
                 @endif
                 @endcan
-                
+                @can('samples-reports.send')
+                @if($validatedCount > 0)
+                    <button @click="showEmailModal = true" type="button"
+                            class="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+                            aria-label="Enviar por Email">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                        <span class="hidden sm:inline">Enviar por Email</span>
+                        <span class="sm:hidden">Email</span>
+                    </button>
+                @endif
+                @endcan
+
                 @can('samples-labels.print')
                 <button type="button"
                         @click="$dispatch('open-label-modal', { url: '{{ route('sample.labelData', $sample) }}' })"
@@ -559,6 +575,58 @@
                 </div>
             </div>
         </div>
+
+        {{-- Modal de envío de email --}}
+        <div x-show="showEmailModal" x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+             @keydown.escape.window="showEmailModal = false">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6" @click.outside="showEmailModal = false">
+                <h3 class="text-lg font-semibold text-gray-900 mb-1">Enviar resultados por email</h3>
+                @if($sample->isSent())
+                    <p class="text-sm text-sky-700 mb-4">
+                        Este protocolo ya fue enviado el {{ $sample->sent_at->format('d/m/Y H:i') }}. Podés reenviarlo.
+                    </p>
+                @else
+                    <div class="mb-4"></div>
+                @endif
+                <form action="{{ route('sample.sendEmail', $sample) }}" method="POST">
+                    @csrf
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email destinatario *</label>
+                            <input type="email" name="email" required
+                                   value="{{ $sample->customer?->email ?? '' }}"
+                                   class="w-full border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
+                                   placeholder="email@ejemplo.com">
+                            @if($sample->customer?->email)
+                                <div class="mt-1 flex flex-wrap gap-1">
+                                    <button type="button"
+                                            onclick="this.closest('form').querySelector('input[name=email]').value='{{ $sample->customer->email }}'"
+                                            class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded hover:bg-gray-200">
+                                        Cliente: {{ $sample->customer->email }}
+                                    </button>
+                                </div>
+                            @endif
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mensaje personalizado</label>
+                            <textarea name="message" rows="3"
+                                      class="w-full border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
+                                      placeholder="Mensaje opcional para incluir en el email…"></textarea>
+                        </div>
+                    </div>
+                    <div class="mt-5 flex justify-end gap-3">
+                        <button type="button" @click="showEmailModal = false"
+                                class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
+                            Enviar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Modal Imprimir Etiqueta -->
@@ -707,6 +775,7 @@
                     </div>
                 </div>
             </div>
+        </div>
     </div>
 
     @if($sample->auditLogs->count() > 0)
