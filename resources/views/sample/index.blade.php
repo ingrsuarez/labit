@@ -80,29 +80,43 @@
             <p class="text-xs text-gray-400 mt-2">
                 Mostrando <span x-text="visibleCount"></span> de {{ $samples->count() }} protocolos
             </p>
+            @can('samples-reports.send')
+            <p class="text-xs text-gray-400 mt-1">
+                Tip: seleccioná protocolos validados para enviarlos por email al cliente.
+            </p>
+            @endcan
         </div>
 
+        @can('samples-reports.send')
         <div x-show="selectedIds.length > 0" x-cloak
-             class="fixed bottom-6 right-6 z-50">
+             class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 shadow-sm">
+            <p class="text-sm text-teal-900">
+                <strong><span x-text="selectedIds.length"></span></strong> protocolo(s) seleccionado(s).
+                <span class="text-teal-700">Podés enviar los informes por email (agrupados por cliente).</span>
+            </p>
             <button type="button" @click="openBatchModal()"
-                    class="inline-flex items-center px-5 py-3 bg-teal-600 text-white rounded-xl shadow-lg hover:bg-teal-700 transition-colors font-medium text-sm">
+                    class="inline-flex shrink-0 items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-medium shadow-sm">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                 </svg>
-                Enviar <span x-text="selectedIds.length"></span> seleccionado(s)
+                Enviar por email
             </button>
         </div>
+        @endcan
 
         <!-- Tabla de Protocolos -->
         <div class="bg-white rounded-lg shadow-sm overflow-hidden">
             <table class="w-full table-fixed divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
+                        @can('samples-reports.send')
                         <th class="w-[4%] px-3 py-3">
                             <input type="checkbox" x-model="selectAll" @change="toggleAll()"
-                                   class="rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                                   class="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                                   title="Seleccionar todos los protocolos enviables en esta página">
                         </th>
+                        @endcan
                         <th class="w-[10%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Protocolo</th>
                         <th class="w-[6%] px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
                         <th class="w-[16%] px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lugar</th>
@@ -130,12 +144,14 @@
                                 '{{ $sample->lab_branch_id }}',
                                 {{ $sample->sent_at ? 'true' : 'false' }}
                             )">
+                            @can('samples-reports.send')
                             <td class="px-3 py-4">
                                 <input type="checkbox" :value="{{ $sample->id }}"
                                        x-model="selectedIds"
-                                       @if($calcStatus !== 'validated') disabled @endif
+                                       @if($calcStatus !== 'validated') disabled title="Solo protocolos completamente validados" @endif
                                        class="rounded border-gray-300 text-teal-600 focus:ring-teal-500 disabled:opacity-30">
                             </td>
+                            @endcan
                             <td class="px-3 py-4 whitespace-nowrap">
                                 <a x-bind:href="sampleShowUrl({{ $sample->id }})" class="text-teal-600 hover:text-teal-800 font-medium">
                                     {{ $sample->protocol_number }}
@@ -217,7 +233,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-6 py-12 text-center text-gray-500">
+                            <td colspan="{{ auth()->user()?->can('samples-reports.send') ? 9 : 8 }}" class="px-6 py-12 text-center text-gray-500">
                                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                                 </svg>
@@ -232,6 +248,7 @@
             </table>
         </div>
 
+        @can('samples-reports.send')
         <div x-show="showBatchModal" x-cloak
              class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
             <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto p-6">
@@ -307,7 +324,15 @@
 
         <div x-show="batchResult" x-cloak
              class="fixed bottom-6 left-6 z-50 bg-white border border-gray-200 rounded-xl shadow-lg p-4 max-w-sm">
-            <p class="text-sm font-medium text-gray-800 mb-1">Resultado del envío masivo</p>
+            <p class="text-sm font-medium text-gray-800 mb-1 flex items-center gap-2">
+                <template x-if="batchResult && batchResult.errors.length > 0">
+                    <span class="text-red-500">⚠</span>
+                </template>
+                <template x-if="batchResult && batchResult.errors.length === 0 && batchResult.sent.length > 0">
+                    <span class="text-green-500">✓</span>
+                </template>
+                Resultado del envío masivo
+            </p>
             <p x-show="batchResult && batchResult.sent.length > 0" class="text-sm text-green-600"
                x-text="'Enviados: ' + batchResult.sent.join(', ')"></p>
             <p x-show="batchResult && batchResult.skipped.length > 0" class="text-sm text-yellow-600"
@@ -318,6 +343,7 @@
                 Cerrar y actualizar
             </button>
         </div>
+        @endcan
     </div>
 
     @php
@@ -478,7 +504,15 @@
                                 email_overrides: emailOverrides,
                             }),
                         });
-                        this.batchResult = await res.json();
+                        if (res.status === 403) {
+                            this.batchResult = {
+                                sent: [],
+                                skipped: [],
+                                errors: ['No tenés permiso para enviar informes por email.'],
+                            };
+                        } else {
+                            this.batchResult = await res.json();
+                        }
                     } catch (e) {
                         this.batchResult = { sent: [], skipped: [], errors: ['Error de red'] };
                     }
