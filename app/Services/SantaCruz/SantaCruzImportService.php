@@ -9,7 +9,6 @@ use App\Models\InsuranceTest;
 use App\Models\Patient;
 use App\Models\SantaCruzTestMapping;
 use App\Models\Test;
-use Illuminate\Support\Facades\DB;
 
 class SantaCruzImportService
 {
@@ -32,7 +31,7 @@ class SantaCruzImportService
             throw new \InvalidArgumentException('Cantidad de tests no coincide con prácticas del XML.');
         }
 
-        return DB::transaction(function () use ($parsed, $testIds, $insuranceId, $labBranchId, $userId) {
+        return Admission::retryOnProtocolNumberCollision(function () use ($parsed, $testIds, $insuranceId, $labBranchId, $userId) {
             $patient = $this->upsertPatient($parsed, $insuranceId);
 
             $date = $this->parser->orderDate($parsed);

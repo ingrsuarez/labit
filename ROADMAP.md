@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-25 (**v1.106.0** planificada: resumen por protocolo clínico/aguas/vet; **v1.105.x** completada: NBU inmutabilidad)
+> Última actualización: 2026-05-28 (**v1.108.0** urgente: hotfix protocolos clínicos duplicados; **v1.107.0** planificada: seeder nomenclador laborales)
 
 ---
 
@@ -151,6 +151,8 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
+| v1.108.0 | 🔴 Hotfix urgente: protocolos clínicos duplicados — UNIQUE en `admissions`, generación atómica (`lockForUpdate` + retry); incidente `C2605280083` ya remediado en prod | Pendiente (prioridad sobre cola) | `pendientes/v1.108.0-hotfix-protocolos-clinicos-duplicados.md` |
+| v1.107.0 | Seeder nomenclador laborales (producción): importa `docs/Nomenclador laborales.xlsx` como nomenclador base; asignación manual a coberturas laborales | Pendiente | `pendientes/v1.107.0-seeder-nomenclador-laborales.md` |
 | v1.106.0 | Resumen por protocolo por período: reemplaza reporte mensual clínico (1 fila/protocolo, códigos `-`, PDF+Excel); nuevas vistas aguas y vet con cards propias | ✅ Completada (2026-05-26) | `completados/v1.106.0-resumen-protocolos-por-periodo.md` — diseño: `docs/designs/DISEÑO_v1.106.0-resumen-protocolos-por-periodo.md` |
 | v1.104.1 | Hotfix: precio correcto al agregar determinación manual a admisión clínica existente | ✅ Completada (2026-05-21) | `completados/v1.104.1-hotfix-precio-agregar-determinacion-admision.md` |
 | v1.105.0 | Inmutabilidad precios NBU + recálculo retroactivo opt-in | ✅ Completada (2026-05-21) | `completados/v1.105.0-nbu-inmutabilidad-retroactivo.md` — diseño: `docs/designs/DISEÑO_v1.105.0-nbu-inmutabilidad-retroactivo.md` |
@@ -244,5 +246,5 @@ Release master: ver tags; develop incluye v1.53.0
 ---
 
 > Este documento se actualiza al finalizar cada versión o sesión de planificación.
-> Última actualización: 2026-05-14 (**v1.99.1** completada: hotfix NC AFIP; **v1.98.0** planificada: planilla global resultados pendientes lab clínico; **v1.97.0** en **master** vía merge develop)
+> Última actualización: 2026-05-26 (**v1.107.0** planificada: seeder nomenclador laborales; **v1.106.x** completada)
 

@@ -211,23 +211,6 @@ class VetAdmissionController extends Controller
             'lab_branch_id' => 'nullable|exists:lab_branches,id',
         ]);
 
-        $admission = VetAdmission::create([
-            'protocol_number' => VetAdmission::generateProtocolNumber(),
-            'date' => $request->date,
-            'customer_id' => $request->customer_id,
-            'veterinarian_id' => $request->veterinarian_id ?: null,
-            'species_id' => $request->species_id,
-            'animal_name' => $request->animal_name,
-            'owner_name' => $request->owner_name,
-            'owner_phone' => $request->owner_phone,
-            'owner_email' => $request->owner_email,
-            'breed' => $request->breed,
-            'age' => $request->age,
-            'observations' => $request->observations,
-            'created_by' => auth()->id(),
-            'lab_branch_id' => $request->lab_branch_id,
-        ]);
-
         $customer = Customer::findOrFail($request->customer_id);
         if (! $customer->isVeterinary()) {
             return redirect()->back()
@@ -235,50 +218,71 @@ class VetAdmissionController extends Controller
                 ->withErrors(['customer_id' => 'El cliente debe ser una veterinaria.']);
         }
 
-        $rate = $customer->veterinaryNbuRate();
-
-        $totalPrice = 0;
-
-        foreach ($request->tests as $testData) {
-            $test = Test::find($testData['test_id']);
-            $nbu = (float) ($test->nbu ?? 0);
-            $price = self::veterinaryPriceFromNbu($rate, $nbu);
-            $totalPrice += $price;
-
-            VetAdmissionTest::create([
-                'vet_admission_id' => $admission->id,
-                'test_id' => $test->id,
-                'price' => $price,
-                'nbu_units' => $test->nbu ?? 1,
-                'unit' => $test->unit,
-                'method' => $test->method,
-                'reference_value' => $this->buildReferenceValue($test, $request->species_id),
+        $admission = VetAdmission::retryOnProtocolNumberCollision(function () use ($request, $customer) {
+            $admission = VetAdmission::create([
+                'protocol_number' => VetAdmission::generateProtocolNumber(),
+                'date' => $request->date,
+                'customer_id' => $request->customer_id,
+                'veterinarian_id' => $request->veterinarian_id ?: null,
+                'species_id' => $request->species_id,
+                'animal_name' => $request->animal_name,
+                'owner_name' => $request->owner_name,
+                'owner_phone' => $request->owner_phone,
+                'owner_email' => $request->owner_email,
+                'breed' => $request->breed,
+                'age' => $request->age,
+                'observations' => $request->observations,
+                'created_by' => auth()->id(),
+                'lab_branch_id' => $request->lab_branch_id,
             ]);
 
-            // Expand children
-            $children = $test->getAllChildren(false);
-            foreach ($children as $childTest) {
-                $exists = VetAdmissionTest::where('vet_admission_id', $admission->id)
-                    ->where('test_id', $childTest->id)
-                    ->exists();
+            $rate = $customer->veterinaryNbuRate();
 
-                if (! $exists) {
-                    VetAdmissionTest::create([
-                        'vet_admission_id' => $admission->id,
-                        'test_id' => $childTest->id,
-                        'price' => 0,
-                        'nbu_units' => $childTest->nbu ?? 0,
-                        'unit' => $childTest->unit,
-                        'method' => $childTest->method,
-                        'reference_value' => $this->buildReferenceValue($childTest, $request->species_id),
-                    ]);
+            $totalPrice = 0;
+
+            foreach ($request->tests as $testData) {
+                $test = Test::find($testData['test_id']);
+                $nbu = (float) ($test->nbu ?? 0);
+                $price = self::veterinaryPriceFromNbu($rate, $nbu);
+                $totalPrice += $price;
+
+                VetAdmissionTest::create([
+                    'vet_admission_id' => $admission->id,
+                    'test_id' => $test->id,
+                    'price' => $price,
+                    'nbu_units' => $test->nbu ?? 1,
+                    'unit' => $test->unit,
+                    'method' => $test->method,
+                    'reference_value' => $this->buildReferenceValue($test, $request->species_id),
+                ]);
+
+                // Expand children
+                $children = $test->getAllChildren(false);
+                foreach ($children as $childTest) {
+                    $exists = VetAdmissionTest::where('vet_admission_id', $admission->id)
+                        ->where('test_id', $childTest->id)
+                        ->exists();
+
+                    if (! $exists) {
+                        VetAdmissionTest::create([
+                            'vet_admission_id' => $admission->id,
+                            'test_id' => $childTest->id,
+                            'price' => 0,
+                            'nbu_units' => $childTest->nbu ?? 0,
+                            'unit' => $childTest->unit,
+                            'method' => $childTest->method,
+                            'reference_value' => $this->buildReferenceValue($childTest, $request->species_id),
+                        ]);
+                    }
                 }
             }
-        }
 
-        $admission->update(['total_price' => $totalPrice]);
+            $admission->update(['total_price' => $totalPrice]);
 
-        $admission->logAudit('created', 'Creó el protocolo veterinario Nº '.$admission->protocol_number.' para '.$admission->animal_name.' ('.$admission->owner_name.')');
+            $admission->logAudit('created', 'Creó el protocolo veterinario Nº '.$admission->protocol_number.' para '.$admission->animal_name.' ('.$admission->owner_name.')');
+
+            return $admission;
+        });
 
         return redirect()->route('vet.admissions.show', $admission)
             ->with('success', 'Protocolo veterinario creado. N? '.$admission->protocol_number);
