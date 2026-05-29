@@ -483,6 +483,10 @@ class LabAdmissionController extends Controller
 
         $admission->logAudit('created', 'Creó la admisión Nº '.$admission->protocol_number.' para '.$admission->patient->full_name);
 
+        if ($insurance && $insurance->type === 'particular' && (float) $admission->paid_amount > 0) {
+            $admission->logAudit('payment_recorded', 'Registró cobro de $'.number_format((float) $admission->paid_amount, 2, ',', '.').' en admisión Nº '.$admission->protocol_number);
+        }
+
         return $admission->fresh(['patient']);
     }
 
@@ -553,6 +557,8 @@ class LabAdmissionController extends Controller
             'payment_status' => $newPaid >= $total ? 'pagado' : 'parcial',
             'payment_notes' => $notes,
         ]);
+
+        $admission->logAudit('payment_recorded', 'Registró cobro de $'.number_format((float) $request->amount, 2, ',', '.').' en admisión Nº '.$admission->protocol_number);
 
         return $this->backToAdmissionResults()->with('success', 'Pago registrado correctamente.');
     }
@@ -1084,6 +1090,11 @@ class LabAdmissionController extends Controller
             }
 
             if (! empty($update)) {
+                $resultValue = $data['result'] ?? null;
+                if (! $admissionTest->is_validated && $resultValue !== null && trim((string) $resultValue) !== '') {
+                    $update['result_entered_by'] = auth()->id();
+                    $update['result_entered_at'] = now();
+                }
                 $admissionTest->update($update);
             }
         }
@@ -1233,6 +1244,7 @@ class LabAdmissionController extends Controller
         ]);
 
         $admission->logAudit('pdf_generated', 'Generó PDF del protocolo Nº '.$admission->protocol_number);
+        \App\Support\LogsProtocolDelivery::logResultDeliveredOncePerDay($admission);
 
         if ($admission->status === Admission::STATUS_VALIDATED) {
             $admission->update(['sent_at' => now()]);
@@ -1345,6 +1357,7 @@ class LabAdmissionController extends Controller
             foreach ($eligible as $adm) {
                 $adm->update(['sent_at' => now()]);
                 $adm->logAudit('email_sent', 'Enviado en lote masivo a '.$validated['email']);
+                \App\Support\LogsProtocolDelivery::logResultDeliveredOncePerDay($adm);
                 $results['sent'][] = $adm->protocol_number;
             }
         } catch (\Throwable $e) {
@@ -1389,6 +1402,7 @@ class LabAdmissionController extends Controller
             );
 
         $admission->logAudit('email_sent', 'Envió resultados por email a '.$validated['email']);
+        \App\Support\LogsProtocolDelivery::logResultDeliveredOncePerDay($admission);
 
         $admission->update(['sent_at' => now()]);
 

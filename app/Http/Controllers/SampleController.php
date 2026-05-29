@@ -993,6 +993,7 @@ class SampleController extends Controller
         ]);
 
         $sample->logAudit('pdf_generated', 'Generó PDF del protocolo Nº '.$sample->protocol_number);
+        \App\Support\LogsProtocolDelivery::logResultDeliveredOncePerDay($sample);
 
         if ($sample->isValidated()) {
             $sample->update(['sent_at' => now()]);
@@ -1067,6 +1068,7 @@ class SampleController extends Controller
             );
 
         $sample->logAudit('email_sent', 'Envió resultados por email a '.$validated['email']);
+        \App\Support\LogsProtocolDelivery::logResultDeliveredOncePerDay($sample);
 
         $sample->update(['sent_at' => now()]);
 

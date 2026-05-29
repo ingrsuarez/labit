@@ -61,6 +61,12 @@ Route::middleware([
     // PANEL DE RECURSOS HUMANOS (mudanza desde dashboard en v1.66.0)
     Route::get('/rrhh', [App\Http\Controllers\RrhhController::class, 'index'])->name('rrhh.index');
     Route::get('/rrhh/resumen', [App\Http\Controllers\RrhhController::class, 'resumen'])->name('rrhh.resumen');
+    Route::get('/rrhh/productividad', [App\Http\Controllers\RrhhProductivityController::class, 'index'])
+        ->name('rrhh.productividad')
+        ->middleware('permission:rrhh.productivity.view');
+    Route::get('/rrhh/productividad/export', [App\Http\Controllers\RrhhProductivityController::class, 'export'])
+        ->name('rrhh.productividad.export')
+        ->middleware('permission:rrhh.productivity.view');
 
     // FIRMA DIGITAL DEL USUARIO
     Route::post('/user/signature', [App\Http\Controllers\UserSignatureController::class, 'update'])->name('user.signature.update');

@@ -337,7 +337,12 @@ class WorksheetController extends Controller
                 }
 
                 $result = trim($value) !== '' ? trim($value) : null;
-                $at->update(['result' => $result]);
+                $update = ['result' => $result];
+                if ($result !== null) {
+                    $update['result_entered_by'] = auth()->id();
+                    $update['result_entered_at'] = now();
+                }
+                $at->update($update);
                 $admissionIds->push($at->admission_id);
                 $saved++;
             }
@@ -345,10 +350,13 @@ class WorksheetController extends Controller
             foreach ($admissionIds->unique() as $admId) {
                 $admission = Admission::find($admId);
                 if ($admission) {
+                    $admission->logAudit('results_loaded', 'Cargó resultados desde planilla en admisión Nº '.$admission->protocol_number);
                     $admission->syncWorkStatusFromTests();
                 }
             }
         } else {
+            $sampleIds = collect();
+
             foreach ($input as $id => $value) {
                 $det = SampleDetermination::find($id);
                 if (! $det || $det->is_validated) {
@@ -373,7 +381,17 @@ class WorksheetController extends Controller
                 }
 
                 $det->update($update);
+                if ($hasResult) {
+                    $sampleIds->push($det->sample_id);
+                }
                 $saved++;
+            }
+
+            foreach ($sampleIds->unique() as $sampleId) {
+                $sample = \App\Models\Sample::find($sampleId);
+                if ($sample) {
+                    $sample->logAudit('results_loaded', 'Cargó resultados desde planilla en protocolo Nº '.$sample->protocol_number);
+                }
             }
         }
 
