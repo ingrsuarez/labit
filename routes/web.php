@@ -247,6 +247,14 @@ Route::middleware([
         // LAB PATIENTS
         Route::get('lab/patients', [App\Http\Controllers\LabPatientController::class, 'index'])->name('lab.patients.index');
 
+        // Extracciones pendientes (lab clínico)
+        Route::get('lab/sample-draws/pending-count', [App\Http\Controllers\LabSampleDrawController::class, 'pendingCount'])
+            ->name('lab.sample-draws.pending-count');
+        Route::get('lab/sample-draws/pending', [App\Http\Controllers\LabSampleDrawController::class, 'pending'])
+            ->name('lab.sample-draws.pending');
+        Route::post('lab/sample-draws/{admission}/register', [App\Http\Controllers\LabSampleDrawController::class, 'register'])
+            ->name('lab.sample-draws.register');
+
         // LAB ADMISSIONS (Admisiones de Pacientes - Laboratorio)
         Route::post('lab/admissions/batch-email', [App\Http\Controllers\LabAdmissionController::class, 'batchEmail'])
             ->name('lab.admissions.batch-email');

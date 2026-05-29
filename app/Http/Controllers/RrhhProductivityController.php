@@ -67,7 +67,7 @@ class RrhhProductivityController extends Controller
                 'Empleado', 'Puesto', 'Sede', 'Roles',
                 'Prot. creados', 'Pac. nuevos', 'Editados', 'Cobros', 'Entregados', '% entregados',
                 'Det. cargadas', 'Prot. con carga', '% carga',
-                'Val. prácticas', 'Val. protocolos', '% validados', 'Desvalid.', 'Emails',
+                'Val. prácticas', 'Val. protocolos', '% validados', 'Desvalid.', 'Emails', 'Extracciones',
             ], ';');
 
             foreach ($report['rows'] as $row) {
@@ -96,6 +96,7 @@ class RrhhProductivityController extends Controller
                     isset($biochemist['validation_rate']) ? $biochemist['validation_rate'].'%' : '',
                     $biochemist['unvalidations'] ?? '',
                     $biochemist['emails_sent'] ?? '',
+                    $technician['samples_drawn'] ?? $biochemist['samples_drawn'] ?? '',
                 ], ';');
             }
 

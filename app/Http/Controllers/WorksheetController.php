@@ -9,6 +9,7 @@ use App\Models\Sample;
 use App\Models\SampleDetermination;
 use App\Models\Test;
 use App\Models\Worksheet;
+use App\Services\AdmissionSampleDrawService;
 use App\Services\LabBranchResolver;
 use Illuminate\Http\Request;
 use PDF;
@@ -118,7 +119,9 @@ class WorksheetController extends Controller
             $preview = $this->buildPreviewData($worksheet, $request);
         }
 
-        return view('worksheets.show', compact('worksheet', 'preview', 'filters', 'labBranches'));
+        $excludedForSampleDrawCount = $preview['excluded_for_sample_draw_count'] ?? 0;
+
+        return view('worksheets.show', compact('worksheet', 'preview', 'filters', 'labBranches', 'excludedForSampleDrawCount'));
     }
 
     public function generatePdf(Request $request, Worksheet $worksheet)
@@ -141,6 +144,7 @@ class WorksheetController extends Controller
             'dateFrom' => $request->date_from,
             'dateTo' => $request->date_to,
             'filterBranchLabel' => $this->worksheetBranchFilterLabel($request),
+            'excludedForSampleDrawCount' => $data['excluded_for_sample_draw_count'] ?? 0,
         ], [], [
             'orientation' => 'L',
             'format' => 'A4',
@@ -186,8 +190,10 @@ class WorksheetController extends Controller
 
         $rows = collect();
 
+        $excludedForSampleDrawCount = 0;
+
         if ($worksheet->type === 'clinico') {
-            $rows = $this->buildClinicoData($testIds, $request, $includeWithout, $includeWith);
+            [$rows, $excludedForSampleDrawCount] = $this->buildClinicoData($testIds, $request, $includeWithout, $includeWith);
         } else {
             $rows = $this->buildMuestrasData($testIds, $request, $includeWithout, $includeWith);
         }
@@ -195,14 +201,23 @@ class WorksheetController extends Controller
         return [
             'rows' => $rows,
             'tests' => $orderedTests,
+            'excluded_for_sample_draw_count' => $excludedForSampleDrawCount,
         ];
     }
 
-    private function buildClinicoData(array $testIds, Request $request, bool $includeWithout, bool $includeWith)
+    private function buildClinicoData(array $testIds, Request $request, bool $includeWithout, bool $includeWith): array
     {
-        $query = Admission::with(['patient', 'admissionTests' => function ($q) use ($testIds) {
-            $q->whereIn('test_id', $testIds);
-        }])
+        $drawService = app(AdmissionSampleDrawService::class);
+        $excludedForSampleDraw = 0;
+
+        $query = Admission::with([
+            'patient',
+            'admissionTests' => function ($q) use ($testIds) {
+                $q->whereIn('test_id', $testIds);
+            },
+            'admissionTests.test.materialRelation',
+            'admissionTests.test.parentTests',
+        ])
             ->whereHas('admissionTests', function ($q) use ($testIds) {
                 $q->whereIn('test_id', $testIds);
             })
@@ -222,7 +237,13 @@ class WorksheetController extends Controller
 
         $admissions = $query->orderBy('protocol_number')->get();
 
-        return $admissions->filter(function ($admission) use ($testIds, $includeWithout, $includeWith) {
+        $rows = $admissions->filter(function ($admission) use ($testIds, $includeWithout, $includeWith, $drawService, &$excludedForSampleDraw) {
+            if ($drawService->admissionRequiresSampleDraw($admission) && $admission->sample_drawn_by === null) {
+                $excludedForSampleDraw++;
+
+                return false;
+            }
+
             $hasAnyResult = $admission->admissionTests
                 ->whereIn('test_id', $testIds)
                 ->filter(fn ($at) => $at->result !== null && $at->result !== '')
@@ -253,6 +274,8 @@ class WorksheetController extends Controller
                 'results' => $results,
             ];
         })->values();
+
+        return [$rows, $excludedForSampleDraw];
     }
 
     private function buildMuestrasData(array $testIds, Request $request, bool $includeWithout, bool $includeWith)

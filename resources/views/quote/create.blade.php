@@ -163,30 +163,52 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
-                            <template x-for="(item, index) in items" :key="index">
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-3 py-2">
-                                        <input type="hidden" :name="'items[' + index + '][test_id]'" :value="item.test_id || ''">
-                                        <input type="text" :name="'items[' + index + '][description]'" x-model="item.description" required
-                                               class="w-full rounded border-gray-300 text-sm focus:border-teal-500 focus:ring-teal-500">
+                            <template x-for="(row, rowIndex) in displayRows" :key="row.key">
+                                <tr :class="row.type === 'child' ? 'bg-gray-50/60' : 'hover:bg-gray-50'">
+                                    <td class="px-3 py-2" :class="row.type === 'child' ? 'py-1.5' : ''" :style="row.type === 'child' ? ('padding-left: ' + (12 + (row.child.depth || 1) * 16) + 'px') : ''">
+                                        <template x-if="row.type === 'parent'">
+                                            <div>
+                                                <input type="hidden" :name="'items[' + row.parentIndex + '][test_id]'" :value="row.item.test_id || ''">
+                                                <input type="text" :name="'items[' + row.parentIndex + '][description]'" x-model="row.item.description" required
+                                                       class="w-full rounded border-gray-300 text-sm focus:border-teal-500 focus:ring-teal-500">
+                                            </div>
+                                        </template>
+                                        <template x-if="row.type === 'child'">
+                                            <div>
+                                                <span class="text-sm text-gray-600" x-text="row.child.name"></span>
+                                                <input type="hidden" :name="'items[' + row.parentIndex + '][children_snapshot][' + row.childIndex + '][name]'" :value="row.child.name">
+                                                <input type="hidden" :name="'items[' + row.parentIndex + '][children_snapshot][' + row.childIndex + '][depth]'" :value="row.child.depth">
+                                                <input type="hidden" :name="'items[' + row.parentIndex + '][children_snapshot][' + row.childIndex + '][test_id]'" :value="row.child.test_id || ''">
+                                            </div>
+                                        </template>
                                     </td>
                                     <td class="px-3 py-2">
-                                        <input type="number" :name="'items[' + index + '][quantity]'" x-model.number="item.quantity"
-                                               @input="recalculate" min="1" required
-                                               class="w-20 rounded border-gray-300 text-sm text-center focus:border-teal-500 focus:ring-teal-500">
+                                        <template x-if="row.type === 'parent'">
+                                            <input type="number" :name="'items[' + row.parentIndex + '][quantity]'" x-model.number="row.item.quantity"
+                                                   @input="recalculate" min="1" required
+                                                   class="w-20 rounded border-gray-300 text-sm text-center focus:border-teal-500 focus:ring-teal-500">
+                                        </template>
                                     </td>
                                     <td class="px-3 py-2">
-                                        <input type="number" :name="'items[' + index + '][unit_price]'" x-model.number="item.unit_price"
-                                               @input="recalculate" min="0" step="0.01" required
-                                               class="w-32 rounded border-gray-300 text-sm text-right focus:border-teal-500 focus:ring-teal-500">
+                                        <template x-if="row.type === 'parent'">
+                                            <input type="number" :name="'items[' + row.parentIndex + '][unit_price]'" x-model.number="row.item.unit_price"
+                                                   @input="recalculate" min="0" step="0.01" required
+                                                   class="w-32 rounded border-gray-300 text-sm text-right focus:border-teal-500 focus:ring-teal-500">
+                                        </template>
                                     </td>
-                                    <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800" x-text="'$' + (item.quantity * item.unit_price).toFixed(2)"></td>
+                                    <td class="px-3 py-2 text-right text-sm font-semibold text-gray-800">
+                                        <template x-if="row.type === 'parent'">
+                                            <span x-text="'$' + (row.item.quantity * row.item.unit_price).toFixed(2)"></span>
+                                        </template>
+                                    </td>
                                     <td class="px-3 py-2 text-center">
-                                        <button type="button" @click="removeItem(index)" class="text-red-400 hover:text-red-600 transition-colors">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                            </svg>
-                                        </button>
+                                        <template x-if="row.type === 'parent'">
+                                            <button type="button" @click="removeItem(row.parentIndex)" class="text-red-400 hover:text-red-600 transition-colors">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                            </button>
+                                        </template>
                                     </td>
                                 </tr>
                             </template>
@@ -271,6 +293,28 @@
                 taxAmount: 0,
                 total: 0,
 
+                get displayRows() {
+                    const rows = [];
+                    this.items.forEach((item, parentIndex) => {
+                        rows.push({
+                            key: 'parent-' + parentIndex,
+                            type: 'parent',
+                            item,
+                            parentIndex,
+                        });
+                        (item.children || []).forEach((child, childIndex) => {
+                            rows.push({
+                                key: 'child-' + parentIndex + '-' + childIndex,
+                                type: 'child',
+                                child,
+                                parentIndex,
+                                childIndex,
+                            });
+                        });
+                    });
+                    return rows;
+                },
+
                 async searchCustomers() {
                     if (this.customerSearch.length < 2) {
                         this.customerResults = [];
@@ -326,6 +370,7 @@
                         description: test.code + ' - ' + test.name,
                         quantity: 1,
                         unit_price: parseFloat(test.price) || 0,
+                        children: test.children || [],
                     });
                     this.recalculate();
                     this.searchResults = [];
@@ -351,6 +396,7 @@
                         description: svc.name,
                         quantity: 1,
                         unit_price: parseFloat(svc.price) || 0,
+                        children: [],
                     });
                     this.recalculate();
                     this.serviceSearchResults = [];
@@ -363,6 +409,7 @@
                         description: '',
                         quantity: 1,
                         unit_price: 0,
+                        children: [],
                     });
                 },
 

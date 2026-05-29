@@ -82,10 +82,16 @@ class EmployeeProductivityService
                 $metrics['reception'] = $this->receptionMetrics($user->id, $start, $end, $labBranchId);
             }
             if (in_array('tecnico-lab', $roles, true)) {
-                $metrics['technician'] = $this->technicianMetrics($user->id, $start, $end, $labBranchId);
+                $metrics['technician'] = array_merge(
+                    $this->technicianMetrics($user->id, $start, $end, $labBranchId),
+                    $this->sampleDrawMetrics($user->id, $start, $end, $labBranchId)
+                );
             }
             if ($hasBiochemistMetrics) {
-                $metrics['biochemist'] = $this->biochemistMetrics($user->id, $start, $end, $labBranchId, $protocolsCreated);
+                $metrics['biochemist'] = array_merge(
+                    $this->biochemistMetrics($user->id, $start, $end, $labBranchId, $protocolsCreated),
+                    $this->sampleDrawMetrics($user->id, $start, $end, $labBranchId)
+                );
                 $totalValidatedProtocols += $metrics['biochemist']['protocols_validated'];
             }
 
@@ -219,6 +225,21 @@ class EmployeeProductivityService
         return [
             'results_loaded_events' => $this->countAudits($userId, 'results_loaded', $start, $end, $labBranchId),
             'tests_removed' => $this->countAudits($userId, 'test_removed', $start, $end, $labBranchId),
+        ];
+    }
+
+    private function sampleDrawMetrics(int $userId, Carbon $start, Carbon $end, ?int $labBranchId): array
+    {
+        $q = Admission::query()
+            ->where('sample_drawn_by', $userId)
+            ->whereBetween('sample_drawn_at', [$start, $end]);
+
+        if ($labBranchId) {
+            $q->where('lab_branch_id', $labBranchId);
+        }
+
+        return [
+            'samples_drawn' => (int) $q->count(),
         ];
     }
 

@@ -32,6 +32,69 @@
 
             <!-- Acciones -->
             <div class="flex items-center space-x-4">
+                @can('lab-sample-draws.view')
+                <div x-data="sampleDrawQueue()" x-init="init()" class="relative">
+                    <button type="button" @click="openModal()"
+                            class="relative inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
+                            :class="count > 0 ? 'bg-rose-500 hover:bg-rose-600 animate-pulse' : 'bg-rose-400 hover:bg-rose-500'">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                        </svg>
+                        <span>Extracciones</span>
+                        <span x-show="count > 0" x-text="count"
+                              class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-xs font-bold bg-white text-rose-600 rounded-full"></span>
+                    </button>
+
+                    <div x-show="modalOpen" x-cloak
+                         class="fixed inset-0 z-50 flex items-start justify-end"
+                         @keydown.escape.window="modalOpen = false">
+                        <div class="absolute inset-0 bg-black/40" @click="modalOpen = false"></div>
+                        <div class="relative w-full max-w-md h-full bg-white shadow-xl flex flex-col"
+                             @click.stop>
+                            <div class="px-5 py-4 border-b flex items-center justify-between bg-rose-50">
+                                <h2 class="text-lg font-semibold text-rose-900">Extracciones pendientes</h2>
+                                <button type="button" @click="modalOpen = false" class="text-gray-500 hover:text-gray-700">✕</button>
+                            </div>
+                            <div class="flex-1 overflow-y-auto p-4 space-y-3">
+                                <template x-if="loading">
+                                    <p class="text-sm text-gray-500">Cargando...</p>
+                                </template>
+                                <template x-if="!loading && items.length === 0">
+                                    <p class="text-sm text-gray-500 text-center py-8">No hay extracciones pendientes en esta sede.</p>
+                                </template>
+                                <template x-for="item in items" :key="item.id">
+                                    <div class="border border-gray-200 rounded-lg p-3 space-y-2">
+                                        <div class="flex justify-between items-start gap-2">
+                                            <div>
+                                                <p class="font-semibold text-gray-900" x-text="item.protocol_number"></p>
+                                                <p class="text-sm text-gray-600" x-text="item.patient_name"></p>
+                                                <p class="text-xs text-gray-400" x-text="item.created_at_label"></p>
+                                                <p x-show="item.branch_name" class="text-xs text-teal-600" x-text="item.branch_name"></p>
+                                            </div>
+                                        </div>
+                                        <div x-show="mustSelectDrawer">
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">Tomador de muestra *</label>
+                                            <select x-model="selectedDrawer[item.id]"
+                                                    class="w-full rounded-lg border-gray-300 text-sm">
+                                                <option value="">Seleccionar...</option>
+                                                <template x-for="d in drawers" :key="d.id">
+                                                    <option :value="d.id" x-text="d.name"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+                                        <button type="button" @click="register(item.id)"
+                                                :disabled="registering === item.id"
+                                                class="w-full px-3 py-2 bg-rose-600 text-white text-sm font-medium rounded-lg hover:bg-rose-700 disabled:opacity-50">
+                                            Confirmar extracción
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endcan
+
                 <!-- Notificaciones -->
                 <button class="relative p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,6 +203,91 @@
         </div>
     </div>
 </header>
+
+@can('lab-sample-draws.view')
+@push('scripts')
+<script>
+function sampleDrawQueue() {
+    return {
+        count: 0,
+        modalOpen: false,
+        loading: false,
+        items: [],
+        drawers: [],
+        mustSelectDrawer: false,
+        selectedDrawer: {},
+        registering: null,
+        init() {
+            this.refreshCount();
+            setInterval(() => this.refreshCount(), 60000);
+        },
+        async refreshCount() {
+            try {
+                const res = await fetch('{{ route('lab.sample-draws.pending-count') }}', {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    this.count = data.count ?? 0;
+                }
+            } catch (e) { /* ignore */ }
+        },
+        async openModal() {
+            this.modalOpen = true;
+            this.loading = true;
+            this.selectedDrawer = {};
+            try {
+                const res = await fetch('{{ route('lab.sample-draws.pending') }}', {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await res.json();
+                this.items = data.items ?? [];
+                this.drawers = data.drawers ?? [];
+                this.mustSelectDrawer = !!data.must_select_drawer;
+            } catch (e) {
+                this.items = [];
+            }
+            this.loading = false;
+        },
+        async register(admissionId) {
+            const body = { _token: '{{ csrf_token() }}' };
+            if (this.mustSelectDrawer) {
+                const drawerId = this.selectedDrawer[admissionId];
+                if (!drawerId) {
+                    alert('Debe seleccionar quién realizó la extracción.');
+                    return;
+                }
+                body.sample_drawn_by = drawerId;
+            }
+            this.registering = admissionId;
+            try {
+                const res = await fetch(`{{ url('/lab/sample-draws') }}/${admissionId}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(body)
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    alert(err.message || 'No se pudo registrar la extracción.');
+                    return;
+                }
+                this.items = this.items.filter(i => i.id !== admissionId);
+                await this.refreshCount();
+            } catch (e) {
+                alert('Error de conexión.');
+            }
+            this.registering = null;
+        }
+    };
+}
+</script>
+@endpush
+@endcan
 
 <!-- Header Móvil (espacio para el toggle) -->
 <div class="h-14 md:hidden"></div>
