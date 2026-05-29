@@ -631,6 +631,7 @@ class VetAdmissionController extends Controller
         }
 
         $vetAdmission->logAudit('pdf_generated', 'Generó PDF del protocolo veterinario Nº '.$vetAdmission->protocol_number);
+        \App\Support\LogsProtocolDelivery::logResultDeliveredOncePerDay($vetAdmission);
 
         return $pdf->download($this->generatePdfFilename($vetAdmission));
     }
@@ -690,6 +691,7 @@ class VetAdmissionController extends Controller
         $vetAdmission->update(['sent_at' => now()]);
 
         $vetAdmission->logAudit('email_sent', 'Envió resultados por email a '.$validated['email']);
+        \App\Support\LogsProtocolDelivery::logResultDeliveredOncePerDay($vetAdmission);
 
         return back()->with('success', 'Informe enviado correctamente a '.$validated['email']);
     }
