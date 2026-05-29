@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\Quote;
 use App\Models\Service;
 use App\Models\Test;
+use App\Services\QuoteItemChildrenSnapshotBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use PDF;
@@ -44,19 +45,14 @@ class QuoteController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $validated = $request->validate(array_merge($this->quoteValidationRules(), [
             'customer_id' => 'nullable|exists:customers,id',
             'customer_name' => 'required|string|max:255',
             'customer_email' => 'nullable|email|max:255',
             'notes' => 'nullable|string',
             'valid_until' => 'nullable|date',
             'tax_rate' => 'nullable|numeric|min:0|max:100',
-            'items' => 'required|array|min:1',
-            'items.*.test_id' => 'nullable|exists:tests,id',
-            'items.*.description' => 'required|string|max:255',
-            'items.*.quantity' => 'required|integer|min:1',
-            'items.*.unit_price' => 'required|numeric|min:0',
-        ], [
+        ]), [
             'customer_name.required' => 'El nombre del cliente es obligatorio.',
             'customer_email.email' => 'El email no tiene un formato válido.',
             'items.required' => 'Debe agregar al menos una determinación.',
@@ -71,7 +67,7 @@ class QuoteController extends Controller
         $quote = Quote::create([
             'quote_number' => Quote::generateQuoteNumber(),
             'company_id' => active_company_id(),
-            'customer_id' => $validated['customer_id'],
+            'customer_id' => $validated['customer_id'] ?? null,
             'customer_name' => $validated['customer_name'],
             'customer_email' => $validated['customer_email'] ?? null,
             'notes' => $validated['notes'] ?? null,
@@ -82,15 +78,7 @@ class QuoteController extends Controller
         ]);
 
         foreach ($validated['items'] as $index => $itemData) {
-            $total = $itemData['quantity'] * $itemData['unit_price'];
-            $quote->items()->create([
-                'test_id' => $itemData['test_id'] ?? null,
-                'description' => $itemData['description'],
-                'quantity' => $itemData['quantity'],
-                'unit_price' => $itemData['unit_price'],
-                'total' => $total,
-                'sort_order' => $index,
-            ]);
+            $this->createQuoteItem($quote, $itemData, $index);
         }
 
         $quote->recalculate();
@@ -118,19 +106,14 @@ class QuoteController extends Controller
     public function update(Request $request, Quote $quote)
     {
         $this->authorizeQuoteAccess($quote);
-        $validated = $request->validate([
+        $validated = $request->validate(array_merge($this->quoteValidationRules(), [
             'customer_id' => 'nullable|exists:customers,id',
             'customer_name' => 'required|string|max:255',
             'customer_email' => 'nullable|email|max:255',
             'notes' => 'nullable|string',
             'valid_until' => 'nullable|date',
             'tax_rate' => 'nullable|numeric|min:0|max:100',
-            'items' => 'required|array|min:1',
-            'items.*.test_id' => 'nullable|exists:tests,id',
-            'items.*.description' => 'required|string|max:255',
-            'items.*.quantity' => 'required|integer|min:1',
-            'items.*.unit_price' => 'required|numeric|min:0',
-        ], [
+        ]), [
             'customer_name.required' => 'El nombre del cliente es obligatorio.',
             'customer_email.email' => 'El email no tiene un formato válido.',
             'items.required' => 'Debe agregar al menos una determinación.',
@@ -143,7 +126,7 @@ class QuoteController extends Controller
         ]);
 
         $quote->update([
-            'customer_id' => $validated['customer_id'],
+            'customer_id' => $validated['customer_id'] ?? null,
             'customer_name' => $validated['customer_name'],
             'customer_email' => $validated['customer_email'] ?? null,
             'notes' => $validated['notes'] ?? null,
@@ -154,15 +137,7 @@ class QuoteController extends Controller
         $quote->items()->delete();
 
         foreach ($validated['items'] as $index => $itemData) {
-            $total = $itemData['quantity'] * $itemData['unit_price'];
-            $quote->items()->create([
-                'test_id' => $itemData['test_id'] ?? null,
-                'description' => $itemData['description'],
-                'quantity' => $itemData['quantity'],
-                'unit_price' => $itemData['unit_price'],
-                'total' => $total,
-                'sort_order' => $index,
-            ]);
+            $this->createQuoteItem($quote, $itemData, $index);
         }
 
         $quote->recalculate();
@@ -217,7 +192,22 @@ class QuoteController extends Controller
             ->limit(15)
             ->get(['id', 'code', 'name', 'price', 'unit']);
 
-        return response()->json($tests);
+        $builder = app(QuoteItemChildrenSnapshotBuilder::class);
+
+        return response()->json($tests->map(function (Test $test) use ($builder) {
+            $children = ($test->childTests()->exists() || $test->children()->exists())
+                ? $builder->build($test)
+                : [];
+
+            return [
+                'id' => $test->id,
+                'code' => $test->code,
+                'name' => $test->name,
+                'price' => $test->price,
+                'unit' => $test->unit,
+                'children' => $children,
+            ];
+        }));
     }
 
     public function searchServices(Request $request)
@@ -345,5 +335,68 @@ class QuoteController extends Controller
             auth()->user()->companies->pluck('id')->contains($quote->company_id),
             403
         );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function quoteValidationRules(): array
+    {
+        return [
+            'items' => 'required|array|min:1',
+            'items.*.test_id' => 'nullable|exists:tests,id',
+            'items.*.description' => 'required|string|max:255',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.children_snapshot' => 'nullable|array',
+            'items.*.children_snapshot.*.name' => 'required_with:items.*.children_snapshot|string|max:255',
+            'items.*.children_snapshot.*.depth' => 'required_with:items.*.children_snapshot|integer|min:1',
+            'items.*.children_snapshot.*.test_id' => 'nullable|integer|exists:tests,id',
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $itemData
+     */
+    private function createQuoteItem(Quote $quote, array $itemData, int $index): void
+    {
+        $total = $itemData['quantity'] * $itemData['unit_price'];
+        $childrenSnapshot = $this->resolveChildrenSnapshot($itemData);
+
+        $quote->items()->create([
+            'test_id' => $itemData['test_id'] ?? null,
+            'description' => $itemData['description'],
+            'quantity' => $itemData['quantity'],
+            'unit_price' => $itemData['unit_price'],
+            'total' => $total,
+            'sort_order' => $index,
+            'children_snapshot' => $childrenSnapshot,
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $itemData
+     * @return array<int, array{test_id?: int|null, name: string, depth: int}>|null
+     */
+    private function resolveChildrenSnapshot(array $itemData): ?array
+    {
+        if (! empty($itemData['children_snapshot'])) {
+            return array_values(array_map(function (array $child) {
+                return [
+                    'test_id' => isset($child['test_id']) && $child['test_id'] !== '' ? (int) $child['test_id'] : null,
+                    'name' => $child['name'],
+                    'depth' => (int) $child['depth'],
+                ];
+            }, $itemData['children_snapshot']));
+        }
+
+        if (! empty($itemData['test_id'])) {
+            $test = Test::find($itemData['test_id']);
+            if ($test && ($test->childTests()->exists() || $test->children()->exists())) {
+                return app(QuoteItemChildrenSnapshotBuilder::class)->build($test);
+            }
+        }
+
+        return null;
     }
 }

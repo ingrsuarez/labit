@@ -220,6 +220,17 @@
                                 <td class="px-4 py-3 text-sm text-gray-600 text-right">${{ number_format($item->unit_price, 2, ',', '.') }}</td>
                                 <td class="px-4 py-3 text-sm text-gray-800 font-semibold text-right">${{ number_format($item->total, 2, ',', '.') }}</td>
                             </tr>
+                            @foreach($item->resolvedChildren() as $child)
+                                <tr class="bg-gray-50/60">
+                                    <td class="px-4 py-2"></td>
+                                    <td class="px-4 py-2 text-sm text-gray-600" style="padding-left: {{ 16 + (($child['depth'] ?? 1) * 16) }}px">
+                                        {{ $child['name'] }}
+                                    </td>
+                                    <td class="px-4 py-2"></td>
+                                    <td class="px-4 py-2"></td>
+                                    <td class="px-4 py-2"></td>
+                                </tr>
+                            @endforeach
                         @endforeach
                     </tbody>
                     <tfoot class="bg-gray-50">

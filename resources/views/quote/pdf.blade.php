@@ -39,6 +39,13 @@
         .items-table td.center { text-align: center; }
         .items-table tr:nth-child(even) { background-color: #fafafa; }
         .items-table .item-num { color: #999; }
+        .items-table .item-child td {
+            font-size: 10px;
+            color: #666;
+            border-bottom: 1px solid #eee;
+            padding: 4px 10px;
+        }
+        .items-table .item-child td:first-child { color: #ccc; }
 
         .totals-table { width: 250px; margin-left: auto; margin-top: 10px; }
         .totals-table td { padding: 5px 10px; font-size: 12px; }
@@ -158,6 +165,15 @@
                     <td class="right">${{ number_format($item->unit_price, 2, ',', '.') }}</td>
                     <td class="right" style="font-weight: bold;">${{ number_format($item->total, 2, ',', '.') }}</td>
                 </tr>
+                @foreach($item->resolvedChildren() as $child)
+                    <tr class="item-child">
+                        <td class="center item-num">·</td>
+                        <td style="padding-left: {{ 10 + (($child['depth'] ?? 1) * 12) }}px;">{{ $child['name'] }}</td>
+                        <td class="center">—</td>
+                        <td class="right">—</td>
+                        <td class="right">—</td>
+                    </tr>
+                @endforeach
             @endforeach
         </tbody>
     </table>
