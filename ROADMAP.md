@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-28 (**v1.107.0** completada: seeder nomenclador laborales)
+> Última actualización: 2026-05-29 (**v1.109.0** completada; backlog labit vacío)
 
 ---
 
@@ -103,8 +103,21 @@
 | v1.67.0 | API: catálogo de tests/determinaciones para LISCOM | 2026-05-04 | `GET /api/v1/tests?search=...&category=...`. Búsqueda por name/code, filtro por categoría, flags is_parent/is_child, material. 12 tests Feature verde. Complementa v1.47.0 para que LISCOM configure EquipmentTestMapping (v1.49.0). |
 | v1.77.0 | Vista recepción-lab: leaf + CRUD restringido + eliminar protocolo pendiente (clínico/vet/muestras) | 2026-05-10 | Rutas `destroy`, `removeTest`/`removeDetermination` recepción-lab, vistas `isRecepcionLab`, permisos seeder |
 | v1.86.0 | Envío masivo protocolos clínicos validados: un correo con N PDFs (`AdmissionBatchMail`, `batch-email`) | 2026-05-10 | Índice admisiones: selección + FAB + modal; tests `AdmissionBatchEmailTest` |
+| v1.109.0 | KPIs diarios productividad por empleado/puesto (RRHH) | 2026-05-29 | `completados/v1.109.0-kpis-productividad-empleado-puesto.md` |
 | v1.107.0 | Seeder nomenclador laborales (producción): importa Excel como nomenclador base `Nomenclador laborales` | 2026-05-28 | Ejecución manual: `php artisan db:seed --class=NomencladorLaboralesSeeder` |
+| v1.109.0 | KPIs diarios productividad por empleado/puesto: panel RRHH, `result_delivered` idempotente, `result_entered_*`, `payment_recorded` | 2026-05-29 | Tag `v1.109.0` — diseño: `docs/designs/DISEÑO_v1.109.0-kpis-productividad-empleado-puesto.md` |
 | v1.108.0 | Hotfix urgente: protocolos clínicos duplicados — UNIQUE en `admissions`, generación atómica (`lockForUpdate` + retry) | 2026-05-28 | Incidente `C2605280083`; race condition en `GeneratesProtocolNumber` |
+| v1.104.0 | Email en protocolos de muestras: botón/modal en detalle, banner masivo en listado | 2026-05-28 | Tag `v1.104.0` |
+| v1.106.2 | Encabezado IPAC en resúmenes de facturación; obra social con iniciales mayúsculas | 2026-05-26 | Tag `v1.106.2` |
+| v1.106.1 | Resumen detallado facturación: formato por práctica; total a facturar | 2026-05-26 | Tag `v1.106.1` |
+| v1.106.0 | Resumen por protocolo por período (clínico, aguas, vet); PDF + Excel | 2026-05-26 | Tag `v1.106.0` |
+| v1.105.1 | Hotfix: reactividad Alpine panel NBU retroactivo + cierre HTML nomenclador | 2026-05-25 | Tag `v1.105.1` |
+| v1.105.0 | Inmutabilidad precios NBU + recálculo retroactivo opt-in | 2026-05-21 | Tag `v1.105.0` |
+| v1.104.1 | Hotfix: precio correcto al agregar determinación manual a admisión clínica | 2026-05-21 | Tag `v1.104.1` |
+| v1.103.0 | Determinaciones calculadas por fórmula (nomenclador + protocolo + ingesta API) | 2026-05-17 | Tag `v1.103.0` |
+| v1.98.3 | Hotfix índice presupuestos: paginación y resumen X–Y de Z | 2026-05-15 | Tag `v1.98.3` |
+| v1.98.1 | Planilla resultados pendientes: clínico + veterinario unificados; sidebar | 2026-05-14 | Ruta `lab.admissions.pending-results`; ver CHANGELOG |
+| v1.98.0 | Planilla global resultados pendientes (lab clínico): listado, columna determinaciones, deep link `#lab-admission-results` | 2026-05-13 | `ClinicalPendingResultsPresenter`; tests `LabPendingResultsPlanillaTest` |
 
 ---
 
@@ -148,7 +161,20 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 ---
 
-## Planificado — Próximas versiones
+## Backlog activo (labit)
+
+> Cola de ejecución: `agent-bootstrap/prompts/pendientes/` (solo prompts `v*.md`).
+> Sincronizado con STATUS.md el 2026-05-28.
+
+_Sin versiones pendientes en labit._
+
+**Candidatos sin versión (no planificados):**
+- Hotfix ZPL Zebra — etiquetas podrían seguir usando solo `protocol_number` mientras el barcode extendido es `protocol^material` (tensión v1.48.5).
+- Nuevas features: definir en sesión PM cuando surjan.
+
+---
+
+## Historial reciente (completadas en labit)
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
@@ -156,7 +182,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 | v1.106.0 | Resumen por protocolo por período: reemplaza reporte mensual clínico (1 fila/protocolo, códigos `-`, PDF+Excel); nuevas vistas aguas y vet con cards propias | ✅ Completada (2026-05-26) | `completados/v1.106.0-resumen-protocolos-por-periodo.md` — diseño: `docs/designs/DISEÑO_v1.106.0-resumen-protocolos-por-periodo.md` |
 | v1.104.1 | Hotfix: precio correcto al agregar determinación manual a admisión clínica existente | ✅ Completada (2026-05-21) | `completados/v1.104.1-hotfix-precio-agregar-determinacion-admision.md` |
 | v1.105.0 | Inmutabilidad precios NBU + recálculo retroactivo opt-in | ✅ Completada (2026-05-21) | `completados/v1.105.0-nbu-inmutabilidad-retroactivo.md` — diseño: `docs/designs/DISEÑO_v1.105.0-nbu-inmutabilidad-retroactivo.md` |
-| v1.104.0 | Email en protocolos de muestras: botón/modal en detalle, banner masivo en listado | Pendiente | `pendientes/v1.104.0-email-protocolos-muestras-ui.md` |
+| v1.104.0 | Email en protocolos de muestras: botón/modal en detalle, banner masivo en listado | ✅ Completada (2026-05-28) | `completados/v1.104.0-email-protocolos-muestras-ui.md` |
 | v1.102.0 | Estados unificados de protocolo: 5 estados (pendiente → validado) + envío separado por `sent_at`; calculator compartido; clínico + vet + muestras | ✅ Completada (2026-05-17) | `completados/v1.102.0-estados-protocolo-unificados.md` |
 | v1.101.0 | Lab clínico: validar / desvalidar / eliminar determinación sin recarga (Livewire; scroll estable; toast fijo) | ✅ Completada (2026-05-17) | `completados/v1.101.0-lab-admission-results-livewire-sin-recarga.md` |
 | v1.101.1 | Veterinario: validar / desvalidar / quitar determinación sin recarga (Livewire; paridad v1.101.0; `status` + `total_price`) | ✅ Completada (2026-05-17) | `completados/v1.101.1-vet-admission-results-livewire-sin-recarga.md` |
@@ -167,13 +193,14 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 | v1.97.0 | Santa Cruz O&G: FTP, preview XML, mapeos prestación↔test, importación admisiones clínicas, mover XML a `/procesados/` | ✅ Completada (2026-05-13) | `completados/v1.97.0-santacruz-ftp-import-admisiones.md` |
 | v1.97.1 | Detalle protocolo (clínico + vet): tras validar/desvalidar/eliminar determinación, `redirect()->back()->withFragment` hacia bloque de resultados (`#lab-admission-results` / `#vet-admission-results`) | ✅ Completada (2026-05-14) | `completados/v1.97.1-fix-scroll-detalle-protocolo-tras-acciones-determinacion.md` |
 | v1.98.3 | Hotfix: índice de presupuestos — resumen “Mostrando X–Y de Z”, paginación en pie con layout; orden `quote_number` descendente; tests `QuoteIndexPaginationTest` | ✅ Completada (2026-05-15) | `completados/v1.98.3-hotfix-presupuestos-listado-paginacion.md` |
-| v1.98.0 | Lab clínico: planilla global de protocolos con ≥1 determinación sin resultado; columna texto solo padres o hijos huérfanos; link a `show` + ancla `#lab-admission-results`; diseño en `pendientes/DISEÑO_v1.98.0-*.md` | Pendiente | `pendientes/v1.98.0-planilla-resultados-pendientes-lab-clinico.md` |
-| v1.94.0 | Factura B desde `/sales-invoices/create` sin cliente maestro: `customer_id` nullable, snapshot receptor, AFIP/PDF/asientos | Pendiente | `pendientes/v1.94.0-factura-b-sin-cliente-fv-create.md` |
+| v1.98.1 | Planilla resultados pendientes: unifica clínico + vet; columna Tipo; enlace en nueva pestaña; filtros fechas/especie; `VeterinaryPendingResultsPresenter` | ✅ Completada (2026-05-14) | — (sin prompt archivado; ver `CHANGELOG.md` [v1.98.1]) |
+| v1.98.0 | Planilla global resultados pendientes (lab clínico): `GET lab/admissions/pending-results`, columna determinaciones agrupadas, sidebar, `#lab-admission-results` | ✅ Completada (2026-05-13) | — (sin prompt archivado; ver `CHANGELOG.md` [v1.98.0]) |
+| v1.94.0 | Factura B desde `/sales-invoices/create` sin cliente maestro: `customer_id` nullable, snapshot receptor, AFIP/PDF/asientos | ✅ Completada (2026-05-17) | `completados/v1.94.0-factura-b-sin-cliente-fv-create.md` |
 | v1.93.0 | Navegación “Siguiente protocolo” en validación: filtros vivos del listado, no validado ni enviado, orden ascendente `protocol_number` (clínico + vet + muestras) | ✅ Completada (2026-05-12) | `completados/v1.93.0-navegacion-siguiente-protocolo-validacion.md` |
-| v1.92.0 | Dashboard operativo del laboratorio: KPIs, barras por estado/tipo/sede, alerta atrasados, links filtrados | Pendiente | `pendientes/v1.92.0-dashboard-operativo-laboratorio.md` |
-| v1.88.0 | Auditoría completa en protocolo veterinario: 10 `logAudit()` faltantes + `<x-audit-history>` en vista show | Pendiente | `pendientes/v1.88.0-auditoria-completa-protocolo-veterinario.md` |
-| v1.89.0 | Preservar estado del formulario de recibo de cobro ante errores (Alpine.js + `old()` + catch graceful) | Pendiente | `pendientes/v1.89.0-preservar-estado-formulario-recibo-cobro.md` |
-| v1.90.0 | Notas de crédito manuales independientes: carga de NC sin factura asociada, PdV manual, sin AFIP | Pendiente | `pendientes/v1.90.0-notas-credito-manuales-independientes.md` |
+| v1.92.0 | Dashboard operativo del laboratorio: KPIs, barras por estado/tipo/sede, alerta atrasados, links filtrados | ✅ Completada (2026-05-12) | `completados/v1.92.0-dashboard-operativo-laboratorio.md` |
+| v1.88.0 | Auditoría completa en protocolo veterinario: 10 `logAudit()` faltantes + `<x-audit-history>` en vista show | ✅ Completada (2026-05-11) | `completados/v1.88.0-auditoria-completa-protocolo-veterinario.md` |
+| v1.89.0 | Preservar estado del formulario de recibo de cobro ante errores (Alpine.js + `old()` + catch graceful) | ✅ Completada (2026-05-11) | `completados/v1.89.0-preservar-estado-formulario-recibo-cobro.md` |
+| v1.90.0 | Notas de crédito manuales independientes: carga de NC sin factura asociada, PdV manual, sin AFIP | ✅ Completada (2026-05-12) | `completados/v1.90.0-notas-credito-manuales-independientes.md` |
 | v1.86.0 | Envío masivo protocolos clínicos validados: un correo con N PDFs; destino manual u atajos obra social / mismo paciente | ✅ Completada (2026-05-10) | `completados/v1.86.0-envio-masivo-protocolos-clinicos-email.md` |
 | v1.85.0 | Protocolo lab clínico: ícono neutro de config. de práctica + visible solo admin; `quickUpdate` restringido a admin (403) | ✅ Completada (2026-05-09) | `completados/v1.85.0-protocolo-lab-icono-config-admin.md` |
 | v1.80.0 | Nombre corto / sigla en clientes y obras sociales (`short_name`, `displayName()`, vistas + PDFs + emails) | ✅ Completada (2026-05-09) | `completados/v1.80.0-nombre-corto-clientes-obras-sociales.md` |
@@ -184,19 +211,19 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 | v1.77.0 | Vista recepción-lab: determinaciones leaf + CRUD restringido por estado + eliminar protocolo 100% pendiente | ✅ Completada (en código; tag v1.77.0) | `completados/v1.77.0-vista-recepcion-lab-leaf-crud-restringido.md` |
 | v1.76.2 | Fix ingesta: key global omite validación OUT_OF_BRANCH en `ApiResultIngestionService` | ✅ Completada (2026-05-07) | `completados/v1.76.2-labit-ingestion-key-global-out-of-branch.md` |
 | v1.76.1 | API key global sin sede para LISCOM — hotfix ORPHAN multi-sede | ✅ Completada (2026-05-07) | `completados/v1.76.1-labit-api-key-global-sin-sede.md` |
-| v1.78.0 | Biosystems A25: worklist `import.txt` + import export; equivalencias nombre A25↔Labit; id muestra sin asumir legado=Labit | Pendiente | `pendientes/v1.78.0-a25-biosystems-interfaz-texto-plano.md` |
+| v1.78.0 | Biosystems A25: worklist `import.txt` + import export; equivalencias nombre A25↔Labit; id muestra sin asumir legado=Labit | ✅ Completada (2026-05-09) | `completados/v1.78.0-a25-biosystems-interfaz-texto-plano.md` |
 | v1.76.0 | Marcar determinaciones como ratificadas (valores anormales controlados) | ✅ Completada (2026-05-07) | `completados/v1.76.0-marcar-determinaciones-ratificadas.md` |
-| v1.75.0 | PDF de protocolos sin observaciones internas | Pendiente | `pendientes/v1.75.0-pdf-sin-observaciones-internas-protocolos.md` |
-| v1.74.0 | Envío masivo de protocolos de muestras por email | Pendiente | `pendientes/v1.74.0-envio-masivo-protocolos-muestras.md` |
+| v1.75.0 | PDF de protocolos sin observaciones internas | ✅ Completada (2026-05-06) | `completados/v1.75.0-pdf-sin-observaciones-internas-protocolos.md` |
+| v1.74.0 | Envío masivo de protocolos de muestras por email | ✅ Completada (2026-05-06) | `completados/v1.74.0-envio-masivo-protocolos-muestras.md` |
 | v1.73.0 | Estado "enviado" en protocolos de muestras | ✅ Completada (2026-05-07) | `completados/v1.73.0-estado-enviado-protocolos-muestras.md` |
-| v1.70.0 | Sección Pacientes en lab clínico (lista + sidebar) | Pendiente | `pendientes/v1.70.0-seccion-pacientes-lab-clinico.md` |
-| v1.69.0 | Estado protocolo clínico: columna, filtro y sync automático | Pendiente | `pendientes/v1.69.0-estado-protocolo-clinico-listado-filtro.md` |
-| v1.68.0 | Editar protocolo veterinario con auditoría | Pendiente | `pendientes/v1.68.0-editar-protocolo-veterinario-auditoria.md` |
-| v1.67.5 | Fix búsqueda de determinaciones hijas en protocolos | Pendiente (hotfix) | `pendientes/v1.67.5-fix-busqueda-determinaciones-hijas.md` |
+| v1.70.0 | Sección Pacientes en lab clínico (lista + sidebar) | ✅ Completada (2026-05-05) | `completados/v1.70.0-seccion-pacientes-lab-clinico.md` |
+| v1.69.0 | Estado protocolo clínico: columna, filtro y sync automático | ✅ Completada (2026-05-05) | `completados/v1.69.0-estado-protocolo-clinico-listado-filtro.md` |
+| v1.72.0 | Editar protocolo veterinario con auditoría de cambios (scope original v1.68.0) | ✅ Completada (2026-05-05) | `completados/v1.72.0-editar-protocolo-veterinario-auditoria.md` |
+| v1.71.0 | Fix búsqueda y selección de determinaciones hijas (scope original v1.67.5) | ✅ Completada (2026-05-05) | `completados/v1.71.0-fix-busqueda-determinaciones-hijas.md` |
 | v1.67.6 | Hotfix multi-equipo en batch results: dedup por equipo | ✅ Completada (2026-05-05) | — (ejecutado directo) |
 | v1.67.4 | Hotfix estado validación vet + in_progress por LISCOM | ✅ Completada | `completados/v1.67.4-hotfix-estado-validacion-vet-y-liscom-in-progress.md` |
-| v1.65.1 | Etiquetas de protocolo para laboratorio veterinario | Pendiente (hotfix) | `pendientes/v1.65.1-etiquetas-lab-veterinario.md` |
-|| v1.65.2 | Fix PDF veterinario: excluir no validadas + jerarquía orphans | ✅ Completada (hotfix) | — (ejecutado directo) |
+| v1.65.1 | Etiquetas de protocolo para laboratorio veterinario | ✅ Completada (2026-05-01) | `completados/v1.65.1-etiquetas-lab-veterinario.md` |
+| v1.65.2 | Fix PDF veterinario: excluir no validadas + jerarquía orphans | ✅ Completada (hotfix) | — (ejecutado directo) |
 | v1.54.0 | UX combobox insumos: ocultar input al seleccionar | ✅ Completada | `completados/v1.54.0-ux-combobox-insumos-ocultar-input.md` |
 | v1.54.1 | Hotfix lote/vencimiento remito: ocultar inputs cuando no trackea lote | ✅ Completada | `completados/v1.54.1-hotfix-lote-vencimiento-remito-xshow.md` |
 | v1.55.0 | Factura de compra: buscador unificado insumos + servicios | ✅ Completada | `completados/v1.55.0-fc-buscador-unificado-insumos-servicios.md` |
@@ -207,12 +234,12 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 | v1.59.0 | Prellenar lote/vencimiento al crear FC desde remito | ✅ Completada | `completados/v1.59.0-prellenar-lote-vencimiento-fc-desde-remito.md` |
 | v1.60.0 | Fix: deshabilitar autocomplete del navegador en buscador de insumos del remito | ✅ Completada | `completados/v1.60.0-disable-browser-autocomplete-insumo-remito.md` |
 | v1.61.0 | Enter agrega ítem en Factura de Compra (igual que en remito) | ✅ Completada | `completados/v1.61.0-enter-agrega-item-fc.md` |
-| v1.62.0 | Unificar insumos: merge A → B con reasignación de referencias | Pendiente | `pendientes/v1.62.0-unificar-insumos-merge.md` |
-| v1.63.0 | Percepciones de compra: catálogo, FC, asiento contable y saldos | Pendiente (Designer primero) | `pendientes/v1.63.0-percepciones-compra.md` |
-| v1.63.1 | Percepciones en NC de proveedor (espejo de v1.63.0) | Pendiente | `pendientes/v1.63.1-percepciones-nc-proveedor.md` |
-| v1.64.0 | Declaraciones de impuestos e imputación de anticipos sufridos | Pendiente (Designer primero) | `pendientes/v1.64.0-declaraciones-impuestos-imputacion-anticipos.md` |
-| v1.65.0 | Borrador editable y líneas extras en facturación masiva | Pendiente | `pendientes/v1.65.0-borrador-editable-facturacion-masiva.md` |
-| v1.66.0 | Dashboard ejecutivo financiero + reubicación del panel de RRHH | Pendiente (Designer primero) | `pendientes/v1.66.0-dashboard-financiero-rrhh.md` |
+| v1.62.0 | Unificar insumos: merge A → B con reasignación de referencias | ✅ Completada (2026-04-26) | `completados/v1.62.0-unificar-insumos-merge.md` |
+| v1.63.0 | Percepciones de compra: catálogo, FC, asiento contable y saldos | ✅ Completada (2026-05-06) | `completados/v1.63.0-percepciones-compra.md` |
+| v1.63.1 | Percepciones en NC de proveedor (espejo de v1.63.0) | ✅ Completada (2026-05-06) | `completados/v1.63.1-percepciones-nc-proveedor.md` |
+| v1.64.0 | Declaraciones de impuestos e imputación de anticipos sufridos | ✅ Completada (2026-05-06) | `completados/v1.64.0-declaraciones-impuestos-imputacion-anticipos.md` |
+| v1.65.0 | Borrador editable y líneas extras en facturación masiva | ✅ Completada (2026-04-27) | `completados/v1.65.0-borrador-editable-facturacion-masiva.md` |
+| v1.66.0 | Dashboard ejecutivo financiero + reubicación del panel de RRHH | ✅ Completada (2026-05-03) | `completados/v1.66.0-dashboard-financiero-rrhh.md` |
 
 ---
 
@@ -220,31 +247,33 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 - **Libro Diario y Libro Mayor**: interfaces de consulta contable (v3.4.0 completada en prompts; verificar cierre en CHANGELOG si aplica)
 - **Tesorería**: saldos en tiempo real por cuenta; ~~endoso e-cheq en OP~~ → v1.39.1
-- **Percepciones e impuestos**: ~~percepciones en compras (catálogo + FC + asiento + saldos)~~ → **v1.63.0** (planificada). ~~percepciones en NC de proveedor~~ → **v1.63.1** (planificada). ~~declaraciones del impuesto + imputación de anticipos sufridos~~ → **v1.64.0** (planificada). Futuro: pago del saldo a pagar de una DDJJ (v1.64.1), importación de archivos AFIP/IIBB (v1.64.2), traslado automático de saldo a favor cross-período (v1.64.3).
+- **Percepciones e impuestos**: ~~percepciones en compras~~ → **v1.63.0** (completada). ~~percepciones en NC de proveedor~~ → **v1.63.1** (completada). ~~declaraciones del impuesto + imputación de anticipos sufridos~~ → **v1.64.0** (completada). Futuro: pago del saldo a pagar de una DDJJ (v1.64.1), importación de archivos AFIP/IIBB (v1.64.2), traslado automático de saldo a favor cross-período (v1.64.3).
 - **Lector QR facturas de compra**: ~~escaneo de QR de facturas recibidas para autocompletar datos~~ → completado en v1.28.0
 - **UI/UX**: auditoría visual, migración de componentes, design system
-- **Facturación masiva**: ~~borrador editable + líneas extras antes de AFIP~~ → **v1.65.0** (planificada). Futuro: catálogo de servicios facturables recurrentes (v1.67.0 si surge necesidad), auto-guardado del borrador (v1.67.1).
-- **Dashboard ejecutivo**: ~~panel financiero con KPIs del mes (ventas/compras/ingresos/egresos) + reubicación de RRHH a `/rrhh`~~ → **v1.66.0** (planificada). Futuro: drilldown desde gráficos (v1.66.1), saldos de tesorería + deudores (v1.66.2), filtros de período personalizado (v1.66.3), comparación interanual (v1.66.4), export PDF (v1.66.5).
+- **Facturación masiva**: ~~borrador editable + líneas extras antes de AFIP~~ → **v1.65.0** (completada). Futuro: catálogo de servicios facturables recurrentes, auto-guardado del borrador.
+- **Dashboard ejecutivo**: ~~panel financiero + reubicación RRHH~~ → **v1.66.0** (completada). Futuro: drilldown desde gráficos (v1.66.1), saldos de tesorería + deudores (v1.66.2), filtros de período personalizado (v1.66.3), comparación interanual (v1.66.4), export PDF (v1.66.5).
 - **Recibos de cobro**: ~~retenciones sufridas en cobranzas~~ → **v1.40.0**; ~~PDF para cliente~~ → **v1.41.0**; cobro parcial — UX y validación de saldo (candidato futuro)
 - **Testing**: suite de tests automatizados, cobertura mínima
 - **DevOps**: CI/CD, ambientes de staging, deploy automatizado
 - **Seguridad**: 2FA, protección adicional (auditoría base cubierta por v2.5.0/v2.7.0, acceso por rol por v2.4.0)
 - **Integración LISCOM**: cadena v1.46.0–v1.53.0 (ver sección Planificado). Áreas relacionadas pendientes: webhook push de labit→liscom (alternativa a polling), rate limiting de la API pública, replicación multi-instancia avanzada.
-- **Determinaciones calculadas**: índices derivados (Castelli, etc.) → **v1.103.0** (planificada; diseño en `docs/designs/DISEÑO_v1.103.0-determinaciones-calculadas-formula.md`).
+- **Determinaciones calculadas**: índices derivados (Castelli, etc.) → **v1.103.0** (completada 2026-05-17).
+- **Planilla resultados pendientes**: ~~listado global clínico + vet, deep link a resultados~~ → **v1.98.0** + **v1.98.1** (completadas 2026-05-13/14). Pantalla: `lab.admissions.pending-results`.
 
 ---
 
 ## Progreso general
 
 ```
-Completadas:  ver STATUS.md (última v1.53.0 en develop)
-Planificadas: 4 (cadena LISCOM restante en interfases: v1.48.0★, v1.49.0★, v1.50.0★, v1.52.0★)
-En proceso:   0
-Release master: ver tags; develop incluye v1.53.0
+Completadas (develop): ver STATUS.md — última v1.109.0 (2026-05-29)
+Backlog labit:         0
+Cola prompts v*:       vacía
+LISCOM (interfases):   3 pendientes — v1.49.0, v1.50.0, v1.52.0
+En proceso:            0
 ```
 
 ---
 
 > Este documento se actualiza al finalizar cada versión o sesión de planificación.
-> Última actualización: 2026-05-26 (**v1.107.0** planificada: seeder nomenclador laborales; **v1.106.x** completada)
+> Última actualización: 2026-05-28 — corrección v1.98.0/v1.98.1 (ya en código; backlog labit vacío)
 
