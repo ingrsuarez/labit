@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-29 (**v1.110.0** extracciones pendientes lab clínico)
+> Última actualización: 2026-05-29 (**v1.111.0** presupuestos detalle hijos)
 
 ---
 
@@ -9,8 +9,8 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **develop**: **v1.110.0** (extracciones pendientes por sede) |
-| **Última completada (cola agente)** | **v1.110.0** — Cola extracciones, tomador obligatorio, bloqueo planillas, KPIs |
+| **Versión actual (línea v1.x)** | **develop**: **v1.111.0** (presupuestos detalle hijos) |
+| **Última completada (cola agente)** | **v1.111.0** — Presupuestos: detalle determinaciones hijas (snapshot) |
 | **En proceso** | — |
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
 | **Pendientes en cola** | 0 prompts `v*` |
@@ -34,6 +34,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.111.0 | Presupuestos: detalle de determinaciones hijas (snapshot) | 2026-05-29 | v1.111.0 |
 | v1.110.0 | Extracciones pendientes por sede (lab clínico): cola header, tomador, planillas, KPIs | 2026-05-29 | v1.110.0 |
 | v1.109.2 | KPIs productividad: entregados (email_sent), carga (results_loaded), orden por rol | 2026-05-29 | v1.109.2 |
 | v1.109.1 | KPIs director técnico: mismas métricas que bioquímico por puesto | 2026-05-29 | v1.109.1 |
