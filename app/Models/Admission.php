@@ -42,6 +42,8 @@ class Admission extends Model
         'cash',
         'created_by',
         'lab_branch_id',
+        'sample_drawn_at',
+        'sample_drawn_by',
         'status',
         'sent_at',
         'payment_status',
@@ -63,6 +65,7 @@ class Admission extends Model
         'paid_amount' => 'decimal:2',
         'payment_date' => 'datetime',
         'sent_at' => 'datetime',
+        'sample_drawn_at' => 'datetime',
     ];
 
     /**
@@ -138,6 +141,16 @@ class Admission extends Model
     public function labBranch()
     {
         return $this->belongsTo(LabBranch::class);
+    }
+
+    public function sampleDrawnBy()
+    {
+        return $this->belongsTo(User::class, 'sample_drawn_by');
+    }
+
+    public function scopePendingSampleDraw($query)
+    {
+        return $query->whereNull('sample_drawn_by');
     }
 
     /**

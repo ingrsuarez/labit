@@ -19,6 +19,7 @@ use App\Models\Species;
 use App\Models\Test;
 use App\Models\VetAdmission;
 use App\Services\AdmissionInsuranceTestPricing;
+use App\Services\AdmissionSampleDrawService;
 use App\Support\ClinicalPendingResultsPresenter;
 use App\Support\VeterinaryPendingResultsPresenter;
 use Carbon\Carbon;
@@ -200,8 +201,9 @@ class LabAdmissionController extends Controller
             ->get(['id', 'name']);
 
         $coveragePickerItems = $this->labAdmissionCoveragePickerItems($insurances);
+        $sampleDrawers = app(AdmissionSampleDrawService::class)->eligibleDrawers();
 
-        return view('lab.admissions.create', compact('patient', 'insurances', 'coveragePickerItems', 'tests', 'branches', 'clinicalProfiles'));
+        return view('lab.admissions.create', compact('patient', 'insurances', 'coveragePickerItems', 'tests', 'branches', 'clinicalProfiles', 'sampleDrawers'));
     }
 
     /**
@@ -358,11 +360,21 @@ class LabAdmissionController extends Controller
             'tests.*.paid_by_patient' => 'boolean',
             'tests.*.copago' => 'nullable|numeric|min:0',
             'lab_branch_id' => 'nullable|exists:lab_branches,id',
+            'sample_drawn_by' => 'nullable|exists:users,id',
         ]);
+
+        app(AdmissionSampleDrawService::class)->validateDrawerId(
+            $request->filled('sample_drawn_by') ? (int) $request->sample_drawn_by : null
+        );
 
         $admission = Admission::retryOnProtocolNumberCollision(function () use ($request) {
             return $this->createAdmissionFromRequest($request);
         });
+
+        app(AdmissionSampleDrawService::class)->syncDrawFromAdmissionForm(
+            $admission->fresh(['admissionTests.test.materialRelation', 'admissionTests.test.parentTests']),
+            $request->filled('sample_drawn_by') ? (int) $request->sample_drawn_by : null
+        );
 
         return redirect()->route('lab.admissions.show', $admission)
             ->with('success', 'Admisión creada correctamente. Protocolo: '.$admission->protocol_number);
@@ -661,8 +673,10 @@ class LabAdmissionController extends Controller
             ->get();
         $tests = Test::whereNull('parent')->orderBy('code')->get(['id', 'code', 'name', 'nbu', 'price']);
         $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
+        $sampleDrawers = app(AdmissionSampleDrawService::class)->eligibleDrawers();
+        $admissionRequiresSampleDraw = app(AdmissionSampleDrawService::class)->admissionRequiresSampleDraw($admission);
 
-        return view('lab.admissions.edit', compact('admission', 'insurances', 'tests', 'branches'));
+        return view('lab.admissions.edit', compact('admission', 'insurances', 'tests', 'branches', 'sampleDrawers', 'admissionRequiresSampleDraw'));
     }
 
     /**
@@ -677,7 +691,12 @@ class LabAdmissionController extends Controller
             'affiliate_number' => 'nullable|string|max:50',
             'requesting_doctor' => 'nullable|string|max:255',
             'lab_branch_id' => 'nullable|exists:lab_branches,id',
+            'sample_drawn_by' => 'nullable|exists:users,id',
         ]);
+
+        app(AdmissionSampleDrawService::class)->validateDrawerId(
+            $request->filled('sample_drawn_by') ? (int) $request->sample_drawn_by : null
+        );
 
         $oldBranchId = $admission->lab_branch_id;
 
@@ -698,6 +717,11 @@ class LabAdmissionController extends Controller
             $auditMsg .= '. Sede: '.$oldName.' → '.$newName;
         }
         $admission->logAudit('updated', $auditMsg);
+
+        app(AdmissionSampleDrawService::class)->syncDrawFromAdmissionForm(
+            $admission->fresh(['admissionTests.test.materialRelation', 'admissionTests.test.parentTests']),
+            $request->filled('sample_drawn_by') ? (int) $request->sample_drawn_by : null
+        );
 
         return redirect()->route('lab.admissions.show', $admission)
             ->with('success', 'Admisión actualizada correctamente.');
@@ -786,6 +810,8 @@ class LabAdmissionController extends Controller
 
         $admission->calculateTotals();
 
+        app(AdmissionSampleDrawService::class)->reconcileAfterTestsChanged($admission->fresh());
+
         $message = 'Práctica "'.$test->code.' - '.$test->name.'" agregada correctamente.';
         if ($childrenAdded > 0) {
             $message .= ' ('.$childrenAdded.' determinaciones hijas incluidas)';
@@ -826,6 +852,10 @@ class LabAdmissionController extends Controller
         $this->authorize('lab-admissions.delete');
 
         $result = app(\App\Actions\Lab\MutateAdmissionTest::class)->remove($admission, $test);
+
+        if ($result['ok']) {
+            app(AdmissionSampleDrawService::class)->reconcileAfterTestsChanged($admission->fresh());
+        }
 
         return $result['ok']
             ? $this->backToAdmissionResults()->with('success', $result['message'])
@@ -949,9 +979,9 @@ class LabAdmissionController extends Controller
             $query->where('code', 'like', "%{$search}%")
                 ->orWhere('name', 'like', "%{$search}%");
         })
-            ->with(['parentTests', 'parentTest'])
+            ->with(['parentTests', 'parentTest', 'materialRelation'])
             ->limit(20)
-            ->get(['id', 'code', 'name', 'nbu', 'price']);
+            ->get(['id', 'code', 'name', 'nbu', 'price', 'material']);
 
         // Si hay obra social, agregar info del nomenclador
         if ($insuranceId) {
@@ -991,6 +1021,7 @@ class LabAdmissionController extends Controller
 
                 $test->parent_name = $test->parentTests->first()?->name
                     ?? $test->parentTest?->name;
+                $test->requires_sample_draw = $test->material !== null && $test->materialRelation !== null;
 
                 return $test;
             });
@@ -998,6 +1029,7 @@ class LabAdmissionController extends Controller
             $tests = $tests->map(function ($test) {
                 $test->parent_name = $test->parentTests->first()?->name
                     ?? $test->parentTest?->name;
+                $test->requires_sample_draw = $test->material !== null && $test->materialRelation !== null;
 
                 return $test;
             });

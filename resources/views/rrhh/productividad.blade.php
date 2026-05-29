@@ -108,6 +108,7 @@
                                 <th class="px-3 py-3 text-right text-xs font-medium text-purple-600 uppercase">Val. práct.</th>
                                 <th class="px-3 py-3 text-right text-xs font-medium text-purple-600 uppercase">Val. prot.</th>
                                 <th class="px-3 py-3 text-right text-xs font-medium text-purple-600 uppercase">% val.</th>
+                                <th class="px-3 py-3 text-right text-xs font-medium text-rose-600 uppercase">Extracciones</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -151,6 +152,9 @@
                                     <td class="px-3 py-3 text-right">{{ $biochemist['tests_validated'] ?? '—' }}</td>
                                     <td class="px-3 py-3 text-right">{{ $biochemist['protocols_validated'] ?? '—' }}</td>
                                     <td class="px-3 py-3 text-right">{{ isset($biochemist['validation_rate']) ? number_format($biochemist['validation_rate'], 1, ',', '.').'%' : '—' }}</td>
+                                    <td class="px-3 py-3 text-right font-medium text-rose-700">
+                                        {{ $technician['samples_drawn'] ?? $biochemist['samples_drawn'] ?? '—' }}
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

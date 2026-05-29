@@ -115,6 +115,7 @@
                                                 'red'    => 'bg-red-100 text-red-700',
                                                 'teal'   => 'bg-teal-100 text-teal-700',
                                                 'yellow' => 'bg-yellow-100 text-yellow-700',
+                                                'rose'   => 'bg-rose-100 text-rose-700',
                                                 default  => 'bg-gray-100 text-gray-700',
                                             };
                                         @endphp
