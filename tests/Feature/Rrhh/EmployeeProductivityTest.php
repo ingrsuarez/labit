@@ -188,7 +188,80 @@ class EmployeeProductivityTest extends TestCase
         $row = collect($report['rows'])->firstWhere('employee_name', 'Recep Test');
 
         $this->assertNotNull($row);
-        $this->assertSame(1, $row['metrics']['reception']['results_delivered']);
+        $this->assertSame(1, $row['metrics']['delivery']['results_delivered']);
+    }
+
+    public function test_bioquimico_email_sent_cuenta_como_entregado(): void
+    {
+        $branch = LabBranch::query()->create(['name' => 'Sede Email', 'is_central' => false, 'is_active' => true]);
+        $user = User::factory()->create();
+        $user->assignRole('bioquimico');
+        $this->makeEmployee($user, 'Clara', 'Bio');
+
+        $patient = Patient::query()->create([
+            'name' => 'P', 'lastName' => 'E', 'patientId' => '30555555',
+            'type' => 'humano', 'sex' => 'F', 'status' => 'activo',
+        ]);
+        $admission = $this->makeAdmission($user, $patient, [
+            'protocol_number' => 'C-KPI-EMAIL',
+            'lab_branch_id' => $branch->id,
+            'status' => 'validated',
+        ]);
+        $test = $this->makeTestModel();
+        AdmissionTest::query()->create([
+            'admission_id' => $admission->id,
+            'test_id' => $test->id,
+            'price' => 50,
+            'is_validated' => true,
+            'validated_by' => $user->id,
+            'validated_at' => now(),
+            'result' => '5',
+        ]);
+
+        $admission->logAudit('email_sent', 'Envió resultados por email a test@example.com', $user->id);
+
+        $report = app(EmployeeProductivityService::class)->report(now(), $branch->id);
+        $row = collect($report['rows'])->firstWhere('employee_name', 'Clara Bio');
+
+        $this->assertNotNull($row);
+        $this->assertSame(1, $row['metrics']['delivery']['results_delivered']);
+        $this->assertArrayNotHasKey('results_delivered', $row['metrics']['reception'] ?? []);
+    }
+
+    public function test_entregado_no_duplica_email_y_result_delivered_mismo_protocolo(): void
+    {
+        $branch = LabBranch::query()->create(['name' => 'Sede Dup', 'is_central' => true, 'is_active' => true]);
+        $user = User::factory()->create();
+        $user->assignRole('recepcion-lab');
+        $this->makeEmployee($user, 'Rep', 'Dup');
+
+        $patient = Patient::query()->create([
+            'name' => 'X', 'lastName' => 'Y', 'patientId' => '30666666',
+            'type' => 'humano', 'sex' => 'M', 'status' => 'activo',
+        ]);
+        $admission = $this->makeAdmission($user, $patient, [
+            'protocol_number' => 'C-KPI-DUP',
+            'lab_branch_id' => $branch->id,
+            'status' => 'validated',
+        ]);
+        $test = $this->makeTestModel();
+        AdmissionTest::query()->create([
+            'admission_id' => $admission->id,
+            'test_id' => $test->id,
+            'price' => 10,
+            'is_validated' => true,
+            'validated_by' => $user->id,
+            'validated_at' => now(),
+            'result' => '1',
+        ]);
+
+        $admission->logAudit('email_sent', 'Envió resultados por email a a@b.com', $user->id);
+        LogsProtocolDelivery::logResultDeliveredOncePerDay($admission, $user->id);
+
+        $report = app(EmployeeProductivityService::class)->report(now(), $branch->id);
+        $row = collect($report['rows'])->firstWhere('employee_name', 'Rep Dup');
+
+        $this->assertSame(1, $row['metrics']['delivery']['results_delivered']);
     }
 
     public function test_tecnico_result_entered_en_metricas(): void
@@ -244,8 +317,42 @@ class EmployeeProductivityTest extends TestCase
         $row = collect($report['rows'])->firstWhere('employee_name', 'Tec Lab');
 
         $this->assertNotNull($row);
-        $this->assertSame(2, $row['metrics']['technician']['results_entered']);
-        $this->assertSame(1, $row['metrics']['technician']['protocols_with_results']);
+        $this->assertSame(2, $row['metrics']['loading']['results_entered']);
+        $this->assertSame(1, $row['metrics']['loading']['protocols_with_results']);
+    }
+
+    public function test_bioquimico_results_loaded_audit_cuenta_carga(): void
+    {
+        $branch = LabBranch::query()->create(['name' => 'Sede Bio Carga', 'is_central' => false, 'is_active' => true]);
+        $user = User::factory()->create();
+        $user->assignRole('bioquimico');
+        $this->makeEmployee($user, 'Clara', 'Carga');
+
+        $patient = Patient::query()->create([
+            'name' => 'P', 'lastName' => 'C', 'patientId' => '30777777',
+            'type' => 'humano', 'sex' => 'F', 'status' => 'activo',
+        ]);
+        $admission = $this->makeAdmission($user, $patient, [
+            'protocol_number' => 'C-KPI-LOAD',
+            'lab_branch_id' => $branch->id,
+        ]);
+        $test = $this->makeTestModel();
+        AdmissionTest::query()->create([
+            'admission_id' => $admission->id,
+            'test_id' => $test->id,
+            'price' => 20,
+            'result' => '12.5',
+            'unit' => 'g/L',
+        ]);
+
+        $admission->logAudit('results_loaded', 'Cargó resultados en la admisión Nº '.$admission->protocol_number, $user->id);
+
+        $report = app(EmployeeProductivityService::class)->report(now(), $branch->id);
+        $row = collect($report['rows'])->firstWhere('employee_name', 'Clara Carga');
+
+        $this->assertNotNull($row);
+        $this->assertSame(1, $row['metrics']['loading']['results_entered']);
+        $this->assertSame(1, $row['metrics']['loading']['protocols_with_results']);
     }
 
     public function test_director_tecnico_puesto_recibe_metricas_bioquimico_sin_rol_spatie(): void
@@ -347,6 +454,40 @@ class EmployeeProductivityTest extends TestCase
         $report = app(EmployeeProductivityService::class)->report(now(), $branchA->id);
 
         $this->assertSame(2, $report['branch_summary']['protocols_created']);
+    }
+
+    public function test_filas_ordenadas_por_rol_y_luego_nombre(): void
+    {
+        $branch = LabBranch::query()->create(['name' => 'Sede Sort', 'is_central' => true, 'is_active' => true]);
+
+        $recep = User::factory()->create();
+        $recep->assignRole('recepcion-lab');
+        $this->makeEmployee($recep, 'Zoe', 'Recep');
+
+        $tec = User::factory()->create();
+        $tec->assignRole('tecnico-lab');
+        $this->makeEmployee($tec, 'Ana', 'Tec');
+
+        $bio = User::factory()->create();
+        $bio->assignRole('bioquimico');
+        $this->makeEmployee($bio, 'Bea', 'Bio');
+
+        $patient = Patient::query()->create([
+            'name' => 'S', 'lastName' => 'O', 'patientId' => '30888888',
+            'type' => 'humano', 'sex' => 'M', 'status' => 'activo',
+        ]);
+        foreach ([[$recep, 'C-SORT-1'], [$tec, 'C-SORT-2'], [$bio, 'C-SORT-3']] as [$user, $protocol]) {
+            $adm = $this->makeAdmission($user, $patient, [
+                'protocol_number' => $protocol,
+                'lab_branch_id' => $branch->id,
+            ]);
+            $adm->logAudit('created', 'Creó la admisión', $user->id);
+        }
+
+        $report = app(EmployeeProductivityService::class)->report(now(), $branch->id);
+        $names = collect($report['rows'])->pluck('employee_name')->values()->all();
+
+        $this->assertSame(['Zoe Recep', 'Ana Tec', 'Bea Bio'], $names);
     }
 
     public function test_export_csv_responde_ok(): void

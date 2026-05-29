@@ -72,6 +72,8 @@ class RrhhProductivityController extends Controller
 
             foreach ($report['rows'] as $row) {
                 $reception = $row['metrics']['reception'] ?? [];
+                $delivery = $row['metrics']['delivery'] ?? [];
+                $loading = $row['metrics']['loading'] ?? [];
                 $technician = $row['metrics']['technician'] ?? [];
                 $biochemist = $row['metrics']['biochemist'] ?? [];
 
@@ -84,11 +86,11 @@ class RrhhProductivityController extends Controller
                     $reception['patients_created'] ?? '',
                     $reception['protocols_updated'] ?? '',
                     $reception['payments_recorded'] ?? '',
-                    $reception['results_delivered'] ?? '',
-                    isset($reception['delivery_rate']) ? $reception['delivery_rate'].'%' : '',
-                    $technician['results_entered'] ?? '',
-                    $technician['protocols_with_results'] ?? '',
-                    isset($technician['load_rate']) ? $technician['load_rate'].'%' : '',
+                    $delivery['results_delivered'] ?? '',
+                    isset($delivery['delivery_rate']) ? $delivery['delivery_rate'].'%' : '',
+                    $loading['results_entered'] ?? '',
+                    $loading['protocols_with_results'] ?? '',
+                    isset($loading['load_rate']) ? $loading['load_rate'].'%' : '',
                     $biochemist['tests_validated'] ?? '',
                     $biochemist['protocols_validated'] ?? '',
                     isset($biochemist['validation_rate']) ? $biochemist['validation_rate'].'%' : '',

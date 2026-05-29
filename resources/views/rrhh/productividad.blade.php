@@ -74,7 +74,7 @@
             <div class="bg-white rounded-xl shadow-sm border p-5">
                 <p class="text-sm text-gray-500 flex items-center gap-1">
                     Resultados entregados
-                    <i class="bi bi-info-circle text-gray-400" title="Protocolos distintos con informe entregado (mail o impresión), una vez por protocolo por día."></i>
+                    <i class="bi bi-info-circle text-gray-400" title="Protocolos distintos entregados (email o descarga PDF), por quien envió, cualquier rol."></i>
                 </p>
                 <p class="text-2xl font-bold text-indigo-600 mt-1">{{ $report['branch_summary']['results_delivered'] }}</p>
             </div>
@@ -99,7 +99,7 @@
                                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sede</th>
                                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rol</th>
                                 <th class="px-3 py-3 text-right text-xs font-medium text-teal-600 uppercase">Creados</th>
-                                <th class="px-3 py-3 text-right text-xs font-medium text-teal-600 uppercase" title="Una vez por protocolo/día">
+                                <th class="px-3 py-3 text-right text-xs font-medium text-teal-600 uppercase" title="Email o PDF; cualquier rol">
                                     Entregados <i class="bi bi-info-circle"></i>
                                 </th>
                                 <th class="px-3 py-3 text-right text-xs font-medium text-teal-600 uppercase">% ent.</th>
@@ -114,6 +114,8 @@
                             @foreach ($report['rows'] as $row)
                                 @php
                                     $reception = $row['metrics']['reception'] ?? null;
+                                    $delivery = $row['metrics']['delivery'] ?? null;
+                                    $loading = $row['metrics']['loading'] ?? null;
                                     $technician = $row['metrics']['technician'] ?? null;
                                     $biochemist = $row['metrics']['biochemist'] ?? null;
                                 @endphp
@@ -142,10 +144,10 @@
                                         @endforeach
                                     </td>
                                     <td class="px-3 py-3 text-right">{{ $reception['protocols_created'] ?? '—' }}</td>
-                                    <td class="px-3 py-3 text-right font-medium">{{ $reception['results_delivered'] ?? '—' }}</td>
-                                    <td class="px-3 py-3 text-right">{{ isset($reception['delivery_rate']) ? number_format($reception['delivery_rate'], 1, ',', '.').'%' : '—' }}</td>
-                                    <td class="px-3 py-3 text-right">{{ $technician['results_entered'] ?? '—' }}</td>
-                                    <td class="px-3 py-3 text-right">{{ isset($technician['load_rate']) ? number_format($technician['load_rate'], 1, ',', '.').'%' : '—' }}</td>
+                                    <td class="px-3 py-3 text-right font-medium">{{ $delivery['results_delivered'] ?? 0 }}</td>
+                                    <td class="px-3 py-3 text-right">{{ isset($delivery['delivery_rate']) ? number_format($delivery['delivery_rate'], 1, ',', '.').'%' : '0,0%' }}</td>
+                                    <td class="px-3 py-3 text-right">{{ $loading['results_entered'] ?? 0 }}</td>
+                                    <td class="px-3 py-3 text-right">{{ isset($loading['load_rate']) ? number_format($loading['load_rate'], 1, ',', '.').'%' : '0,0%' }}</td>
                                     <td class="px-3 py-3 text-right">{{ $biochemist['tests_validated'] ?? '—' }}</td>
                                     <td class="px-3 py-3 text-right">{{ $biochemist['protocols_validated'] ?? '—' }}</td>
                                     <td class="px-3 py-3 text-right">{{ isset($biochemist['validation_rate']) ? number_format($biochemist['validation_rate'], 1, ',', '.').'%' : '—' }}</td>

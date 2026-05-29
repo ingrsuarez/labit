@@ -24,6 +24,14 @@ class EmployeeProductivityService
         Sample::class,
     ];
 
+    /** Orden de filas en el reporte: recepción → técnico → bioquímico → director técnico */
+    private const ROLE_SORT_ORDER = [
+        'recepcion-lab' => 1,
+        'tecnico-lab' => 2,
+        'bioquimico' => 3,
+        'director-tecnico' => 4,
+    ];
+
     public function report(Carbon $date, ?int $labBranchId = null, ?int $jobId = null, ?int $employeeId = null): array
     {
         $start = $date->copy()->startOfDay();
@@ -66,12 +74,15 @@ class EmployeeProductivityService
                 || in_array('director-tecnico', $roles, true);
 
             $metrics = [];
+            $metrics['delivery'] = $this->deliveryMetrics($user->id, $start, $end, $labBranchId, $protocolsCreated);
+            $totalDelivered += $metrics['delivery']['results_delivered'];
+            $metrics['loading'] = $this->loadingMetrics($user->id, $start, $end, $labBranchId, $protocolsCreated);
+
             if (in_array('recepcion-lab', $roles, true)) {
-                $metrics['reception'] = $this->receptionMetrics($user->id, $start, $end, $labBranchId, $protocolsCreated);
-                $totalDelivered += $metrics['reception']['results_delivered'];
+                $metrics['reception'] = $this->receptionMetrics($user->id, $start, $end, $labBranchId);
             }
             if (in_array('tecnico-lab', $roles, true)) {
-                $metrics['technician'] = $this->technicianMetrics($user->id, $start, $end, $labBranchId, $protocolsCreated);
+                $metrics['technician'] = $this->technicianMetrics($user->id, $start, $end, $labBranchId);
             }
             if ($hasBiochemistMetrics) {
                 $metrics['biochemist'] = $this->biochemistMetrics($user->id, $start, $end, $labBranchId, $protocolsCreated);
@@ -88,7 +99,14 @@ class EmployeeProductivityService
             ];
         }
 
-        usort($rows, fn ($a, $b) => strcmp($a['employee_name'], $b['employee_name']));
+        usort($rows, function (array $a, array $b): int {
+            $byRole = $this->roleSortKey($a['roles']) <=> $this->roleSortKey($b['roles']);
+            if ($byRole !== 0) {
+                return $byRole;
+            }
+
+            return strcmp($a['employee_name'], $b['employee_name']);
+        });
 
         return [
             'branch_summary' => [
@@ -143,53 +161,206 @@ class EmployeeProductivityService
         return $ids->unique()->filter()->values()->all();
     }
 
-    private function receptionMetrics(int $userId, Carbon $start, Carbon $end, ?int $labBranchId, int $denominator): array
+    private function deliveryMetrics(int $userId, Carbon $start, Carbon $end, ?int $labBranchId, int $denominator): array
     {
-        $protocolsCreated = $this->countDistinctProtocolAudits($userId, 'created', $start, $end, $labBranchId);
-        $resultsDelivered = $this->countAudits($userId, 'result_delivered', $start, $end, $labBranchId);
+        $resultsDelivered = $this->countDistinctProtocolDeliveries($userId, $start, $end, $labBranchId);
 
         return [
-            'protocols_created' => $protocolsCreated,
-            'patients_created' => $this->countAudits($userId, 'created', $start, $end, null, Patient::class),
-            'protocols_updated' => $this->countAudits($userId, 'updated', $start, $end, $labBranchId),
-            'payments_recorded' => $this->countAudits($userId, 'payment_recorded', $start, $end, $labBranchId),
             'results_delivered' => $resultsDelivered,
             'delivery_rate' => $this->rate($resultsDelivered, $denominator),
         ];
     }
 
-    private function technicianMetrics(int $userId, Carbon $start, Carbon $end, ?int $labBranchId, int $denominator): array
+    private function receptionMetrics(int $userId, Carbon $start, Carbon $end, ?int $labBranchId): array
     {
-        $clinicalEntered = AdmissionTest::query()
+        return [
+            'protocols_created' => $this->countDistinctProtocolAudits($userId, 'created', $start, $end, $labBranchId),
+            'patients_created' => $this->countAudits($userId, 'created', $start, $end, null, Patient::class),
+            'protocols_updated' => $this->countAudits($userId, 'updated', $start, $end, $labBranchId),
+            'payments_recorded' => $this->countAudits($userId, 'payment_recorded', $start, $end, $labBranchId),
+        ];
+    }
+
+    /**
+     * Protocolos distintos entregados en el día: result_delivered o email_sent (sin duplicar por protocolo).
+     */
+    private function countDistinctProtocolDeliveries(int $userId, Carbon $start, Carbon $end, ?int $labBranchId): int
+    {
+        $q = AuditLog::query()
+            ->where('user_id', $userId)
+            ->whereIn('action', ['result_delivered', 'email_sent'])
+            ->whereIn('auditable_type', self::PROTOCOL_TYPES)
+            ->whereBetween('created_at', [$start, $end]);
+
+        $this->applyBranchFilterToAudits($q, $labBranchId);
+
+        $driver = $q->getConnection()->getDriverName();
+        if ($driver === 'sqlite') {
+            return (int) $q->selectRaw('count(distinct auditable_type || \'-\' || auditable_id) as aggregate')->value('aggregate');
+        }
+
+        return (int) $q->selectRaw('count(distinct concat(auditable_type, "-", auditable_id)) as aggregate')->value('aggregate');
+    }
+
+    private function loadingMetrics(int $userId, Carbon $start, Carbon $end, ?int $labBranchId, int $denominator): array
+    {
+        $resultsEntered = $this->countResultsEntered($userId, $start, $end, $labBranchId);
+        $protocolsWithResults = $this->countProtocolsWithResultsLoaded($userId, $start, $end, $labBranchId);
+
+        return [
+            'results_entered' => $resultsEntered,
+            'protocols_with_results' => $protocolsWithResults,
+            'load_rate' => $this->rate($protocolsWithResults, $denominator),
+        ];
+    }
+
+    private function technicianMetrics(int $userId, Carbon $start, Carbon $end, ?int $labBranchId): array
+    {
+        return [
+            'results_loaded_events' => $this->countAudits($userId, 'results_loaded', $start, $end, $labBranchId),
+            'tests_removed' => $this->countAudits($userId, 'test_removed', $start, $end, $labBranchId),
+        ];
+    }
+
+    private function countResultsEntered(int $userId, Carbon $start, Carbon $end, ?int $labBranchId): int
+    {
+        $fromDb = $this->countResultsEnteredFromDb($userId, $start, $end, $labBranchId);
+
+        if ($fromDb > 0) {
+            return $fromDb;
+        }
+
+        return $this->countResultsEnteredFromResultsLoadedAudit($userId, $start, $end, $labBranchId);
+    }
+
+    private function countResultsEnteredFromDb(int $userId, Carbon $start, Carbon $end, ?int $labBranchId): int
+    {
+        $clinical = AdmissionTest::query()
             ->where('result_entered_by', $userId)
             ->whereBetween('result_entered_at', [$start, $end])
             ->when($labBranchId, fn (Builder $q) => $q->whereHas('admission', fn (Builder $a) => $a->where('lab_branch_id', $labBranchId)))
             ->count();
 
-        $vetEntered = VetAdmissionTest::query()
+        $vet = VetAdmissionTest::query()
             ->where('analyzed_by', $userId)
             ->whereBetween('analyzed_at', [$start, $end])
             ->when($labBranchId, fn (Builder $q) => $q->whereHas('vetAdmission', fn (Builder $a) => $a->where('lab_branch_id', $labBranchId)))
             ->count();
 
-        $sampleEntered = SampleDetermination::query()
+        $sample = SampleDetermination::query()
             ->where('analyzed_by', $userId)
             ->whereBetween('analyzed_at', [$start, $end])
             ->when($labBranchId, fn (Builder $q) => $q->whereHas('sample', fn (Builder $a) => $a->where('lab_branch_id', $labBranchId)))
             ->count();
 
-        $resultsEntered = $clinicalEntered + $vetEntered + $sampleEntered;
+        return $clinical + $vet + $sample;
+    }
 
-        $protocolsWithResults = $this->countProtocolsWithResultsEntered($userId, $start, $end, $labBranchId);
-        $resultsLoaded = $this->countAudits($userId, 'results_loaded', $start, $end, $labBranchId);
+    /**
+     * Fallback histórico: prácticas con resultado en protocolos donde el usuario registró results_loaded.
+     */
+    private function countResultsEnteredFromResultsLoadedAudit(int $userId, Carbon $start, Carbon $end, ?int $labBranchId): int
+    {
+        $count = 0;
 
-        return [
-            'results_entered' => $resultsEntered,
-            'protocols_with_results' => $protocolsWithResults,
-            'results_loaded_events' => $resultsLoaded,
-            'tests_removed' => $this->countAudits($userId, 'test_removed', $start, $end, $labBranchId),
-            'load_rate' => $this->rate($protocolsWithResults, $denominator),
-        ];
+        $admissionIds = $this->protocolIdsFromAudit($userId, 'results_loaded', Admission::class, $start, $end, $labBranchId);
+        if ($admissionIds->isNotEmpty()) {
+            $count += AdmissionTest::query()
+                ->whereIn('admission_id', $admissionIds)
+                ->whereNotNull('result')
+                ->where('result', '!=', '')
+                ->count();
+        }
+
+        $vetIds = $this->protocolIdsFromAudit($userId, 'results_loaded', VetAdmission::class, $start, $end, $labBranchId);
+        if ($vetIds->isNotEmpty()) {
+            $count += VetAdmissionTest::query()
+                ->whereIn('vet_admission_id', $vetIds)
+                ->whereNotNull('result')
+                ->where('result', '!=', '')
+                ->count();
+        }
+
+        $sampleIds = $this->protocolIdsFromAudit($userId, 'results_loaded', Sample::class, $start, $end, $labBranchId);
+        if ($sampleIds->isNotEmpty()) {
+            $count += SampleDetermination::query()
+                ->whereIn('sample_id', $sampleIds)
+                ->whereNotNull('result')
+                ->where('result', '!=', '')
+                ->count();
+        }
+
+        return $count;
+    }
+
+    /**
+     * Protocolos distintos con carga: result_entered_* o audit results_loaded (sin duplicar).
+     */
+    private function countProtocolsWithResultsLoaded(int $userId, Carbon $start, Carbon $end, ?int $labBranchId): int
+    {
+        $keys = collect();
+
+        $admissionIds = AdmissionTest::query()
+            ->where('result_entered_by', $userId)
+            ->whereBetween('result_entered_at', [$start, $end])
+            ->when($labBranchId, fn (Builder $q) => $q->whereHas('admission', fn (Builder $a) => $a->where('lab_branch_id', $labBranchId)))
+            ->distinct()
+            ->pluck('admission_id');
+        foreach ($admissionIds as $id) {
+            $keys->push(Admission::class.'-'.$id);
+        }
+
+        $vetIds = VetAdmissionTest::query()
+            ->where('analyzed_by', $userId)
+            ->whereBetween('analyzed_at', [$start, $end])
+            ->when($labBranchId, fn (Builder $q) => $q->whereHas('vetAdmission', fn (Builder $a) => $a->where('lab_branch_id', $labBranchId)))
+            ->distinct()
+            ->pluck('vet_admission_id');
+        foreach ($vetIds as $id) {
+            $keys->push(VetAdmission::class.'-'.$id);
+        }
+
+        $sampleIds = SampleDetermination::query()
+            ->where('analyzed_by', $userId)
+            ->whereBetween('analyzed_at', [$start, $end])
+            ->when($labBranchId, fn (Builder $q) => $q->whereHas('sample', fn (Builder $a) => $a->where('lab_branch_id', $labBranchId)))
+            ->distinct()
+            ->pluck('sample_id');
+        foreach ($sampleIds as $id) {
+            $keys->push(Sample::class.'-'.$id);
+        }
+
+        $auditRows = AuditLog::query()
+            ->where('user_id', $userId)
+            ->where('action', 'results_loaded')
+            ->whereIn('auditable_type', self::PROTOCOL_TYPES)
+            ->whereBetween('created_at', [$start, $end])
+            ->when($labBranchId, function (Builder $q) use ($labBranchId) {
+                $this->applyBranchFilterToAudits($q, $labBranchId);
+            })
+            ->get(['auditable_type', 'auditable_id']);
+
+        foreach ($auditRows as $row) {
+            $keys->push($row->auditable_type.'-'.$row->auditable_id);
+        }
+
+        return $keys->unique()->count();
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, int>
+     */
+    private function protocolIdsFromAudit(int $userId, string $action, string $auditableType, Carbon $start, Carbon $end, ?int $labBranchId): \Illuminate\Support\Collection
+    {
+        $q = AuditLog::query()
+            ->where('user_id', $userId)
+            ->where('action', $action)
+            ->where('auditable_type', $auditableType)
+            ->whereBetween('created_at', [$start, $end]);
+
+        $this->applyBranchFilterToAudits($q, $labBranchId);
+
+        return $q->distinct()->pluck('auditable_id');
     }
 
     private function biochemistMetrics(int $userId, Carbon $start, Carbon $end, ?int $labBranchId, int $denominator): array
@@ -257,34 +428,6 @@ class EmployeeProductivityService
             ->distinct()
             ->pluck('sample_id');
         $count += $sampleIds->count();
-
-        return $count;
-    }
-
-    private function countProtocolsWithResultsEntered(int $userId, Carbon $start, Carbon $end, ?int $labBranchId): int
-    {
-        $count = 0;
-
-        $count += AdmissionTest::query()
-            ->where('result_entered_by', $userId)
-            ->whereBetween('result_entered_at', [$start, $end])
-            ->when($labBranchId, fn (Builder $q) => $q->whereHas('admission', fn (Builder $a) => $a->where('lab_branch_id', $labBranchId)))
-            ->distinct('admission_id')
-            ->count('admission_id');
-
-        $count += VetAdmissionTest::query()
-            ->where('analyzed_by', $userId)
-            ->whereBetween('analyzed_at', [$start, $end])
-            ->when($labBranchId, fn (Builder $q) => $q->whereHas('vetAdmission', fn (Builder $a) => $a->where('lab_branch_id', $labBranchId)))
-            ->distinct('vet_admission_id')
-            ->count('vet_admission_id');
-
-        $count += SampleDetermination::query()
-            ->where('analyzed_by', $userId)
-            ->whereBetween('analyzed_at', [$start, $end])
-            ->when($labBranchId, fn (Builder $q) => $q->whereHas('sample', fn (Builder $a) => $a->where('lab_branch_id', $labBranchId)))
-            ->distinct('sample_id')
-            ->count('sample_id');
 
         return $count;
     }
@@ -437,6 +580,13 @@ class EmployeeProductivityService
         }
 
         return $roles;
+    }
+
+    private function roleSortKey(array $roles): int
+    {
+        $keys = array_map(fn (string $role) => self::ROLE_SORT_ORDER[$role] ?? 99, $roles);
+
+        return $keys === [] ? 99 : min($keys);
     }
 
     private function employeeHasDirectorTecnicoJob(Employee $employee): bool
