@@ -57,10 +57,13 @@ class EmployeeProductivityService
                 continue;
             }
 
-            $roles = $user->getRoleNames()->intersect(['recepcion-lab', 'tecnico-lab', 'bioquimico'])->values()->all();
+            $roles = $this->resolveLabRoles($user, $employee);
             if ($roles === []) {
                 continue;
             }
+
+            $hasBiochemistMetrics = in_array('bioquimico', $roles, true)
+                || in_array('director-tecnico', $roles, true);
 
             $metrics = [];
             if (in_array('recepcion-lab', $roles, true)) {
@@ -70,7 +73,7 @@ class EmployeeProductivityService
             if (in_array('tecnico-lab', $roles, true)) {
                 $metrics['technician'] = $this->technicianMetrics($user->id, $start, $end, $labBranchId, $protocolsCreated);
             }
-            if (in_array('bioquimico', $roles, true)) {
+            if ($hasBiochemistMetrics) {
                 $metrics['biochemist'] = $this->biochemistMetrics($user->id, $start, $end, $labBranchId, $protocolsCreated);
                 $totalValidatedProtocols += $metrics['biochemist']['protocols_validated'];
             }
@@ -416,6 +419,33 @@ class EmployeeProductivityService
         $topBranchId = array_key_first($counts);
 
         return LabBranch::find($topBranchId)?->name ?? '—';
+    }
+
+    /**
+     * Roles de laboratorio para el reporte: Spatie + director técnico por puesto.
+     * El director técnico recibe las mismas métricas que bioquímico aunque no tenga el rol Spatie.
+     */
+    private function resolveLabRoles(User $user, Employee $employee): array
+    {
+        $roles = $user->getRoleNames()
+            ->intersect(['recepcion-lab', 'tecnico-lab', 'bioquimico'])
+            ->values()
+            ->all();
+
+        if ($this->employeeHasDirectorTecnicoJob($employee) && ! in_array('bioquimico', $roles, true)) {
+            $roles[] = 'director-tecnico';
+        }
+
+        return $roles;
+    }
+
+    private function employeeHasDirectorTecnicoJob(Employee $employee): bool
+    {
+        return $employee->jobs->contains(function ($job) {
+            $normalized = mb_strtolower(str_replace(['é', 'É'], 'e', $job->name));
+
+            return str_contains($normalized, 'director') && str_contains($normalized, 'tecnico');
+        });
     }
 
     private function primaryJobName(Employee $employee, ?int $filterJobId): string

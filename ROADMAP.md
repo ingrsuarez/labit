@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-29 (**v1.109.0** completada; backlog labit vacío)
+> Última actualización: 2026-05-29 (**v1.109.1** completada; backlog labit vacío)
 
 ---
 
@@ -103,6 +103,7 @@
 | v1.67.0 | API: catálogo de tests/determinaciones para LISCOM | 2026-05-04 | `GET /api/v1/tests?search=...&category=...`. Búsqueda por name/code, filtro por categoría, flags is_parent/is_child, material. 12 tests Feature verde. Complementa v1.47.0 para que LISCOM configure EquipmentTestMapping (v1.49.0). |
 | v1.77.0 | Vista recepción-lab: leaf + CRUD restringido + eliminar protocolo pendiente (clínico/vet/muestras) | 2026-05-10 | Rutas `destroy`, `removeTest`/`removeDetermination` recepción-lab, vistas `isRecepcionLab`, permisos seeder |
 | v1.86.0 | Envío masivo protocolos clínicos validados: un correo con N PDFs (`AdmissionBatchMail`, `batch-email`) | 2026-05-10 | Índice admisiones: selección + FAB + modal; tests `AdmissionBatchEmailTest` |
+| v1.109.1 | KPIs director técnico: mismas métricas que bioquímico según puesto organigrama | 2026-05-29 | Tag `v1.109.1` |
 | v1.109.0 | KPIs diarios productividad por empleado/puesto (RRHH) | 2026-05-29 | `completados/v1.109.0-kpis-productividad-empleado-puesto.md` |
 | v1.107.0 | Seeder nomenclador laborales (producción): importa Excel como nomenclador base `Nomenclador laborales` | 2026-05-28 | Ejecución manual: `php artisan db:seed --class=NomencladorLaboralesSeeder` |
 | v1.109.0 | KPIs diarios productividad por empleado/puesto: panel RRHH, `result_delivered` idempotente, `result_entered_*`, `payment_recorded` | 2026-05-29 | Tag `v1.109.0` — diseño: `docs/designs/DISEÑO_v1.109.0-kpis-productividad-empleado-puesto.md` |
@@ -265,7 +266,7 @@ _Sin versiones pendientes en labit._
 ## Progreso general
 
 ```
-Completadas (develop): ver STATUS.md — última v1.109.0 (2026-05-29)
+Completadas (master): ver STATUS.md — última v1.109.1 (2026-05-29)
 Backlog labit:         0
 Cola prompts v*:       vacía
 LISCOM (interfases):   3 pendientes — v1.49.0, v1.50.0, v1.52.0

@@ -127,13 +127,14 @@
                                                 $badge = match ($role) {
                                                     'recepcion-lab' => 'bg-teal-100 text-teal-800',
                                                     'tecnico-lab' => 'bg-blue-100 text-blue-800',
-                                                    'bioquimico' => 'bg-purple-100 text-purple-800',
+                                                    'bioquimico', 'director-tecnico' => 'bg-purple-100 text-purple-800',
                                                     default => 'bg-gray-100 text-gray-800',
                                                 };
                                                 $label = match ($role) {
                                                     'recepcion-lab' => 'Recepción',
                                                     'tecnico-lab' => 'Técnico',
                                                     'bioquimico' => 'Bioquímico',
+                                                    'director-tecnico' => 'Director técnico',
                                                     default => $role,
                                                 };
                                             @endphp

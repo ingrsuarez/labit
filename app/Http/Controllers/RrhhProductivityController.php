@@ -79,7 +79,7 @@ class RrhhProductivityController extends Controller
                     $row['employee_name'],
                     $row['job_name'],
                     $row['inferred_branch_name'],
-                    implode(', ', $row['roles']),
+                    $this->formatRoleLabels($row['roles']),
                     $reception['protocols_created'] ?? '',
                     $reception['patients_created'] ?? '',
                     $reception['protocols_updated'] ?? '',
@@ -101,5 +101,17 @@ class RrhhProductivityController extends Controller
         }, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
+    }
+
+    private function formatRoleLabels(array $roles): string
+    {
+        $labels = [
+            'recepcion-lab' => 'Recepción',
+            'tecnico-lab' => 'Técnico',
+            'bioquimico' => 'Bioquímico',
+            'director-tecnico' => 'Director técnico',
+        ];
+
+        return implode(', ', array_map(fn (string $role) => $labels[$role] ?? $role, $roles));
     }
 }

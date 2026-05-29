@@ -6,6 +6,7 @@ use App\Models\Admission;
 use App\Models\AdmissionTest;
 use App\Models\AuditLog;
 use App\Models\Employee;
+use App\Models\Job;
 use App\Models\LabBranch;
 use App\Models\Patient;
 use App\Models\Test;
@@ -245,6 +246,45 @@ class EmployeeProductivityTest extends TestCase
         $this->assertNotNull($row);
         $this->assertSame(2, $row['metrics']['technician']['results_entered']);
         $this->assertSame(1, $row['metrics']['technician']['protocols_with_results']);
+    }
+
+    public function test_director_tecnico_puesto_recibe_metricas_bioquimico_sin_rol_spatie(): void
+    {
+        $branch = LabBranch::query()->create(['name' => 'Sede Dir', 'is_central' => false, 'is_active' => true]);
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+        $employee = $this->makeEmployee($user, 'Director', 'Tecnico');
+        $job = Job::query()->create(['name' => 'Director Técnico Neuquén']);
+        $employee->jobs()->attach($job->id, ['user_id' => $user->id]);
+
+        $patient = Patient::query()->create([
+            'name' => 'D', 'lastName' => 'T', 'patientId' => '30444444',
+            'type' => 'humano', 'sex' => 'M', 'status' => 'activo',
+        ]);
+        $admission = $this->makeAdmission($user, $patient, [
+            'protocol_number' => 'C-KPI-005',
+            'lab_branch_id' => $branch->id,
+            'status' => 'completed',
+        ]);
+        $test = $this->makeTestModel();
+        $at = AdmissionTest::query()->create([
+            'admission_id' => $admission->id,
+            'test_id' => $test->id,
+            'price' => 20,
+            'result' => '4.0',
+            'unit' => 'g/L',
+        ]);
+
+        $this->actingAs($user)->post(route('lab.admissions.validateTest', [$admission, $at]))
+            ->assertRedirect();
+
+        $report = app(EmployeeProductivityService::class)->report(now(), $branch->id);
+        $row = collect($report['rows'])->firstWhere('employee_name', 'Director Tecnico');
+
+        $this->assertNotNull($row);
+        $this->assertContains('director-tecnico', $row['roles']);
+        $this->assertNotContains('bioquimico', $row['roles']);
+        $this->assertGreaterThanOrEqual(1, $row['metrics']['biochemist']['tests_validated']);
     }
 
     public function test_bioquimico_validacion_en_metricas(): void

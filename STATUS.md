@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-29 (**v1.109.0** KPIs productividad RRHH)
+> Última actualización: 2026-05-29 (**v1.109.1** KPIs director técnico)
 
 ---
 
@@ -9,8 +9,8 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **develop**: **v1.109.0** (KPIs productividad RRHH) |
-| **Última completada (cola agente)** | **v1.109.0** — KPIs diarios productividad por empleado/puesto |
+| **Versión actual (línea v1.x)** | **master**: **v1.109.1** (KPIs director técnico = bioquímico) |
+| **Última completada (cola agente)** | **v1.109.1** — KPIs director técnico con métricas de bioquímico |
 | **En proceso** | — |
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
 | **Pendientes en cola** | 0 prompts `v*` |
@@ -34,6 +34,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.109.1 | KPIs director técnico: mismas métricas que bioquímico por puesto | 2026-05-29 | v1.109.1 |
 | v1.109.0 | KPIs diarios productividad por empleado/puesto (RRHH + auditoría) | 2026-05-29 | v1.109.0 |
 | v1.104.0 | Email UI protocolos de muestras (detalle + listado masivo, permisos) | 2026-05-28 | v1.104.0 |
 | v1.107.0 | Seeder nomenclador laborales desde Excel (producción) | 2026-05-28 | v1.107.0 |
@@ -292,7 +293,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-**v1.109.0** en **develop** (2026-05-29). Cola `v*` vacía. Ejecutar seeder: `php artisan db:seed --class=RrhhProductivityPermissionsSeeder` y `php artisan permission:cache-reset`.
+**v1.109.1** en **master** (2026-05-29). Cola `v*` vacía. Si aún no se aplicó v1.109.0: `php artisan db:seed --class=RrhhProductivityPermissionsSeeder` y `php artisan permission:cache-reset`.
 
 **Cadena LISCOM↔labit:** completada en labit (v1.46.0, v1.47.0, v1.48.5, v1.51.0, v1.53.0).
 Pendientes en repo `interfases` (Django): v1.48.0, v1.49.0, v1.50.0, v1.52.0.
