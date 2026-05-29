@@ -128,6 +128,22 @@
                                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500">
                     </div>
                 </div>
+
+                @if($admissionRequiresSampleDraw)
+                <div class="mt-4 p-4 bg-rose-50 border border-rose-200 rounded-lg">
+                    <label class="block text-sm font-medium text-rose-900 mb-1">Tomador de muestra / extracción</label>
+                    <select name="sample_drawn_by"
+                            class="w-full max-w-md border-gray-300 rounded-lg shadow-sm focus:ring-rose-500 focus:border-rose-500 text-sm">
+                        <option value="">Pendiente de extracción</option>
+                        @foreach($sampleDrawers as $drawer)
+                            <option value="{{ $drawer->id }}" @selected(old('sample_drawn_by', $admission->sample_drawn_by) == $drawer->id)>{{ $drawer->name }}</option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-rose-800 mt-2">
+                        Si la extracción ya se realizó, indicá quién la hizo. Si queda vacío, aparecerá en la cola del header.
+                    </p>
+                </div>
+                @endif
             </div>
 
             <!-- Prácticas actuales (solo lectura) -->

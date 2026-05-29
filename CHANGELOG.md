@@ -5,6 +5,25 @@
 
 ---
 
+## [v1.110.0] — 2026-05-29 — Extracciones pendientes por sede (lab clínico)
+
+### Agregado
+
+- **Cola de extracciones** en header del laboratorio: botón llamativo con contador por sede, modal para registrar toma de muestra.
+- Campos `sample_drawn_at` / `sample_drawn_by` en admisiones clínicas con prácticas que tienen material.
+- Selector de tomador en alta/edición de admisión (recepción puede indicar técnico o bioquímico).
+- **Planillas clínicas:** excluyen protocolos sin extracción registrada; aviso en preview y PDF.
+- Auditoría `sample_drawn` y KPI **Extracciones** en productividad RRHH (`samples_drawn`).
+- Permisos `lab-sample-draws.view` / `lab-sample-draws.register` (seeder `LabSampleDrawPermissionsSeeder`).
+
+### Deploy
+
+- `php artisan migrate`
+- `php artisan db:seed --class=LabSampleDrawPermissionsSeeder`
+- `php artisan permission:cache-reset`
+
+---
+
 ## [v1.106.2] — 2026-05-26 — Encabezado IPAC en resúmenes de facturación
 
 ### Agregado

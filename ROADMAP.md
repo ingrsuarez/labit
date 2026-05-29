@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-29 (**v1.109.2** completada; backlog labit vacío)
+> Última actualización: 2026-05-29 (**v1.110.0** completada; cola labit vacía)
 
 ---
 
@@ -172,7 +172,6 @@ _Sin versiones pendientes en labit._
 
 **Candidatos sin versión (no planificados):**
 - Hotfix ZPL Zebra — etiquetas podrían seguir usando solo `protocol_number` mientras el barcode extendido es `protocol^material` (tensión v1.48.5).
-- Nuevas features: definir en sesión PM cuando surjan.
 
 ---
 
@@ -180,6 +179,7 @@ _Sin versiones pendientes en labit._
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
+| v1.110.0 | Extracciones pendientes por sede (lab clínico): cola header, tomador obligatorio, bloqueo planillas, KPIs | ✅ Completada (2026-05-29) | `completados/v1.110.0-extracciones-pendientes-lab-clinico.md` |
 | v1.107.0 | Seeder nomenclador laborales (producción): importa `docs/Nomenclador laborales.xlsx` como nomenclador base; asignación manual a coberturas laborales | ✅ Completada (2026-05-28) | `completados/v1.107.0-seeder-nomenclador-laborales.md` |
 | v1.106.0 | Resumen por protocolo por período: reemplaza reporte mensual clínico (1 fila/protocolo, códigos `-`, PDF+Excel); nuevas vistas aguas y vet con cards propias | ✅ Completada (2026-05-26) | `completados/v1.106.0-resumen-protocolos-por-periodo.md` — diseño: `docs/designs/DISEÑO_v1.106.0-resumen-protocolos-por-periodo.md` |
 | v1.104.1 | Hotfix: precio correcto al agregar determinación manual a admisión clínica existente | ✅ Completada (2026-05-21) | `completados/v1.104.1-hotfix-precio-agregar-determinacion-admision.md` |
@@ -267,7 +267,7 @@ _Sin versiones pendientes en labit._
 ## Progreso general
 
 ```
-Completadas (master): ver STATUS.md — última v1.109.2 (2026-05-29)
+Completadas (develop): ver STATUS.md — última v1.110.0 (2026-05-29)
 Backlog labit:         0
 Cola prompts v*:       vacía
 LISCOM (interfases):   3 pendientes — v1.49.0, v1.50.0, v1.52.0

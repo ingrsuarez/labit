@@ -149,5 +149,10 @@
         </tbody>
     </table>
     @endif
+    @if(($excludedForSampleDrawCount ?? 0) > 0 && $worksheet->type === 'clinico')
+        <p style="font-size: 10px; color: #92400e; margin-top: 12px;">
+            {{ $excludedForSampleDrawCount }} protocolo(s) omitido(s): falta registrar extracción de muestra.
+        </p>
+    @endif
 </body>
 </html>

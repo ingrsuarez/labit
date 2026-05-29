@@ -41,6 +41,7 @@ class AuditLog extends Model
         'test_removed' => ['label' => 'Práctica eliminada', 'color' => 'orange'],
         'result_delivered' => ['label' => 'Resultado entregado', 'color' => 'indigo'],
         'payment_recorded' => ['label' => 'Cobro registrado', 'color' => 'green'],
+        'sample_drawn' => ['label' => 'Extracción de muestra', 'color' => 'rose'],
     ];
 
     public function user(): BelongsTo
