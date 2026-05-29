@@ -52,13 +52,12 @@ class AdmissionSampleDrawService
             $q->where('lab_branch_id', $labBranchId);
         }
 
-        return $q;
+        return $q->orderBy('protocol_number');
     }
 
     public function pendingCount(?int $labBranchId): int
     {
         return $this->pendingQuery($labBranchId)
-            ->orderBy('created_at')
             ->get()
             ->filter(fn (Admission $a) => $this->admissionRequiresSampleDraw($a))
             ->count();
@@ -70,10 +69,10 @@ class AdmissionSampleDrawService
     public function listPending(?int $labBranchId, int $limit = 50): Collection
     {
         return $this->pendingQuery($labBranchId)
-            ->orderBy('created_at')
             ->limit($limit * 3)
             ->get()
             ->filter(fn (Admission $a) => $this->admissionRequiresSampleDraw($a))
+            ->sortBy('protocol_number')
             ->take($limit)
             ->map(fn (Admission $a) => [
                 'id' => $a->id,
