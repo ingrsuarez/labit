@@ -25,6 +25,8 @@ class AdmissionTest extends Model
         'is_validated',
         'validated_by',
         'validated_at',
+        'result_entered_by',
+        'result_entered_at',
         'is_ratified',
         'ratified_at',
         'ratified_by',
@@ -37,6 +39,7 @@ class AdmissionTest extends Model
         'copago' => 'decimal:2',
         'is_validated' => 'boolean',
         'validated_at' => 'datetime',
+        'result_entered_at' => 'datetime',
         'is_ratified' => 'boolean',
         'ratified_at' => 'datetime',
     ];

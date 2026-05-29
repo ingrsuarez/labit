@@ -11,7 +11,12 @@
                 <h1 class="text-2xl font-bold text-gray-900">Resumen de Recursos Humanos</h1>
                 <p class="text-gray-500">Indicadores y actividad reciente</p>
             </div>
-            <div class="mt-4 md:mt-0">
+            <div class="mt-4 md:mt-0 flex flex-col items-end gap-2">
+                @can('rrhh.productivity.view')
+                    <a href="{{ route('rrhh.productividad') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                        Productividad diaria →
+                    </a>
+                @endcan
                 <span class="text-sm text-gray-500">Última actualización: {{ now()->format('d/m/Y H:i') }}</span>
             </div>
         </div>

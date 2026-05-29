@@ -39,6 +39,8 @@ class AuditLog extends Model
         'email_sent' => ['label' => 'Email enviado', 'color' => 'gray'],
         'tests_added' => ['label' => 'Prácticas agregadas', 'color' => 'emerald'],
         'test_removed' => ['label' => 'Práctica eliminada', 'color' => 'orange'],
+        'result_delivered' => ['label' => 'Resultado entregado', 'color' => 'indigo'],
+        'payment_recorded' => ['label' => 'Cobro registrado', 'color' => 'green'],
     ];
 
     public function user(): BelongsTo
