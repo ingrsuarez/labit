@@ -276,4 +276,90 @@ class AdmissionSampleDrawTest extends TestCase
             ->getJson(route('lab.sample-draws.pending-count'))
             ->assertForbidden();
     }
+
+    public function test_pending_count_filters_by_active_branch(): void
+    {
+        $branchA = LabBranch::query()->create(['name' => 'Sede A', 'is_central' => true, 'is_active' => true]);
+        $branchB = LabBranch::query()->create(['name' => 'Sede B', 'is_central' => false, 'is_active' => true]);
+        $recepcion = User::factory()->create();
+        $recepcion->assignRole('recepcion-lab');
+
+        $patient = Patient::query()->create([
+            'name' => 'Juan',
+            'lastName' => 'Filtro',
+            'patientId' => '30111233',
+            'type' => 'humano',
+            'sex' => 'M',
+            'status' => 'activo',
+        ]);
+
+        $material = $this->makeMaterial();
+        $admissionA = $this->makeAdmission($branchA, $patient, $recepcion);
+        $this->attachMaterialTest($admissionA, $this->makeTestWithMaterial($material->id));
+
+        $admissionB = $this->makeAdmission($branchB, $patient, $recepcion);
+        $admissionB->update(['protocol_number' => 'C-EXT-B']);
+        $this->attachMaterialTest($admissionB, $this->makeTestWithMaterial($material->id));
+
+        $this->actingAs($recepcion);
+        session(['active_lab_branch_id' => $branchA->id]);
+        $this->getJson(route('lab.sample-draws.pending-count'))
+            ->assertOk()
+            ->assertJson(['count' => 1]);
+
+        session(['active_lab_branch_id' => $branchB->id]);
+        $this->getJson(route('lab.sample-draws.pending-count'))
+            ->assertOk()
+            ->assertJson(['count' => 1]);
+
+        session(['active_lab_branch_id' => null]);
+        $this->getJson(route('lab.sample-draws.pending-count'))
+            ->assertOk()
+            ->assertJson(['count' => 2]);
+    }
+
+    public function test_pending_list_orders_by_protocol_number(): void
+    {
+        $branch = LabBranch::query()->create(['name' => 'Sede Orden', 'is_central' => true, 'is_active' => true]);
+        $recepcion = User::factory()->create();
+        $recepcion->assignRole('recepcion-lab');
+
+        $patient = Patient::query()->create([
+            'name' => 'Ana',
+            'lastName' => 'Orden',
+            'patientId' => '30111244',
+            'type' => 'humano',
+            'sex' => 'F',
+            'status' => 'activo',
+        ]);
+
+        $material = $this->makeMaterial();
+        $later = $this->makeAdmission($branch, $patient, $recepcion);
+        $later->update(['protocol_number' => 'C-2026-000010']);
+        $this->attachMaterialTest($later, $this->makeTestWithMaterial($material->id));
+
+        $earlier = $this->makeAdmission($branch, $patient, $recepcion);
+        $earlier->update(['protocol_number' => 'C-2026-000002']);
+        $this->attachMaterialTest($earlier, $this->makeTestWithMaterial($material->id));
+
+        session(['active_lab_branch_id' => $branch->id]);
+
+        $response = $this->actingAs($recepcion)
+            ->getJson(route('lab.sample-draws.pending'))
+            ->assertOk();
+
+        $protocols = collect($response->json('items'))->pluck('protocol_number')->all();
+        $this->assertSame(['C-2026-000002', 'C-2026-000010'], $protocols);
+    }
+
+    public function test_pending_count_zero_when_no_draws_required(): void
+    {
+        $recepcion = User::factory()->create();
+        $recepcion->assignRole('recepcion-lab');
+
+        $this->actingAs($recepcion)
+            ->getJson(route('lab.sample-draws.pending-count'))
+            ->assertOk()
+            ->assertJson(['count' => 0]);
+    }
 }

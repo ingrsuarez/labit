@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-29 (**v1.111.0** presupuestos detalle hijos)
+> Última actualización: 2026-05-29 (**v1.111.1** botón extracciones condicional + **v1.110.1** backfill histórico)
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **develop**: **v1.111.0** (presupuestos detalle hijos) |
-| **Última completada (cola agente)** | **v1.111.0** — Presupuestos: detalle determinaciones hijas (snapshot) |
+| **Versión actual (línea v1.x)** | **develop**: **v1.111.1** (botón extracciones condicional) |
+| **Última completada (cola agente)** | **v1.111.1** — Botón extracciones: visible solo con pendientes, orden por protocolo |
 | **En proceso** | — |
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
 | **Pendientes en cola** | 0 prompts `v*` |
-| **Completadas** | 164+ |
+| **Completadas** | 166+ |
 
 ---
 
@@ -34,6 +34,8 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.111.1 | Botón extracciones: visible solo con pendientes, filtro por sede, orden por protocolo | 2026-05-29 | v1.111.1 |
+| v1.110.1 | Backfill seeder extracciones históricas (Olie Clara, pre v1.110.0) | 2026-05-29 | v1.110.1 |
 | v1.111.0 | Presupuestos: detalle de determinaciones hijas (snapshot) | 2026-05-29 | v1.111.0 |
 | v1.110.0 | Extracciones pendientes por sede (lab clínico): cola header, tomador, planillas, KPIs | 2026-05-29 | v1.110.0 |
 | v1.109.2 | KPIs productividad: entregados (email_sent), carga (results_loaded), orden por rol | 2026-05-29 | v1.109.2 |
