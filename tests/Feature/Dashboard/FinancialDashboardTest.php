@@ -27,12 +27,23 @@ class FinancialDashboardTest extends TestCase
         $this->get('/dashboard')->assertRedirect(route('login'));
     }
 
-    public function test_dashboard_admin_ve_panel_financiero(): void
+    public function test_dashboard_personalizado_no_muestra_panel_ejecutivo(): void
     {
         $user = User::factory()->create();
         $user->assignRole('admin');
 
-        $response = $this->actingAs($user)->get(route('dashboard'));
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertDontSee('Panel ejecutivo');
+    }
+
+    public function test_financial_dashboard_admin_ve_panel_ejecutivo(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+
+        $response = $this->actingAs($user)->get(route('dashboard.financial'));
 
         $response->assertOk();
         $response->assertSee('Panel ejecutivo');
@@ -42,48 +53,28 @@ class FinancialDashboardTest extends TestCase
         $response->assertSee('Egresos del mes', false);
     }
 
-    public function test_dashboard_contador_ve_panel_financiero(): void
+    public function test_financial_dashboard_contador_ve_panel_ejecutivo(): void
     {
         $user = User::factory()->create();
         $user->assignRole('contador');
 
         $this->actingAs($user)
-            ->get(route('dashboard'))
+            ->get(route('dashboard.financial'))
             ->assertOk()
             ->assertSee('Panel ejecutivo');
     }
 
-    public function test_dashboard_compras_es_redirigido_a_seccion_de_compras(): void
+    public function test_financial_dashboard_compras_recibe_403(): void
     {
         $user = User::factory()->create();
         $user->assignRole('compras');
 
         $this->actingAs($user)
-            ->get(route('dashboard'))
-            ->assertRedirect(route('purchases.section'));
+            ->get(route('dashboard.financial'))
+            ->assertForbidden();
     }
 
-    public function test_dashboard_ventas_es_redirigido_a_seccion_de_ventas(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('ventas');
-
-        $this->actingAs($user)
-            ->get(route('dashboard'))
-            ->assertRedirect(route('sales.section'));
-    }
-
-    public function test_dashboard_bioquimico_es_redirigido_a_laboratorio(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('bioquimico');
-
-        $this->actingAs($user)
-            ->get(route('dashboard'))
-            ->assertRedirect(route('lab.dashboard'));
-    }
-
-    public function test_dashboard_muestra_banner_si_no_hay_empresa_activa(): void
+    public function test_financial_dashboard_muestra_banner_si_no_hay_empresa_activa(): void
     {
         $user = User::factory()->create();
         $user->assignRole('admin');
@@ -91,12 +82,12 @@ class FinancialDashboardTest extends TestCase
         session()->forget('active_company_id');
 
         $this->actingAs($user)
-            ->get(route('dashboard'))
+            ->get(route('dashboard.financial'))
             ->assertOk()
             ->assertSee('Seleccion');
     }
 
-    public function test_dashboard_muestra_nombre_de_empresa_activa(): void
+    public function test_financial_dashboard_muestra_nombre_de_empresa_activa(): void
     {
         $company = Company::query()->create([
             'name' => 'Lab Empresa Activa',
@@ -110,7 +101,7 @@ class FinancialDashboardTest extends TestCase
         session()->put('active_company_id', $company->id);
 
         $this->actingAs($user)
-            ->get(route('dashboard'))
+            ->get(route('dashboard.financial'))
             ->assertOk()
             ->assertSee('Lab Empresa Activa');
     }

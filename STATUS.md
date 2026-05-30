@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-30 (**v1.111.2** hotfix selector tomador extracciones)
+> Última actualización: 2026-05-30 (**v1.112.1** portal home con cards aprendidas + perfil)
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **develop**: **v1.111.2** (hotfix selector tomador extracciones) |
-| **Última completada (cola agente)** | **v1.111.2** — Hotfix: selector tomador en modal/form extracciones (roles mixtos + default) |
+| **Versión actual (línea v1.x)** | **develop**: **v1.112.1** (portal home con cards aprendidas + perfil) |
+| **Última completada (cola agente)** | **v1.112.1** — Portal del empleado: cards arriba, Mi Perfil abajo, stats compartidos con admin |
 | **En proceso** | — |
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
 | **Pendientes en cola** | 0 prompts `v*` |
-| **Completadas** | 166+ |
+| **Completadas** | 167+ |
 
 ---
 
@@ -24,7 +24,7 @@
 
 _Sin prompts con prefijo `v` en cola._
 
-> v1.76.2 completado 2026-05-07 (hotfix: fix ingesta OUT_OF_BRANCH con key global — skip branch check en `ApiResultIngestionService`). v1.76.1 completado 2026-05-07 (hotfix: API key global sin sede para LISCOM). v1.76.0 completado 2026-05-07 (marca de ratificación en determinaciones). hotfix `pdf-mail-jerarquia` completado 2026-05-08 (fix PDF por mail: jerarquía padre-hijo idéntica al PDF directo). hotfix `pdf-filename-paciente-dni-fecha` completado 2026-05-08 (nombre de archivo PDF: nombre_paciente-dni-fecha.pdf en email y descarga manual — lab clínico, vet y muestras). hotfix `a25-mappings-buscador` completado 2026-05-08 (combobox Alpine.js con búsqueda client-side en create y edit de equivalencias A25; fix route model binding `{mapping}`). hotfix `a25-multi-test-mapping` completado 2026-05-09 (tabla pivot `a25_analyte_mapping_tests`; múltiples determinaciones Labit por equivalencia A25; parser aplica resultado a todas las mapeadas).
+> v1.112.1 completado 2026-05-30 (portal home con cards aprendidas + perfil). v1.112.0 completado 2026-05-30 (home personalizado con aprendizaje de accesos). (hotfix: fix ingesta OUT_OF_BRANCH con key global — skip branch check en `ApiResultIngestionService`). v1.76.1 completado 2026-05-07 (hotfix: API key global sin sede para LISCOM). v1.76.0 completado 2026-05-07 (marca de ratificación en determinaciones). hotfix `pdf-mail-jerarquia` completado 2026-05-08 (fix PDF por mail: jerarquía padre-hijo idéntica al PDF directo). hotfix `pdf-filename-paciente-dni-fecha` completado 2026-05-08 (nombre de archivo PDF: nombre_paciente-dni-fecha.pdf en email y descarga manual — lab clínico, vet y muestras). hotfix `a25-mappings-buscador` completado 2026-05-08 (combobox Alpine.js con búsqueda client-side en create y edit de equivalencias A25; fix route model binding `{mapping}`). hotfix `a25-multi-test-mapping` completado 2026-05-09 (tabla pivot `a25_analyte_mapping_tests`; múltiples determinaciones Labit por equivalencia A25; parser aplica resultado a todas las mapeadas).
 
 ### En proceso (0)
 
@@ -34,6 +34,8 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.112.1 | Portal home con cards aprendidas + perfil del empleado | 2026-05-30 | v1.112.1 |
+| v1.112.0 | Home personalizado con aprendizaje de accesos | 2026-05-30 | v1.112.0 |
 | v1.111.2 | Hotfix: selector tomador extracciones (roles mixtos, predeterminado técnico/bioquímico) | 2026-05-30 | v1.111.2 |
 | v1.111.1 | Botón extracciones: visible solo con pendientes, filtro por sede, orden por protocolo | 2026-05-29 | v1.111.1 |
 | v1.110.1 | Backfill seeder extracciones históricas (Olie Clara, pre v1.110.0) | 2026-05-29 | v1.110.1 |
@@ -299,7 +301,7 @@ v1.0.0 (completada)
 
 ## Próximo paso recomendado
 
-**v1.110.0** en **develop** (2026-05-29). Cola `v*` vacía. Deploy: `php artisan migrate`, `php artisan db:seed --class=LabSampleDrawPermissionsSeeder`, `php artisan permission:cache-reset`.
+**v1.112.1** en **develop** (2026-05-30). Cola `v*` vacía. Próxima sugerida: **v1.112.2** (badges en cards del portal/admin).
 
 **Cadena LISCOM↔labit:** completada en labit (v1.46.0, v1.47.0, v1.48.5, v1.51.0, v1.53.0).
 Pendientes en repo `interfases` (Django): v1.48.0, v1.49.0, v1.50.0, v1.52.0.
