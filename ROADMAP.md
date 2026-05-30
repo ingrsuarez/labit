@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-29 (**v1.111.1** completada; cola labit vacía)
+> Última actualización: 2026-05-30 (**v1.111.2** hotfix selector tomador extracciones)
 
 ---
 
@@ -179,6 +179,7 @@ _Sin versiones pendientes en labit._
 
 | Versión | Nombre | Estado | Prompt |
 |---|---|---|---|
+| v1.111.2 | Hotfix: selector tomador extracciones (roles mixtos + predeterminado) | ✅ Completada (2026-05-30) | `completados/v1.111.2-fix-selector-tomador-extracciones.md` |
 | v1.111.1 | Botón extracciones: visible solo con pendientes, filtro por sede, orden por protocolo | ✅ Completada (2026-05-29) | `completados/v1.111.1-boton-extracciones-condicional-sede.md` |
 | v1.110.1 | Backfill seeder extracciones históricas (directora técnica Olie Clara) | ✅ Completada (2026-05-29) | — (hotfix operativo, sin prompt archivado) |
 | v1.111.0 | Presupuestos: detalle de determinaciones hijas (snapshot) | ✅ Completada (2026-05-29) | `completados/v1.111.0-presupuestos-detalle-hijos-determinaciones.md` |
@@ -270,7 +271,7 @@ _Sin versiones pendientes en labit._
 ## Progreso general
 
 ```
-Completadas (develop): ver STATUS.md — última v1.111.1 (2026-05-29)
+Completadas (develop): ver STATUS.md — última v1.111.2 (2026-05-30)
 Backlog labit:         0
 Cola prompts v*:       vacía
 LISCOM (interfases):   3 pendientes — v1.49.0, v1.50.0, v1.52.0
@@ -280,5 +281,5 @@ En proceso:            0
 ---
 
 > Este documento se actualiza al finalizar cada versión o sesión de planificación.
-> Última actualización: 2026-05-29 — v1.111.1 botón extracciones condicional completada
+> Última actualización: 2026-05-30 — v1.111.2 hotfix selector tomador extracciones
 
