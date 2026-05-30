@@ -318,6 +318,92 @@ class AdmissionSampleDrawTest extends TestCase
             ->assertJson(['count' => 2]);
     }
 
+    public function test_recepcion_pending_includes_drawers_and_must_select(): void
+    {
+        $branch = LabBranch::query()->create(['name' => 'Sede Drawers', 'is_central' => true, 'is_active' => true]);
+        $recepcion = User::factory()->create();
+        $recepcion->assignRole('recepcion-lab');
+        $tecnico = User::factory()->create(['name' => 'Técnico Roxana']);
+        $tecnico->assignRole('tecnico-lab');
+
+        session(['active_lab_branch_id' => $branch->id]);
+
+        $response = $this->actingAs($recepcion)
+            ->getJson(route('lab.sample-draws.pending'))
+            ->assertOk();
+
+        $response->assertJsonPath('must_select_drawer', true);
+        $this->assertContains($tecnico->id, collect($response->json('drawers'))->pluck('id')->all());
+    }
+
+    public function test_recepcion_with_bioquimico_role_still_must_select_drawer(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole(['recepcion-lab', 'bioquimico']);
+
+        $this->actingAs($user)
+            ->getJson(route('lab.sample-draws.pending'))
+            ->assertOk()
+            ->assertJsonPath('must_select_drawer', true)
+            ->assertJsonPath('default_drawer_id', $user->id);
+    }
+
+    public function test_recepcion_without_lab_drawer_role_has_no_default(): void
+    {
+        $recepcion = User::factory()->create();
+        $recepcion->assignRole('recepcion-lab');
+
+        $this->actingAs($recepcion)
+            ->getJson(route('lab.sample-draws.pending'))
+            ->assertOk()
+            ->assertJsonPath('must_select_drawer', true)
+            ->assertJsonPath('default_drawer_id', null);
+    }
+
+    public function test_technician_pending_does_not_require_drawer_selection(): void
+    {
+        $tecnico = User::factory()->create();
+        $tecnico->assignRole('tecnico-lab');
+
+        $this->actingAs($tecnico)
+            ->getJson(route('lab.sample-draws.pending'))
+            ->assertOk()
+            ->assertJsonPath('must_select_drawer', false);
+    }
+
+    public function test_recepcion_with_bioquimico_register_requires_drawer_id(): void
+    {
+        $branch = LabBranch::query()->create(['name' => 'Sede Mix', 'is_central' => true, 'is_active' => true]);
+        $user = User::factory()->create();
+        $user->assignRole(['recepcion-lab', 'bioquimico']);
+        $tecnico = User::factory()->create(['name' => 'Técnico Asignado']);
+        $tecnico->assignRole('tecnico-lab');
+
+        $patient = Patient::query()->create([
+            'name' => 'Pedro',
+            'lastName' => 'Mix',
+            'patientId' => '30111555',
+            'type' => 'humano',
+            'sex' => 'M',
+            'status' => 'activo',
+        ]);
+
+        $admission = $this->makeAdmission($branch, $patient, $user);
+        $this->attachMaterialTest($admission, $this->makeTestWithMaterial());
+
+        $this->actingAs($user)
+            ->postJson(route('lab.sample-draws.register', $admission))
+            ->assertStatus(422);
+
+        $this->actingAs($user)
+            ->postJson(route('lab.sample-draws.register', $admission), [
+                'sample_drawn_by' => $tecnico->id,
+            ])
+            ->assertOk();
+
+        $this->assertSame($tecnico->id, $admission->fresh()->sample_drawn_by);
+    }
+
     public function test_pending_list_orders_by_protocol_number(): void
     {
         $branch = LabBranch::query()->create(['name' => 'Sede Orden', 'is_central' => true, 'is_active' => true]);

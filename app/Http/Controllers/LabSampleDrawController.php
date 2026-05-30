@@ -31,14 +31,20 @@ class LabSampleDrawController extends Controller
 
         $branchId = active_lab_branch_id();
 
+        $user = auth()->user();
+
         return response()->json([
             'items' => $this->sampleDrawService->listPending($branchId),
             'drawers' => $this->sampleDrawService->eligibleDrawers()->map(fn ($u) => [
                 'id' => $u->id,
                 'name' => $u->name,
             ]),
-            'must_select_drawer' => auth()->user()->hasAnyRole(['recepcion-lab', 'admin'])
-                && ! auth()->user()->hasAnyRole(['tecnico-lab', 'bioquimico']),
+            // Recepción/admin siempre eligen tomador aunque también tengan rol técnico/bioquímico.
+            'must_select_drawer' => ! (
+                $user->hasAnyRole(['tecnico-lab', 'bioquimico'])
+                && ! $user->hasAnyRole(['recepcion-lab', 'admin'])
+            ),
+            'default_drawer_id' => $this->sampleDrawService->defaultDrawerIdFor($user),
         ]);
     }
 

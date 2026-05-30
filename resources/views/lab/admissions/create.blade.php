@@ -202,7 +202,7 @@
                             class="w-full max-w-md border-gray-300 rounded-lg shadow-sm focus:ring-rose-500 focus:border-rose-500 text-sm">
                         <option value="">Pendiente de extracción</option>
                         @foreach($sampleDrawers as $drawer)
-                            <option value="{{ $drawer->id }}" @selected(old('sample_drawn_by') == $drawer->id)>{{ $drawer->name }}</option>
+                            <option value="{{ $drawer->id }}" @selected(old('sample_drawn_by', $defaultSampleDrawerId ?? null) == $drawer->id)>{{ $drawer->name }}</option>
                         @endforeach
                     </select>
                     <p class="text-xs text-rose-800 mt-2">
