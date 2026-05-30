@@ -339,6 +339,28 @@ class NavigationCatalog
             ->filter(fn (array $shortcut) => self::userCanSeeShortcut($user, $shortcut))
             ->values();
 
+        return self::formatSortedShortcuts($user, $visible, $limit);
+    }
+
+    /**
+     * @return array<int, array{name: string, description: string, route: string, icon: string}>
+     */
+    public static function shortcutsForPortalUser(User $user, int $limit = 8): array
+    {
+        $visible = collect(self::shortcuts())
+            ->filter(fn (array $shortcut) => str_starts_with($shortcut['key'], 'portal-'))
+            ->filter(fn (array $shortcut) => self::userCanSeeShortcut($user, $shortcut))
+            ->values();
+
+        return self::formatSortedShortcuts($user, $visible, $limit);
+    }
+
+    /**
+     * @param  Collection<int, array<string, mixed>>  $visible
+     * @return array<int, array{name: string, description: string, route: string, icon: string}>
+     */
+    private static function formatSortedShortcuts(User $user, Collection $visible, int $limit): array
+    {
         if ($visible->isEmpty()) {
             return [];
         }
