@@ -163,6 +163,7 @@ class EmployeeProductivityService
         $ids = $ids->merge($this->admissionTestUserIds($start, $end, $labBranchId));
         $ids = $ids->merge($this->vetTestUserIds($start, $end, $labBranchId));
         $ids = $ids->merge($this->sampleDeterminationUserIds($start, $end, $labBranchId));
+        $ids = $ids->merge($this->sampleDrawnUserIds($start, $end, $labBranchId));
 
         return $ids->unique()->filter()->values()->all();
     }
@@ -546,6 +547,16 @@ class EmployeeProductivityService
             ->get(['analyzed_by', 'validated_by'])
             ->flatMap(fn ($t) => [$t->analyzed_by, $t->validated_by])
             ->filter();
+    }
+
+    private function sampleDrawnUserIds(Carbon $start, Carbon $end, ?int $labBranchId): \Illuminate\Support\Collection
+    {
+        return Admission::query()
+            ->whereNotNull('sample_drawn_by')
+            ->whereBetween('sample_drawn_at', [$start, $end])
+            ->when($labBranchId, fn (Builder $q) => $q->where('lab_branch_id', $labBranchId))
+            ->distinct()
+            ->pluck('sample_drawn_by');
     }
 
     private function inferBranchName(int $userId, Carbon $start, Carbon $end, ?int $filterBranchId): string

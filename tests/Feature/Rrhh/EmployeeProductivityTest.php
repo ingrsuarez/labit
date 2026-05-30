@@ -264,6 +264,34 @@ class EmployeeProductivityTest extends TestCase
         $this->assertSame(1, $row['metrics']['delivery']['results_delivered']);
     }
 
+    public function test_tecnico_solo_extraccion_aparece_en_productividad(): void
+    {
+        $branch = LabBranch::query()->create(['name' => 'Sede Extracción', 'is_central' => true, 'is_active' => true]);
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $technician = User::factory()->create();
+        $technician->assignRole('tecnico-lab');
+        $this->makeEmployee($technician, 'Roxana', 'Test');
+
+        $patient = Patient::query()->create([
+            'name' => 'Rodrigo', 'lastName' => 'Suarez', 'patientId' => '30123456',
+            'type' => 'humano', 'sex' => 'M', 'status' => 'activo',
+        ]);
+        $this->makeAdmission($admin, $patient, [
+            'protocol_number' => 'C-KPI-DRAW',
+            'lab_branch_id' => $branch->id,
+            'sample_drawn_by' => $technician->id,
+            'sample_drawn_at' => now(),
+        ]);
+
+        $report = app(EmployeeProductivityService::class)->report(now(), $branch->id);
+        $row = collect($report['rows'])->firstWhere('employee_name', 'Roxana Test');
+
+        $this->assertNotNull($row);
+        $this->assertSame(1, $row['metrics']['technician']['samples_drawn']);
+    }
+
     public function test_tecnico_result_entered_en_metricas(): void
     {
         $branch = LabBranch::query()->create(['name' => 'Sede Tec', 'is_central' => false, 'is_active' => true]);
