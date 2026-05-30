@@ -168,9 +168,10 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 > Cola de ejecución: `agent-bootstrap/prompts/pendientes/` (solo prompts `v*.md`).
 > Sincronizado con STATUS.md el 2026-05-30.
 
-| Versión | Nombre | Estado | Prompt | Notas |
-|---|---|---|---|---|
-| v1.112.0 | Home personalizado con aprendizaje de accesos | Pendiente | `pendientes/v1.112.0-home-personalizado-aprendizaje-accesos.md` | `/dashboard` → cards por uso; tracking admin+lab+portal; financiero → `/dashboard/financiero`; fix link Administración |
+_Sin versiones pendientes en labit._
+
+**Completada recientemente:**
+- **v1.112.0** — Home personalizado con aprendizaje de accesos (2026-05-30)
 
 **Candidatos sin versión (no planificados):**
 - Hotfix ZPL Zebra — etiquetas podrían seguir usando solo `protocol_number` mientras el barcode extendido es `protocol^material` (tensión v1.48.5).
@@ -273,12 +274,11 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 ## Progreso general
 
 ```
-Completadas (develop): ver STATUS.md — última v1.111.2 (2026-05-30)
-Backlog labit:         1 — v1.112.0 home personalizado
-Cola prompts v*:       v1.112.0
+Completadas (develop): ver STATUS.md — última v1.112.0 (2026-05-30)
+Backlog labit:         0
+Cola prompts v*:       vacía
 LISCOM (interfases):   3 pendientes — v1.49.0, v1.50.0, v1.52.0
 En proceso:            0
-Próximo a ejecutar:    v1.112.0 — home personalizado con aprendizaje de accesos
 ```
 
 ---
