@@ -10,6 +10,92 @@
     }
 @endphp
 
+@can('lab-sample-draws.view')
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('sampleDrawQueue', (initialCount = 0) => ({
+        count: Number(initialCount) || 0,
+        modalOpen: false,
+        loading: false,
+        items: [],
+        drawers: [],
+        mustSelectDrawer: false,
+        selectedDrawer: {},
+        registering: null,
+        init() {
+            this.refreshCount();
+            setInterval(() => this.refreshCount(), 60000);
+        },
+        async refreshCount() {
+            try {
+                const res = await fetch('{{ route('lab.sample-draws.pending-count') }}', {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    this.count = Number(data.count) || 0;
+                }
+            } catch (e) { /* ignore */ }
+        },
+        async openModal() {
+            this.modalOpen = true;
+            this.loading = true;
+            this.selectedDrawer = {};
+            try {
+                const res = await fetch('{{ route('lab.sample-draws.pending') }}', {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await res.json();
+                this.items = data.items ?? [];
+                this.drawers = data.drawers ?? [];
+                this.mustSelectDrawer = !!data.must_select_drawer;
+            } catch (e) {
+                this.items = [];
+            }
+            this.loading = false;
+        },
+        async register(admissionId) {
+            const body = { _token: '{{ csrf_token() }}' };
+            if (this.mustSelectDrawer) {
+                const drawerId = this.selectedDrawer[admissionId];
+                if (!drawerId) {
+                    alert('Debe seleccionar quién realizó la extracción.');
+                    return;
+                }
+                body.sample_drawn_by = drawerId;
+            }
+            this.registering = admissionId;
+            try {
+                const res = await fetch(`{{ url('/lab/sample-draws') }}/${admissionId}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(body)
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    alert(err.message || 'No se pudo registrar la extracción.');
+                    return;
+                }
+                this.items = this.items.filter(i => i.id !== admissionId);
+                await this.refreshCount();
+                if (this.count === 0) {
+                    this.modalOpen = false;
+                }
+            } catch (e) {
+                alert('Error de conexión.');
+            }
+            this.registering = null;
+        }
+    }));
+});
+</script>
+@endcan
+
 <header class="hidden md:block bg-white shadow-sm border-b sticky top-0 z-30">
     <div class="px-6 py-4">
         <div class="flex items-center justify-between">
@@ -40,15 +126,21 @@
             <!-- Acciones -->
             <div class="flex items-center space-x-4">
                 @can('lab-sample-draws.view')
-                <div x-data="sampleDrawQueue({{ (int) $sampleDrawPendingCount }})" x-init="init()" class="relative" x-cloak>
-                    <button type="button" @click="openModal()" x-show="count > 0"
-                            class="relative inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white transition-colors bg-rose-500 hover:bg-rose-600 animate-pulse">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div x-data="sampleDrawQueue({{ (int) $sampleDrawPendingCount }})" x-init="init()" class="relative">
+                    <button type="button"
+                            @click="openModal()"
+                            class="relative inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-white transition-colors bg-rose-500 hover:bg-rose-600 animate-pulse"
+                            @unless($sampleDrawPendingCount > 0) style="display: none" @endunless
+                            x-bind:style="count > 0 ? null : 'display: none'">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
                         </svg>
                         <span>Extracciones</span>
-                        <span x-text="count"
-                              class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-xs font-bold bg-white text-rose-600 rounded-full"></span>
+                        @if($sampleDrawPendingCount > 0)
+                        <span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-xs font-bold bg-white text-rose-600 rounded-full">{{ $sampleDrawPendingCount }}</span>
+                        @else
+                        <span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-xs font-bold bg-white text-rose-600 rounded-full" x-text="count"></span>
+                        @endif
                     </button>
 
                     <div x-show="modalOpen" x-cloak
@@ -209,94 +301,6 @@
         </div>
     </div>
 </header>
-
-@can('lab-sample-draws.view')
-@push('scripts')
-<script>
-function sampleDrawQueue(initialCount = 0) {
-    return {
-        count: Number(initialCount) || 0,
-        modalOpen: false,
-        loading: false,
-        items: [],
-        drawers: [],
-        mustSelectDrawer: false,
-        selectedDrawer: {},
-        registering: null,
-        init() {
-            this.refreshCount();
-            setInterval(() => this.refreshCount(), 60000);
-        },
-        async refreshCount() {
-            try {
-                const res = await fetch('{{ route('lab.sample-draws.pending-count') }}', {
-                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    this.count = Number(data.count) || 0;
-                }
-            } catch (e) { /* ignore */ }
-        },
-        async openModal() {
-            this.modalOpen = true;
-            this.loading = true;
-            this.selectedDrawer = {};
-            try {
-                const res = await fetch('{{ route('lab.sample-draws.pending') }}', {
-                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const data = await res.json();
-                this.items = data.items ?? [];
-                this.drawers = data.drawers ?? [];
-                this.mustSelectDrawer = !!data.must_select_drawer;
-            } catch (e) {
-                this.items = [];
-            }
-            this.loading = false;
-        },
-        async register(admissionId) {
-            const body = { _token: '{{ csrf_token() }}' };
-            if (this.mustSelectDrawer) {
-                const drawerId = this.selectedDrawer[admissionId];
-                if (!drawerId) {
-                    alert('Debe seleccionar quién realizó la extracción.');
-                    return;
-                }
-                body.sample_drawn_by = drawerId;
-            }
-            this.registering = admissionId;
-            try {
-                const res = await fetch(`{{ url('/lab/sample-draws') }}/${admissionId}/register`, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify(body)
-                });
-                if (!res.ok) {
-                    const err = await res.json().catch(() => ({}));
-                    alert(err.message || 'No se pudo registrar la extracción.');
-                    return;
-                }
-                this.items = this.items.filter(i => i.id !== admissionId);
-                await this.refreshCount();
-                if (this.count === 0) {
-                    this.modalOpen = false;
-                }
-            } catch (e) {
-                alert('Error de conexión.');
-            }
-            this.registering = null;
-        }
-    };
-}
-</script>
-@endpush
-@endcan
 
 <!-- Header Móvil (espacio para el toggle) -->
 <div class="h-14 md:hidden"></div>
