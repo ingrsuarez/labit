@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-30 (**v1.112.1** portal home con cards aprendidas + perfil)
+> Última actualización: 2026-05-30 (**v1.113.1** calendario flujo de caja)
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **develop**: **v1.112.1** (portal home con cards aprendidas + perfil) |
-| **Última completada (cola agente)** | **v1.112.1** — Portal del empleado: cards arriba, Mi Perfil abajo, stats compartidos con admin |
+| **Versión actual (línea v1.x)** | **develop**: **v1.113.1** (calendario vencimientos / flujo de caja) |
+| **Última completada (cola agente)** | **v1.113.1** — Calendario de vencimientos / flujo de caja |
 | **En proceso** | — |
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
 | **Pendientes en cola** | 0 prompts `v*` |
-| **Completadas** | 167+ |
+| **Completadas** | 169+ |
 
 ---
 
@@ -34,6 +34,8 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.113.1 | Calendario de vencimientos / flujo de caja | 2026-05-30 | v1.113.1 |
+| v1.113.0 | DDJJ Formulario 931 + plan de cuentas | 2026-05-30 | v1.113.0 |
 | v1.112.1 | Portal home con cards aprendidas + perfil del empleado | 2026-05-30 | v1.112.1 |
 | v1.112.0 | Home personalizado con aprendizaje de accesos | 2026-05-30 | v1.112.0 |
 | v1.111.2 | Hotfix: selector tomador extracciones (roles mixtos, predeterminado técnico/bioquímico) | 2026-05-30 | v1.111.2 |

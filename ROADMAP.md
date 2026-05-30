@@ -170,11 +170,12 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt | Notas |
 |---|---|---|---|---|
-| v1.113.0 | DDJJ Formulario 931 + plan de cuentas aportes/contribuciones patronales | Pendiente | `pendientes/v1.113.0-ddjj-formulario-931-plan-cuentas.md` | Prerrequisito del calendario de flujo de caja. Handoff: `handoffs/v1.113.0-pm-to-dev.md` |
-| v1.113.1 | Calendario de vencimientos / flujo de caja | Pendiente | `pendientes/v1.113.1-calendario-vencimientos-flujo-caja.md` | Depende v1.113.0. IVA/931/sueldos/gastos fijos/FC/manuales. Handoff: `handoffs/v1.113.1-pm-to-dev.md` |
+| v1.113.0 | DDJJ Formulario 931 + plan de cuentas aportes/contribuciones patronales | ✅ Completada (2026-05-30) | `completados/v1.113.0-ddjj-formulario-931-plan-cuentas.md` |
+| v1.113.1 | Calendario de vencimientos / flujo de caja | ✅ Completada (2026-05-30) | `completados/v1.113.1-calendario-vencimientos-flujo-caja.md` |
 
 **Completada recientemente:**
-- **v1.112.0** — Home personalizado con aprendizaje de accesos (2026-05-30)
+- **v1.113.1** — Calendario de vencimientos / flujo de caja (2026-05-30)
+- **v1.113.0** — DDJJ Formulario 931 (2026-05-30)
 
 **Candidatos sin versión (no planificados):**
 - Hotfix ZPL Zebra — etiquetas podrían seguir usando solo `protocol_number` mientras el barcode extendido es `protocol^material` (tensión v1.48.5).
@@ -278,9 +279,9 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 ## Progreso general
 
 ```
-Completadas (develop): ver STATUS.md — última v1.112.0 (2026-05-30)
-Backlog labit:         2 — v1.113.0, v1.113.1
-Cola prompts v*:       v1.113.0, v1.113.1
+Completadas (develop): ver STATUS.md — última v1.113.1 (2026-05-30)
+Backlog labit:         0
+Cola prompts v*:       vacía
 LISCOM (interfases):   3 pendientes — v1.49.0, v1.50.0, v1.52.0
 En proceso:            0
 ```
