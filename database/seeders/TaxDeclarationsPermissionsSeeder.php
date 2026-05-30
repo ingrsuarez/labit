@@ -15,6 +15,7 @@ class TaxDeclarationsPermissionsSeeder extends Seeder
     public const NAMES = [
         'taxes.manage',
         'tax-returns.manage',
+        'form931.manage',
     ];
 
     public function run(): void

@@ -479,6 +479,16 @@ Route::middleware([
         Route::resource('tax-returns', App\Http\Controllers\TaxReturnController::class)
             ->middleware('permission:tax-returns.manage');
 
+        // FORM 931 — DDJJ aportes y contribuciones patronales
+        Route::post('form931-declarations/{form931_declaration}/confirm', [App\Http\Controllers\Form931DeclarationController::class, 'confirm'])
+            ->name('form931-declarations.confirm')
+            ->middleware('permission:form931.manage');
+        Route::post('form931-declarations/{form931_declaration}/cancel', [App\Http\Controllers\Form931DeclarationController::class, 'cancel'])
+            ->name('form931-declarations.cancel')
+            ->middleware('permission:form931.manage');
+        Route::resource('form931-declarations', App\Http\Controllers\Form931DeclarationController::class)
+            ->middleware('permission:form931.manage');
+
         // SERVICIOS DE COMPRA (derivaciones, alquileres, etc.)
         Route::get('purchase-services/statistics', [App\Http\Controllers\PurchaseServiceStatisticsController::class, 'index'])
             ->name('purchase-services.statistics');
