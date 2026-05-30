@@ -20,6 +20,7 @@ document.addEventListener('alpine:init', () => {
         items: [],
         drawers: [],
         mustSelectDrawer: false,
+        defaultDrawerId: null,
         selectedDrawer: {},
         registering: null,
         init() {
@@ -49,10 +50,23 @@ document.addEventListener('alpine:init', () => {
                 this.items = data.items ?? [];
                 this.drawers = data.drawers ?? [];
                 this.mustSelectDrawer = !!data.must_select_drawer;
+                this.defaultDrawerId = data.default_drawer_id ?? null;
+                this.applyDefaultDrawers();
             } catch (e) {
                 this.items = [];
             }
             this.loading = false;
+        },
+        applyDefaultDrawers() {
+            if (! this.mustSelectDrawer || ! this.defaultDrawerId) {
+                return;
+            }
+            const id = String(this.defaultDrawerId);
+            const selected = {};
+            for (const item of this.items) {
+                selected[item.id] = id;
+            }
+            this.selectedDrawer = selected;
         },
         async register(admissionId) {
             const body = { _token: '{{ csrf_token() }}' };
@@ -172,12 +186,17 @@ document.addEventListener('alpine:init', () => {
                                         <div x-show="mustSelectDrawer">
                                             <label class="block text-xs font-medium text-gray-600 mb-1">Tomador de muestra *</label>
                                             <select x-model="selectedDrawer[item.id]"
-                                                    class="w-full rounded-lg border-gray-300 text-sm">
+                                                    class="w-full rounded-lg border-gray-300 text-sm"
+                                                    :disabled="drawers.length === 0">
                                                 <option value="">Seleccionar...</option>
                                                 <template x-for="d in drawers" :key="d.id">
                                                     <option :value="d.id" x-text="d.name"></option>
                                                 </template>
                                             </select>
+                                            <p x-show="drawers.length === 0"
+                                               class="mt-1 text-xs text-amber-700">
+                                                No hay técnicos ni bioquímicos con rol asignado. Ejecute el seeder de roles o asigne el rol en Administración.
+                                            </p>
                                         </div>
                                         <button type="button" @click="register(item.id)"
                                                 :disabled="registering === item.id"

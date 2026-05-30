@@ -96,9 +96,23 @@ class AdmissionSampleDrawService
             ->get(['id', 'name']);
     }
 
+    public function defaultDrawerIdFor(?User $user): ?int
+    {
+        if (! $user?->hasAnyRole(['tecnico-lab', 'bioquimico'])) {
+            return null;
+        }
+
+        $eligibleIds = $this->eligibleDrawers()->pluck('id');
+
+        return $eligibleIds->contains($user->id) ? $user->id : null;
+    }
+
     public function resolveDrawerUserId(?int $requestedId, User $actor): int
     {
-        if ($actor->hasAnyRole(['tecnico-lab', 'bioquimico'])) {
+        $actsAsDrawerOnly = $actor->hasAnyRole(['tecnico-lab', 'bioquimico'])
+            && ! $actor->hasAnyRole(['recepcion-lab', 'admin']);
+
+        if ($actsAsDrawerOnly) {
             return $actor->id;
         }
 

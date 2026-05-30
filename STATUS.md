@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-29 (**v1.111.1** botón extracciones condicional + **v1.110.1** backfill histórico)
+> Última actualización: 2026-05-30 (**v1.111.2** hotfix selector tomador extracciones)
 
 ---
 
@@ -9,8 +9,8 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **develop**: **v1.111.1** (botón extracciones condicional) |
-| **Última completada (cola agente)** | **v1.111.1** — Botón extracciones: visible solo con pendientes, orden por protocolo |
+| **Versión actual (línea v1.x)** | **develop**: **v1.111.2** (hotfix selector tomador extracciones) |
+| **Última completada (cola agente)** | **v1.111.2** — Hotfix: selector tomador en modal/form extracciones (roles mixtos + default) |
 | **En proceso** | — |
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
 | **Pendientes en cola** | 0 prompts `v*` |
@@ -34,6 +34,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.111.2 | Hotfix: selector tomador extracciones (roles mixtos, predeterminado técnico/bioquímico) | 2026-05-30 | v1.111.2 |
 | v1.111.1 | Botón extracciones: visible solo con pendientes, filtro por sede, orden por protocolo | 2026-05-29 | v1.111.1 |
 | v1.110.1 | Backfill seeder extracciones históricas (Olie Clara, pre v1.110.0) | 2026-05-29 | v1.110.1 |
 | v1.111.0 | Presupuestos: detalle de determinaciones hijas (snapshot) | 2026-05-29 | v1.111.0 |
