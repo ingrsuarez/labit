@@ -144,6 +144,17 @@
                 </div>
             </div>
 
+            <!-- Flujo de caja -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
+                <label class="inline-flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="is_fixed_expense" value="1"
+                        @checked(old('is_fixed_expense', $supplier->is_fixed_expense))
+                        class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                    <span class="text-sm font-medium text-gray-700">Gasto fijo (proyección en calendario de flujo de caja)</span>
+                </label>
+                <p class="text-xs text-gray-500 mt-1 ml-6">Estima pagos futuros según la última factura de compra de este proveedor.</p>
+            </div>
+
             <!-- Notas -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-5">
                 <div>

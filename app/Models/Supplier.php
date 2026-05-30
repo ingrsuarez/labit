@@ -29,6 +29,11 @@ class Supplier extends Model
         'contact_phone',
         'notes',
         'status',
+        'is_fixed_expense',
+    ];
+
+    protected $casts = [
+        'is_fixed_expense' => 'boolean',
     ];
 
     public function supplies()
