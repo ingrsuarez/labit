@@ -25,6 +25,14 @@ class PurchaseSectionController extends Controller
                 'icon' => 'M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z',
             ];
         }
+        if (auth()->user()?->can('form931.manage')) {
+            $taxItems[] = [
+                'name' => 'Declaraciones Form 931',
+                'description' => 'DDJJ mensual SUSS — aportes y contribuciones patronales',
+                'route' => route('form931-declarations.index'),
+                'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+            ];
+        }
 
         $perceptionItems = [];
         if (auth()->user()?->can('purchase-perceptions.index')) {

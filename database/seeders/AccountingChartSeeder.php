@@ -37,6 +37,8 @@ class AccountingChartSeeder extends Seeder
             ['code' => '2.1.08', 'name' => 'IIBB a Pagar', 'type' => 'pasivo', 'level' => 3, 'is_header' => false, 'parent_code' => '2.1'],
             ['code' => '2.1.09', 'name' => 'Anticipos de Clientes', 'type' => 'pasivo', 'level' => 3, 'is_header' => false, 'parent_code' => '2.1'],
             ['code' => '2.1.10', 'name' => 'Otras Deudas', 'type' => 'pasivo', 'level' => 3, 'is_header' => false, 'parent_code' => '2.1'],
+            ['code' => '2.1.11', 'name' => 'Aportes patronales SUSS a Pagar', 'type' => 'pasivo', 'level' => 3, 'is_header' => false, 'parent_code' => '2.1'],
+            ['code' => '2.1.12', 'name' => 'Contribuciones patronales SUSS a Pagar', 'type' => 'pasivo', 'level' => 3, 'is_header' => false, 'parent_code' => '2.1'],
             ['code' => '2.2', 'name' => 'PASIVO NO CORRIENTE', 'type' => 'pasivo', 'level' => 2, 'is_header' => true, 'parent_code' => '2'],
             ['code' => '2.2.01', 'name' => 'Préstamos Bancarios', 'type' => 'pasivo', 'level' => 3, 'is_header' => false, 'parent_code' => '2.2'],
 
@@ -71,6 +73,8 @@ class AccountingChartSeeder extends Seeder
             ['code' => '5.2.08', 'name' => 'Gastos de Librería', 'type' => 'resultado_negativo', 'level' => 3, 'is_header' => false, 'parent_code' => '5.2'],
             ['code' => '5.2.09', 'name' => 'Gastos de Limpieza', 'type' => 'resultado_negativo', 'level' => 3, 'is_header' => false, 'parent_code' => '5.2'],
             ['code' => '5.2.10', 'name' => 'Amortizaciones', 'type' => 'resultado_negativo', 'level' => 3, 'is_header' => false, 'parent_code' => '5.2'],
+            ['code' => '5.2.11', 'name' => 'Aportes patronales', 'type' => 'resultado_negativo', 'level' => 3, 'is_header' => false, 'parent_code' => '5.2'],
+            ['code' => '5.2.12', 'name' => 'Contribuciones patronales', 'type' => 'resultado_negativo', 'level' => 3, 'is_header' => false, 'parent_code' => '5.2'],
             ['code' => '5.3', 'name' => 'GASTOS FINANCIEROS', 'type' => 'resultado_negativo', 'level' => 2, 'is_header' => true, 'parent_code' => '5'],
             ['code' => '5.3.01', 'name' => 'Gastos Bancarios', 'type' => 'resultado_negativo', 'level' => 3, 'is_header' => false, 'parent_code' => '5.3'],
             ['code' => '5.3.02', 'name' => 'Intereses Pagados', 'type' => 'resultado_negativo', 'level' => 3, 'is_header' => false, 'parent_code' => '5.3'],
