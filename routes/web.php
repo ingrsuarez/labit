@@ -56,7 +56,8 @@ Route::middleware([
     'check.access',
 ])->group(function () {
 
-    Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [App\Http\Controllers\AdminHomeController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/financiero', [App\Http\Controllers\DashboardController::class, 'financial'])->name('dashboard.financial');
 
     // PANEL DE RECURSOS HUMANOS (mudanza desde dashboard en v1.66.0)
     Route::get('/rrhh', [App\Http\Controllers\RrhhController::class, 'index'])->name('rrhh.index');

@@ -9,7 +9,9 @@
             <div>
                 <h1 class="text-lg font-semibold text-gray-900">
                     @if(request()->routeIs('dashboard'))
-                        Dashboard
+                        Inicio
+                    @elseif(request()->routeIs('dashboard.financial'))
+                        Resumen financiero
                     @elseif(request()->routeIs('employee.*'))
                         Gestión de Empleados
                     @elseif(request()->routeIs('job.*'))

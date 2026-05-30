@@ -233,13 +233,14 @@ class LabDashboardTest extends TestCase
         $response->assertDontSee('más de 3 días de antigüedad');
     }
 
-    public function test_redirect_desde_dashboard_para_bioquimico(): void
+    public function test_bioquimico_ve_home_personalizado_en_dashboard(): void
     {
         $user = $this->labUser('bioquimico');
 
         $this->actingAs($user)
             ->get('/dashboard')
-            ->assertRedirect(route('lab.dashboard'));
+            ->assertOk()
+            ->assertSee('Tus accesos más utilizados');
     }
 
     public function test_usuario_sin_permiso_lab_recibe_403(): void

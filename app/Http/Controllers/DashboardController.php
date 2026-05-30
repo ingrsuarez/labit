@@ -10,27 +10,12 @@ class DashboardController extends Controller
 {
     public function __construct(private FinancialDashboardService $service) {}
 
-    public function index(Request $request)
+    public function financial(Request $request)
     {
         $user = Auth::user();
 
-        if ($user->employee && $user->roles->count() === 0 && $user->permissions->count() === 0) {
-            return redirect()->route('portal.dashboard');
-        }
-
-        if ($user->hasAnyRole(['recepcion-lab', 'tecnico-lab', 'bioquimico'])
-            && ! $user->hasAnyRole(['admin', 'contador', 'compras', 'ventas'])) {
-            return redirect()->route('lab.dashboard');
-        }
-
-        if ($user->hasRole('compras')
-            && ! $user->hasAnyRole(['admin', 'contador'])) {
-            return redirect()->route('purchases.section');
-        }
-
-        if ($user->hasRole('ventas')
-            && ! $user->hasAnyRole(['admin', 'contador'])) {
-            return redirect()->route('sales.section');
+        if (! $user->hasAnyRole(['admin', 'contador'])) {
+            abort(403);
         }
 
         $companyId = active_company_id();
