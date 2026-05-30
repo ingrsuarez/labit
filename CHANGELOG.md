@@ -5,6 +5,21 @@
 
 ---
 
+## [v1.111.2] — 2026-05-30 — Hotfix: selector tomador en extracciones
+
+### Corregido
+
+- **Modal de extracciones:** recepción y admin ven el selector de tomador aunque también tengan rol `tecnico-lab` o `bioquimico` (antes quedaba oculto).
+- **Registro backend:** `resolveDrawerUserId` alineado con la misma regla.
+- **Predeterminado:** si el usuario logueado es técnico/bioquímico elegible, queda preseleccionado en el modal y en alta/edición de admisión.
+- **Aviso** cuando no hay usuarios con rol técnico o bioquímico en el sistema.
+
+### Tests
+
+- `AdmissionSampleDrawTest` ampliado (must_select_drawer, default_drawer_id, recepcion+bioquimico).
+
+---
+
 ## [v1.110.0] — 2026-05-29 — Extracciones pendientes por sede (lab clínico)
 
 ### Agregado

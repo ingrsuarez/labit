@@ -201,9 +201,11 @@ class LabAdmissionController extends Controller
             ->get(['id', 'name']);
 
         $coveragePickerItems = $this->labAdmissionCoveragePickerItems($insurances);
-        $sampleDrawers = app(AdmissionSampleDrawService::class)->eligibleDrawers();
+        $sampleDrawService = app(AdmissionSampleDrawService::class);
+        $sampleDrawers = $sampleDrawService->eligibleDrawers();
+        $defaultSampleDrawerId = $sampleDrawService->defaultDrawerIdFor(auth()->user());
 
-        return view('lab.admissions.create', compact('patient', 'insurances', 'coveragePickerItems', 'tests', 'branches', 'clinicalProfiles', 'sampleDrawers'));
+        return view('lab.admissions.create', compact('patient', 'insurances', 'coveragePickerItems', 'tests', 'branches', 'clinicalProfiles', 'sampleDrawers', 'defaultSampleDrawerId'));
     }
 
     /**
@@ -673,10 +675,12 @@ class LabAdmissionController extends Controller
             ->get();
         $tests = Test::whereNull('parent')->orderBy('code')->get(['id', 'code', 'name', 'nbu', 'price']);
         $branches = \App\Models\LabBranch::active()->orderByDesc('is_central')->orderBy('name')->get();
-        $sampleDrawers = app(AdmissionSampleDrawService::class)->eligibleDrawers();
-        $admissionRequiresSampleDraw = app(AdmissionSampleDrawService::class)->admissionRequiresSampleDraw($admission);
+        $sampleDrawService = app(AdmissionSampleDrawService::class);
+        $sampleDrawers = $sampleDrawService->eligibleDrawers();
+        $defaultSampleDrawerId = $sampleDrawService->defaultDrawerIdFor(auth()->user());
+        $admissionRequiresSampleDraw = $sampleDrawService->admissionRequiresSampleDraw($admission);
 
-        return view('lab.admissions.edit', compact('admission', 'insurances', 'tests', 'branches', 'sampleDrawers', 'admissionRequiresSampleDraw'));
+        return view('lab.admissions.edit', compact('admission', 'insurances', 'tests', 'branches', 'sampleDrawers', 'defaultSampleDrawerId', 'admissionRequiresSampleDraw'));
     }
 
     /**
