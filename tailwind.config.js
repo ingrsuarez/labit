@@ -17,7 +17,9 @@ export default {
         'bg-emerald-100', 'bg-emerald-400', 'bg-emerald-600', 'text-emerald-600',
         'bg-amber-100', 'bg-amber-400', 'bg-amber-600', 'text-amber-600',
         'bg-sky-100', 'bg-sky-400', 'bg-sky-600', 'text-sky-600',
-        'bg-rose-100', 'bg-rose-400', 'bg-rose-600', 'text-rose-600',
+        'bg-rose-100', 'bg-rose-400', 'bg-rose-500', 'bg-rose-600', 'bg-rose-50',
+        'hover:bg-rose-600', 'hover:bg-rose-700', '!bg-rose-600', 'hover:!bg-rose-700',
+        'text-rose-600', 'text-rose-900',
         // Barras del dashboard del laboratorio (lab/dashboard.blade.php).
         'bg-yellow-400', 'bg-blue-400', 'bg-green-400', 'bg-purple-400',
         'bg-teal-400', 'bg-cyan-400', 'bg-red-400',
