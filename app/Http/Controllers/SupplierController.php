@@ -60,6 +60,7 @@ class SupplierController extends Controller
             'contact_name' => 'nullable|string|max:255',
             'contact_phone' => 'nullable|string|max:50',
             'notes' => 'nullable|string',
+            'is_fixed_expense' => 'nullable|boolean',
         ], [
             'name.required' => 'El nombre del proveedor es obligatorio.',
             'tax_id.unique' => 'Este CUIT ya está registrado.',
@@ -68,6 +69,7 @@ class SupplierController extends Controller
 
         $validated['code'] = Supplier::generateCode();
         $validated['status'] = 'activo';
+        $validated['is_fixed_expense'] = $request->boolean('is_fixed_expense');
 
         $supplier = Supplier::create($validated);
 
@@ -111,11 +113,14 @@ class SupplierController extends Controller
             'contact_phone' => 'nullable|string|max:50',
             'notes' => 'nullable|string',
             'status' => 'required|in:activo,inactivo',
+            'is_fixed_expense' => 'nullable|boolean',
         ], [
             'name.required' => 'El nombre del proveedor es obligatorio.',
             'tax_id.unique' => 'Este CUIT ya está registrado.',
             'email.email' => 'El email no tiene un formato válido.',
         ]);
+
+        $validated['is_fixed_expense'] = $request->boolean('is_fixed_expense');
 
         $supplier->update($validated);
 
@@ -176,6 +181,7 @@ class SupplierController extends Controller
             'contact_name' => 'nullable|string|max:255',
             'contact_phone' => 'nullable|string|max:50',
             'notes' => 'nullable|string',
+            'is_fixed_expense' => 'nullable|boolean',
         ], [
             'name.required' => 'El nombre del proveedor es obligatorio.',
             'tax_id.unique' => 'Este CUIT ya está registrado.',
