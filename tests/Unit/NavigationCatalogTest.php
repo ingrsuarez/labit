@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Models\Employee;
 use App\Models\User;
 use App\Models\UserNavigationStat;
 use App\Services\NavigationAccessService;
@@ -54,5 +55,33 @@ class NavigationCatalogTest extends TestCase
         $names = collect($shortcuts)->pluck('name')->all();
 
         $this->assertContains('Resumen financiero', $names);
+    }
+
+    public function test_shortcuts_for_portal_user_requires_employee(): void
+    {
+        $user = User::factory()->create();
+
+        $shortcuts = NavigationCatalog::shortcutsForPortalUser($user);
+
+        $this->assertSame([], $shortcuts);
+    }
+
+    public function test_shortcuts_for_portal_user_includes_payslips(): void
+    {
+        $user = User::factory()->create();
+        Employee::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Portal',
+            'lastName' => 'User',
+            'employeeId' => 'E003',
+            'email' => $user->email,
+            'sex' => 'M',
+            'status' => 'active',
+        ]);
+
+        $shortcuts = NavigationCatalog::shortcutsForPortalUser($user->fresh());
+        $names = collect($shortcuts)->pluck('name')->all();
+
+        $this->assertContains('Recibos de Sueldo', $names);
     }
 }

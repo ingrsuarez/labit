@@ -19,7 +19,7 @@
                 <div>
                     <h1 class="text-lg font-semibold text-gray-900">
                         @if(request()->routeIs('portal.dashboard'))
-                            Mi Perfil
+                            Inicio
                         @elseif(request()->routeIs('portal.team'))
                             Mi Equipo
                         @elseif(request()->routeIs('portal.directory'))

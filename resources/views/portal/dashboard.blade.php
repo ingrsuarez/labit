@@ -1,31 +1,25 @@
-<x-portal-layout title="Mi Perfil">
+<x-portal-layout title="Inicio">
     <div class="py-6 px-4 sm:px-6 lg:px-8">
         <div class="max-w-6xl mx-auto">
             {{-- Header --}}
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-900">Mi Perfil</h1>
-                    <p class="text-sm text-gray-500">Bienvenido, {{ $employee->name }}</p>
-                </div>
-                <div class="flex gap-3">
-                    <a href="{{ route('portal.directory') }}" 
-                       class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                        </svg>
-                        Directorio
-                    </a>
-                    @if($isSupervisor)
-                        <a href="{{ route('portal.team') }}" 
-                           class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                            </svg>
-                            Mi Equipo ({{ $subordinatesCount }})
-                        </a>
-                    @endif
-                </div>
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-gray-900">Inicio</h1>
+                <p class="text-sm text-gray-500">Bienvenido, {{ $employee->name }}</p>
             </div>
+
+            {{-- Accesos aprendidos --}}
+            <section class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-900">Tus accesos más utilizados</h2>
+                <p class="text-sm text-gray-500 mb-4">Atajos según tu uso reciente</p>
+                @if (count($shortcuts) > 0)
+                    @include('portal.partials.section-cards', ['items' => $shortcuts])
+                @else
+                    <p class="text-sm text-gray-500">Explorá el menú lateral para empezar a armar tus accesos.</p>
+                @endif
+            </section>
+
+            {{-- Mi Perfil --}}
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Mi Perfil</h2>
 
             {{-- Main Grid --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

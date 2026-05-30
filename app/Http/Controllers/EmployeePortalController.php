@@ -6,10 +6,11 @@ use App\Models\Employee;
 use App\Models\Job;
 use App\Models\Leave;
 use App\Models\Payroll;
+use App\Support\NavigationCatalog;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class EmployeePortalController extends Controller
 {
@@ -23,36 +24,36 @@ class EmployeePortalController extends Controller
 
         // Esta verificación es redundante si has.employee middleware está activo,
         // pero la dejamos por seguridad, redirigiendo a access.pending
-        if (!$employee) {
+        if (! $employee) {
             return redirect()->route('access.pending')
                 ->with('error', 'No tienes un empleado asociado a tu cuenta.');
         }
 
         $employee->load(['jobs.category', 'leaves', 'salaryItems']);
-        
+
         // Calcular antigüedad
         $startDate = $employee->start_date ? Carbon::parse($employee->start_date) : null;
         $antiguedadExacta = $startDate ? $startDate->floatDiffInYears(now()) : 0;
         $antiguedad = number_format($antiguedadExacta, 1, ',', '.'); // Un solo decimal, formato español
         $antiguedadPorcentaje = number_format(min($antiguedadExacta * 2, 70), 1); // Porcentaje con un decimal
         $antiguedadMeses = $startDate ? $startDate->diff(now())->format('%y años, %m meses') : '—';
-        
+
         // Obtener categoría del empleado
         $category = $employee->jobs->first()?->category;
-        
+
         // Resumen de licencias del año actual
         $currentYear = now()->year;
         $leavesThisYear = $employee->leaves()
             ->whereYear('start', $currentYear)
             ->get();
-        
+
         $leavesSummary = [
             'vacaciones' => $leavesThisYear->where('type', 'vacaciones')->sum('days'),
             'enfermedad' => $leavesThisYear->where('type', 'enfermedad')->sum('days'),
             'otros' => $leavesThisYear->whereNotIn('type', ['vacaciones', 'enfermedad'])->sum('days'),
             'total' => $leavesThisYear->sum('days'),
         ];
-        
+
         // Últimas licencias
         $recentLeaves = $employee->leaves()
             ->orderByDesc('start')
@@ -62,9 +63,11 @@ class EmployeePortalController extends Controller
         // Verificar si es supervisor
         $isSupervisor = $employee->isSupervisor();
         $subordinatesCount = $isSupervisor ? $employee->getSubordinates()->count() : 0;
-        
+
+        $shortcuts = NavigationCatalog::shortcutsForPortalUser($user, 8);
+
         return view('portal.dashboard', compact(
-            'employee', 
+            'employee',
             'antiguedad',
             'antiguedadPorcentaje',
             'antiguedadMeses',
@@ -73,7 +76,8 @@ class EmployeePortalController extends Controller
             'recentLeaves',
             'currentYear',
             'isSupervisor',
-            'subordinatesCount'
+            'subordinatesCount',
+            'shortcuts',
         ));
     }
 
@@ -85,24 +89,24 @@ class EmployeePortalController extends Controller
         $user = Auth::user();
         $employee = $user->employee;
 
-        if (!$employee) {
+        if (! $employee) {
             return redirect()->route('access.pending')
                 ->with('error', 'No tienes un empleado asociado a tu cuenta.');
         }
 
-        if (!$employee->isSupervisor()) {
+        if (! $employee->isSupervisor()) {
             return redirect()->route('portal.dashboard')
                 ->with('error', 'No tienes empleados a tu cargo.');
         }
 
         $subordinates = $employee->getSubordinates();
-        
+
         // Cargar relaciones necesarias
         $subordinateIds = $subordinates->pluck('id');
         $subordinates = Employee::whereIn('id', $subordinateIds)
-            ->with(['jobs.category', 'leaves' => function($q) {
+            ->with(['jobs.category', 'leaves' => function ($q) {
                 $q->whereYear('start', now()->year)
-                  ->where('status', 'aprobado');
+                    ->where('status', 'aprobado');
             }])
             ->get();
 
@@ -150,7 +154,7 @@ class EmployeePortalController extends Controller
         $user = Auth::user();
         $employee = $user->employee;
 
-        if (!$employee) {
+        if (! $employee) {
             return redirect()->route('access.pending')
                 ->with('error', 'No tienes un empleado asociado a tu cuenta.');
         }
@@ -169,7 +173,7 @@ class EmployeePortalController extends Controller
         $user = Auth::user();
         $employee = $user->employee;
 
-        if (!$employee) {
+        if (! $employee) {
             return redirect()->route('access.pending')
                 ->with('error', 'No tienes un empleado asociado a tu cuenta.');
         }
@@ -186,9 +190,12 @@ class EmployeePortalController extends Controller
         $upcomingBirthdays = $this->getUpcomingBirthdays($allEmployees, 30);
 
         // Cumpleaños de hoy
-        $todayBirthdays = $allEmployees->filter(function($emp) {
-            if (!$emp->birth) return false;
+        $todayBirthdays = $allEmployees->filter(function ($emp) {
+            if (! $emp->birth) {
+                return false;
+            }
             $birth = Carbon::parse($emp->birth);
+
             return $birth->month === now()->month && $birth->day === now()->day;
         });
 
@@ -231,7 +238,7 @@ class EmployeePortalController extends Controller
         $user = Auth::user();
         $employee = $user->employee;
 
-        if (!$employee) {
+        if (! $employee) {
             return redirect()->route('access.pending')
                 ->with('error', 'No tienes un empleado asociado a tu cuenta.');
         }
@@ -287,7 +294,7 @@ class EmployeePortalController extends Controller
         $user = Auth::user();
         $employee = $user->employee;
 
-        if (!$employee) {
+        if (! $employee) {
             return redirect()->route('access.pending');
         }
 
@@ -304,7 +311,7 @@ class EmployeePortalController extends Controller
         $workingDays = 0;
         $current = $start->copy();
         while ($current <= $end) {
-            if (!$current->isWeekend()) {
+            if (! $current->isWeekend()) {
                 $workingDays++;
             }
             $current->addDay();
@@ -312,16 +319,16 @@ class EmployeePortalController extends Controller
 
         if ($workingDays <= 0) {
             return back()->withErrors([
-                'days' => 'El rango seleccionado no contiene días hábiles.'
+                'days' => 'El rango seleccionado no contiene días hábiles.',
             ])->withInput();
         }
 
         // Verificar días disponibles
         $availableDays = $employee->getAvailableVacationDays($start->year);
-        
+
         if ($workingDays > $availableDays) {
             return back()->withErrors([
-                'days' => "Solo tienes {$availableDays} días disponibles. Solicitaste {$workingDays} días."
+                'days' => "Solo tienes {$availableDays} días disponibles. Solicitaste {$workingDays} días.",
             ])->withInput();
         }
 
@@ -348,7 +355,7 @@ class EmployeePortalController extends Controller
         $user = Auth::user();
         $employee = $user->employee;
 
-        if (!$employee) {
+        if (! $employee) {
             return redirect()->route('access.pending');
         }
 
@@ -383,7 +390,7 @@ class EmployeePortalController extends Controller
         $employee = $user->employee;
 
         // Verificar que la solicitud pertenece al empleado
-        if (!$employee || $leave->employee_id !== $employee->id) {
+        if (! $employee || $leave->employee_id !== $employee->id) {
             return back()->withErrors(['error' => 'No puedes cancelar esta solicitud.']);
         }
 
@@ -405,7 +412,7 @@ class EmployeePortalController extends Controller
         $user = Auth::user();
         $employee = $user->employee;
 
-        if (!$employee) {
+        if (! $employee) {
             return redirect()->route('access.pending')
                 ->with('error', 'No tienes un empleado asociado a tu cuenta.');
         }
@@ -430,20 +437,20 @@ class EmployeePortalController extends Controller
         $employee = $user->employee;
 
         // Verificar que el recibo pertenece al empleado
-        if (!$employee || $payroll->employee_id !== $employee->id) {
+        if (! $employee || $payroll->employee_id !== $employee->id) {
             abort(403, 'No tienes permiso para descargar este recibo.');
         }
 
         // Verificar que el recibo está cerrado
-        if (!in_array($payroll->status, ['liquidado', 'pagado'])) {
+        if (! in_array($payroll->status, ['liquidado', 'pagado'])) {
             abort(403, 'Este recibo aún no está disponible para descarga.');
         }
 
         $payroll->load('items', 'employee');
 
         // Nombre del archivo
-        $meses = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        $meses = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         $mesNombre = $meses[$payroll->month] ?? $payroll->month;
         $nombreEmpleado = str_replace(' ', '-', $payroll->employee_name ?? $employee->name);
         $filename = "recibo-{$mesNombre}{$payroll->year}-{$nombreEmpleado}.pdf";
@@ -464,30 +471,26 @@ class EmployeePortalController extends Controller
     {
         $today = now();
         $endDate = now()->addDays($days);
-        
-        return $employees->filter(function($emp) {
+
+        return $employees->filter(function ($emp) {
             return $emp->birth !== null;
-        })->map(function($emp) use ($today) {
+        })->map(function ($emp) use ($today) {
             $birth = Carbon::parse($emp->birth);
             $nextBirthday = Carbon::create($today->year, $birth->month, $birth->day);
-            
+
             // Si ya pasó este año, usar el del próximo
             if ($nextBirthday < $today) {
                 $nextBirthday->addYear();
             }
-            
+
             $emp->next_birthday = $nextBirthday;
             $emp->days_until_birthday = (int) $today->diffInDays($nextBirthday, false);
             $emp->turning_age = $nextBirthday->year - $birth->year;
-            
+
             return $emp;
-        })->filter(function($emp) use ($days) {
+        })->filter(function ($emp) use ($days) {
             return $emp->days_until_birthday >= 0 && $emp->days_until_birthday <= $days;
         })->sortBy('days_until_birthday')
-        ->values();
+            ->values();
     }
 }
-
-
-
-
