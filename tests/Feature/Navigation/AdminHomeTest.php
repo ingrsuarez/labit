@@ -89,10 +89,11 @@ class AdminHomeTest extends TestCase
     {
         $user = User::factory()->create();
         $user->assignRole('admin');
+        $user->givePermissionTo('purchase-invoices.index');
 
         UserNavigationStat::create([
             'user_id' => $user->id,
-            'shortcut_key' => 'rrhh-hub',
+            'shortcut_key' => 'purchase-invoices',
             'hit_count' => 50,
             'last_accessed_at' => now(),
         ]);
@@ -107,11 +108,26 @@ class AdminHomeTest extends TestCase
 
         $response->assertOk();
         $content = $response->getContent();
-        $rrhhPos = strpos($content, 'Recursos Humanos');
+        $invoicesPos = strpos($content, 'Facturas de Compra');
         $financialPos = strpos($content, 'Resumen financiero');
-        $this->assertNotFalse($rrhhPos);
+        $this->assertNotFalse($invoicesPos);
         $this->assertNotFalse($financialPos);
-        $this->assertLessThan($financialPos, $rrhhPos);
+        $this->assertLessThan($financialPos, $invoicesPos);
+    }
+
+    public function test_home_excludes_sidebar_hubs(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertDontSee('>Compras<', false)
+            ->assertDontSee('>Ventas<', false)
+            ->assertDontSee('>Recursos Humanos<', false)
+            ->assertDontSee('>Contabilidad<', false)
+            ->assertDontSee('>Auditoría<', false);
     }
 
     public function test_new_user_sees_default_shortcuts(): void
@@ -151,11 +167,12 @@ class AdminHomeTest extends TestCase
     {
         $user = User::factory()->create();
         $user->assignRole('compras');
-        $user->givePermissionTo('compras.section');
+        $user->givePermissionTo(['compras.section', 'purchase-invoices.index']);
 
         $this->actingAs($user)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('Compras');
+            ->assertSee('Facturas de Compra')
+            ->assertDontSee('>Compras<', false);
     }
 }

@@ -55,6 +55,15 @@ class NavigationCatalogTest extends TestCase
         $names = collect($shortcuts)->pluck('name')->all();
 
         $this->assertContains('Resumen financiero', $names);
+        $this->assertNotContains('Compras', $names);
+        $this->assertNotContains('Recursos Humanos', $names);
+    }
+
+    public function test_is_quick_access_excludes_hubs_and_sidebar(): void
+    {
+        $this->assertFalse(NavigationCatalog::isQuickAccessShortcut(NavigationCatalog::shortcut('purchases-hub') ?? []));
+        $this->assertFalse(NavigationCatalog::isQuickAccessShortcut(NavigationCatalog::shortcut('audit') ?? []));
+        $this->assertTrue(NavigationCatalog::isQuickAccessShortcut(NavigationCatalog::shortcut('purchase-invoices') ?? []));
     }
 
     public function test_shortcuts_for_portal_user_requires_employee(): void
