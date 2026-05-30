@@ -292,7 +292,7 @@ document.addEventListener('alpine:init', () => {
                             Mi Perfil
                         </a>
 
-                        <a href="{{ route('manage.index') }}" 
+                        <a href="{{ route('dashboard') }}" 
                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             Administración
                         </a>
