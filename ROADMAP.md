@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-30 (**v1.112.0** home personalizado planificado)
+> Última actualización: 2026-05-30 (**v1.113.1** calendario flujo de caja planificado)
 
 ---
 
@@ -168,13 +168,17 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 > Cola de ejecución: `agent-bootstrap/prompts/pendientes/` (solo prompts `v*.md`).
 > Sincronizado con STATUS.md el 2026-05-30.
 
-_Sin versiones pendientes en labit._
+| Versión | Nombre | Estado | Prompt | Notas |
+|---|---|---|---|---|
+| v1.113.0 | DDJJ Formulario 931 + plan de cuentas aportes/contribuciones patronales | Pendiente | `pendientes/v1.113.0-ddjj-formulario-931-plan-cuentas.md` | Prerrequisito del calendario de flujo de caja. Handoff: `handoffs/v1.113.0-pm-to-dev.md` |
+| v1.113.1 | Calendario de vencimientos / flujo de caja | Pendiente | `pendientes/v1.113.1-calendario-vencimientos-flujo-caja.md` | Depende v1.113.0. IVA/931/sueldos/gastos fijos/FC/manuales. Handoff: `handoffs/v1.113.1-pm-to-dev.md` |
 
 **Completada recientemente:**
 - **v1.112.0** — Home personalizado con aprendizaje de accesos (2026-05-30)
 
 **Candidatos sin versión (no planificados):**
 - Hotfix ZPL Zebra — etiquetas podrían seguir usando solo `protocol_number` mientras el barcode extendido es `protocol^material` (tensión v1.48.5).
+- **v1.113.2** — Export PDF/Excel del calendario de flujo de caja (complemento v1.113.1).
 
 ---
 
@@ -256,11 +260,11 @@ _Sin versiones pendientes en labit._
 
 - **Libro Diario y Libro Mayor**: interfaces de consulta contable (v3.4.0 completada en prompts; verificar cierre en CHANGELOG si aplica)
 - **Tesorería**: saldos en tiempo real por cuenta; ~~endoso e-cheq en OP~~ → v1.39.1
-- **Percepciones e impuestos**: ~~percepciones en compras~~ → **v1.63.0** (completada). ~~percepciones en NC de proveedor~~ → **v1.63.1** (completada). ~~declaraciones del impuesto + imputación de anticipos sufridos~~ → **v1.64.0** (completada). Futuro: pago del saldo a pagar de una DDJJ (v1.64.1), importación de archivos AFIP/IIBB (v1.64.2), traslado automático de saldo a favor cross-período (v1.64.3).
+- **Percepciones e impuestos**: ~~percepciones en compras~~ → **v1.63.0** (completada). ~~percepciones en NC de proveedor~~ → **v1.63.1** (completada). ~~declaraciones del impuesto + imputación de anticipos sufridos~~ → **v1.64.0** (completada). ~~DDJJ Form 931~~ → **v1.113.0** (planificado). Futuro: pago del saldo a pagar de una DDJJ (v1.64.1), importación de archivos AFIP/IIBB (v1.64.2), traslado automático de saldo a favor cross-período (v1.64.3).
 - **Lector QR facturas de compra**: ~~escaneo de QR de facturas recibidas para autocompletar datos~~ → completado en v1.28.0
 - **UI/UX**: auditoría visual, migración de componentes, design system
 - **Facturación masiva**: ~~borrador editable + líneas extras antes de AFIP~~ → **v1.65.0** (completada). Futuro: catálogo de servicios facturables recurrentes, auto-guardado del borrador.
-- **Dashboard ejecutivo**: ~~panel financiero + reubicación RRHH~~ → **v1.66.0** (completada). Futuro: drilldown desde gráficos (v1.66.1), saldos de tesorería + deudores (v1.66.2), filtros de período personalizado (v1.66.3), comparación interanual (v1.66.4), export PDF (v1.66.5).
+- **Dashboard ejecutivo**: ~~panel financiero + reubicación RRHH~~ → **v1.66.0** (completada). ~~Calendario vencimientos / flujo de caja~~ → **v1.113.1** (planificado; requiere **v1.113.0** DDJJ 931). Futuro: drilldown desde gráficos (v1.66.1), saldos de tesorería + deudores (v1.66.2), export calendario (v1.113.2).
 - **Recibos de cobro**: ~~retenciones sufridas en cobranzas~~ → **v1.40.0**; ~~PDF para cliente~~ → **v1.41.0**; cobro parcial — UX y validación de saldo (candidato futuro)
 - **Testing**: suite de tests automatizados, cobertura mínima
 - **DevOps**: CI/CD, ambientes de staging, deploy automatizado
@@ -275,8 +279,8 @@ _Sin versiones pendientes en labit._
 
 ```
 Completadas (develop): ver STATUS.md — última v1.112.0 (2026-05-30)
-Backlog labit:         0
-Cola prompts v*:       vacía
+Backlog labit:         2 — v1.113.0, v1.113.1
+Cola prompts v*:       v1.113.0, v1.113.1
 LISCOM (interfases):   3 pendientes — v1.49.0, v1.50.0, v1.52.0
 En proceso:            0
 ```
@@ -284,5 +288,5 @@ En proceso:            0
 ---
 
 > Este documento se actualiza al finalizar cada versión o sesión de planificación.
-> Última actualización: 2026-05-30 — v1.111.2 hotfix selector tomador extracciones
+> Última actualización: 2026-05-30 — v1.113.0/v1.113.1 calendario flujo de caja planificado
 
