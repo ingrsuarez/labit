@@ -35,6 +35,35 @@ class AccountingSectionController extends Controller
                 ->count();
         }
 
+        $taxItems = [];
+        if (auth()->user()?->can('taxes.manage')) {
+            $taxItems[] = [
+                'name' => 'Catálogo de impuestos',
+                'description' => 'Impuestos y cuenta a pagar (DDJJ)',
+                'route' => route('taxes.index'),
+                'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+                'active' => true,
+            ];
+        }
+        if (auth()->user()?->can('tax-returns.manage')) {
+            $taxItems[] = [
+                'name' => 'Declaraciones juradas',
+                'description' => 'DDJJ e imputación de anticipos sufridos',
+                'route' => route('tax-returns.index'),
+                'icon' => 'M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z',
+                'active' => true,
+            ];
+        }
+        if (auth()->user()?->can('form931.manage')) {
+            $taxItems[] = [
+                'name' => 'Declaraciones Form 931',
+                'description' => 'DDJJ mensual SUSS — aportes y contribuciones patronales',
+                'route' => route('form931-declarations.index'),
+                'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+                'active' => true,
+            ];
+        }
+
         $section = [
             'title' => 'Contabilidad',
             'description' => 'Plan de cuentas, libro diario y reportes contables',
@@ -45,7 +74,7 @@ class AccountingSectionController extends Controller
                 ['label' => 'Asientos manuales', 'value' => $manualCount],
                 ['label' => 'Mov. pendientes conciliar', 'value' => $pendingMovements],
             ],
-            'items' => [
+            'items' => array_merge([
                 [
                     'name' => 'Plan de Cuentas',
                     'description' => 'Estructura de cuentas contables',
@@ -81,7 +110,7 @@ class AccountingSectionController extends Controller
                     'icon' => 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z',
                     'active' => false,
                 ],
-            ],
+            ], $taxItems),
         ];
 
         return view('accounting.index', compact('section'));

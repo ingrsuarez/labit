@@ -464,31 +464,6 @@ Route::middleware([
             ->name('purchase-perceptions.toggle-active');
         Route::resource('purchase-perceptions', App\Http\Controllers\PurchasePerceptionController::class)->except(['show']);
 
-        // IMPUESTOS — DDJJ (anticipos sufridos)
-        Route::get('tax-returns/available-advances', [App\Http\Controllers\TaxReturnController::class, 'availableAdvances'])
-            ->name('tax-returns.available-advances')
-            ->middleware('permission:tax-returns.manage');
-        Route::post('tax-returns/{tax_return}/confirm', [App\Http\Controllers\TaxReturnController::class, 'confirm'])
-            ->name('tax-returns.confirm')
-            ->middleware('permission:tax-returns.manage');
-        Route::post('tax-returns/{tax_return}/cancel', [App\Http\Controllers\TaxReturnController::class, 'cancel'])
-            ->name('tax-returns.cancel')
-            ->middleware('permission:tax-returns.manage');
-        Route::resource('taxes', App\Http\Controllers\TaxController::class)
-            ->middleware('permission:taxes.manage');
-        Route::resource('tax-returns', App\Http\Controllers\TaxReturnController::class)
-            ->middleware('permission:tax-returns.manage');
-
-        // FORM 931 — DDJJ aportes y contribuciones patronales
-        Route::post('form931-declarations/{form931_declaration}/confirm', [App\Http\Controllers\Form931DeclarationController::class, 'confirm'])
-            ->name('form931-declarations.confirm')
-            ->middleware('permission:form931.manage');
-        Route::post('form931-declarations/{form931_declaration}/cancel', [App\Http\Controllers\Form931DeclarationController::class, 'cancel'])
-            ->name('form931-declarations.cancel')
-            ->middleware('permission:form931.manage');
-        Route::resource('form931-declarations', App\Http\Controllers\Form931DeclarationController::class)
-            ->middleware('permission:form931.manage');
-
         // FLUJO DE CAJA — calendario de vencimientos
         Route::get('cash-flow', [App\Http\Controllers\CashFlowCalendarController::class, 'index'])
             ->name('cash-flow.index')
@@ -606,6 +581,31 @@ Route::middleware([
             ->name('accounting.reconciliation.ignore');
         Route::post('accounting/reconciliation/{statement}/bulk-ignore', [App\Http\Controllers\BankReconciliationController::class, 'bulkIgnore'])
             ->name('accounting.reconciliation.bulk-ignore');
+
+        // IMPUESTOS — DDJJ (anticipos sufridos)
+        Route::get('tax-returns/available-advances', [App\Http\Controllers\TaxReturnController::class, 'availableAdvances'])
+            ->name('tax-returns.available-advances')
+            ->middleware('permission:tax-returns.manage');
+        Route::post('tax-returns/{tax_return}/confirm', [App\Http\Controllers\TaxReturnController::class, 'confirm'])
+            ->name('tax-returns.confirm')
+            ->middleware('permission:tax-returns.manage');
+        Route::post('tax-returns/{tax_return}/cancel', [App\Http\Controllers\TaxReturnController::class, 'cancel'])
+            ->name('tax-returns.cancel')
+            ->middleware('permission:tax-returns.manage');
+        Route::resource('taxes', App\Http\Controllers\TaxController::class)
+            ->middleware('permission:taxes.manage');
+        Route::resource('tax-returns', App\Http\Controllers\TaxReturnController::class)
+            ->middleware('permission:tax-returns.manage');
+
+        // FORM 931 — DDJJ aportes y contribuciones patronales
+        Route::post('form931-declarations/{form931_declaration}/confirm', [App\Http\Controllers\Form931DeclarationController::class, 'confirm'])
+            ->name('form931-declarations.confirm')
+            ->middleware('permission:form931.manage');
+        Route::post('form931-declarations/{form931_declaration}/cancel', [App\Http\Controllers\Form931DeclarationController::class, 'cancel'])
+            ->name('form931-declarations.cancel')
+            ->middleware('permission:form931.manage');
+        Route::resource('form931-declarations', App\Http\Controllers\Form931DeclarationController::class)
+            ->middleware('permission:form931.manage');
     });
 
     // =============================================

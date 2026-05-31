@@ -81,12 +81,12 @@ class TaxDeclarationTest extends TestCase
             'sort_order' => 10,
         ]);
 
-        foreach (['taxes.manage', 'tax-returns.manage', 'compras.section'] as $p) {
+        foreach (['taxes.manage', 'tax-returns.manage', 'contabilidad.section'] as $p) {
             Permission::findOrCreate($p);
         }
 
         $user = User::factory()->create();
-        $user->givePermissionTo(['taxes.manage', 'tax-returns.manage', 'compras.section']);
+        $user->givePermissionTo(['taxes.manage', 'tax-returns.manage', 'contabilidad.section']);
         $user->companies()->attach($company->id, ['is_default' => true]);
 
         $supplier = Supplier::create([

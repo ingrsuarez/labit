@@ -5,6 +5,33 @@
 
 ---
 
+## [v1.113.5] — 2026-05-31 — Calendario de vencimientos en home personalizado
+
+### Corregido
+
+- **NavigationCatalog:** entrada `cash-flow` para que el inicio aprenda visitas al calendario de vencimientos.
+- **Tracking:** rutas `cash-flow.index`, settings y obligaciones mapeadas al shortcut.
+
+### Tests
+
+- `NavigationCatalogTest` y `AdminHomeTest::test_cash_flow_navigation_is_tracked_on_home`.
+
+---
+
+## [v1.113.4] — 2026-05-31 — Impuestos/DDJJ en hub Contabilidad
+
+### Corregido
+
+- **Hub Contabilidad:** cards de Catálogo de impuestos, Declaraciones juradas y Form 931 movidas desde Compras.
+- **Rutas:** impuestos y Form 931 bajo middleware `contabilidad.section` (permisos específicos sin cambio).
+- **Breadcrumbs:** vistas de índice apuntan a Contabilidad.
+
+### Tests
+
+- `TaxDeclarationTest` y `Form931DeclarationTest` actualizados (`contabilidad.section`).
+
+---
+
 ## [v1.111.2] — 2026-05-30 — Hotfix: selector tomador en extracciones
 
 ### Corregido
