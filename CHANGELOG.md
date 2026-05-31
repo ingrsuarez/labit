@@ -5,6 +5,20 @@
 
 ---
 
+## [v1.113.4] — 2026-05-31 — Impuestos/DDJJ en hub Contabilidad
+
+### Corregido
+
+- **Hub Contabilidad:** cards de Catálogo de impuestos, Declaraciones juradas y Form 931 movidas desde Compras.
+- **Rutas:** impuestos y Form 931 bajo middleware `contabilidad.section` (permisos específicos sin cambio).
+- **Breadcrumbs:** vistas de índice apuntan a Contabilidad.
+
+### Tests
+
+- `TaxDeclarationTest` y `Form931DeclarationTest` actualizados (`contabilidad.section`).
+
+---
+
 ## [v1.111.2] — 2026-05-30 — Hotfix: selector tomador en extracciones
 
 ### Corregido
