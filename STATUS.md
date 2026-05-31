@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-31 (**v1.113.4** impuestos/DDJJ en hub Contabilidad)
+> Última actualización: 2026-05-31 (**v1.113.5** calendario en home personalizado)
 
 ---
 
@@ -9,8 +9,8 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **develop**: **v1.113.4** (impuestos/DDJJ en hub Contabilidad) |
-| **Última completada (cola agente)** | **v1.113.4** — Mover cards impuestos y DDJJ de Compras a Contabilidad |
+| **Versión actual (línea v1.x)** | **develop**: **v1.113.5** (calendario en home personalizado) |
+| **Última completada (cola agente)** | **v1.113.5** — Calendario de vencimientos en NavigationCatalog / home |
 | **En proceso** | — |
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
 | **Pendientes en cola** | 0 prompts `v*` |
@@ -34,6 +34,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.113.5 | Calendario de vencimientos en home personalizado | 2026-05-31 | v1.113.5 |
 | v1.113.4 | Impuestos/DDJJ en hub Contabilidad | 2026-05-31 | v1.113.4 |
 | v1.113.3 | Cheques propios de OP en calendario + mejoras UI | 2026-05-31 | v1.113.3 |
 | v1.113.2 | Fix empresa activa y selector de empresas (cash-flow) | 2026-05-31 | v1.113.2 |

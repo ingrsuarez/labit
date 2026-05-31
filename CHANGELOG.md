@@ -5,6 +5,19 @@
 
 ---
 
+## [v1.113.5] — 2026-05-31 — Calendario de vencimientos en home personalizado
+
+### Corregido
+
+- **NavigationCatalog:** entrada `cash-flow` para que el inicio aprenda visitas al calendario de vencimientos.
+- **Tracking:** rutas `cash-flow.index`, settings y obligaciones mapeadas al shortcut.
+
+### Tests
+
+- `NavigationCatalogTest` y `AdminHomeTest::test_cash_flow_navigation_is_tracked_on_home`.
+
+---
+
 ## [v1.113.4] — 2026-05-31 — Impuestos/DDJJ en hub Contabilidad
 
 ### Corregido
