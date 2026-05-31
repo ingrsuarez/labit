@@ -230,13 +230,13 @@ class CashFlowCalendarService
 
         foreach ($suppliers as $supplier) {
             $lastInvoice = PurchaseInvoice::query()
-                ->where('company_id', $companyId)
                 ->where('supplier_id', $supplier->id)
                 ->whereNotIn('status', ['anulada'])
                 ->orderByDesc('issue_date')
+                ->orderByDesc('id')
                 ->first();
 
-            if (! $lastInvoice) {
+            if (! $lastInvoice || $lastInvoice->company_id !== $companyId) {
                 continue;
             }
 
