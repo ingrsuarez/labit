@@ -92,9 +92,7 @@ class CompanyController extends Controller
         $request->validate(['company_id' => 'required|exists:companies,id']);
 
         $user = auth()->user();
-        $hasAccess = $user->companies()->where('companies.id', $request->company_id)->exists();
-
-        if (! $hasAccess) {
+        if (! $user->canAccessCompany((int) $request->company_id)) {
             abort(403);
         }
 

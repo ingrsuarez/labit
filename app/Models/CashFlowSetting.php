@@ -25,6 +25,10 @@ class CashFlowSetting extends Model
 
     public static function forCompany(int $companyId): self
     {
+        if ($companyId <= 0 || ! Company::whereKey($companyId)->exists()) {
+            throw new \InvalidArgumentException('Empresa inválida para configuración de flujo de caja.');
+        }
+
         return self::query()->firstOrCreate(
             ['company_id' => $companyId],
             ['iva_due_day' => 20, 'form931_due_day' => 9]

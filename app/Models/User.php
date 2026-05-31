@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
@@ -80,7 +81,43 @@ class User extends Authenticatable
 
     public function defaultCompany(): ?Company
     {
-        return $this->companies()->wherePivot('is_default', true)->first();
+        $default = $this->companies()->wherePivot('is_default', true)->first();
+        if ($default) {
+            return $default;
+        }
+
+        $firstAssigned = $this->companies()->orderBy('companies.name')->first();
+        if ($firstAssigned) {
+            return $firstAssigned;
+        }
+
+        if ($this->hasRole('admin')) {
+            return Company::query()->where('is_active', true)->orderBy('name')->first();
+        }
+
+        return null;
+    }
+
+    /**
+     * Empresas que el usuario puede elegir en el selector del header.
+     */
+    public function accessibleCompanies(): Collection
+    {
+        $assigned = $this->companies()->orderBy('companies.name')->get();
+        if ($assigned->isNotEmpty()) {
+            return $assigned;
+        }
+
+        if ($this->hasRole('admin')) {
+            return Company::query()->where('is_active', true)->orderBy('name')->get();
+        }
+
+        return collect();
+    }
+
+    public function canAccessCompany(int $companyId): bool
+    {
+        return $this->accessibleCompanies()->contains('id', $companyId);
     }
 
     public function defaultLabBranch()

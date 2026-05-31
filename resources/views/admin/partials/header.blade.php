@@ -66,7 +66,7 @@
             <!-- Acciones -->
             <div class="flex items-center space-x-4">
                 <!-- Selector de Empresa -->
-                @if(isset($userCompanies) && $userCompanies->count() > 1)
+                @if(isset($userCompanies) && $userCompanies->count() >= 1)
                 <div x-data="{ open: false }" class="relative">
                     <button @click="open = !open"
                             class="flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors">
