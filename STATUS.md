@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-31 (**v1.113.7** calendario badges + filtros header)
+> Última actualización: 2026-05-31 (**v1.113.8** FC badge con proveedor)
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **develop** / **master**: **v1.113.7** |
-| **Última completada (cola agente)** | **v1.113.7** — Badges con descripción + filtros tipo/empresa en header |
+| **Versión actual (línea v1.x)** | **develop** / **master**: **v1.113.8** |
+| **Última completada (cola agente)** | **v1.113.8** — FC badge con proveedor en calendario |
 | **En proceso** | — |
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
 | **Pendientes en cola** | 0 prompts `v*` |
-| **Completadas** | 170+ |
+| **Completadas** | 171+ |
 | **Working tree** | Limpio (2026-05-31) |
 
 ---
@@ -51,6 +51,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.113.8 | FC badge con proveedor en calendario | 2026-05-31 | v1.113.8 |
 | v1.113.7 | Badges con descripción + filtros tipo/empresa en header | 2026-05-31 | v1.113.7 |
 | v1.113.6 | Calendario multi-empresa con discriminación en badges | 2026-05-31 | v1.113.6 |
 | v1.113.5 | Calendario de vencimientos en home personalizado | 2026-05-31 | v1.113.5 |

@@ -136,7 +136,7 @@ class CashFlowCalendarTest extends TestCase
 
         $this->assertTrue($events->contains(fn ($e) => $e['category'] === 'factura_compra' && $e['date'] === '2026-05-15'));
         $fc = $events->firstWhere('category', 'factura_compra');
-        $this->assertSame('FC100', $fc['badge_label']);
+        $this->assertSame('FC100 · Proveedor CF', $fc['badge_label']);
     }
 
     public function test_invoice_without_due_date_is_excluded(): void

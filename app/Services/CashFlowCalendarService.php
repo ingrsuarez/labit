@@ -100,7 +100,11 @@ class CashFlowCalendarService
                 sourceId: $inv->id,
                 url: route('purchase-invoices.show', $inv),
                 meta: ['supplier' => $inv->supplier?->name],
-                badgeLabel: 'FC'.$inv->invoice_number,
+                badgeLabel: Str::limit(
+                    'FC'.$inv->invoice_number.' · '.($inv->supplier?->name ?? 'Proveedor'),
+                    24,
+                    '…'
+                ),
             ));
     }
 

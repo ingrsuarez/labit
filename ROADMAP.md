@@ -176,6 +176,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 | v1.113.3 | Cheques propios de OP en calendario + mejoras UI | ✅ Completada (2026-05-31) | — |
 | v1.113.6 | Calendario multi-empresa con discriminación en badges | 📋 Planificada → ✅ Completada (2026-05-31) | `completados/v1.113.6-calendario-multi-empresa-badges.md` |
 | v1.113.7 | Badges con descripción + filtros tipo/empresa en header | ✅ Completada (2026-05-31) | `completados/v1.113.7-calendario-badges-filtros-header.md` |
+| v1.113.8 | FC badge con proveedor en calendario | ✅ Completada (2026-05-31) | `completados/v1.113.8-fc-badge-proveedor.md` |
 
 **Completada recientemente:**
 - **v1.113.3** — Cheques propios de OP en calendario + mejoras UI (2026-05-31)
