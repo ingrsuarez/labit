@@ -345,7 +345,7 @@ class CreditNoteController extends Controller
             ->get(['id', 'name', 'tax', 'taxId']);
 
         $pointsOfSale = PointOfSale::where('company_id', active_company_id())
-            ->where('is_electronic', false)
+            ->where('is_active', true)
             ->orderBy('code')
             ->get(['id', 'code', 'name']);
 
@@ -368,8 +368,9 @@ class CreditNoteController extends Controller
             'items.*.iva_rate' => 'required|numeric|in:0,10.5,21,27',
         ]);
 
-        $pos = PointOfSale::where('company_id', active_company_id())->findOrFail($request->point_of_sale_id);
-        abort_if($pos->is_electronic, 422, 'Para NC electrónicas, generarlas desde la factura de venta.');
+        $pos = PointOfSale::where('company_id', active_company_id())
+            ->where('is_active', true)
+            ->findOrFail($request->point_of_sale_id);
 
         DB::beginTransaction();
 
