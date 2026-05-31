@@ -46,7 +46,9 @@ class BillingSummaryService
             return [
                 'date' => $admission->date,
                 'formatted_date' => Carbon::parse($admission->date)->format('d/m/Y'),
-                'name' => $admission->patient?->full_name ?? 'N/A',
+                'name' => $admission->patient
+                    ? billing_patient_summary_name($admission->patient->lastName, $admission->patient->name)
+                    : 'N/A',
                 'dni' => $admission->patient?->patientId ?? 'N/A',
                 'affiliate' => $admission->affiliate_number ?: 'N/A',
                 'codes' => $resolved['codes_string'],
@@ -352,7 +354,7 @@ class BillingSummaryService
             return 'N/A';
         }
 
-        $name = trim($patient->lastName.', '.$patient->name);
+        $name = billing_patient_display_name($patient->lastName, $patient->name);
         $affiliate = $admission->affiliate_number ?: '';
 
         return $affiliate !== '' ? $name."\n".$affiliate : $name;

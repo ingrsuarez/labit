@@ -8,6 +8,8 @@ use App\Models\Insurance;
 use App\Models\Patient;
 use App\Models\Test;
 use App\Models\User;
+use App\Services\BillingSummaryService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
@@ -170,6 +172,117 @@ class BillingSummaryClinicalTest extends TestCase
         $response->assertSee('TOTAL A FACTURAR', false);
         $response->assertSee('$4.225,00', false);
         $response->assertSee('2 práctica', false);
+    }
+
+    public function test_detailed_report_capitalizes_lowercase_patient_names(): void
+    {
+        $user = User::factory()->create();
+        $user->givePermissionTo(['lab.section', 'lab-reports.index']);
+
+        $insurance = Insurance::query()->create([
+            'name' => 'Galeno Test',
+            'type' => 'obra_social',
+            'state' => 'activo',
+        ]);
+
+        $patient = Patient::query()->create([
+            'name' => 'olga beatriz',
+            'lastName' => 'meich',
+            'patientId' => '12462450',
+            'type' => 'humano',
+            'sex' => 'F',
+            'status' => 'activo',
+        ]);
+
+        $admission = $this->createAdmission([
+            'insurance' => $insurance->id,
+            'patient_id' => $patient->id,
+            'date' => '2026-05-10',
+            'affiliate_number' => '023002590001',
+        ]);
+
+        $test = $this->createTest('ZINC01');
+        AdmissionTest::query()->create([
+            'admission_id' => $admission->id,
+            'test_id' => $test->id,
+            'price' => 100,
+            'copago' => 0,
+            'paid_by_patient' => false,
+            'authorization_status' => AdmissionTest::STATUS_AUTHORIZED,
+        ]);
+
+        $query = [
+            'insurance_id' => $insurance->id,
+            'date_from' => '2026-05-01',
+            'date_to' => '2026-05-31',
+            'format' => 'detailed',
+        ];
+
+        $this->actingAs($user)->get(route('lab.reports.monthly', $query))
+            ->assertOk()
+            ->assertSee('Meich, Olga Beatriz', false)
+            ->assertDontSee('meich, olga beatriz', false);
+
+        $this->actingAs($user)->get(route('lab.reports.exportPdf', $query))
+            ->assertOk();
+
+        $this->actingAs($user)->get(route('lab.reports.exportExcel', $query))
+            ->assertOk();
+
+        $built = app(BillingSummaryService::class)->buildClinical(
+            $insurance,
+            Carbon::parse('2026-05-01'),
+            Carbon::parse('2026-05-31'),
+            'detailed',
+        );
+
+        $this->assertStringStartsWith('Meich, Olga Beatriz', $built['rows']->first()['patient_label']);
+    }
+
+    public function test_summary_report_capitalizes_lowercase_patient_names(): void
+    {
+        $user = User::factory()->create();
+        $user->givePermissionTo(['lab.section', 'lab-reports.index']);
+
+        $insurance = Insurance::query()->create([
+            'name' => 'Galeno Test',
+            'type' => 'obra_social',
+            'state' => 'activo',
+        ]);
+
+        $patient = Patient::query()->create([
+            'name' => 'olga beatriz',
+            'lastName' => 'meich',
+            'patientId' => '12462450',
+            'type' => 'humano',
+            'sex' => 'F',
+            'status' => 'activo',
+        ]);
+
+        $admission = $this->createAdmission([
+            'insurance' => $insurance->id,
+            'patient_id' => $patient->id,
+            'date' => '2026-05-10',
+        ]);
+
+        $test = $this->createTest('ZINC01');
+        AdmissionTest::query()->create([
+            'admission_id' => $admission->id,
+            'test_id' => $test->id,
+            'price' => 100,
+            'copago' => 0,
+            'paid_by_patient' => false,
+            'authorization_status' => AdmissionTest::STATUS_AUTHORIZED,
+        ]);
+
+        $this->actingAs($user)->get(route('lab.reports.monthly', [
+            'insurance_id' => $insurance->id,
+            'date_from' => '2026-05-01',
+            'date_to' => '2026-05-31',
+        ]))
+            ->assertOk()
+            ->assertSee('Olga Beatriz Meich', false)
+            ->assertDontSee('olga beatriz meich', false);
     }
 
     public function test_exports_require_permission(): void
