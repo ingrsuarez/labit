@@ -28,14 +28,19 @@
                     <span class="text-gray-700 font-medium">Calendario de vencimientos</span>
                 </nav>
                 <h1 class="text-2xl font-bold text-gray-900">Flujo de caja</h1>
-                <p class="text-sm text-gray-500 mt-1">
-                    @if($view === 'week')
-                        Semana del {{ $from->format('d/m/Y') }} al {{ $to->format('d/m/Y') }}
-                    @else
-                        {{ $anchor->locale('es')->isoFormat('MMMM YYYY') }}
-                    @endif
-                    · Total: <span class="font-semibold text-gray-800">${{ number_format($totalPeriod, 2, ',', '.') }}</span>
-                </p>
+                <div class="mt-3 flex flex-wrap items-end gap-x-4 gap-y-1">
+                    <p class="text-2xl md:text-3xl font-bold text-gray-900 capitalize leading-none tracking-tight">
+                        @if($view === 'week')
+                            {{ $from->locale('es')->isoFormat('D MMM') }} – {{ $to->locale('es')->isoFormat('D MMM YYYY') }}
+                        @else
+                            {{ $anchor->locale('es')->isoFormat('MMMM YYYY') }}
+                        @endif
+                    </p>
+                    <p class="text-sm md:text-base text-gray-600 pb-0.5">
+                        Total del período:
+                        <span class="text-lg font-bold text-indigo-700">${{ number_format($totalPeriod, 2, ',', '.') }}</span>
+                    </p>
+                </div>
             </div>
             <div class="flex flex-wrap gap-2 items-center">
                 <div class="inline-flex rounded-lg border border-gray-200 overflow-hidden text-sm">
@@ -76,32 +81,40 @@
                         }
                     @endphp
                     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                        <div class="px-4 py-3 border-b border-gray-200 bg-indigo-50/60 flex items-center justify-between gap-3">
+                            <h2 class="text-lg md:text-xl font-bold text-gray-900 capitalize">
+                                {{ $anchor->locale('es')->isoFormat('MMMM YYYY') }}
+                            </h2>
+                            <span class="text-sm font-medium text-indigo-800 bg-white/80 border border-indigo-100 rounded-lg px-3 py-1">
+                                {{ $events->count() }} {{ $events->count() === 1 ? 'vencimiento' : 'vencimientos' }}
+                            </span>
+                        </div>
                         <div class="grid grid-cols-7 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase">
                             @foreach(['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'] as $d)
-                                <div class="px-2 py-2 text-center">{{ $d }}</div>
+                                <div class="px-2 py-2.5 text-center">{{ $d }}</div>
                             @endforeach
                         </div>
                         @foreach($weeks as $week)
-                            <div class="grid grid-cols-7 divide-x divide-gray-100 border-b border-gray-100 last:border-b-0 min-h-[110px]">
+                            <div class="grid grid-cols-7 divide-x divide-gray-100 border-b border-gray-100 last:border-b-0">
                                 @foreach($week as $cellDate)
                                     @php
                                         $key = $cellDate->toDateString();
                                         $dayEvents = $eventsByDate->get($key, collect());
                                         $inMonth = $cellDate->month === $anchor->month;
                                     @endphp
-                                    <div class="p-1.5 {{ $inMonth ? 'bg-white' : 'bg-gray-50/80' }}">
-                                        <div class="text-xs font-medium mb-1 {{ $inMonth ? 'text-gray-700' : 'text-gray-400' }} {{ $cellDate->isToday() ? 'text-indigo-600' : '' }}">
+                                    <div class="p-2 min-h-[150px] md:min-h-[165px] flex flex-col {{ $inMonth ? 'bg-white' : 'bg-gray-50/80' }}">
+                                        <div class="text-sm font-semibold mb-2 shrink-0 {{ $inMonth ? 'text-gray-800' : 'text-gray-400' }} {{ $cellDate->isToday() ? 'inline-flex items-center justify-center w-7 h-7 rounded-full bg-indigo-600 text-white' : '' }}">
                                             {{ $cellDate->day }}
                                         </div>
-                                        <div class="space-y-1">
-                                            @foreach($dayEvents->take(3) as $ev)
+                                        <div class="space-y-1.5 flex-1 overflow-hidden">
+                                            @foreach($dayEvents->take(4) as $ev)
                                                 <button type="button" @click="selected = @js($ev)"
-                                                    class="w-full text-left text-[10px] leading-tight px-1 py-0.5 rounded border truncate {{ $colorClasses[$ev['category_color']] ?? $colorClasses['gray'] }}">
+                                                    class="w-full text-left text-[11px] leading-snug px-1.5 py-1 rounded border truncate {{ $colorClasses[$ev['category_color']] ?? $colorClasses['gray'] }}">
                                                     ${{ number_format($ev['amount'], 0, ',', '.') }}
                                                 </button>
                                             @endforeach
-                                            @if($dayEvents->count() > 3)
-                                                <div class="text-[10px] text-gray-500 px-1">+{{ $dayEvents->count() - 3 }} más</div>
+                                            @if($dayEvents->count() > 4)
+                                                <div class="text-[11px] text-gray-500 px-1">+{{ $dayEvents->count() - 4 }} más</div>
                                             @endif
                                         </div>
                                     </div>
@@ -117,7 +130,7 @@
                                 $key = $cellDate->toDateString();
                                 $dayEvents = $eventsByDate->get($key, collect());
                             @endphp
-                            <div class="bg-white rounded-xl border border-gray-200 p-3 min-h-[200px]">
+                            <div class="bg-white rounded-xl border border-gray-200 p-3 min-h-[240px]">
                                 <div class="text-sm font-semibold text-gray-800 mb-2 {{ $cellDate->isToday() ? 'text-indigo-600' : '' }}">
                                     {{ $cellDate->locale('es')->isoFormat('ddd D/M') }}
                                 </div>

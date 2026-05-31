@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\CashFlowObligation;
 use App\Models\CashFlowSetting;
 use App\Models\CreditNote;
+use App\Models\PaymentOrder;
+use App\Models\PaymentOrderPaymentLine;
 use App\Models\Payroll;
 use App\Models\PurchaseCreditNote;
 use App\Models\PurchaseInvoice;
@@ -32,6 +34,7 @@ class CashFlowCalendarService
             ->merge($this->form931Events($companyId, $from, $to, $settings))
             ->merge($this->payrollEvents($companyId, $from, $to))
             ->merge($this->fixedExpenseEvents($companyId, $from, $to))
+            ->merge($this->issuedChequeEvents($companyId, $from, $to))
             ->merge($this->manualEvents($companyId, $from, $to))
             ->sortBy([['date', 'asc'], ['title', 'asc']])
             ->values();
@@ -238,6 +241,72 @@ class CashFlowCalendarService
                 $cursor->addMonth();
             }
         }
+
+        return $events;
+    }
+
+    protected function issuedChequeEvents(int $companyId, Carbon $from, Carbon $to): Collection
+    {
+        $events = collect();
+
+        PaymentOrderPaymentLine::query()
+            ->where('kind', 'cheque')
+            ->whereNotNull('cheque_due_date')
+            ->whereBetween('cheque_due_date', [$from->toDateString(), $to->toDateString()])
+            ->whereHas('paymentOrder', fn ($q) => $q
+                ->where('company_id', $companyId)
+                ->whereNotIn('status', ['anulada', 'borrador']))
+            ->with(['paymentOrder.supplier'])
+            ->get()
+            ->each(function (PaymentOrderPaymentLine $line) use ($events) {
+                $order = $line->paymentOrder;
+                $reference = $line->payment_reference ?: $order->number;
+
+                $events->push($this->event(
+                    id: 'op-cheque:'.$line->id,
+                    date: $line->cheque_due_date->toDateString(),
+                    category: 'echeq_emitido',
+                    title: 'Cheque '.$reference.' — '.($order->supplier?->name ?? 'Proveedor').' ('.$order->number.')',
+                    amount: (float) $line->amount,
+                    confidence: 'confirmed',
+                    sourceType: PaymentOrder::class,
+                    sourceId: $order->id,
+                    url: route('payment-orders.show', $order),
+                    meta: [
+                        'payment_order' => $order->number,
+                        'cheque_reference' => $line->payment_reference,
+                    ],
+                ));
+            });
+
+        PaymentOrder::query()
+            ->where('company_id', $companyId)
+            ->where('payment_method', 'cheque')
+            ->whereNotNull('cheque_due_date')
+            ->whereBetween('cheque_due_date', [$from->toDateString(), $to->toDateString()])
+            ->whereNotIn('status', ['anulada', 'borrador'])
+            ->whereDoesntHave('paymentLines')
+            ->with('supplier')
+            ->get()
+            ->each(function (PaymentOrder $order) use ($events) {
+                $reference = $order->payment_reference ?: $order->number;
+
+                $events->push($this->event(
+                    id: 'op-cheque-legacy:'.$order->id,
+                    date: $order->cheque_due_date->toDateString(),
+                    category: 'echeq_emitido',
+                    title: 'Cheque '.$reference.' — '.($order->supplier?->name ?? 'Proveedor').' ('.$order->number.')',
+                    amount: (float) $order->total,
+                    confidence: 'confirmed',
+                    sourceType: PaymentOrder::class,
+                    sourceId: $order->id,
+                    url: route('payment-orders.show', $order),
+                    meta: [
+                        'payment_order' => $order->number,
+                        'cheque_reference' => $order->payment_reference,
+                    ],
+                ));
+            });
 
         return $events;
     }

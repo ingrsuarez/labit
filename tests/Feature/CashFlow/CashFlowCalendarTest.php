@@ -5,6 +5,8 @@ namespace Tests\Feature\CashFlow;
 use App\Models\CashFlowObligation;
 use App\Models\Company;
 use App\Models\Form931Declaration;
+use App\Models\PaymentOrder;
+use App\Models\PaymentOrderPaymentLine;
 use App\Models\PurchaseInvoice;
 use App\Models\Supplier;
 use App\Models\Tax;
@@ -244,6 +246,55 @@ class CashFlowCalendarTest extends TestCase
         $this->assertNotNull($iva);
         $this->assertEquals(40000.0, $iva['amount']);
         $this->assertSame('confirmed', $iva['confidence']);
+    }
+
+    public function test_payment_order_own_cheque_appears_on_due_date(): void
+    {
+        $company = Company::query()->create([
+            'name' => 'Empresa OP Cheque',
+            'cuit' => '30-71000008-7',
+            'tax_condition' => 'responsable_inscripto',
+        ]);
+        $user = User::factory()->create();
+        $supplier = Supplier::create([
+            'code' => 'S-OP',
+            'name' => 'LEW',
+            'tax_id' => '30-44444444-4',
+            'status' => 'activo',
+        ]);
+
+        $order = PaymentOrder::create([
+            'number' => 'OP-2026-00023',
+            'company_id' => $company->id,
+            'supplier_id' => $supplier->id,
+            'date' => '2026-05-31',
+            'total' => 1285666.06,
+            'status' => 'pagada',
+            'payment_method' => 'cheque',
+            'payment_reference' => '123456',
+            'created_by' => $user->id,
+        ]);
+
+        PaymentOrderPaymentLine::create([
+            'payment_order_id' => $order->id,
+            'sort_order' => 0,
+            'kind' => 'cheque',
+            'amount' => 1285666.06,
+            'payment_reference' => '123456',
+            'cheque_due_date' => '2026-06-29',
+        ]);
+
+        $events = app(CashFlowCalendarService::class)->eventsForRange(
+            $company->id,
+            Carbon::parse('2026-06-01'),
+            Carbon::parse('2026-06-30')
+        );
+
+        $cheque = $events->firstWhere('category', 'echeq_emitido');
+        $this->assertNotNull($cheque);
+        $this->assertSame('2026-06-29', $cheque['date']);
+        $this->assertEquals(1285666.06, $cheque['amount']);
+        $this->assertSame('confirmed', $cheque['confidence']);
     }
 
     public function test_user_without_permission_gets_403(): void
