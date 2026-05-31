@@ -7,15 +7,11 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
-/**
- * Permisos del módulo de declaraciones juradas de impuestos (v1.64.0).
- */
-class TaxDeclarationsPermissionsSeeder extends Seeder
+class CashFlowPermissionsSeeder extends Seeder
 {
     public const NAMES = [
-        'taxes.manage',
-        'tax-returns.manage',
-        'form931.manage',
+        'cash-flow.view',
+        'cash-flow.manage',
     ];
 
     public function run(): void

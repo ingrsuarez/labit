@@ -479,6 +479,32 @@ Route::middleware([
         Route::resource('tax-returns', App\Http\Controllers\TaxReturnController::class)
             ->middleware('permission:tax-returns.manage');
 
+        // FORM 931 — DDJJ aportes y contribuciones patronales
+        Route::post('form931-declarations/{form931_declaration}/confirm', [App\Http\Controllers\Form931DeclarationController::class, 'confirm'])
+            ->name('form931-declarations.confirm')
+            ->middleware('permission:form931.manage');
+        Route::post('form931-declarations/{form931_declaration}/cancel', [App\Http\Controllers\Form931DeclarationController::class, 'cancel'])
+            ->name('form931-declarations.cancel')
+            ->middleware('permission:form931.manage');
+        Route::resource('form931-declarations', App\Http\Controllers\Form931DeclarationController::class)
+            ->middleware('permission:form931.manage');
+
+        // FLUJO DE CAJA — calendario de vencimientos
+        Route::get('cash-flow', [App\Http\Controllers\CashFlowCalendarController::class, 'index'])
+            ->name('cash-flow.index')
+            ->middleware('permission:cash-flow.view');
+        Route::get('cash-flow/settings', [App\Http\Controllers\CashFlowSettingController::class, 'edit'])
+            ->name('cash-flow.settings.edit')
+            ->middleware('permission:cash-flow.manage');
+        Route::put('cash-flow/settings', [App\Http\Controllers\CashFlowSettingController::class, 'update'])
+            ->name('cash-flow.settings.update')
+            ->middleware('permission:cash-flow.manage');
+        Route::resource('cash-flow/obligations', App\Http\Controllers\CashFlowObligationController::class)
+            ->parameters(['obligations' => 'obligation'])
+            ->names('cash-flow.obligations')
+            ->except(['index', 'show'])
+            ->middleware('permission:cash-flow.manage');
+
         // SERVICIOS DE COMPRA (derivaciones, alquileres, etc.)
         Route::get('purchase-services/statistics', [App\Http\Controllers\PurchaseServiceStatisticsController::class, 'index'])
             ->name('purchase-services.statistics');

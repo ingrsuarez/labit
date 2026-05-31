@@ -9,6 +9,30 @@ if (! function_exists('active_company_id')) {
     }
 }
 
+if (! function_exists('active_company_id_or_abort')) {
+    /**
+     * ID de empresa activa validado. Repara sesión stale y usa default del usuario.
+     */
+    function active_company_id_or_abort(): int
+    {
+        $id = active_company_id();
+        if ($id && Company::whereKey($id)->exists()) {
+            return (int) $id;
+        }
+
+        if (auth()->check()) {
+            $default = auth()->user()->defaultCompany();
+            if ($default) {
+                session(['active_company_id' => $default->id]);
+
+                return (int) $default->id;
+            }
+        }
+
+        abort(403, 'Seleccioná una empresa activa para continuar.');
+    }
+}
+
 if (! function_exists('active_company')) {
     function active_company(): ?Company
     {

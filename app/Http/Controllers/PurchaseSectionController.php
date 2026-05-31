@@ -25,6 +25,24 @@ class PurchaseSectionController extends Controller
                 'icon' => 'M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z',
             ];
         }
+        if (auth()->user()?->can('form931.manage')) {
+            $taxItems[] = [
+                'name' => 'Declaraciones Form 931',
+                'description' => 'DDJJ mensual SUSS — aportes y contribuciones patronales',
+                'route' => route('form931-declarations.index'),
+                'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+            ];
+        }
+
+        $cashFlowItems = [];
+        if (auth()->user()?->can('cash-flow.view')) {
+            $cashFlowItems[] = [
+                'name' => 'Calendario de vencimientos',
+                'description' => 'Flujo de caja — pagos a realizar',
+                'route' => route('cash-flow.index'),
+                'icon' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+            ];
+        }
 
         $perceptionItems = [];
         if (auth()->user()?->can('purchase-perceptions.index')) {
@@ -120,7 +138,7 @@ class PurchaseSectionController extends Controller
                     'route' => route('purchase-services.index'),
                     'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01',
                 ],
-            ], $taxItems),
+            ], $taxItems, $cashFlowItems),
         ];
 
         return view('admin.section', compact('section'));

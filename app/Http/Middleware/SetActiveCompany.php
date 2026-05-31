@@ -11,6 +11,11 @@ class SetActiveCompany
     public function handle(Request $request, Closure $next): Response
     {
         if (auth()->check()) {
+            $activeId = session('active_company_id');
+            if ($activeId && ! \App\Models\Company::whereKey($activeId)->exists()) {
+                session()->forget('active_company_id');
+            }
+
             if (! session()->has('active_company_id')) {
                 $default = auth()->user()->defaultCompany();
                 if ($default) {
@@ -19,7 +24,7 @@ class SetActiveCompany
             }
 
             view()->share('activeCompany', active_company());
-            view()->share('userCompanies', auth()->user()->companies);
+            view()->share('userCompanies', auth()->user()->accessibleCompanies());
         }
 
         return $next($request);
