@@ -15,6 +15,23 @@
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
 | **Pendientes en cola** | 0 prompts `v*` |
 | **Completadas** | 169+ |
+| **Working tree** | Limpio (2026-05-31) |
+
+---
+
+## Mantenimiento del repo (2026-05-31)
+
+Limpieza del working tree en `develop`:
+
+| Archivo | Acción |
+|---|---|
+| `.agents/current.log` | Ignorado en `.gitignore` (log efímero del agente; ya no se trackea) |
+| `.env.example` | Restaurado (diff de encoding sin cambio semántico) |
+| `docs/designs/DISEÑO_v1.104.0-*.md`, `DISEÑO_v1.109.0-*.md` | Restaurados (solo CRLF local) |
+| `agent-bootstrap/handoffs/v1.113.0-pm-to-dev.md` | Archivado en repo |
+| `agent-bootstrap/handoffs/v1.113.1-pm-to-dev.md` | Archivado en repo |
+
+Handoffs PM→Dev trackeados: v1.46.0 … v1.112.1 + **v1.113.0**, **v1.113.1**.
 
 ---
 

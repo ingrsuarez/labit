@@ -18,6 +18,7 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+/.agents/current.log
 /scripts
 /storage/app/afip/*.pem
 .local-credentials
