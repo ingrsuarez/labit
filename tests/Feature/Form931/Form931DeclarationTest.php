@@ -61,7 +61,7 @@ class Form931DeclarationTest extends TestCase
     {
         $this->seed(TaxDeclarationsPermissionsSeeder::class);
 
-        $permissions = array_merge(['form931.manage', 'compras.section'], $extraPermissions);
+        $permissions = array_merge(['form931.manage', 'contabilidad.section'], $extraPermissions);
         foreach ($permissions as $name) {
             \Spatie\Permission\Models\Permission::findOrCreate($name);
         }
@@ -80,7 +80,7 @@ class Form931DeclarationTest extends TestCase
 
     public function test_user_without_permission_gets_403(): void
     {
-        \Spatie\Permission\Models\Permission::findOrCreate('compras.section');
+        \Spatie\Permission\Models\Permission::findOrCreate('contabilidad.section');
 
         $company = Company::query()->create([
             'name' => 'Empresa 931',
@@ -89,7 +89,7 @@ class Form931DeclarationTest extends TestCase
         ]);
 
         $user = User::factory()->create();
-        $user->givePermissionTo('compras.section');
+        $user->givePermissionTo('contabilidad.section');
         $user->companies()->attach($company->id, ['is_default' => true]);
 
         $this->actingAs($user)

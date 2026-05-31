@@ -3,7 +3,7 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
             <div>
                 <nav class="text-sm text-gray-500 mb-1">
-                    <a href="{{ route('purchases.section') }}" class="hover:text-gray-700">Compras</a>
+                    <a href="{{ route('accounting.section') }}" class="hover:text-gray-700">Contabilidad</a>
                     <span class="mx-1">›</span>
                     <span class="text-gray-700 font-medium">Impuestos</span>
                 </nav>
