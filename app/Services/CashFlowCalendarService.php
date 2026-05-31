@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\CashFlowObligation;
 use App\Models\CashFlowSetting;
+use App\Models\Company;
 use App\Models\CreditNote;
 use App\Models\PaymentOrder;
 use App\Models\PaymentOrderPaymentLine;
@@ -20,15 +21,18 @@ use Illuminate\Support\Collection;
 
 class CashFlowCalendarService
 {
+    protected ?Company $currentCompany = null;
+
     public function __construct(
         protected Form931DeclarationService $form931Service
     ) {}
 
     public function eventsForRange(int $companyId, Carbon $from, Carbon $to): Collection
     {
+        $this->currentCompany = Company::query()->findOrFail($companyId);
         $settings = CashFlowSetting::forCompany($companyId);
 
-        return collect()
+        $events = collect()
             ->merge($this->purchaseInvoiceEvents($companyId, $from, $to))
             ->merge($this->ivaEvents($companyId, $from, $to, $settings))
             ->merge($this->form931Events($companyId, $from, $to, $settings))
@@ -37,6 +41,25 @@ class CashFlowCalendarService
             ->merge($this->issuedChequeEvents($companyId, $from, $to))
             ->merge($this->manualEvents($companyId, $from, $to))
             ->sortBy([['date', 'asc'], ['title', 'asc']])
+            ->values();
+
+        $this->currentCompany = null;
+
+        return $events;
+    }
+
+    /**
+     * @param  Collection<int, Company>  $companies
+     */
+    public function eventsForCompanies(Collection $companies, Carbon $from, Carbon $to): Collection
+    {
+        return $companies
+            ->flatMap(fn (Company $company) => $this->eventsForRange($company->id, $from, $to))
+            ->sortBy([
+                ['date', 'asc'],
+                ['company_short_name', 'asc'],
+                ['title', 'asc'],
+            ])
             ->values();
     }
 
@@ -444,9 +467,10 @@ class CashFlowCalendarService
         array $meta = [],
     ): array {
         $labels = self::categoryMeta();
+        $company = $this->currentCompany;
 
         return [
-            'id' => $id,
+            'id' => 'c'.$company->id.':'.$id,
             'date' => $date,
             'category' => $category,
             'category_label' => $labels[$category]['label'] ?? $category,
@@ -458,6 +482,9 @@ class CashFlowCalendarService
             'source_id' => $sourceId,
             'url' => $url,
             'meta' => $meta,
+            'company_id' => $company->id,
+            'company_name' => $company->name,
+            'company_short_name' => $company->displayName(),
         ];
     }
 }

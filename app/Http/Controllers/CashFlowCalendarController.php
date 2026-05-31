@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\CashFlowSetting;
+use App\Models\Company;
 use App\Services\CashFlowCalendarService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class CashFlowCalendarController extends Controller
@@ -27,10 +29,19 @@ class CashFlowCalendarController extends Controller
             $to = $anchor->copy()->endOfMonth();
         }
 
-        $companyId = active_company_id_or_abort();
-        $events = $service->eventsForRange($companyId, $from, $to);
+        $user = $request->user();
+        $companies = $user->accessibleCompanies();
+
+        if ($companies->isEmpty()) {
+            abort(403, 'No tiene empresas asignadas para consultar el calendario de flujo de caja.');
+        }
+
+        $activeCompanyIds = $this->resolveActiveCompanyIds($request, $companies);
+        $activeCompanies = $companies->whereIn('id', $activeCompanyIds)->values();
+        $showCompanyLabels = $companies->count() > 1;
+
+        $events = $service->eventsForCompanies($activeCompanies, $from, $to);
         $categories = CashFlowCalendarService::categoryMeta();
-        $settings = CashFlowSetting::forCompany($companyId);
 
         $activeCategories = collect($request->query('categories', array_keys($categories)))
             ->filter(fn ($c) => isset($categories[$c]))
@@ -44,6 +55,15 @@ class CashFlowCalendarController extends Controller
         $eventsByDate = $events->groupBy('date');
         $totalPeriod = round($events->sum('amount'), 2);
         $totalsByCategory = $events->groupBy('category')->map(fn ($group) => round($group->sum('amount'), 2));
+        $totalsByCompany = $events
+            ->groupBy('company_id')
+            ->map(fn ($group) => [
+                'name' => $group->first()['company_short_name'],
+                'total' => round($group->sum('amount'), 2),
+            ]);
+
+        $settings = CashFlowSetting::forCompany($activeCompanies->first()->id);
+        $settingsLegend = $this->settingsLegend($activeCompanies);
 
         $prevDate = $view === 'week'
             ? $anchor->copy()->subWeek()->toDateString()
@@ -51,6 +71,8 @@ class CashFlowCalendarController extends Controller
         $nextDate = $view === 'week'
             ? $anchor->copy()->addWeek()->toDateString()
             : $anchor->copy()->addMonth()->toDateString();
+
+        $routeParams = $this->calendarRouteParams($request, $activeCompanyIds, $activeCategories);
 
         return view('cash-flow.calendar', [
             'view' => $view,
@@ -61,11 +83,77 @@ class CashFlowCalendarController extends Controller
             'eventsByDate' => $eventsByDate,
             'categories' => $categories,
             'settings' => $settings,
+            'settingsLegend' => $settingsLegend,
+            'companies' => $companies,
+            'activeCompanyIds' => $activeCompanyIds,
+            'showCompanyLabels' => $showCompanyLabels,
             'totalPeriod' => $totalPeriod,
             'totalsByCategory' => $totalsByCategory,
+            'totalsByCompany' => $totalsByCompany,
             'prevDate' => $prevDate,
             'nextDate' => $nextDate,
             'activeCategories' => $activeCategories,
+            'routeParams' => $routeParams,
         ]);
+    }
+
+    /**
+     * @param  Collection<int, Company>  $companies
+     * @return array<int, int>
+     */
+    protected function resolveActiveCompanyIds(Request $request, Collection $companies): array
+    {
+        $accessibleIds = $companies->pluck('id')->all();
+
+        if (! $request->has('companies')) {
+            return $accessibleIds;
+        }
+
+        $requested = collect($request->query('companies', []))
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => in_array($id, $accessibleIds, true))
+            ->unique()
+            ->values()
+            ->all();
+
+        return $requested !== [] ? $requested : $accessibleIds;
+    }
+
+    /**
+     * @param  Collection<int, Company>  $companies
+     */
+    protected function settingsLegend(Collection $companies): string
+    {
+        $settings = $companies->map(fn (Company $company) => CashFlowSetting::forCompany($company->id));
+
+        $ivaDays = $settings->pluck('iva_due_day')->unique()->values();
+        $form931Days = $settings->pluck('form931_due_day')->unique()->values();
+
+        if ($ivaDays->count() === 1 && $form931Days->count() === 1) {
+            return 'IVA vence día '.$ivaDays->first().' · 931 día '.$form931Days->first();
+        }
+
+        return 'IVA/931: según configuración por empresa';
+    }
+
+    /**
+     * @param  array<int, int>  $activeCompanyIds
+     * @param  array<int, string>  $activeCategories
+     * @return array<string, mixed>
+     */
+    protected function calendarRouteParams(Request $request, array $activeCompanyIds, array $activeCategories): array
+    {
+        $params = [];
+
+        $allCategories = array_keys(CashFlowCalendarService::categoryMeta());
+        if ($activeCategories !== [] && count($activeCategories) < count($allCategories)) {
+            $params['categories'] = $activeCategories;
+        }
+
+        if ($request->has('companies')) {
+            $params['companies'] = $activeCompanyIds;
+        }
+
+        return $params;
     }
 }
