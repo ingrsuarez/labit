@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-31 (**v1.113.5** calendario en home personalizado)
+> Última actualización: 2026-05-31 (**v1.113.7** calendario badges + filtros header)
 
 ---
 
@@ -9,12 +9,29 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **develop**: **v1.113.5** (calendario en home personalizado) |
-| **Última completada (cola agente)** | **v1.113.5** — Calendario de vencimientos en NavigationCatalog / home |
+| **Versión actual (línea v1.x)** | **develop** / **master**: **v1.113.7** |
+| **Última completada (cola agente)** | **v1.113.7** — Badges con descripción + filtros tipo/empresa en header |
 | **En proceso** | — |
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
 | **Pendientes en cola** | 0 prompts `v*` |
-| **Completadas** | 169+ |
+| **Completadas** | 170+ |
+| **Working tree** | Limpio (2026-05-31) |
+
+---
+
+## Mantenimiento del repo (2026-05-31)
+
+Limpieza del working tree en `develop`:
+
+| Archivo | Acción |
+|---|---|
+| `.agents/current.log` | Ignorado en `.gitignore` (log efímero del agente; ya no se trackea) |
+| `.env.example` | Restaurado (diff de encoding sin cambio semántico) |
+| `docs/designs/DISEÑO_v1.104.0-*.md`, `DISEÑO_v1.109.0-*.md` | Restaurados (solo CRLF local) |
+| `agent-bootstrap/handoffs/v1.113.0-pm-to-dev.md` | Archivado en repo |
+| `agent-bootstrap/handoffs/v1.113.1-pm-to-dev.md` | Archivado en repo |
+
+Handoffs PM→Dev trackeados: v1.46.0 … v1.112.1 + **v1.113.0**, **v1.113.1**.
 
 ---
 
@@ -34,6 +51,8 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.113.7 | Badges con descripción + filtros tipo/empresa en header | 2026-05-31 | v1.113.7 |
+| v1.113.6 | Calendario multi-empresa con discriminación en badges | 2026-05-31 | v1.113.6 |
 | v1.113.5 | Calendario de vencimientos en home personalizado | 2026-05-31 | v1.113.5 |
 | v1.113.4 | Impuestos/DDJJ en hub Contabilidad | 2026-05-31 | v1.113.4 |
 | v1.113.3 | Cheques propios de OP en calendario + mejoras UI | 2026-05-31 | v1.113.3 |

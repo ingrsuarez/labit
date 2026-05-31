@@ -174,6 +174,8 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 | v1.113.1 | Calendario de vencimientos / flujo de caja | ✅ Completada (2026-05-30) | `completados/v1.113.1-calendario-vencimientos-flujo-caja.md` |
 | v1.113.2 | Fix empresa activa y selector de empresas (cash-flow) | ✅ Completada (2026-05-31) | — |
 | v1.113.3 | Cheques propios de OP en calendario + mejoras UI | ✅ Completada (2026-05-31) | — |
+| v1.113.6 | Calendario multi-empresa con discriminación en badges | 📋 Planificada → ✅ Completada (2026-05-31) | `completados/v1.113.6-calendario-multi-empresa-badges.md` |
+| v1.113.7 | Badges con descripción + filtros tipo/empresa en header | ✅ Completada (2026-05-31) | `completados/v1.113.7-calendario-badges-filtros-header.md` |
 
 **Completada recientemente:**
 - **v1.113.3** — Cheques propios de OP en calendario + mejoras UI (2026-05-31)
@@ -183,7 +185,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 **Candidatos sin versión (no planificados):**
 - Hotfix ZPL Zebra — etiquetas podrían seguir usando solo `protocol_number` mientras el barcode extendido es `protocol^material` (tensión v1.48.5).
-- **v1.113.4** — Export PDF/Excel del calendario de flujo de caja (complemento v1.113.1).
+- Export PDF/Excel del calendario de flujo de caja (complemento v1.113.1; reevaluar scope tras v1.113.6).
 
 ---
 
