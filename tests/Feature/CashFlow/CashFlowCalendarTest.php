@@ -135,6 +135,8 @@ class CashFlowCalendarTest extends TestCase
         );
 
         $this->assertTrue($events->contains(fn ($e) => $e['category'] === 'factura_compra' && $e['date'] === '2026-05-15'));
+        $fc = $events->firstWhere('category', 'factura_compra');
+        $this->assertSame('FC100', $fc['badge_label']);
     }
 
     public function test_invoice_without_due_date_is_excluded(): void
@@ -286,6 +288,7 @@ class CashFlowCalendarTest extends TestCase
         $this->assertNotNull($iva);
         $this->assertEquals(40000.0, $iva['amount']);
         $this->assertSame('confirmed', $iva['confidence']);
+        $this->assertSame('IVA', $iva['badge_label']);
     }
 
     public function test_payment_order_own_cheque_appears_on_due_date(): void
@@ -383,6 +386,7 @@ class CashFlowCalendarTest extends TestCase
             ->assertSee('IPAC')
             ->assertSee('100.000')
             ->assertSee('250.000')
+            ->assertSee('FC')
             ->assertSee('Totales por empresa');
     }
 
@@ -409,7 +413,9 @@ class CashFlowCalendarTest extends TestCase
             ->withSession(['active_company_id' => $companyA->id])
             ->get(route('cash-flow.index', [
                 'date' => '2026-05-20',
+                'filters' => 1,
                 'companies' => [$companyA->id],
+                'categories' => array_keys(CashFlowCalendarService::categoryMeta()),
             ]))
             ->assertOk()
             ->assertSee('ALPHA')
@@ -435,6 +441,55 @@ class CashFlowCalendarTest extends TestCase
             ->assertSee('50.000')
             ->assertDontSee('Totales por empresa')
             ->assertDontSee('>Empresas<');
+    }
+
+    public function test_calendar_category_filter_limits_events(): void
+    {
+        $company = Company::query()->create([
+            'name' => 'Empresa Cat',
+            'cuit' => '30-71000017-7',
+            'tax_condition' => 'responsable_inscripto',
+        ]);
+        $user = $this->setupUser($company);
+
+        $this->createPurchaseInvoiceDue($company, $user, '2026-05-18', 999999, 'S-CAT');
+
+        CashFlowObligation::create([
+            'company_id' => $company->id,
+            'category' => CashFlowObligation::CATEGORY_ECHEQ,
+            'title' => 'E-cheq manual',
+            'amount' => 50000,
+            'due_date' => '2026-05-18',
+            'created_by' => $user->id,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['active_company_id' => $company->id])
+            ->get(route('cash-flow.index', [
+                'date' => '2026-05-18',
+                'filters' => 1,
+                'categories' => ['factura_compra'],
+                'companies' => [$company->id],
+            ]))
+            ->assertOk()
+            ->assertSee('999.999')
+            ->assertDontSee('ECHEQ');
+    }
+
+    public function test_header_shows_active_filters(): void
+    {
+        $company = Company::query()->create([
+            'name' => 'Empresa Filtros',
+            'cuit' => '30-71000018-7',
+            'tax_condition' => 'responsable_inscripto',
+        ]);
+        $user = $this->setupUser($company);
+
+        $this->actingAs($user)
+            ->withSession(['active_company_id' => $company->id])
+            ->get(route('cash-flow.index'))
+            ->assertOk()
+            ->assertSee('Filtros');
     }
 
     public function test_event_ids_unique_across_companies(): void

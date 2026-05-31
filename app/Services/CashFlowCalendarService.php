@@ -18,6 +18,7 @@ use App\Models\TaxReturn;
 use App\Support\BusinessDayCalculator;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class CashFlowCalendarService
 {
@@ -66,15 +67,15 @@ class CashFlowCalendarService
     public static function categoryMeta(): array
     {
         return [
-            'impuesto_iva' => ['label' => 'IVA', 'color' => 'violet'],
-            'impuesto_931' => ['label' => 'Form 931', 'color' => 'indigo'],
-            'impuesto_ganancias' => ['label' => 'Ganancias', 'color' => 'purple'],
-            'arca_plan' => ['label' => 'Plan ARCA', 'color' => 'orange'],
-            'echeq_emitido' => ['label' => 'E-cheq emitido', 'color' => 'amber'],
-            'sueldos' => ['label' => 'Sueldos', 'color' => 'blue'],
-            'gasto_fijo' => ['label' => 'Gasto fijo', 'color' => 'teal'],
-            'cuota_equipo' => ['label' => 'Cuota equipo', 'color' => 'slate'],
-            'factura_compra' => ['label' => 'FC compra', 'color' => 'red'],
+            'impuesto_iva' => ['label' => 'IVA', 'badge' => 'IVA', 'color' => 'violet'],
+            'impuesto_931' => ['label' => 'Form 931', 'badge' => '931', 'color' => 'indigo'],
+            'impuesto_ganancias' => ['label' => 'Ganancias', 'badge' => 'Ganancias', 'color' => 'purple'],
+            'arca_plan' => ['label' => 'Plan ARCA', 'badge' => 'ARCA', 'color' => 'orange'],
+            'echeq_emitido' => ['label' => 'E-cheq emitido', 'badge' => 'Cheque', 'color' => 'amber'],
+            'sueldos' => ['label' => 'Sueldos', 'badge' => 'Sueldos', 'color' => 'blue'],
+            'gasto_fijo' => ['label' => 'Gasto fijo', 'badge' => 'Gasto fijo', 'color' => 'teal'],
+            'cuota_equipo' => ['label' => 'Cuota equipo', 'badge' => 'Cuota', 'color' => 'slate'],
+            'factura_compra' => ['label' => 'FC compra', 'badge' => 'FC', 'color' => 'red'],
         ];
     }
 
@@ -99,6 +100,7 @@ class CashFlowCalendarService
                 sourceId: $inv->id,
                 url: route('purchase-invoices.show', $inv),
                 meta: ['supplier' => $inv->supplier?->name],
+                badgeLabel: 'FC'.$inv->invoice_number,
             ));
     }
 
@@ -258,6 +260,7 @@ class CashFlowCalendarService
                             'supplier_id' => $supplier->id,
                             'based_on_invoice' => $lastInvoice->full_number,
                         ],
+                        badgeLabel: Str::limit($supplier->name, 16, '…'),
                     ));
                 }
 
@@ -299,6 +302,7 @@ class CashFlowCalendarService
                         'payment_order' => $order->number,
                         'cheque_reference' => $line->payment_reference,
                     ],
+                    badgeLabel: 'Cheque '.$reference,
                 ));
             });
 
@@ -328,6 +332,7 @@ class CashFlowCalendarService
                         'payment_order' => $order->number,
                         'cheque_reference' => $order->payment_reference,
                     ],
+                    badgeLabel: 'Cheque '.$reference,
                 ));
             });
 
@@ -352,6 +357,9 @@ class CashFlowCalendarService
                 sourceId: $ob->id,
                 url: route('cash-flow.obligations.edit', $ob),
                 meta: array_filter(['notes' => $ob->notes, 'metadata' => $ob->metadata]),
+                badgeLabel: $ob->category === CashFlowObligation::CATEGORY_ECHEQ
+                    ? 'ECHEQ'
+                    : Str::limit($ob->title, 18, '…'),
             ));
     }
 
@@ -465,6 +473,7 @@ class CashFlowCalendarService
         ?int $sourceId,
         ?string $url,
         array $meta = [],
+        ?string $badgeLabel = null,
     ): array {
         $labels = self::categoryMeta();
         $company = $this->currentCompany;
@@ -475,6 +484,7 @@ class CashFlowCalendarService
             'category' => $category,
             'category_label' => $labels[$category]['label'] ?? $category,
             'category_color' => $labels[$category]['color'] ?? 'gray',
+            'badge_label' => $badgeLabel ?? ($labels[$category]['badge'] ?? $category),
             'title' => $title,
             'amount' => $amount,
             'confidence' => $confidence,

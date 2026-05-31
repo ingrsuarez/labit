@@ -20,7 +20,7 @@
 @endphp
 
 <x-admin-layout>
-    <div class="p-4 md:p-6" x-data="{ selected: null, showCompanyLabels: @js($showCompanyLabels) }">
+    <div class="p-4 md:p-6" x-data="{ selected: null, showCompanyLabels: @js($showCompanyLabels), filtersOpen: false }">
         <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
             <div>
                 <nav class="text-sm text-gray-500 mb-1">
@@ -43,7 +43,7 @@
                     </p>
                 </div>
             </div>
-            <div class="flex flex-wrap gap-2 items-center">
+            <div class="flex flex-wrap gap-2 items-center justify-end">
                 <div class="inline-flex rounded-lg border border-gray-200 overflow-hidden text-sm">
                     <a href="{{ route('cash-flow.index', $navParams(['view' => 'month', 'date' => $anchor->toDateString()])) }}"
                        class="px-3 py-2 {{ $view === 'month' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }}">Mes</a>
@@ -57,6 +57,63 @@
                     <a href="{{ route('cash-flow.obligations.create') }}" class="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">+ Obligación</a>
                     <a href="{{ route('cash-flow.settings.edit') }}" class="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Configuración</a>
                 @endcan
+
+                <div class="relative" @click.outside="filtersOpen = false">
+                    <button type="button" @click="filtersOpen = !filtersOpen"
+                        class="inline-flex items-center gap-1.5 px-3 py-2 border rounded-lg text-sm hover:bg-gray-50 {{ $filtersActive ? 'border-indigo-300 bg-indigo-50 text-indigo-800' : 'border-gray-300 text-gray-700' }}">
+                        Filtros
+                        @if($filtersActive)
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
+                        @endif
+                        <svg class="w-4 h-4 transition-transform" :class="filtersOpen && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+
+                    <div x-show="filtersOpen" x-cloak
+                         class="absolute right-0 top-full mt-1 z-40 w-72 max-h-[min(70vh,28rem)] overflow-y-auto bg-white rounded-xl border border-gray-200 shadow-lg p-3">
+                        <form method="GET" action="{{ route('cash-flow.index') }}" id="cash-flow-filters">
+                            <input type="hidden" name="view" value="{{ $view }}">
+                            <input type="hidden" name="date" value="{{ $anchor->toDateString() }}">
+                            <input type="hidden" name="filters" value="1">
+
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <span class="text-xs font-semibold text-gray-900 uppercase tracking-wide">Filtros</span>
+                                @if($filtersActive)
+                                    <a href="{{ route('cash-flow.index', ['view' => $view, 'date' => $anchor->toDateString()]) }}"
+                                       class="text-xs text-indigo-600 hover:text-indigo-800">Limpiar</a>
+                                @endif
+                            </div>
+
+                            <p class="text-[10px] font-medium text-gray-500 uppercase tracking-wide mb-1.5">Tipo</p>
+                            <div class="space-y-1.5 mb-3">
+                                @foreach($categories as $slug => $meta)
+                                    <label class="flex items-center gap-2 text-xs text-gray-700 cursor-pointer select-none py-0.5">
+                                        <input type="checkbox" name="categories[]" value="{{ $slug }}"
+                                            {{ in_array($slug, $activeCategories, true) ? 'checked' : '' }}
+                                            onchange="document.getElementById('cash-flow-filters').submit()"
+                                            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                        <span class="w-2.5 h-2.5 rounded shrink-0 {{ str_replace(['text-', 'border-'], ['bg-', ''], explode(' ', $colorClasses[$meta['color']] ?? $colorClasses['gray'])[0]) }}"></span>
+                                        <span class="truncate">{{ $meta['label'] }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+
+                            @if($companies->count() > 1)
+                                <p class="text-[10px] font-medium text-gray-500 uppercase tracking-wide mb-1.5 pt-2 border-t border-gray-100">Empresa</p>
+                                <div class="space-y-1.5">
+                                    @foreach($companies as $company)
+                                        <label class="flex items-center gap-2 text-xs text-gray-700 cursor-pointer select-none py-0.5">
+                                            <input type="checkbox" name="companies[]" value="{{ $company->id }}"
+                                                {{ in_array($company->id, $activeCompanyIds, true) ? 'checked' : '' }}
+                                                onchange="document.getElementById('cash-flow-filters').submit()"
+                                                class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                            <span class="truncate" title="{{ $company->name }}">{{ $company->displayName() }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -103,21 +160,20 @@
                                         $dayEvents = $eventsByDate->get($key, collect());
                                         $inMonth = $cellDate->month === $anchor->month;
                                     @endphp
-                                    <div class="p-2 min-h-[150px] md:min-h-[165px] flex flex-col {{ $inMonth ? 'bg-white' : 'bg-gray-50/80' }}">
+                                    <div class="p-2 min-h-[165px] md:min-h-[180px] flex flex-col {{ $inMonth ? 'bg-white' : 'bg-gray-50/80' }}">
                                         <div class="text-sm font-semibold mb-2 shrink-0 {{ $inMonth ? 'text-gray-800' : 'text-gray-400' }} {{ $cellDate->isToday() ? 'inline-flex items-center justify-center w-7 h-7 rounded-full bg-indigo-600 text-white' : '' }}">
                                             {{ $cellDate->day }}
                                         </div>
                                         <div class="space-y-1.5 flex-1 overflow-hidden">
                                             @foreach($dayEvents->take(4) as $ev)
                                                 <button type="button" @click="selected = @js($ev)"
-                                                    title="{{ $showCompanyLabels ? $ev['company_short_name'].' · '.$ev['title'].' · $'.number_format($ev['amount'], 0, ',', '.') : $ev['title'].' · $'.number_format($ev['amount'], 0, ',', '.') }}"
+                                                    title="{{ ($showCompanyLabels ? $ev['company_short_name'].' · ' : '').$ev['badge_label'].' · '.$ev['title'].' · $'.number_format($ev['amount'], 0, ',', '.') }}"
                                                     class="w-full text-left text-[11px] leading-snug px-1.5 py-1 rounded border {{ $colorClasses[$ev['category_color']] ?? $colorClasses['gray'] }}">
                                                     @if($showCompanyLabels)
                                                         <div class="font-semibold truncate" title="{{ $ev['company_name'] }}">{{ $ev['company_short_name'] }}</div>
-                                                        <div class="truncate">${{ number_format($ev['amount'], 0, ',', '.') }}</div>
-                                                    @else
-                                                        <div class="truncate">${{ number_format($ev['amount'], 0, ',', '.') }}</div>
                                                     @endif
+                                                    <div class="truncate opacity-90">{{ $ev['badge_label'] }}</div>
+                                                    <div class="font-medium truncate">${{ number_format($ev['amount'], 0, ',', '.') }}</div>
                                                 </button>
                                             @endforeach
                                             @if($dayEvents->count() > 4)
@@ -148,7 +204,8 @@
                                             @if($showCompanyLabels)
                                                 <div class="font-semibold truncate text-[10px] uppercase tracking-wide opacity-80">{{ $ev['company_short_name'] }}</div>
                                             @endif
-                                            <div class="font-medium truncate">{{ $ev['title'] }}</div>
+                                            <div class="font-semibold truncate">{{ $ev['badge_label'] }}</div>
+                                            <div class="truncate opacity-80">{{ $ev['title'] }}</div>
                                             <div>${{ number_format($ev['amount'], 2, ',', '.') }}</div>
                                         </button>
                                     @empty
@@ -174,30 +231,6 @@
                     </div>
                     <p class="text-xs text-gray-500 mt-3">{{ $settingsLegend }}</p>
                 </div>
-
-                @if($companies->count() > 1)
-                    <div class="bg-white rounded-xl border border-gray-200 p-4">
-                        <h2 class="text-sm font-semibold text-gray-900 mb-3">Empresas</h2>
-                        <form method="GET" action="{{ route('cash-flow.index') }}" class="space-y-2">
-                            <input type="hidden" name="view" value="{{ $view }}">
-                            <input type="hidden" name="date" value="{{ $anchor->toDateString() }}">
-                            @foreach($activeCategories as $cat)
-                                <input type="hidden" name="categories[]" value="{{ $cat }}">
-                            @endforeach
-                            @foreach($companies as $company)
-                                <label class="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
-                                    <input type="checkbox" name="companies[]" value="{{ $company->id }}"
-                                        {{ in_array($company->id, $activeCompanyIds, true) ? 'checked' : '' }}
-                                        class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                                    <span class="truncate" title="{{ $company->name }}">{{ $company->displayName() }}</span>
-                                </label>
-                            @endforeach
-                            <button type="submit" class="mt-2 w-full px-3 py-1.5 text-xs font-medium bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700">
-                                Aplicar filtro
-                            </button>
-                        </form>
-                    </div>
-                @endif
 
                 @if($showCompanyLabels && $totalsByCompany->isNotEmpty())
                     <div class="bg-white rounded-xl border border-gray-200 p-4">

@@ -43,12 +43,10 @@ class CashFlowCalendarController extends Controller
         $events = $service->eventsForCompanies($activeCompanies, $from, $to);
         $categories = CashFlowCalendarService::categoryMeta();
 
-        $activeCategories = collect($request->query('categories', array_keys($categories)))
-            ->filter(fn ($c) => isset($categories[$c]))
-            ->values()
-            ->all();
+        $filtersActive = $request->boolean('filters');
+        $activeCategories = $this->resolveActiveCategories($request, $categories);
 
-        if ($activeCategories !== [] && count($activeCategories) < count($categories)) {
+        if ($filtersActive) {
             $events = $events->whereIn('category', $activeCategories)->values();
         }
 
@@ -72,7 +70,7 @@ class CashFlowCalendarController extends Controller
             ? $anchor->copy()->addWeek()->toDateString()
             : $anchor->copy()->addMonth()->toDateString();
 
-        $routeParams = $this->calendarRouteParams($request, $activeCompanyIds, $activeCategories);
+        $routeParams = $this->calendarRouteParams($request, $companies, $activeCompanyIds, $activeCategories, $filtersActive);
 
         return view('cash-flow.calendar', [
             'view' => $view,
@@ -87,6 +85,7 @@ class CashFlowCalendarController extends Controller
             'companies' => $companies,
             'activeCompanyIds' => $activeCompanyIds,
             'showCompanyLabels' => $showCompanyLabels,
+            'filtersActive' => $filtersActive,
             'totalPeriod' => $totalPeriod,
             'totalsByCategory' => $totalsByCategory,
             'totalsByCompany' => $totalsByCompany,
@@ -105,18 +104,38 @@ class CashFlowCalendarController extends Controller
     {
         $accessibleIds = $companies->pluck('id')->all();
 
-        if (! $request->has('companies')) {
+        if (! $request->boolean('filters')) {
             return $accessibleIds;
         }
 
-        $requested = collect($request->query('companies', []))
+        if ($companies->count() <= 1) {
+            return $accessibleIds;
+        }
+
+        return collect($request->query('companies', []))
             ->map(fn ($id) => (int) $id)
             ->filter(fn ($id) => in_array($id, $accessibleIds, true))
             ->unique()
             ->values()
             ->all();
+    }
 
-        return $requested !== [] ? $requested : $accessibleIds;
+    /**
+     * @param  array<string, array{label: string, badge: string, color: string}>  $categories
+     * @return array<int, string>
+     */
+    protected function resolveActiveCategories(Request $request, array $categories): array
+    {
+        $all = array_keys($categories);
+
+        if (! $request->boolean('filters')) {
+            return $all;
+        }
+
+        return collect($request->query('categories', []))
+            ->filter(fn ($c) => isset($categories[$c]))
+            ->values()
+            ->all();
     }
 
     /**
@@ -137,20 +156,28 @@ class CashFlowCalendarController extends Controller
     }
 
     /**
+     * @param  Collection<int, Company>  $companies
      * @param  array<int, int>  $activeCompanyIds
      * @param  array<int, string>  $activeCategories
      * @return array<string, mixed>
      */
-    protected function calendarRouteParams(Request $request, array $activeCompanyIds, array $activeCategories): array
-    {
-        $params = [];
-
-        $allCategories = array_keys(CashFlowCalendarService::categoryMeta());
-        if ($activeCategories !== [] && count($activeCategories) < count($allCategories)) {
-            $params['categories'] = $activeCategories;
+    protected function calendarRouteParams(
+        Request $request,
+        Collection $companies,
+        array $activeCompanyIds,
+        array $activeCategories,
+        bool $filtersActive,
+    ): array {
+        if (! $filtersActive) {
+            return [];
         }
 
-        if ($request->has('companies')) {
+        $params = [
+            'filters' => 1,
+            'categories' => $activeCategories,
+        ];
+
+        if ($companies->count() > 1) {
             $params['companies'] = $activeCompanyIds;
         }
 
