@@ -26,6 +26,7 @@ class NavigationCatalogTest extends TestCase
     public function test_shortcut_key_for_route_maps_correctly(): void
     {
         $this->assertSame('purchase-invoices', NavigationCatalog::shortcutKeyForRoute('purchase-invoices.index'));
+        $this->assertSame('cash-flow', NavigationCatalog::shortcutKeyForRoute('cash-flow.index'));
         $this->assertSame('portal-payslips', NavigationCatalog::shortcutKeyForRoute('portal.payslips'));
         $this->assertNull(NavigationCatalog::shortcutKeyForRoute('unknown.route'));
     }

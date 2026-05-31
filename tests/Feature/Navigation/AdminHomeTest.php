@@ -85,6 +85,41 @@ class AdminHomeTest extends TestCase
         ]);
     }
 
+    public function test_cash_flow_navigation_is_tracked_on_home(): void
+    {
+        $this->seed(\Database\Seeders\CashFlowPermissionsSeeder::class);
+        Permission::findOrCreate('compras.section', 'web');
+
+        $company = \App\Models\Company::query()->create([
+            'name' => 'Empresa Home CF',
+            'cuit' => '30-71000099-7',
+            'tax_condition' => 'responsable_inscripto',
+        ]);
+
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+        $user->givePermissionTo(['cash-flow.view', 'compras.section']);
+        $user->companies()->attach($company->id, ['is_default' => true]);
+
+        $this->actingAs($user)
+            ->withSession(['active_company_id' => $company->id])
+            ->get(route('cash-flow.index'))
+            ->assertOk();
+
+        $this->assertDatabaseHas('user_navigation_stats', [
+            'user_id' => $user->id,
+            'shortcut_key' => 'cash-flow',
+            'hit_count' => 1,
+        ]);
+
+        UserNavigationStat::where('user_id', $user->id)->update(['hit_count' => 20]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Calendario de vencimientos');
+    }
+
     public function test_home_orders_shortcuts_by_usage(): void
     {
         $user = User::factory()->create();
