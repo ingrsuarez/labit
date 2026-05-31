@@ -51,14 +51,18 @@ class CompanySeeder extends Seeder
             ]
         );
 
-        $admin = User::role('admin')->first()
-            ?? User::where('email', env('ADMIN_EMAIL', 'admin@admin'))->first();
+        $companyPivot = [
+            $unipersonal->id => ['is_default' => false],
+            $sociedad->id => ['is_default' => true],
+        ];
 
-        if ($admin) {
-            $admin->companies()->syncWithoutDetaching([
-                $unipersonal->id => ['is_default' => false],
-                $sociedad->id => ['is_default' => true],
-            ]);
+        foreach (User::role('admin')->get() as $adminUser) {
+            $adminUser->companies()->syncWithoutDetaching($companyPivot);
+        }
+
+        $envAdmin = User::where('email', env('ADMIN_EMAIL', 'admin@admin'))->first();
+        if ($envAdmin && $envAdmin->companies()->count() === 0) {
+            $envAdmin->companies()->syncWithoutDetaching($companyPivot);
         }
     }
 }

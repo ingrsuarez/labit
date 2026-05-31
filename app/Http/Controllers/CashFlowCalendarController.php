@@ -27,7 +27,7 @@ class CashFlowCalendarController extends Controller
             $to = $anchor->copy()->endOfMonth();
         }
 
-        $companyId = (int) active_company_id();
+        $companyId = active_company_id_or_abort();
         $events = $service->eventsForRange($companyId, $from, $to);
         $categories = CashFlowCalendarService::categoryMeta();
         $settings = CashFlowSetting::forCompany($companyId);

@@ -26,7 +26,7 @@ class CashFlowObligationController extends Controller
 
         CashFlowObligation::query()->create([
             ...$validated,
-            'company_id' => active_company_id(),
+            'company_id' => active_company_id_or_abort(),
             'created_by' => auth()->id(),
         ]);
 
@@ -86,7 +86,7 @@ class CashFlowObligationController extends Controller
 
     protected function assertCompany(CashFlowObligation $obligation): void
     {
-        if ((int) $obligation->company_id !== (int) active_company_id()) {
+        if ((int) $obligation->company_id !== active_company_id_or_abort()) {
             abort(404);
         }
     }

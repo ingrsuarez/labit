@@ -13,7 +13,7 @@ class CashFlowSettingController extends Controller
     {
         $this->authorize('cash-flow.manage');
 
-        $settings = CashFlowSetting::forCompany((int) active_company_id());
+        $settings = CashFlowSetting::forCompany(active_company_id_or_abort());
 
         return view('cash-flow.settings', compact('settings'));
     }
@@ -27,7 +27,7 @@ class CashFlowSettingController extends Controller
             'form931_due_day' => ['required', 'integer', 'min:1', 'max:28'],
         ]);
 
-        $settings = CashFlowSetting::forCompany((int) active_company_id());
+        $settings = CashFlowSetting::forCompany(active_company_id_or_abort());
         $settings->update($validated);
 
         return redirect()
