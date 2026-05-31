@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-30 (**v1.113.1** calendario flujo de caja planificado)
+> Última actualización: 2026-05-31 (**v1.113.3** calendario flujo de caja)
 
 ---
 
@@ -172,14 +172,18 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 |---|---|---|---|---|
 | v1.113.0 | DDJJ Formulario 931 + plan de cuentas aportes/contribuciones patronales | ✅ Completada (2026-05-30) | `completados/v1.113.0-ddjj-formulario-931-plan-cuentas.md` |
 | v1.113.1 | Calendario de vencimientos / flujo de caja | ✅ Completada (2026-05-30) | `completados/v1.113.1-calendario-vencimientos-flujo-caja.md` |
+| v1.113.2 | Fix empresa activa y selector de empresas (cash-flow) | ✅ Completada (2026-05-31) | — |
+| v1.113.3 | Cheques propios de OP en calendario + mejoras UI | ✅ Completada (2026-05-31) | — |
 
 **Completada recientemente:**
+- **v1.113.3** — Cheques propios de OP en calendario + mejoras UI (2026-05-31)
+- **v1.113.2** — Fix empresa activa y selector de empresas (2026-05-31)
 - **v1.113.1** — Calendario de vencimientos / flujo de caja (2026-05-30)
 - **v1.113.0** — DDJJ Formulario 931 (2026-05-30)
 
 **Candidatos sin versión (no planificados):**
 - Hotfix ZPL Zebra — etiquetas podrían seguir usando solo `protocol_number` mientras el barcode extendido es `protocol^material` (tensión v1.48.5).
-- **v1.113.2** — Export PDF/Excel del calendario de flujo de caja (complemento v1.113.1).
+- **v1.113.4** — Export PDF/Excel del calendario de flujo de caja (complemento v1.113.1).
 
 ---
 
@@ -265,7 +269,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 - **Lector QR facturas de compra**: ~~escaneo de QR de facturas recibidas para autocompletar datos~~ → completado en v1.28.0
 - **UI/UX**: auditoría visual, migración de componentes, design system
 - **Facturación masiva**: ~~borrador editable + líneas extras antes de AFIP~~ → **v1.65.0** (completada). Futuro: catálogo de servicios facturables recurrentes, auto-guardado del borrador.
-- **Dashboard ejecutivo**: ~~panel financiero + reubicación RRHH~~ → **v1.66.0** (completada). ~~Calendario vencimientos / flujo de caja~~ → **v1.113.1** (planificado; requiere **v1.113.0** DDJJ 931). Futuro: drilldown desde gráficos (v1.66.1), saldos de tesorería + deudores (v1.66.2), export calendario (v1.113.2).
+- **Dashboard ejecutivo**: ~~panel financiero + reubicación RRHH~~ → **v1.66.0** (completada). ~~Calendario vencimientos / flujo de caja~~ → **v1.113.1** (completada). Futuro: drilldown desde gráficos (v1.66.1), saldos de tesorería + deudores (v1.66.2), export calendario (v1.113.4).
 - **Recibos de cobro**: ~~retenciones sufridas en cobranzas~~ → **v1.40.0**; ~~PDF para cliente~~ → **v1.41.0**; cobro parcial — UX y validación de saldo (candidato futuro)
 - **Testing**: suite de tests automatizados, cobertura mínima
 - **DevOps**: CI/CD, ambientes de staging, deploy automatizado
@@ -279,7 +283,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 ## Progreso general
 
 ```
-Completadas (develop): ver STATUS.md — última v1.113.1 (2026-05-30)
+Completadas (develop): ver STATUS.md — última v1.113.3 (2026-05-31)
 Backlog labit:         0
 Cola prompts v*:       vacía
 LISCOM (interfases):   3 pendientes — v1.49.0, v1.50.0, v1.52.0
@@ -289,5 +293,5 @@ En proceso:            0
 ---
 
 > Este documento se actualiza al finalizar cada versión o sesión de planificación.
-> Última actualización: 2026-05-30 — v1.113.0/v1.113.1 calendario flujo de caja planificado
+> Última actualización: 2026-05-31 — v1.113.2/v1.113.3 calendario flujo de caja
 

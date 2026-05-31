@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-30 (**v1.113.1** calendario flujo de caja)
+> Última actualización: 2026-05-31 (**v1.113.3** calendario flujo de caja — cheques OP + UI)
 
 ---
 
@@ -9,8 +9,8 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **develop**: **v1.113.1** (calendario vencimientos / flujo de caja) |
-| **Última completada (cola agente)** | **v1.113.1** — Calendario de vencimientos / flujo de caja |
+| **Versión actual (línea v1.x)** | **develop**: **v1.113.3** (cheques OP en calendario + UI) |
+| **Última completada (cola agente)** | **v1.113.3** — Cheques propios de OP en calendario y mejoras UI |
 | **En proceso** | — |
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
 | **Pendientes en cola** | 0 prompts `v*` |
@@ -34,6 +34,8 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.113.3 | Cheques propios de OP en calendario + mejoras UI | 2026-05-31 | v1.113.3 |
+| v1.113.2 | Fix empresa activa y selector de empresas (cash-flow) | 2026-05-31 | v1.113.2 |
 | v1.113.1 | Calendario de vencimientos / flujo de caja | 2026-05-30 | v1.113.1 |
 | v1.113.0 | DDJJ Formulario 931 + plan de cuentas | 2026-05-30 | v1.113.0 |
 | v1.112.1 | Portal home con cards aprendidas + perfil del empleado | 2026-05-30 | v1.112.1 |
