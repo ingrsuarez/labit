@@ -16,10 +16,11 @@
         'estimated' => 'Estimado',
         'manual' => 'Manual',
     ];
+    $navParams = fn (array $extra = []) => array_merge($routeParams, $extra);
 @endphp
 
 <x-admin-layout>
-    <div class="p-4 md:p-6" x-data="{ selected: null }">
+    <div class="p-4 md:p-6" x-data="{ selected: null, showCompanyLabels: @js($showCompanyLabels) }">
         <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-6">
             <div>
                 <nav class="text-sm text-gray-500 mb-1">
@@ -44,14 +45,14 @@
             </div>
             <div class="flex flex-wrap gap-2 items-center">
                 <div class="inline-flex rounded-lg border border-gray-200 overflow-hidden text-sm">
-                    <a href="{{ route('cash-flow.index', ['view' => 'month', 'date' => $anchor->toDateString()]) }}"
+                    <a href="{{ route('cash-flow.index', $navParams(['view' => 'month', 'date' => $anchor->toDateString()])) }}"
                        class="px-3 py-2 {{ $view === 'month' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }}">Mes</a>
-                    <a href="{{ route('cash-flow.index', ['view' => 'week', 'date' => $anchor->toDateString()]) }}"
+                    <a href="{{ route('cash-flow.index', $navParams(['view' => 'week', 'date' => $anchor->toDateString()])) }}"
                        class="px-3 py-2 {{ $view === 'week' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50' }}">Semana</a>
                 </div>
-                <a href="{{ route('cash-flow.index', ['view' => $view, 'date' => $prevDate]) }}" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">←</a>
-                <a href="{{ route('cash-flow.index', ['view' => $view, 'date' => now()->toDateString()]) }}" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">Hoy</a>
-                <a href="{{ route('cash-flow.index', ['view' => $view, 'date' => $nextDate]) }}" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">→</a>
+                <a href="{{ route('cash-flow.index', $navParams(['view' => $view, 'date' => $prevDate])) }}" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">←</a>
+                <a href="{{ route('cash-flow.index', $navParams(['view' => $view, 'date' => now()->toDateString()])) }}" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">Hoy</a>
+                <a href="{{ route('cash-flow.index', $navParams(['view' => $view, 'date' => $nextDate])) }}" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">→</a>
                 @can('cash-flow.manage')
                     <a href="{{ route('cash-flow.obligations.create') }}" class="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">+ Obligación</a>
                     <a href="{{ route('cash-flow.settings.edit') }}" class="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Configuración</a>
@@ -109,8 +110,14 @@
                                         <div class="space-y-1.5 flex-1 overflow-hidden">
                                             @foreach($dayEvents->take(4) as $ev)
                                                 <button type="button" @click="selected = @js($ev)"
-                                                    class="w-full text-left text-[11px] leading-snug px-1.5 py-1 rounded border truncate {{ $colorClasses[$ev['category_color']] ?? $colorClasses['gray'] }}">
-                                                    ${{ number_format($ev['amount'], 0, ',', '.') }}
+                                                    title="{{ $showCompanyLabels ? $ev['company_short_name'].' · '.$ev['title'].' · $'.number_format($ev['amount'], 0, ',', '.') : $ev['title'].' · $'.number_format($ev['amount'], 0, ',', '.') }}"
+                                                    class="w-full text-left text-[11px] leading-snug px-1.5 py-1 rounded border {{ $colorClasses[$ev['category_color']] ?? $colorClasses['gray'] }}">
+                                                    @if($showCompanyLabels)
+                                                        <div class="font-semibold truncate" title="{{ $ev['company_name'] }}">{{ $ev['company_short_name'] }}</div>
+                                                        <div class="truncate">${{ number_format($ev['amount'], 0, ',', '.') }}</div>
+                                                    @else
+                                                        <div class="truncate">${{ number_format($ev['amount'], 0, ',', '.') }}</div>
+                                                    @endif
                                                 </button>
                                             @endforeach
                                             @if($dayEvents->count() > 4)
@@ -138,6 +145,9 @@
                                     @forelse($dayEvents as $ev)
                                         <button type="button" @click="selected = @js($ev)"
                                             class="w-full text-left p-2 rounded-lg border text-xs {{ $colorClasses[$ev['category_color']] ?? $colorClasses['gray'] }}">
+                                            @if($showCompanyLabels)
+                                                <div class="font-semibold truncate text-[10px] uppercase tracking-wide opacity-80">{{ $ev['company_short_name'] }}</div>
+                                            @endif
                                             <div class="font-medium truncate">{{ $ev['title'] }}</div>
                                             <div>${{ number_format($ev['amount'], 2, ',', '.') }}</div>
                                         </button>
@@ -162,8 +172,46 @@
                             </div>
                         @endforeach
                     </div>
-                    <p class="text-xs text-gray-500 mt-3">IVA vence día {{ $settings->iva_due_day }} · 931 día {{ $settings->form931_due_day }}</p>
+                    <p class="text-xs text-gray-500 mt-3">{{ $settingsLegend }}</p>
                 </div>
+
+                @if($companies->count() > 1)
+                    <div class="bg-white rounded-xl border border-gray-200 p-4">
+                        <h2 class="text-sm font-semibold text-gray-900 mb-3">Empresas</h2>
+                        <form method="GET" action="{{ route('cash-flow.index') }}" class="space-y-2">
+                            <input type="hidden" name="view" value="{{ $view }}">
+                            <input type="hidden" name="date" value="{{ $anchor->toDateString() }}">
+                            @foreach($activeCategories as $cat)
+                                <input type="hidden" name="categories[]" value="{{ $cat }}">
+                            @endforeach
+                            @foreach($companies as $company)
+                                <label class="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
+                                    <input type="checkbox" name="companies[]" value="{{ $company->id }}"
+                                        {{ in_array($company->id, $activeCompanyIds, true) ? 'checked' : '' }}
+                                        class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                    <span class="truncate" title="{{ $company->name }}">{{ $company->displayName() }}</span>
+                                </label>
+                            @endforeach
+                            <button type="submit" class="mt-2 w-full px-3 py-1.5 text-xs font-medium bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700">
+                                Aplicar filtro
+                            </button>
+                        </form>
+                    </div>
+                @endif
+
+                @if($showCompanyLabels && $totalsByCompany->isNotEmpty())
+                    <div class="bg-white rounded-xl border border-gray-200 p-4">
+                        <h2 class="text-sm font-semibold text-gray-900 mb-3">Totales por empresa</h2>
+                        <dl class="space-y-2 text-sm">
+                            @foreach($totalsByCompany as $companyTotal)
+                                <div class="flex justify-between gap-2">
+                                    <dt class="text-gray-600 truncate">{{ $companyTotal['name'] }}</dt>
+                                    <dd class="font-medium whitespace-nowrap">${{ number_format($companyTotal['total'], 2, ',', '.') }}</dd>
+                                </div>
+                            @endforeach
+                        </dl>
+                    </div>
+                @endif
 
                 <div class="bg-white rounded-xl border border-gray-200 p-4">
                     <h2 class="text-sm font-semibold text-gray-900 mb-3">Totales por categoría</h2>
@@ -187,6 +235,9 @@
                     <div>
                         <h3 class="text-lg font-bold text-gray-900" x-text="selected.title"></h3>
                         <p class="text-sm text-gray-500 mt-1" x-text="selected.category_label"></p>
+                        <p class="text-sm text-gray-600 mt-2" x-show="showCompanyLabels && selected.company_short_name">
+                            Empresa: <span class="font-medium" x-text="selected.company_short_name" :title="selected.company_name"></span>
+                        </p>
                         <p class="text-2xl font-bold text-gray-900 mt-3" x-text="'$' + Number(selected.amount).toLocaleString('es-AR', {minimumFractionDigits: 2})"></p>
                         <p class="text-sm text-gray-600 mt-2">
                             Vencimiento: <span x-text="selected.date"></span>
