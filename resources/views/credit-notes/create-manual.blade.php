@@ -14,7 +14,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <p class="text-sm text-blue-800">
-                    Esta nota de crédito no se enviará a AFIP. Para NC electrónicas, generarlas desde la factura de venta.
+                    Registro de una NC ya emitida (puede ser de un punto de venta electrónico). No se enviará a AFIP.
+                    Para <strong>emitir una NC electrónica nueva</strong>, usá <strong>Crear NC</strong> desde la factura de venta asociada.
                 </p>
             </div>
         </div>
