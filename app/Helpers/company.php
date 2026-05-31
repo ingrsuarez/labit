@@ -117,3 +117,52 @@ if (! function_exists('billing_entity_display_name')) {
         ) ?? $normalized;
     }
 }
+
+if (! function_exists('billing_patient_display_name')) {
+    /**
+     * Apellido y nombre del paciente con capitalización para reportes de facturación.
+     *
+     * @return string Formato "Apellido, Nombre" o "N/A" si no hay datos.
+     */
+    function billing_patient_display_name(?string $lastName, ?string $firstName): string
+    {
+        $last = billing_entity_display_name(trim((string) $lastName));
+        $first = billing_entity_display_name(trim((string) $firstName));
+
+        if ($last === '' && $first === '') {
+            return 'N/A';
+        }
+
+        if ($last === '') {
+            return $first;
+        }
+
+        if ($first === '') {
+            return $last;
+        }
+
+        return $last.', '.$first;
+    }
+}
+
+if (! function_exists('billing_patient_summary_name')) {
+    /**
+     * Nombre del paciente para columnas resumidas (nombre + apellido).
+     */
+    function billing_patient_summary_name(?string $lastName, ?string $firstName): string
+    {
+        $formatted = billing_patient_display_name($lastName, $firstName);
+
+        if ($formatted === 'N/A') {
+            return $formatted;
+        }
+
+        if (! str_contains($formatted, ', ')) {
+            return $formatted;
+        }
+
+        [$last, $first] = explode(', ', $formatted, 2);
+
+        return trim($first.' '.$last);
+    }
+}

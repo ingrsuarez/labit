@@ -492,6 +492,72 @@ class CashFlowCalendarTest extends TestCase
             ->assertSee('Filtros');
     }
 
+    public function test_fixed_expense_projects_only_for_company_of_latest_invoice(): void
+    {
+        $companyA = Company::query()->create([
+            'name' => 'Olla Clara Silvina',
+            'short_name' => 'OCS',
+            'cuit' => '30-71000019-7',
+            'tax_condition' => 'responsable_inscripto',
+        ]);
+        $companyB = Company::query()->create([
+            'name' => 'IPAC SAS',
+            'short_name' => 'IPAC',
+            'cuit' => '30-71000020-7',
+            'tax_condition' => 'responsable_inscripto',
+        ]);
+        $user = User::factory()->create();
+        $supplier = Supplier::create([
+            'code' => 'S-ALQ',
+            'name' => 'CONDOMINIO BIANCHI',
+            'tax_id' => '30-66666666-6',
+            'status' => 'activo',
+            'is_fixed_expense' => true,
+        ]);
+
+        PurchaseInvoice::create([
+            'company_id' => $companyA->id,
+            'supplier_id' => $supplier->id,
+            'invoice_number' => '231',
+            'voucher_type' => 'A',
+            'point_of_sale' => '1',
+            'issue_date' => '2026-02-06',
+            'due_date' => '2026-03-06',
+            'subtotal' => 3872000,
+            'total' => 3872000,
+            'balance' => 0,
+            'status' => 'pagada',
+            'created_by' => $user->id,
+        ]);
+
+        PurchaseInvoice::create([
+            'company_id' => $companyB->id,
+            'supplier_id' => $supplier->id,
+            'invoice_number' => '37',
+            'voucher_type' => 'A',
+            'point_of_sale' => '1',
+            'issue_date' => '2026-05-05',
+            'due_date' => '2026-06-04',
+            'subtotal' => 4198700,
+            'total' => 4198700,
+            'balance' => 4198700,
+            'status' => 'pendiente',
+            'created_by' => $user->id,
+        ]);
+
+        $service = app(CashFlowCalendarService::class);
+        $events = $service->eventsForCompanies(
+            collect([$companyA, $companyB]),
+            Carbon::parse('2026-08-01'),
+            Carbon::parse('2026-08-31')
+        );
+
+        $fixed = $events->where('category', 'gasto_fijo')->values();
+        $this->assertCount(1, $fixed);
+        $this->assertSame($companyB->id, $fixed->first()['company_id']);
+        $this->assertEquals(4198700.0, $fixed->first()['amount']);
+    }
+
     public function test_event_ids_unique_across_companies(): void
     {
         $companyA = Company::query()->create([
