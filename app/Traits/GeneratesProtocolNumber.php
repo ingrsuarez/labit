@@ -47,7 +47,12 @@ trait GeneratesProtocolNumber
     }
 
     /**
-     * Ejecuta un callback dentro de una transacción, reintentando ante colisión de protocol_number.
+     * Ejecuta un callback dentro de una transacción, reintentando ante:
+     * - Colisión de protocol_number (duplicate key 23000/1062)
+     * - Lock wait timeout (HY000/1205): el driver lo lanza como QueryException, pero
+     *   cuando hay una transacción anidada activa, Laravel lo envuelve en DeadlockException
+     *   (que extiende PDOException, no QueryException) antes de re-lanzarlo.
+     *   Por eso capturamos ambos tipos por separado.
      *
      * @template T
      *
@@ -61,7 +66,34 @@ trait GeneratesProtocolNumber
         for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
             try {
                 return DB::transaction($callback);
+            } catch (\Illuminate\Database\DeadlockException $e) {
+                // Laravel convierte HY000/1205 (lock wait timeout) en DeadlockException
+                // cuando está dentro de una transacción anidada. Siempre es transitorio.
+                $lastException = $e;
+
+                usleep(random_int(50_000, 200_000));
+
+                Log::warning('Lock wait timeout (DeadlockException) al generar protocol_number, reintentando', [
+                    'model' => static::class,
+                    'attempt' => $attempt,
+                    'max_attempts' => $maxAttempts,
+                ]);
             } catch (QueryException $e) {
+                if (static::isLockWaitTimeoutException($e)) {
+                    // Error 1205 directo del driver (sin transacción anidada activa).
+                    $lastException = $e;
+
+                    usleep(random_int(50_000, 200_000));
+
+                    Log::warning('Lock wait timeout al generar protocol_number, reintentando', [
+                        'model' => static::class,
+                        'attempt' => $attempt,
+                        'max_attempts' => $maxAttempts,
+                    ]);
+
+                    continue;
+                }
+
                 if (! static::isProtocolNumberDuplicateException($e)) {
                     throw $e;
                 }
@@ -77,6 +109,12 @@ trait GeneratesProtocolNumber
         }
 
         throw $lastException;
+    }
+
+    protected static function isLockWaitTimeoutException(QueryException $e): bool
+    {
+        // MySQL/MariaDB error 1205: Lock wait timeout exceeded; try restarting transaction
+        return (int) ($e->errorInfo[1] ?? 0) === 1205;
     }
 
     protected static function isProtocolNumberDuplicateException(QueryException $e): bool
