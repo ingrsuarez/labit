@@ -88,7 +88,7 @@ class SupplyController extends Controller
         $validated['stock'] = 0;
         $validated['last_price'] = 0;
         $validated['is_active'] = true;
-        $validated['tracks_lot'] = $request->has('tracks_lot');
+        $validated['tracks_lot'] = $request->boolean('tracks_lot');
         $validated['min_stock'] = $validated['min_stock'] ?? 0;
 
         $supply = Supply::create($validated);
@@ -149,7 +149,7 @@ class SupplyController extends Controller
         ]);
 
         $validated['is_active'] = $request->has('is_active');
-        $validated['tracks_lot'] = $request->has('tracks_lot');
+        $validated['tracks_lot'] = $request->boolean('tracks_lot');
         $validated['min_stock'] = $validated['min_stock'] ?? 0;
 
         $supply->update($validated);

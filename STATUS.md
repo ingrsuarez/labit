@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-05-31 (**hotfix** capitalización nombres en reportes clínicos)
+> Última actualización: 2026-05-31 (**hotfix** insumo sin lote en remitos)
 
 ---
 
@@ -15,7 +15,7 @@
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
 | **Pendientes en cola** | 0 prompts `v*` |
 | **Completadas** | 171+ |
-| **Working tree** | Limpio (2026-05-31); hotfix `reportes-capitalizar-nombres-pacientes` mergeado a develop |
+| **Working tree** | Limpio (2026-05-31); hotfix `remito-insumo-sin-lote-tracks-lot-json` mergeado a develop |
 
 ---
 
@@ -41,7 +41,7 @@ Handoffs PM→Dev trackeados: v1.46.0 … v1.112.1 + **v1.113.0**, **v1.113.1**.
 
 _Sin prompts con prefijo `v` en cola._
 
-> v1.112.1 completado 2026-05-30 (portal home con cards aprendidas + perfil). v1.112.0 completado 2026-05-30 (home personalizado con aprendizaje de accesos). hotfix `reportes-capitalizar-nombres-pacientes` completado 2026-05-31 (capitalización apellido/nombre en reportes mensuales clínicos — Excel/PDF/web). (hotfix: fix ingesta OUT_OF_BRANCH con key global — skip branch check en `ApiResultIngestionService`). v1.76.1 completado 2026-05-07 (hotfix: API key global sin sede para LISCOM). v1.76.0 completado 2026-05-07 (marca de ratificación en determinaciones). hotfix `pdf-mail-jerarquia` completado 2026-05-08 (fix PDF por mail: jerarquía padre-hijo idéntica al PDF directo). hotfix `pdf-filename-paciente-dni-fecha` completado 2026-05-08 (nombre de archivo PDF: nombre_paciente-dni-fecha.pdf en email y descarga manual — lab clínico, vet y muestras). hotfix `a25-mappings-buscador` completado 2026-05-08 (combobox Alpine.js con búsqueda client-side en create y edit de equivalencias A25; fix route model binding `{mapping}`). hotfix `a25-multi-test-mapping` completado 2026-05-09 (tabla pivot `a25_analyte_mapping_tests`; múltiples determinaciones Labit por equivalencia A25; parser aplica resultado a todas las mapeadas).
+> v1.112.1 completado 2026-05-30 (portal home con cards aprendidas + perfil). v1.112.0 completado 2026-05-30 (home personalizado con aprendizaje de accesos). hotfix `remito-insumo-sin-lote-tracks-lot-json` completado 2026-05-31 (crear insumo desde remito con tracks_lot false ya no exige lote al aceptar). hotfix `reportes-capitalizar-nombres-pacientes` completado 2026-05-31 (capitalización apellido/nombre en reportes mensuales clínicos — Excel/PDF/web). (hotfix: fix ingesta OUT_OF_BRANCH con key global — skip branch check en `ApiResultIngestionService`). v1.76.1 completado 2026-05-07 (hotfix: API key global sin sede para LISCOM). v1.76.0 completado 2026-05-07 (marca de ratificación en determinaciones). hotfix `pdf-mail-jerarquia` completado 2026-05-08 (fix PDF por mail: jerarquía padre-hijo idéntica al PDF directo). hotfix `pdf-filename-paciente-dni-fecha` completado 2026-05-08 (nombre de archivo PDF: nombre_paciente-dni-fecha.pdf en email y descarga manual — lab clínico, vet y muestras). hotfix `a25-mappings-buscador` completado 2026-05-08 (combobox Alpine.js con búsqueda client-side en create y edit de equivalencias A25; fix route model binding `{mapping}`). hotfix `a25-multi-test-mapping` completado 2026-05-09 (tabla pivot `a25_analyte_mapping_tests`; múltiples determinaciones Labit por equivalencia A25; parser aplica resultado a todas las mapeadas).
 
 ### En proceso (0)
 

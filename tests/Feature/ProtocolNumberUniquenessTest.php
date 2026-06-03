@@ -7,6 +7,7 @@ use App\Models\Insurance;
 use App\Models\Patient;
 use App\Models\Test;
 use App\Models\User;
+use Illuminate\Database\DeadlockException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -90,6 +91,32 @@ class ProtocolNumberUniquenessTest extends TestCase
         $number = $this->generateProtocolInTransaction();
 
         $this->assertMatchesRegularExpression('/^C\d{10}$/', $number);
+    }
+
+    public function test_retry_on_lock_wait_timeout(): void
+    {
+        // En producción, cuando lockForUpdate() agota el tiempo de espera, MySQL lanza
+        // error 1205. Laravel lo intercepta en ManagesTransactions y lo re-envuelve en
+        // DeadlockException con el mensaje original antes de re-lanzarlo.
+        // Verificamos que retryOnProtocolNumberCollision reintenta en ese escenario.
+        $calls = 0;
+
+        $result = Admission::retryOnProtocolNumberCollision(function () use (&$calls) {
+            $calls++;
+
+            if ($calls === 1) {
+                throw new DeadlockException(
+                    'Lock wait timeout exceeded; try restarting transaction (Connection: mysql, SQL: SELECT * FROM `admissions` WHERE `protocol_number` LIKE ? ORDER BY `protocol_number` DESC LIMIT 1 FOR UPDATE)',
+                    0,
+                    new \RuntimeException('Lock wait timeout exceeded')
+                );
+            }
+
+            return 'ok';
+        });
+
+        $this->assertSame('ok', $result);
+        $this->assertSame(2, $calls);
     }
 
     private function generateProtocolInTransaction(): string
