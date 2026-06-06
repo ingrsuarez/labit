@@ -66,4 +66,14 @@ class VetAdmissionTest extends Model
     {
         return $this->result !== null && $this->result !== '';
     }
+
+    /**
+     * La unidad siempre proviene del catálogo (tests.unit).
+     * Nunca se usa el valor almacenado en vet_admission_tests.unit para evitar
+     * que datos de equipos externos (LISCOM) sobreescriban la unidad oficial.
+     */
+    public function getUnitAttribute(): ?string
+    {
+        return $this->test?->unit;
+    }
 }
