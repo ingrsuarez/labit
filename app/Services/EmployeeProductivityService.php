@@ -7,6 +7,8 @@ use App\Models\AdmissionTest;
 use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\LabBranch;
+use App\Models\Leave;
+use App\Models\NonConformity;
 use App\Models\Patient;
 use App\Models\Sample;
 use App\Models\SampleDetermination;
@@ -31,6 +33,211 @@ class EmployeeProductivityService
         'bioquimico' => 3,
         'director-tecnico' => 4,
     ];
+
+    public function employeePeriodReport(Employee $employee, Carbon $start, Carbon $end, ?int $labBranchId = null): ?array
+    {
+        $employee->loadMissing(['user.roles', 'jobs']);
+        $user = $employee->user;
+        if (! $user) {
+            return null;
+        }
+
+        $roles = $this->resolveLabRoles($user, $employee);
+        if ($roles === []) {
+            return null;
+        }
+
+        $rangeStart = $start->copy()->startOfDay();
+        $rangeEnd = $end->copy()->endOfDay();
+        $applicableGroups = $this->applicableMetricGroups($roles);
+
+        $periodProtocols = $this->countProtocolsCreated($rangeStart, $rangeEnd, $labBranchId);
+        $periodMetrics = $this->filterMetricsByGroups(
+            $this->buildMetricsForUser($user->id, $roles, $rangeStart, $rangeEnd, $labBranchId, $periodProtocols),
+            $applicableGroups
+        );
+        $periodRrhh = $this->rrhhMetrics($employee->id, $rangeStart, $rangeEnd);
+
+        $monthlyRows = [];
+        $cursor = $rangeStart->copy()->startOfMonth();
+        while ($cursor->lte($rangeEnd)) {
+            $monthStart = $cursor->copy()->startOfMonth()->max($rangeStart)->startOfDay();
+            $monthEnd = $cursor->copy()->endOfMonth()->min($rangeEnd)->endOfDay();
+            $monthProtocols = $this->countProtocolsCreated($monthStart, $monthEnd, $labBranchId);
+
+            $monthlyRows[] = [
+                'month' => $cursor->format('Y-m'),
+                'month_label' => $cursor->locale('es')->isoFormat('MMMM YYYY'),
+                'protocols_created' => $monthProtocols,
+                'metrics' => $this->filterMetricsByGroups(
+                    $this->buildMetricsForUser($user->id, $roles, $monthStart, $monthEnd, $labBranchId, $monthProtocols),
+                    $applicableGroups
+                ),
+                'rrhh' => $this->rrhhMetricsForMonth($employee->id, $cursor->year, $cursor->month),
+            ];
+
+            $cursor->addMonth()->startOfMonth();
+        }
+
+        return [
+            'employee_id' => $employee->id,
+            'employee_name' => $employee->full_name,
+            'job_name' => $employee->jobs->first()?->name ?? '—',
+            'inferred_branch_name' => $this->inferBranchName($user->id, $rangeStart, $rangeEnd, $labBranchId),
+            'roles' => $roles,
+            'applicable_groups' => $applicableGroups,
+            'period_summary' => [
+                'protocols_created' => $periodProtocols,
+                'metrics' => $periodMetrics,
+                'rrhh' => $periodRrhh,
+            ],
+            'monthly_rows' => $monthlyRows,
+        ];
+    }
+
+    /**
+     * @return array{
+     *     vacation_days: int,
+     *     license_days: int,
+     *     hours_50: int,
+     *     hours_100: int,
+     *     non_conformities: int
+     * }
+     */
+    public function rrhhMetrics(int $employeeId, Carbon $start, Carbon $end): array
+    {
+        $leaves = $this->leavesOverlappingRange($employeeId, $start, $end)->get();
+
+        $vacationDays = 0;
+        $licenseDays = 0;
+        $hours50 = 0;
+        $hours100 = 0;
+
+        foreach ($leaves as $leave) {
+            $days = $this->leaveDaysInRange($leave, $start, $end);
+            $hours50 += (int) ($leave->hour_50 ?? 0);
+            $hours100 += (int) ($leave->hour_100 ?? 0);
+
+            if ($leave->type === 'vacaciones') {
+                $vacationDays += $days;
+            } elseif ($leave->type !== 'horas extra') {
+                $licenseDays += $days;
+            }
+        }
+
+        $nonConformities = NonConformity::query()
+            ->where('employee_id', $employeeId)
+            ->whereDate('date', '>=', $start->toDateString())
+            ->whereDate('date', '<=', $end->toDateString())
+            ->count();
+
+        return [
+            'vacation_days' => $vacationDays,
+            'license_days' => $licenseDays,
+            'hours_50' => $hours50,
+            'hours_100' => $hours100,
+            'non_conformities' => $nonConformities,
+        ];
+    }
+
+    /**
+     * @return array{
+     *     vacation_days: int,
+     *     license_days: int,
+     *     hours_50: int,
+     *     hours_100: int,
+     *     non_conformities: int
+     * }
+     */
+    private function rrhhMetricsForMonth(int $employeeId, int $year, int $month): array
+    {
+        $leaves = Leave::query()
+            ->where('employee_id', $employeeId)
+            ->whereYear('start', $year)
+            ->whereMonth('start', $month)
+            ->get();
+
+        $vacationDays = 0;
+        $licenseDays = 0;
+        $hours50 = 0;
+        $hours100 = 0;
+
+        foreach ($leaves as $leave) {
+            $hours50 += (int) ($leave->hour_50 ?? 0);
+            $hours100 += (int) ($leave->hour_100 ?? 0);
+
+            if ($leave->type === 'vacaciones') {
+                $vacationDays += $leave->working_days;
+            } elseif ($leave->type !== 'horas extra') {
+                $licenseDays += $leave->working_days;
+            }
+        }
+
+        $nonConformities = NonConformity::query()
+            ->where('employee_id', $employeeId)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->count();
+
+        return [
+            'vacation_days' => $vacationDays,
+            'license_days' => $licenseDays,
+            'hours_50' => $hours50,
+            'hours_100' => $hours100,
+            'non_conformities' => $nonConformities,
+        ];
+    }
+
+    private function leavesOverlappingRange(int $employeeId, Carbon $start, Carbon $end): Builder
+    {
+        $rangeStart = $start->toDateString();
+        $rangeEnd = $end->toDateString();
+
+        return Leave::query()
+            ->where('employee_id', $employeeId)
+            ->whereDate('start', '<=', $rangeEnd)
+            ->whereDate('end', '>=', $rangeStart);
+    }
+
+    private function leaveDaysInRange(Leave $leave, Carbon $rangeStart, Carbon $rangeEnd): int
+    {
+        if (! $leave->start || ! $leave->end) {
+            return 0;
+        }
+
+        $effectiveStart = $leave->start->copy()->max($rangeStart->copy()->startOfDay());
+        $effectiveEnd = $leave->end->copy()->min($rangeEnd->copy()->startOfDay());
+
+        if ($effectiveStart->gt($effectiveEnd)) {
+            return 0;
+        }
+
+        return $effectiveStart->diffInDays($effectiveEnd) + 1;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function applicableMetricGroups(array $roles): array
+    {
+        $groups = [];
+
+        if (in_array('recepcion-lab', $roles, true)) {
+            $groups[] = 'reception';
+            $groups[] = 'delivery';
+        }
+        if (in_array('tecnico-lab', $roles, true)) {
+            $groups[] = 'loading';
+            $groups[] = 'technician';
+        }
+        if (in_array('bioquimico', $roles, true) || in_array('director-tecnico', $roles, true)) {
+            $groups[] = 'loading';
+            $groups[] = 'biochemist';
+            $groups[] = 'technician';
+        }
+
+        return array_values(array_unique($groups));
+    }
 
     public function report(Carbon $date, ?int $labBranchId = null, ?int $jobId = null, ?int $employeeId = null): array
     {
@@ -70,30 +277,9 @@ class EmployeeProductivityService
                 continue;
             }
 
-            $hasBiochemistMetrics = in_array('bioquimico', $roles, true)
-                || in_array('director-tecnico', $roles, true);
-
-            $metrics = [];
-            $metrics['delivery'] = $this->deliveryMetrics($user->id, $start, $end, $labBranchId, $protocolsCreated);
-            $totalDelivered += $metrics['delivery']['results_delivered'];
-            $metrics['loading'] = $this->loadingMetrics($user->id, $start, $end, $labBranchId, $protocolsCreated);
-
-            if (in_array('recepcion-lab', $roles, true)) {
-                $metrics['reception'] = $this->receptionMetrics($user->id, $start, $end, $labBranchId);
-            }
-            if (in_array('tecnico-lab', $roles, true)) {
-                $metrics['technician'] = array_merge(
-                    $this->technicianMetrics($user->id, $start, $end, $labBranchId),
-                    $this->sampleDrawMetrics($user->id, $start, $end, $labBranchId)
-                );
-            }
-            if ($hasBiochemistMetrics) {
-                $metrics['biochemist'] = array_merge(
-                    $this->biochemistMetrics($user->id, $start, $end, $labBranchId, $protocolsCreated),
-                    $this->sampleDrawMetrics($user->id, $start, $end, $labBranchId)
-                );
-                $totalValidatedProtocols += $metrics['biochemist']['protocols_validated'];
-            }
+            $metrics = $this->buildMetricsForUser($user->id, $roles, $start, $end, $labBranchId, $protocolsCreated);
+            $totalDelivered += $metrics['delivery']['results_delivered'] ?? 0;
+            $totalValidatedProtocols += $metrics['biochemist']['protocols_validated'] ?? 0;
 
             $rows[] = [
                 'employee_id' => $employee->id,
@@ -123,6 +309,44 @@ class EmployeeProductivityService
             ],
             'rows' => $rows,
         ];
+    }
+
+    private function buildMetricsForUser(int $userId, array $roles, Carbon $start, Carbon $end, ?int $labBranchId, int $protocolsCreated): array
+    {
+        $hasBiochemistMetrics = in_array('bioquimico', $roles, true)
+            || in_array('director-tecnico', $roles, true);
+
+        $metrics = [];
+        $metrics['delivery'] = $this->deliveryMetrics($userId, $start, $end, $labBranchId, $protocolsCreated);
+        $metrics['loading'] = $this->loadingMetrics($userId, $start, $end, $labBranchId, $protocolsCreated);
+
+        if (in_array('recepcion-lab', $roles, true)) {
+            $metrics['reception'] = $this->receptionMetrics($userId, $start, $end, $labBranchId);
+        }
+        if (in_array('tecnico-lab', $roles, true)) {
+            $metrics['technician'] = array_merge(
+                $this->technicianMetrics($userId, $start, $end, $labBranchId),
+                $this->sampleDrawMetrics($userId, $start, $end, $labBranchId)
+            );
+        }
+        if ($hasBiochemistMetrics) {
+            $metrics['biochemist'] = array_merge(
+                $this->biochemistMetrics($userId, $start, $end, $labBranchId, $protocolsCreated),
+                $this->sampleDrawMetrics($userId, $start, $end, $labBranchId)
+            );
+        }
+
+        return $metrics;
+    }
+
+    /**
+     * @param  array<string, array<string, mixed>>  $metrics
+     * @param  list<string>  $groups
+     * @return array<string, array<string, mixed>>
+     */
+    private function filterMetricsByGroups(array $metrics, array $groups): array
+    {
+        return array_intersect_key($metrics, array_flip($groups));
     }
 
     private function countProtocolsCreated(Carbon $start, Carbon $end, ?int $labBranchId): int

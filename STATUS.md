@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-06-06 (**v1.114.0** integración Space10 upload PDF lab clínico)
+> Última actualización: 2026-06-06 (**v1.115.1** métricas RRHH en productividad individual)
 
 ---
 
@@ -9,14 +9,14 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **develop** / **master**: **v1.114.0** |
-| **Última completada (cola agente)** | **v1.114.0** — Integración Space10 upload PDF lab clínico |
+| **Versión actual (línea v1.x)** | **develop** / **master**: **v1.115.1** |
+| **Última completada (cola agente)** | **v1.115.1** — Métricas RRHH en productividad individual (vacaciones, licencias, NC, horas extras) |
 | **Último hotfix** | **2026-06-05** — unidad siempre desde catálogo; 4470 filas BD limpiadas (`getUnitAttribute` accessor) |
 | **En proceso** | — |
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
 | **Pendientes en cola** | 0 prompts `v*` |
 | **Completadas** | 171+ |
-| **Working tree** | Limpio (2026-06-05); hotfix `unidad-siempre-desde-catalogo` mergeado a develop y master |
+| **Working tree** | Limpio (2026-06-06); v1.115.1 en develop y master |
 
 ---
 
@@ -52,6 +52,8 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.115.1 | Métricas RRHH en productividad individual (vacaciones, licencias, NC, horas extras) | 2026-06-06 | v1.115.1 |
+| v1.115.0 | Productividad individual por empleado (rango fechas, desglose mensual, métricas por rol) | 2026-06-06 | v1.115.0 |
 | v1.114.0 | Integración Space10 upload PDF lab clínico | 2026-06-06 | v1.114.0 |
 | v1.113.8 | FC badge con proveedor en calendario | 2026-05-31 | v1.113.8 |
 | v1.113.7 | Badges con descripción + filtros tipo/empresa en header | 2026-05-31 | v1.113.7 |

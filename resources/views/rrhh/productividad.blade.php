@@ -120,8 +120,14 @@
                                     $technician = $row['metrics']['technician'] ?? null;
                                     $biochemist = $row['metrics']['biochemist'] ?? null;
                                 @endphp
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 py-3 font-medium text-gray-900">{{ $row['employee_name'] }}</td>
+                                <tr class="hover:bg-indigo-50 cursor-pointer transition-colors"
+                                    role="link"
+                                    tabindex="0"
+                                    onclick="window.location='{{ route('rrhh.productividad.empleado', $row['employee_id']) }}'"
+                                    onkeydown="if (event.key === 'Enter') window.location='{{ route('rrhh.productividad.empleado', $row['employee_id']) }}'">
+                                    <td class="px-4 py-3 font-medium text-gray-900">
+                                        <span class="text-indigo-700 hover:text-indigo-900">{{ $row['employee_name'] }}</span>
+                                    </td>
                                     <td class="px-3 py-3 text-gray-600">{{ $row['job_name'] }}</td>
                                     <td class="px-3 py-3 text-gray-600">{{ $row['inferred_branch_name'] }}</td>
                                     <td class="px-3 py-3">
