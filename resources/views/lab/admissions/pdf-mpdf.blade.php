@@ -389,14 +389,14 @@
                 <tr class="det-child">
                     <td style="padding-left: {{ $indent }}px;">{{ ucfirst($at->test->name ?? 'N/A') }}</td>
                     <td class="det-result">{{ $at->result ?? '-' }}@if($at->is_ratified)<span style="font-weight:bold;"> *</span>@endif</td>
-                    <td class="det-unit">{{ $at->unit ?? $at->test->unit ?? '' }}</td>
+                    <td class="det-unit">{{ $at->unit ?? '' }}</td>
                     <td class="det-ref">{{ \App\Support\ProtocolReferenceDisplay::line($at->reference_value, $at->test->other_reference ?? null) }}</td>
                 </tr>
             @else
                 <tr class="det-standalone">
                     <td>{{ ucfirst($at->test->name ?? 'N/A') }}</td>
                     <td class="det-result">{{ $at->result ?? '-' }}@if($at->is_ratified)<span style="font-weight:bold;"> *</span>@endif</td>
-                    <td class="det-unit">{{ $at->unit ?? $at->test->unit ?? '' }}</td>
+                    <td class="det-unit">{{ $at->unit ?? '' }}</td>
                     <td class="det-ref">{{ \App\Support\ProtocolReferenceDisplay::line($at->reference_value, $at->test->other_reference ?? null) }}</td>
                 </tr>
             @endif
