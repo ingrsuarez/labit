@@ -763,4 +763,42 @@ class ResultIngestionBatchTest extends TestCase
         $this->assertSame(1, $batch->items_rejected);
         $this->assertSame(0, $batch->items_duplicate);
     }
+
+    public function test_unidad_de_bd_no_se_sobreescribe_con_la_del_equipo(): void
+    {
+        // admission_tests.unit comienza en null.
+        // LISCOM envía unit: 'mg/dL'. La columna unit NO debe ser tocada por la ingesta.
+        // La unidad real se obtiene de tests.unit (catálogo), no de admission_tests.unit.
+        $admission = $this->makeAdmission();
+        $test = Test::query()->create([
+            'code' => 'T_UNIT',
+            'name' => 'Test Unidad',
+            'unit' => 'ng/mL',
+            'price' => 500,
+        ]);
+        $admTest = $this->makeAdmissionTest($admission, $test);
+
+        $payload = $this->batchPayload($this->uuid(), [
+            [
+                'hl7_control_id' => 'ctrl-unit-1',
+                'protocol_number' => $admission->protocol_number,
+                'equipment_name' => 'Cobas',
+                'results' => [
+                    ['labit_test_id' => $test->id, 'value' => '1.50', 'unit' => 'mg/dL', 'obx_index' => 0],
+                ],
+            ],
+        ]);
+
+        $this->withHeaders($this->authHeaders())
+            ->postJson('/api/v1/results/batch', $payload)
+            ->assertStatus(200)
+            ->assertJsonPath('items.0.results.0.status', ApiResultIngestionService::STATUS_INGESTED);
+
+        $admTest->refresh();
+        $this->assertSame('1.50', $admTest->result);
+        // La columna unit del protocolo no debe ser alterada por LISCOM.
+        $this->assertNull($admTest->unit, 'La columna unit de la determinación no debe ser sobreescrita por LISCOM');
+        // La unidad visible en la UI proviene del catálogo (tests.unit).
+        $this->assertSame('ng/mL', $admTest->test->unit);
+    }
 }
