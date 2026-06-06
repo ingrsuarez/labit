@@ -269,9 +269,7 @@ class ApiResultIngestionService
     {
         $determination->result = $result['value'];
 
-        if (in_array('unit', $determination->getFillable(), true) && isset($result['unit'])) {
-            $determination->unit = $result['unit'];
-        }
+        // La unidad se respeta desde la base de datos; nunca se sobreescribe con la del equipo.
 
         if (in_array('analyzed_at', $determination->getFillable(), true)) {
             $determination->analyzed_at = now();
