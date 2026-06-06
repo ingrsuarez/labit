@@ -7,6 +7,8 @@ use App\Models\AdmissionTest;
 use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\LabBranch;
+use App\Models\Leave;
+use App\Models\NonConformity;
 use App\Models\Patient;
 use App\Models\Sample;
 use App\Models\SampleDetermination;
@@ -54,6 +56,7 @@ class EmployeeProductivityService
             $this->buildMetricsForUser($user->id, $roles, $rangeStart, $rangeEnd, $labBranchId, $periodProtocols),
             $applicableGroups
         );
+        $periodRrhh = $this->rrhhMetrics($employee->id, $rangeStart, $rangeEnd);
 
         $monthlyRows = [];
         $cursor = $rangeStart->copy()->startOfMonth();
@@ -70,6 +73,7 @@ class EmployeeProductivityService
                     $this->buildMetricsForUser($user->id, $roles, $monthStart, $monthEnd, $labBranchId, $monthProtocols),
                     $applicableGroups
                 ),
+                'rrhh' => $this->rrhhMetricsForMonth($employee->id, $cursor->year, $cursor->month),
             ];
 
             $cursor->addMonth()->startOfMonth();
@@ -85,9 +89,130 @@ class EmployeeProductivityService
             'period_summary' => [
                 'protocols_created' => $periodProtocols,
                 'metrics' => $periodMetrics,
+                'rrhh' => $periodRrhh,
             ],
             'monthly_rows' => $monthlyRows,
         ];
+    }
+
+    /**
+     * @return array{
+     *     vacation_days: int,
+     *     license_days: int,
+     *     hours_50: int,
+     *     hours_100: int,
+     *     non_conformities: int
+     * }
+     */
+    public function rrhhMetrics(int $employeeId, Carbon $start, Carbon $end): array
+    {
+        $leaves = $this->leavesOverlappingRange($employeeId, $start, $end)->get();
+
+        $vacationDays = 0;
+        $licenseDays = 0;
+        $hours50 = 0;
+        $hours100 = 0;
+
+        foreach ($leaves as $leave) {
+            $days = $this->leaveDaysInRange($leave, $start, $end);
+            $hours50 += (int) ($leave->hour_50 ?? 0);
+            $hours100 += (int) ($leave->hour_100 ?? 0);
+
+            if ($leave->type === 'vacaciones') {
+                $vacationDays += $days;
+            } elseif ($leave->type !== 'horas extra') {
+                $licenseDays += $days;
+            }
+        }
+
+        $nonConformities = NonConformity::query()
+            ->where('employee_id', $employeeId)
+            ->whereDate('date', '>=', $start->toDateString())
+            ->whereDate('date', '<=', $end->toDateString())
+            ->count();
+
+        return [
+            'vacation_days' => $vacationDays,
+            'license_days' => $licenseDays,
+            'hours_50' => $hours50,
+            'hours_100' => $hours100,
+            'non_conformities' => $nonConformities,
+        ];
+    }
+
+    /**
+     * @return array{
+     *     vacation_days: int,
+     *     license_days: int,
+     *     hours_50: int,
+     *     hours_100: int,
+     *     non_conformities: int
+     * }
+     */
+    private function rrhhMetricsForMonth(int $employeeId, int $year, int $month): array
+    {
+        $leaves = Leave::query()
+            ->where('employee_id', $employeeId)
+            ->whereYear('start', $year)
+            ->whereMonth('start', $month)
+            ->get();
+
+        $vacationDays = 0;
+        $licenseDays = 0;
+        $hours50 = 0;
+        $hours100 = 0;
+
+        foreach ($leaves as $leave) {
+            $hours50 += (int) ($leave->hour_50 ?? 0);
+            $hours100 += (int) ($leave->hour_100 ?? 0);
+
+            if ($leave->type === 'vacaciones') {
+                $vacationDays += $leave->working_days;
+            } elseif ($leave->type !== 'horas extra') {
+                $licenseDays += $leave->working_days;
+            }
+        }
+
+        $nonConformities = NonConformity::query()
+            ->where('employee_id', $employeeId)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->count();
+
+        return [
+            'vacation_days' => $vacationDays,
+            'license_days' => $licenseDays,
+            'hours_50' => $hours50,
+            'hours_100' => $hours100,
+            'non_conformities' => $nonConformities,
+        ];
+    }
+
+    private function leavesOverlappingRange(int $employeeId, Carbon $start, Carbon $end): Builder
+    {
+        $rangeStart = $start->toDateString();
+        $rangeEnd = $end->toDateString();
+
+        return Leave::query()
+            ->where('employee_id', $employeeId)
+            ->whereDate('start', '<=', $rangeEnd)
+            ->whereDate('end', '>=', $rangeStart);
+    }
+
+    private function leaveDaysInRange(Leave $leave, Carbon $rangeStart, Carbon $rangeEnd): int
+    {
+        if (! $leave->start || ! $leave->end) {
+            return 0;
+        }
+
+        $effectiveStart = $leave->start->copy()->max($rangeStart->copy()->startOfDay());
+        $effectiveEnd = $leave->end->copy()->min($rangeEnd->copy()->startOfDay());
+
+        if ($effectiveStart->gt($effectiveEnd)) {
+            return 0;
+        }
+
+        return $effectiveStart->diffInDays($effectiveEnd) + 1;
     }
 
     /**

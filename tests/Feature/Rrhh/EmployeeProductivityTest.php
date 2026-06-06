@@ -8,6 +8,8 @@ use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\Job;
 use App\Models\LabBranch;
+use App\Models\Leave;
+use App\Models\NonConformity;
 use App\Models\Patient;
 use App\Models\Test;
 use App\Models\User;
@@ -662,5 +664,81 @@ class EmployeeProductivityTest extends TestCase
         $this->assertContains('technician', $report['applicable_groups']);
         $this->assertNotContains('reception', $report['applicable_groups']);
         $this->assertNotContains('biochemist', $report['applicable_groups']);
+    }
+
+    public function test_productividad_individual_incluye_metricas_rrhh(): void
+    {
+        $branch = LabBranch::query()->create(['name' => 'Sede RRHH', 'is_central' => true, 'is_active' => true]);
+        $user = User::factory()->create();
+        $user->assignRole('bioquimico');
+        $employee = $this->makeEmployee($user, 'RRHH', 'Metrics');
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        Leave::query()->create([
+            'employee_id' => $employee->id,
+            'user_id' => $admin->id,
+            'type' => 'vacaciones',
+            'description' => 'Vacaciones anuales',
+            'start' => now()->startOfMonth()->toDateString(),
+            'end' => now()->startOfMonth()->addDays(4)->toDateString(),
+            'status' => 'aprobado',
+        ]);
+
+        Leave::query()->create([
+            'employee_id' => $employee->id,
+            'user_id' => $admin->id,
+            'type' => 'enfermedad',
+            'description' => 'Certificado médico',
+            'start' => now()->subDays(2)->toDateString(),
+            'end' => now()->toDateString(),
+            'status' => 'aprobado',
+        ]);
+
+        Leave::query()->create([
+            'employee_id' => $employee->id,
+            'user_id' => $admin->id,
+            'type' => 'horas extra',
+            'description' => 'Guardia fin de semana',
+            'start' => now()->toDateString(),
+            'end' => now()->toDateString(),
+            'hour_50' => 4,
+            'hour_100' => 2,
+            'status' => 'aprobado',
+        ]);
+
+        NonConformity::query()->create([
+            'code' => 'NC-'.now()->year.'-001',
+            'employee_id' => $employee->id,
+            'reported_by' => $admin->id,
+            'date' => now()->toDateString(),
+            'type' => 'procedimiento',
+            'severity' => 'leve',
+            'description' => 'Incumplimiento de procedimiento de muestras',
+            'status' => 'abierta',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('rrhh.productividad.empleado', $employee))
+            ->assertOk()
+            ->assertSee('Vacaciones tomadas')
+            ->assertSee('Licencias')
+            ->assertSee('No conformidades')
+            ->assertSee('Horas extras');
+
+        $report = app(EmployeeProductivityService::class)->employeePeriodReport(
+            $employee->load(['user.roles', 'jobs']),
+            now()->subDays(29),
+            now(),
+            $branch->id
+        );
+
+        $rrhh = $report['period_summary']['rrhh'];
+        $this->assertSame(5, $rrhh['vacation_days']);
+        $this->assertSame(3, $rrhh['license_days']);
+        $this->assertSame(4, $rrhh['hours_50']);
+        $this->assertSame(2, $rrhh['hours_100']);
+        $this->assertSame(1, $rrhh['non_conformities']);
     }
 }

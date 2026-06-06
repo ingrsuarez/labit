@@ -91,7 +91,11 @@
             </div>
         </form>
 
-        @php $summary = $report['period_summary']; @endphp
+        @php
+            $summary = $report['period_summary'];
+            $rrhh = $summary['rrhh'] ?? [];
+            $overtimeTotal = ($rrhh['hours_50'] ?? 0) + ($rrhh['hours_100'] ?? 0);
+        @endphp
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-white rounded-xl shadow-sm border p-5">
                 <p class="text-sm text-gray-500">Protocolos del período</p>
@@ -137,6 +141,28 @@
             @endif
         </div>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white rounded-xl shadow-sm border p-5">
+                <p class="text-sm text-amber-600">Vacaciones tomadas</p>
+                <p class="text-2xl font-bold text-gray-900 mt-1">{{ $rrhh['vacation_days'] ?? 0 }} <span class="text-sm font-normal text-gray-500">días</span></p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border p-5">
+                <p class="text-sm text-orange-600">Licencias</p>
+                <p class="text-2xl font-bold text-gray-900 mt-1">{{ $rrhh['license_days'] ?? 0 }} <span class="text-sm font-normal text-gray-500">días</span></p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border p-5">
+                <p class="text-sm text-red-600">No conformidades</p>
+                <p class="text-2xl font-bold text-red-700 mt-1">{{ $rrhh['non_conformities'] ?? 0 }}</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border p-5">
+                <p class="text-sm text-slate-600">Horas extras</p>
+                <p class="text-2xl font-bold text-gray-900 mt-1">{{ $overtimeTotal }}</p>
+                <p class="text-xs text-gray-400 mt-1">
+                    50%: {{ $rrhh['hours_50'] ?? 0 }} · 100%: {{ $rrhh['hours_100'] ?? 0 }}
+                </p>
+            </div>
+        </div>
+
         <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
             <div class="px-4 py-3 border-b bg-gray-50">
                 <h2 class="text-sm font-semibold text-gray-700">Desglose mensual</h2>
@@ -178,6 +204,11 @@
                                 @if ($showTechnician)
                                     <th class="px-3 py-3 text-right text-xs font-medium text-rose-600 uppercase">Extracciones</th>
                                 @endif
+                                <th class="px-3 py-3 text-right text-xs font-medium text-amber-600 uppercase">Vacaciones</th>
+                                <th class="px-3 py-3 text-right text-xs font-medium text-orange-600 uppercase">Licencias</th>
+                                <th class="px-3 py-3 text-right text-xs font-medium text-red-600 uppercase">No conf.</th>
+                                <th class="px-3 py-3 text-right text-xs font-medium text-slate-600 uppercase">Hs 50%</th>
+                                <th class="px-3 py-3 text-right text-xs font-medium text-slate-600 uppercase">Hs 100%</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -188,6 +219,7 @@
                                     $loading = $monthRow['metrics']['loading'] ?? null;
                                     $biochemist = $monthRow['metrics']['biochemist'] ?? null;
                                     $technician = $monthRow['metrics']['technician'] ?? null;
+                                    $monthRrhh = $monthRow['rrhh'] ?? [];
                                 @endphp
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3 font-medium text-gray-900 capitalize">{{ $monthRow['month_label'] }}</td>
@@ -217,6 +249,11 @@
                                     @if ($showTechnician)
                                         <td class="px-3 py-3 text-right font-medium text-rose-700">{{ $technician['samples_drawn'] ?? 0 }}</td>
                                     @endif
+                                    <td class="px-3 py-3 text-right">{{ $monthRrhh['vacation_days'] ?? 0 }}</td>
+                                    <td class="px-3 py-3 text-right">{{ $monthRrhh['license_days'] ?? 0 }}</td>
+                                    <td class="px-3 py-3 text-right font-medium text-red-700">{{ $monthRrhh['non_conformities'] ?? 0 }}</td>
+                                    <td class="px-3 py-3 text-right">{{ $monthRrhh['hours_50'] ?? 0 }}</td>
+                                    <td class="px-3 py-3 text-right">{{ $monthRrhh['hours_100'] ?? 0 }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
