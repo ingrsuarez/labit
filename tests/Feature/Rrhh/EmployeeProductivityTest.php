@@ -529,4 +529,138 @@ class EmployeeProductivityTest extends TestCase
         $response->assertOk();
         $this->assertStringContainsString('text/csv', $response->headers->get('Content-Type') ?? '');
     }
+
+    public function test_fila_productividad_navega_a_detalle_empleado(): void
+    {
+        $branch = LabBranch::query()->create(['name' => 'Sede Link', 'is_central' => true, 'is_active' => true]);
+        $user = User::factory()->create();
+        $user->assignRole('recepcion-lab');
+        $employee = $this->makeEmployee($user, 'Link', 'Recep');
+
+        $patient = Patient::query()->create([
+            'name' => 'P', 'lastName' => 'L', 'patientId' => '30101010',
+            'type' => 'humano', 'sex' => 'M', 'status' => 'activo',
+        ]);
+        $admission = $this->makeAdmission($user, $patient, [
+            'protocol_number' => 'C-KPI-LINK',
+            'lab_branch_id' => $branch->id,
+        ]);
+        $admission->logAudit('created', 'Creó la admisión', $user->id);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)
+            ->get(route('rrhh.productividad'))
+            ->assertOk()
+            ->assertSee(route('rrhh.productividad.empleado', $employee->id), false);
+    }
+
+    public function test_productividad_individual_rango_default_30_dias(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('recepcion-lab');
+        $employee = $this->makeEmployee($user, 'Rango', 'Default');
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $expectedFrom = now()->subDays(29)->toDateString();
+        $expectedTo = now()->toDateString();
+
+        $this->actingAs($admin)
+            ->get(route('rrhh.productividad.empleado', $employee))
+            ->assertOk()
+            ->assertSee('Rango Default')
+            ->assertSee('Desglose mensual')
+            ->assertSee($expectedFrom, false)
+            ->assertSee($expectedTo, false);
+    }
+
+    public function test_recepcionista_productividad_individual_sin_metricas_validacion(): void
+    {
+        $branch = LabBranch::query()->create(['name' => 'Sede Recep Ind', 'is_central' => true, 'is_active' => true]);
+        $user = User::factory()->create();
+        $user->assignRole('recepcion-lab');
+        $employee = $this->makeEmployee($user, 'Solo', 'Recep');
+
+        $patient = Patient::query()->create([
+            'name' => 'P', 'lastName' => 'R', 'patientId' => '30202020',
+            'type' => 'humano', 'sex' => 'F', 'status' => 'activo',
+        ]);
+        $admission = $this->makeAdmission($user, $patient, [
+            'protocol_number' => 'C-KPI-RECEP-IND',
+            'lab_branch_id' => $branch->id,
+            'status' => 'validated',
+        ]);
+        $test = $this->makeTestModel();
+        AdmissionTest::query()->create([
+            'admission_id' => $admission->id,
+            'test_id' => $test->id,
+            'price' => 50,
+            'is_validated' => true,
+            'validated_by' => $user->id,
+            'validated_at' => now(),
+            'result' => '5',
+        ]);
+        $admission->logAudit('created', 'Creó la admisión', $user->id);
+        LogsProtocolDelivery::logResultDeliveredOncePerDay($admission, $user->id);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $response = $this->actingAs($admin)
+            ->get(route('rrhh.productividad.empleado', $employee));
+
+        $response->assertOk()
+            ->assertSee('Protocolos creados')
+            ->assertSee('Resultados entregados')
+            ->assertDontSee('Val. práct.', false)
+            ->assertDontSee('Det. carg.', false)
+            ->assertDontSee('Extracciones', false);
+
+        $report = app(EmployeeProductivityService::class)->employeePeriodReport(
+            $employee->load(['user.roles', 'jobs']),
+            now()->subDays(29),
+            now(),
+            $branch->id
+        );
+
+        $this->assertNotNull($report);
+        $this->assertContains('reception', $report['applicable_groups']);
+        $this->assertContains('delivery', $report['applicable_groups']);
+        $this->assertNotContains('biochemist', $report['applicable_groups']);
+        $this->assertNotContains('loading', $report['applicable_groups']);
+    }
+
+    public function test_tecnico_productividad_individual_sin_metricas_recepcion(): void
+    {
+        $branch = LabBranch::query()->create(['name' => 'Sede Tec Ind', 'is_central' => true, 'is_active' => true]);
+        $user = User::factory()->create();
+        $user->assignRole('tecnico-lab');
+        $employee = $this->makeEmployee($user, 'Solo', 'Tec');
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)
+            ->get(route('rrhh.productividad.empleado', $employee))
+            ->assertOk()
+            ->assertSee('Det. carg.')
+            ->assertSee('Extracciones')
+            ->assertDontSee('Protocolos creados', false)
+            ->assertDontSee('Val. práct.', false);
+
+        $report = app(EmployeeProductivityService::class)->employeePeriodReport(
+            $employee->load(['user.roles', 'jobs']),
+            now()->subDays(29),
+            now(),
+            $branch->id
+        );
+
+        $this->assertContains('loading', $report['applicable_groups']);
+        $this->assertContains('technician', $report['applicable_groups']);
+        $this->assertNotContains('reception', $report['applicable_groups']);
+        $this->assertNotContains('biochemist', $report['applicable_groups']);
+    }
 }

@@ -46,6 +46,47 @@ class RrhhProductivityController extends Controller
         ]);
     }
 
+    public function show(Employee $employee, Request $request)
+    {
+        $this->authorize('rrhh.productivity.view');
+
+        $dateTo = $request->filled('date_to')
+            ? Carbon::parse($request->date_to)
+            : now();
+
+        $dateFrom = $request->filled('date_from')
+            ? Carbon::parse($request->date_from)
+            : $dateTo->copy()->subDays(29);
+
+        if ($dateFrom->gt($dateTo)) {
+            [$dateFrom, $dateTo] = [$dateTo->copy(), $dateFrom->copy()];
+        }
+
+        $branchId = $request->filled('branch_id') ? (int) $request->branch_id : null;
+
+        $report = app(EmployeeProductivityService::class)->employeePeriodReport(
+            $employee->load(['user.roles', 'jobs']),
+            $dateFrom,
+            $dateTo,
+            $branchId
+        );
+
+        if ($report === null) {
+            abort(404, 'El empleado no tiene usuario o roles de laboratorio asociados.');
+        }
+
+        $branches = LabBranch::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
+
+        return view('rrhh.productividad-empleado', [
+            'employee' => $employee,
+            'dateFrom' => $dateFrom->toDateString(),
+            'dateTo' => $dateTo->toDateString(),
+            'branchId' => $branchId,
+            'report' => $report,
+            'branches' => $branches,
+        ]);
+    }
+
     public function export(Request $request): StreamedResponse
     {
         $this->authorize('rrhh.productivity.view');

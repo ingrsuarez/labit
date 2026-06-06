@@ -68,6 +68,9 @@ Route::middleware([
     Route::get('/rrhh/productividad/export', [App\Http\Controllers\RrhhProductivityController::class, 'export'])
         ->name('rrhh.productividad.export')
         ->middleware('permission:rrhh.productivity.view');
+    Route::get('/rrhh/productividad/{employee}', [App\Http\Controllers\RrhhProductivityController::class, 'show'])
+        ->name('rrhh.productividad.empleado')
+        ->middleware('permission:rrhh.productivity.view');
 
     // FIRMA DIGITAL DEL USUARIO
     Route::post('/user/signature', [App\Http\Controllers\UserSignatureController::class, 'update'])->name('user.signature.update');
