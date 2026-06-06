@@ -1,0 +1,30 @@
+# Space10 — Upload de informes lab clínico
+
+Labit puede subir PDFs de protocolos clínicos validados al portal Space10 (SPACE4CLINIC) vía API Sanctum.
+
+## Variables de entorno (Labit)
+
+```env
+SPACE10_ENABLED=true
+SPACE10_API_URL=http://localhost/space10/public/api/upload/lab
+SPACE10_API_TOKEN=<token Sanctum>
+SPACE10_TIMEOUT=30
+```
+
+## Token Sanctum (Space10)
+
+En el proyecto Space10, con un usuario que tenga institución activa:
+
+```bash
+php artisan tinker
+$user = \App\Models\User::find(1);
+$user->createToken('labit-upload')->plainTextToken;
+```
+
+Copiar el token en `SPACE10_API_TOKEN` de Labit (solo se muestra una vez).
+
+## Comportamiento
+
+- Auto-upload al enviar email individual o masivo (si no fue subido antes).
+- Batch manual desde listado de admisiones clínicas.
+- Idempotencia: columna `admissions.space10_uploaded_at`.

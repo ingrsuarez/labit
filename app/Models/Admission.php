@@ -46,6 +46,7 @@ class Admission extends Model
         'sample_drawn_by',
         'status',
         'sent_at',
+        'space10_uploaded_at',
         'payment_status',
         'payment_method',
         'paid_amount',
@@ -65,6 +66,7 @@ class Admission extends Model
         'paid_amount' => 'decimal:2',
         'payment_date' => 'datetime',
         'sent_at' => 'datetime',
+        'space10_uploaded_at' => 'datetime',
         'sample_drawn_at' => 'datetime',
     ];
 
@@ -197,6 +199,11 @@ class Admission extends Model
     public function isSent(): bool
     {
         return $this->sent_at !== null;
+    }
+
+    public function isUploadedToSpace10(): bool
+    {
+        return $this->space10_uploaded_at !== null;
     }
 
     /**

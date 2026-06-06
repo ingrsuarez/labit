@@ -12,7 +12,15 @@
             </div>
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900">Protocolo: {{ $admission->protocol_number }}</h1>
+                    <h1 class="text-2xl font-bold text-gray-900 flex flex-wrap items-center gap-2">
+                        <span>Protocolo: {{ $admission->protocol_number }}</span>
+                        @if($admission->isUploadedToSpace10())
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-800"
+                                  title="Subido a Space10 el {{ $admission->space10_uploaded_at->format('d/m/Y H:i') }}">
+                                Space10 ✓
+                            </span>
+                        @endif
+                    </h1>
                     <p class="mt-1 text-sm text-gray-600">
                         Fecha: {{ $admission->formatted_date }} | 
                         Creado por: {{ $admission->creator?->name ?? 'N/A' }}
