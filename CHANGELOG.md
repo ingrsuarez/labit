@@ -5,6 +5,24 @@
 
 ---
 
+## [v1.114.0] — 2026-06-06 — Integración Space10 upload PDF lab clínico
+
+### Agregado
+
+- **`Space10UploadService`:** subida HTTP multipart a Space10 (`POST /api/upload/lab`) con token Sanctum.
+- **Columna `space10_uploaded_at`** en admisiones clínicas (idempotencia independiente de `sent_at`).
+- **Auto-upload** al enviar informe por email (individual y masivo).
+- **Batch `lab/admissions/batch-space10`** desde listado de admisiones.
+- **UI:** badge violet "Space10 ✓", botón y modal batch; feedback warning si email OK y Space10 falla.
+- **Config:** `SPACE10_ENABLED`, `SPACE10_API_URL`, `SPACE10_API_TOKEN`, `SPACE10_TIMEOUT`.
+- **Docs:** `docs/operations/space10-upload.md`.
+
+### Tests
+
+- `Space10ClinicalUploadTest` (6 casos).
+
+---
+
 ## [v1.113.5] — 2026-05-31 — Calendario de vencimientos en home personalizado
 
 ### Corregido

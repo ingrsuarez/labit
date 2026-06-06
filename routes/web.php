@@ -259,6 +259,8 @@ Route::middleware([
         // LAB ADMISSIONS (Admisiones de Pacientes - Laboratorio)
         Route::post('lab/admissions/batch-email', [App\Http\Controllers\LabAdmissionController::class, 'batchEmail'])
             ->name('lab.admissions.batch-email');
+        Route::post('lab/admissions/batch-space10', [App\Http\Controllers\LabAdmissionController::class, 'batchSpace10'])
+            ->name('lab.admissions.batch-space10');
         Route::get('lab/admissions/pending-results', [App\Http\Controllers\LabAdmissionController::class, 'pendingResults'])
             ->name('lab.admissions.pending-results');
         Route::get('lab/admissions', [App\Http\Controllers\LabAdmissionController::class, 'index'])->name('lab.admissions.index');

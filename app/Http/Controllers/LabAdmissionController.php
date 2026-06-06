@@ -20,7 +20,9 @@ use App\Models\Test;
 use App\Models\VetAdmission;
 use App\Services\AdmissionInsuranceTestPricing;
 use App\Services\AdmissionSampleDrawService;
+use App\Services\Space10UploadService;
 use App\Support\ClinicalPendingResultsPresenter;
+use App\Support\Space10UploadResult;
 use App\Support\VeterinaryPendingResultsPresenter;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -1396,6 +1398,8 @@ class LabAdmissionController extends Controller
                 \App\Support\LogsProtocolDelivery::logResultDeliveredOncePerDay($adm);
                 $results['sent'][] = $adm->protocol_number;
             }
+
+            $results['space10'] = $this->uploadAdmissionsToSpace10($eligible->values());
         } catch (\Throwable $e) {
             foreach ($eligible as $adm) {
                 $results['errors'][] = $adm->protocol_number.' (error: '.$e->getMessage().')';
@@ -1442,7 +1446,144 @@ class LabAdmissionController extends Controller
 
         $admission->update(['sent_at' => now()]);
 
-        return $this->backToAdmissionResults()->with('success', 'Informe enviado correctamente a '.$validated['email']);
+        $space10Result = app(Space10UploadService::class)->uploadAdmission($admission->fresh());
+
+        $successMessage = 'Informe enviado correctamente a '.$validated['email'];
+        if ($space10Result->isSuccess()) {
+            $successMessage .= ' Informe subido a Space10.';
+        }
+
+        $response = $this->backToAdmissionResults()->with('success', $successMessage);
+        if ($space10Result->isError()) {
+            $response = $response->with(
+                'warning',
+                'Email enviado. No se pudo subir a Space10: '.$space10Result->message
+            );
+        }
+
+        return $response;
+    }
+
+    /**
+     * Subida masiva de informes PDF a Space10 (sin envío de email).
+     */
+    public function batchSpace10(Request $request)
+    {
+        $this->authorize('lab-admissions.show');
+
+        $validated = $request->validate([
+            'admission_ids' => 'required|array|min:1',
+            'admission_ids.*' => 'integer|exists:admissions,id',
+        ]);
+
+        $query = Admission::with(['patient', 'admissionTests'])
+            ->whereIn('id', $validated['admission_ids']);
+
+        if ($activeBranch = active_lab_branch_id()) {
+            $query->where(function ($q) use ($activeBranch) {
+                $q->where('lab_branch_id', $activeBranch)
+                    ->orWhereNull('lab_branch_id');
+            });
+        }
+
+        $admissions = $query->get();
+        $requestedIds = collect($validated['admission_ids']);
+        $foundIds = $admissions->pluck('id');
+        $missingIds = $requestedIds->diff($foundIds);
+
+        $results = [
+            'uploaded' => [],
+            'skipped' => [],
+            'errors' => [],
+        ];
+
+        foreach ($missingIds as $mid) {
+            $orphan = Admission::find($mid);
+            $results['skipped'][] = ($orphan?->protocol_number ?? "#{$mid}").' (sin acceso o sede)';
+        }
+
+        if (! app(Space10UploadService::class)->isEnabled()) {
+            foreach ($admissions as $admission) {
+                $results['skipped'][] = ($admission->protocol_number ?? "#{$admission->id}").' (Space10 deshabilitado)';
+            }
+
+            return response()->json($results);
+        }
+
+        foreach ($admissions as $admission) {
+            if (! $this->admissionCanReceiveResultsEmail($admission)) {
+                $results['skipped'][] = $admission->protocol_number.' (sin determinaciones validadas)';
+
+                continue;
+            }
+
+            $dni = trim((string) ($admission->patient?->patientId ?? ''));
+            if ($dni === '') {
+                $results['skipped'][] = $admission->protocol_number.' (sin DNI)';
+
+                continue;
+            }
+
+            if ($admission->isUploadedToSpace10()) {
+                $results['skipped'][] = $admission->protocol_number.' (ya subido a Space10)';
+
+                continue;
+            }
+
+            $uploadResult = app(Space10UploadService::class)->uploadAdmission($admission);
+            $this->accumulateSpace10Result($results, $admission, $uploadResult);
+        }
+
+        return response()->json($results);
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection<int, Admission>|\Illuminate\Support\Collection<int, mixed>  $admissions
+     * @return array{uploaded: array<int, string>, skipped: array<int, string>, errors: array<int, string>}
+     */
+    private function uploadAdmissionsToSpace10($admissions): array
+    {
+        $results = [
+            'uploaded' => [],
+            'skipped' => [],
+            'errors' => [],
+        ];
+
+        $service = app(Space10UploadService::class);
+        if (! $service->isEnabled()) {
+            return $results;
+        }
+
+        foreach ($admissions as $admission) {
+            $uploadResult = $service->uploadAdmission($admission);
+            $this->accumulateSpace10Result($results, $admission, $uploadResult);
+        }
+
+        return $results;
+    }
+
+    /**
+     * @param  array{uploaded: array<int, string>, skipped: array<int, string>, errors: array<int, string>}  $results
+     */
+    private function accumulateSpace10Result(array &$results, Admission $admission, Space10UploadResult $uploadResult): void
+    {
+        $protocol = $admission->protocol_number ?? ('#'.$admission->id);
+
+        if ($uploadResult->isSuccess()) {
+            $results['uploaded'][] = $protocol;
+
+            return;
+        }
+
+        if ($uploadResult->isSkipped()) {
+            $results['skipped'][] = $protocol.' ('.$uploadResult->message.')';
+
+            return;
+        }
+
+        if ($uploadResult->isError()) {
+            $results['errors'][] = $protocol.' ('.$uploadResult->message.')';
+        }
     }
 
     public function labelData(Admission $admission)

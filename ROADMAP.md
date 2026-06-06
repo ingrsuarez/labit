@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-05-31 (**v1.113.3** calendario flujo de caja)
+> Última actualización: 2026-06-06 (**v1.114.0** integración Space10 planificada)
 
 ---
 
@@ -166,10 +166,11 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 ## Backlog activo (labit)
 
 > Cola de ejecución: `agent-bootstrap/prompts/pendientes/` (solo prompts `v*.md`).
-> Sincronizado con STATUS.md el 2026-05-30.
+> Sincronizado con STATUS.md el 2026-06-06.
 
 | Versión | Nombre | Estado | Prompt | Notas |
 |---|---|---|---|---|
+| v1.114.0 | Integración Space10: upload PDF lab clínico por DNI | ✅ Completada (2026-06-06) | `completados/v1.114.0-integracion-space10-upload-pdf-lab-clinico.md` | Auto al enviar email + batch listado; `space10_uploaded_at`; diseño: `docs/designs/DISEÑO_v1.114.0-integracion-space10-upload-pdf-lab-clinico.md` |
 | v1.113.0 | DDJJ Formulario 931 + plan de cuentas aportes/contribuciones patronales | ✅ Completada (2026-05-30) | `completados/v1.113.0-ddjj-formulario-931-plan-cuentas.md` |
 | v1.113.1 | Calendario de vencimientos / flujo de caja | ✅ Completada (2026-05-30) | `completados/v1.113.1-calendario-vencimientos-flujo-caja.md` |
 | v1.113.2 | Fix empresa activa y selector de empresas (cash-flow) | ✅ Completada (2026-05-31) | — |
@@ -286,7 +287,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 ## Progreso general
 
 ```
-Completadas (develop): ver STATUS.md — última v1.113.3 (2026-05-31)
+Completadas (develop): ver STATUS.md — última v1.114.0 (2026-06-06)
 Backlog labit:         0
 Cola prompts v*:       vacía
 LISCOM (interfases):   3 pendientes — v1.49.0, v1.50.0, v1.52.0
@@ -296,5 +297,5 @@ En proceso:            0
 ---
 
 > Este documento se actualiza al finalizar cada versión o sesión de planificación.
-> Última actualización: 2026-05-31 — v1.113.2/v1.113.3 calendario flujo de caja
+> Última actualización: 2026-06-06 — v1.114.0 integración Space10 (sesión PM)
 
