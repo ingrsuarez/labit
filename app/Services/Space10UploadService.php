@@ -41,7 +41,8 @@ class Space10UploadService
 
         try {
             $pdfBinary = AdmissionResultMail::generatePdfBinary($admission);
-            $fileDate = $admission->date?->format('Y-m-d') ?? now()->format('Y-m-d');
+            // Space10 arma el nombre lab-{dni}-{file_date}.pdf; convención manual: d-m-Y (ej. 06-06-2026)
+            $fileDate = now()->format('d-m-Y');
             $filename = AdmissionResultMail::generatePdfFilename($admission);
 
             $response = Http::timeout(config('space10.timeout', 30))

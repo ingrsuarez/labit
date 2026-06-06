@@ -5,6 +5,15 @@
 
 ---
 
+## [v1.114.2] — 2026-06-06 — Space10: fecha de estudio en nombre de archivo (d-m-Y)
+
+### Corregido
+
+- `file_date` enviado a Space10 usa la **fecha del día** en formato **`d-m-Y`** (ej. `06-06-2026`), alineado a la convención de archivos manuales `lab-{dni}-{fecha}.pdf`.
+- Antes se enviaba la fecha de admisión en `Y-m-d`, generando nombres inconsistentes y difíciles de encontrar en la ficha del paciente.
+
+---
+
 ## [v1.114.1] — 2026-06-06 — Space10: auto-upload solo si el email es del paciente
 
 ### Cambiado
