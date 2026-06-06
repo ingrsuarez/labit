@@ -76,7 +76,7 @@ class SampleDetermination extends Model
      */
     public function getStatusLabelAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'pending' => 'Pendiente',
             'in_progress' => 'En Proceso',
             'completed' => 'Completado',
@@ -87,6 +87,16 @@ class SampleDetermination extends Model
     public function hasResult(): bool
     {
         return $this->result !== null && $this->result !== '';
+    }
+
+    /**
+     * La unidad siempre proviene del catálogo (tests.unit).
+     * Nunca se usa el valor almacenado en sample_determinations.unit para evitar
+     * que datos de equipos externos (LISCOM) sobreescriban la unidad oficial.
+     */
+    public function getUnitAttribute(): ?string
+    {
+        return $this->test?->unit;
     }
 
     /**

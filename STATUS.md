@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-06-03 (**hotfix** lock wait timeout en generación de protocol_number)
+> Última actualización: 2026-06-05 (**hotfix** unidad de determinación no se sobreescribe desde LISCOM)
 
 ---
 
@@ -11,12 +11,12 @@
 |---|---|
 | **Versión actual (línea v1.x)** | **develop** / **master**: **v1.113.8** |
 | **Última completada (cola agente)** | **v1.113.8** — FC badge con proveedor en calendario |
-| **Último hotfix** | **2026-06-03** — lock wait timeout en `GeneratesProtocolNumber` (HY000/1205) |
+| **Último hotfix** | **2026-06-05** — unidad de determinación no sobreescrita por LISCOM (`ApiResultIngestionService`) |
 | **En proceso** | — |
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
 | **Pendientes en cola** | 0 prompts `v*` |
 | **Completadas** | 171+ |
-| **Working tree** | Limpio (2026-06-03); hotfix `lock-wait-timeout-protocol-number` mergeado a develop y master |
+| **Working tree** | Limpio (2026-06-05); hotfix `no-sobrescribir-unidad-desde-liscom` mergeado a develop y master |
 
 ---
 

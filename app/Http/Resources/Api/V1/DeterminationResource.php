@@ -33,7 +33,7 @@ class DeterminationResource extends JsonResource
                 'name' => $test->materialRelation->name,
                 'abbreviation' => $test->materialRelation->code,
             ] : null,
-            'unit' => $this->unit,
+            'unit' => $test?->unit,
             'reference_value' => $this->reference_value,
             'status' => $this->resolveStatus(),
             'has_result' => $this->resource->hasResult(),

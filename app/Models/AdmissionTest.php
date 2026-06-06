@@ -48,8 +48,11 @@ class AdmissionTest extends Model
      * Estados de autorización disponibles
      */
     const STATUS_PENDING = 'pending';
+
     const STATUS_AUTHORIZED = 'authorized';
+
     const STATUS_REJECTED = 'rejected';
+
     const STATUS_NOT_REQUIRED = 'not_required';
 
     /**
@@ -89,7 +92,7 @@ class AdmissionTest extends Model
      */
     public function isAuthorized(): bool
     {
-        return $this->authorization_status === self::STATUS_AUTHORIZED 
+        return $this->authorization_status === self::STATUS_AUTHORIZED
             || $this->authorization_status === self::STATUS_NOT_REQUIRED;
     }
 
@@ -117,6 +120,7 @@ class AdmissionTest extends Model
         if ($this->paid_by_patient || $this->isRejected()) {
             return 0;
         }
+
         return (float) $this->price - (float) $this->copago;
     }
 
@@ -128,6 +132,7 @@ class AdmissionTest extends Model
         if ($this->paid_by_patient || $this->isRejected()) {
             return (float) $this->price;
         }
+
         return (float) $this->copago;
     }
 
@@ -136,7 +141,7 @@ class AdmissionTest extends Model
      */
     public function getAuthorizationStatusLabelAttribute(): string
     {
-        return match($this->authorization_status) {
+        return match ($this->authorization_status) {
             self::STATUS_PENDING => 'Pendiente',
             self::STATUS_AUTHORIZED => 'Autorizado',
             self::STATUS_REJECTED => 'Rechazado',
@@ -150,7 +155,7 @@ class AdmissionTest extends Model
      */
     public function getAuthorizationStatusColorAttribute(): string
     {
-        return match($this->authorization_status) {
+        return match ($this->authorization_status) {
             self::STATUS_PENDING => 'yellow',
             self::STATUS_AUTHORIZED => 'green',
             self::STATUS_REJECTED => 'red',
@@ -181,6 +186,16 @@ class AdmissionTest extends Model
     }
 
     /**
+     * La unidad siempre proviene del catálogo (tests.unit).
+     * Nunca se usa el valor almacenado en admission_tests.unit para evitar
+     * que datos de equipos externos (LISCOM) sobreescriban la unidad oficial.
+     */
+    public function getUnitAttribute(): ?string
+    {
+        return $this->test?->unit;
+    }
+
+    /**
      * Scope para prácticas pagadas por obra social
      */
     public function scopePaidByInsurance($query)
@@ -189,4 +204,3 @@ class AdmissionTest extends Model
             ->whereIn('authorization_status', [self::STATUS_AUTHORIZED, self::STATUS_NOT_REQUIRED]);
     }
 }
-

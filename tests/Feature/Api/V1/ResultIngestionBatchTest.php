@@ -796,9 +796,9 @@ class ResultIngestionBatchTest extends TestCase
 
         $admTest->refresh();
         $this->assertSame('1.50', $admTest->result);
-        // La columna unit del protocolo no debe ser alterada por LISCOM.
-        $this->assertNull($admTest->unit, 'La columna unit de la determinación no debe ser sobreescrita por LISCOM');
-        // La unidad visible en la UI proviene del catálogo (tests.unit).
-        $this->assertSame('ng/mL', $admTest->test->unit);
+        // El accessor siempre devuelve la unidad del catálogo, no la del equipo.
+        $this->assertSame('ng/mL', $admTest->unit, 'La unidad visible debe ser la del catálogo (tests.unit), nunca la del equipo LISCOM');
+        // Verificar que la columna raw en la BD sigue en NULL (no fue sobreescrita).
+        $this->assertNull($admTest->getRawOriginal('unit'), 'La columna unit en BD no debe contener datos del equipo');
     }
 }
