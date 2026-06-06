@@ -30,6 +30,7 @@
         @endif
 
         @php
+            $space10Enabled = app(\App\Services\Space10UploadService::class)->isEnabled();
             $labAdmissionNav = request()->only(['search', 'insurance', 'date_from', 'date_to', 'lab_branch_id', 'status']);
         @endphp
 
@@ -104,14 +105,26 @@
                 <strong><span x-text="selectedIds.length"></span></strong> protocolo(s) seleccionado(s).
                 <span class="text-teal-700">Podés enviar todos los informes en un solo correo.</span>
             </p>
-            <button type="button" @click="openBatchModal()"
-                    class="inline-flex shrink-0 items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-medium shadow-sm">
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
+                @if($space10Enabled)
+                <button type="button" @click="openSpace10Modal()"
+                        class="inline-flex items-center px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 text-sm font-medium shadow-sm">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    Subir a Space10
+                </button>
+                @endif
+                <button type="button" @click="openBatchModal()"
+                        class="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-medium shadow-sm">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                 </svg>
                 Enviar por email
-            </button>
+                </button>
+            </div>
         </div>
         @endcan
 
@@ -225,6 +238,12 @@
                                             </span>
                                             @if($admission->isSent())
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-800">Enviado</span>
+                                            @endif
+                                            @if($admission->isUploadedToSpace10())
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-800"
+                                                      title="Subido a Space10 el {{ $admission->space10_uploaded_at->format('d/m/Y H:i') }}">
+                                                    Space10 ✓
+                                                </span>
                                             @endif
                                         </span>
                                     </td>
@@ -406,11 +425,84 @@
                         </div>
                     </div>
                 </div>
+
+                @if($space10Enabled)
+                <div x-show="showSpace10Modal" x-cloak
+                     class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-40 p-4">
+                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800">Subir informes a Space10</h3>
+                                <p class="text-sm text-gray-500 mt-1">Se subirá un PDF por protocolo al historial del paciente en Space10 (por DNI).</p>
+                            </div>
+                            <button type="button" @click="showSpace10Modal = false" class="text-gray-400 hover:text-gray-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <template x-if="space10ToUpload.length > 0">
+                            <p class="mb-4 text-sm text-gray-700">
+                                Se intentará subir <strong x-text="space10ToUpload.length"></strong> protocolo(s).
+                            </p>
+                        </template>
+
+                        <template x-if="space10SkippedPreview.length > 0">
+                            <div class="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-sm text-yellow-800">
+                                <p class="font-medium mb-1">Se omitirán en la subida:</p>
+                                <ul class="list-disc list-inside space-y-0.5">
+                                    <template x-for="row in space10SkippedPreview" :key="row.id">
+                                        <li x-text="row.protocol_number + ' (' + row.reason + ')'"></li>
+                                    </template>
+                                </ul>
+                            </div>
+                        </template>
+
+                        <div class="mb-4" x-show="space10ToUpload.length > 0">
+                            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">A subir</p>
+                            <ul class="text-sm text-gray-700 space-y-1">
+                                <template x-for="row in space10ToUpload" :key="row.id">
+                                    <li x-text="row.protocol_number + ' — DNI ' + (row.patient_dni || 'N/A')"></li>
+                                </template>
+                            </ul>
+                        </div>
+
+                        <div class="flex justify-end gap-3">
+                            <button type="button" @click="showSpace10Modal = false"
+                                    class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm">
+                                Cancelar
+                            </button>
+                            <button type="button" @click="sendSpace10Batch()"
+                                    :disabled="space10Sending || space10ToUpload.length === 0"
+                                    class="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 text-sm font-medium">
+                                <span x-show="!space10Sending">Subir a Space10</span>
+                                <span x-show="space10Sending">Subiendo…</span>
+                            </button>
+                        </div>
+
+                        <div x-show="space10Result" x-cloak class="mt-6 pt-4 border-t border-gray-200 space-y-2">
+                            <p x-show="space10Result && space10Result.uploaded && space10Result.uploaded.length > 0" class="text-sm text-green-600"
+                               x-text="'Subidos: ' + space10Result.uploaded.join(', ')"></p>
+                            <p x-show="space10Result && space10Result.skipped && space10Result.skipped.length > 0" class="text-sm text-yellow-700"
+                               x-text="'Omitidos: ' + space10Result.skipped.join(', ')"></p>
+                            <p x-show="space10Result && space10Result.errors && space10Result.errors.length > 0" class="text-sm text-red-600"
+                               x-text="'Errores: ' + space10Result.errors.join(', ')"></p>
+                            <button type="button" @click="space10Result = null; showSpace10Modal = false; window.location.reload()" class="mt-2 text-xs text-violet-600 hover:underline">
+                                Cerrar y actualizar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                @endif
         @endif
         @endcan
 
         @php
-            $admissionMetaJson = $admissions->map(function ($a) {
+            $admissionMetaJson = $admissions->map(function ($a) use ($space10Enabled) {
+                $validatedForBatch = $a->admissionTests->where('is_validated', true)->count() > 0;
+                $patientDni = trim((string) ($a->patient?->patientId ?? ''));
+
                 return [
                     'id' => $a->id,
                     'protocol_number' => $a->protocol_number ?? $a->number,
@@ -418,7 +510,10 @@
                     'patient_id' => $a->patient_id,
                     'insurance_email' => $a->insuranceRelation?->email,
                     'patient_email' => $a->patient?->email,
-                    'can_batch_send' => $a->admissionTests->where('is_validated', true)->count() > 0,
+                    'can_batch_send' => $validatedForBatch,
+                    'can_batch_space10' => $space10Enabled && $validatedForBatch && $patientDni !== '',
+                    'already_on_space10' => $a->isUploadedToSpace10(),
+                    'patient_dni' => $patientDni !== '' ? $patientDni : null,
                 ];
             })->values();
         @endphp
@@ -428,13 +523,18 @@
                     selectedIds: [],
                     selectAll: false,
                     showBatchModal: false,
+                    showSpace10Modal: false,
                     batchSending: false,
+                    space10Sending: false,
                     batchEmail: '',
                     batchMessage: '',
                     batchResult: null,
+                    space10Result: null,
                     admissionMeta: @json($admissionMetaJson),
                     batchSkipped: [],
                     batchToSend: [],
+                    space10ToUpload: [],
+                    space10SkippedPreview: [],
 
                     toggleAll() {
                         const eligible = this.admissionMeta.filter(a => a.can_batch_send);
@@ -454,6 +554,29 @@
                         this.batchMessage = '';
                         this.batchResult = null;
                         this.showBatchModal = true;
+                    },
+
+                    openSpace10Modal() {
+                        const ids = new Set(this.selectedIds.map(id => Number(id)));
+                        const selected = this.admissionMeta.filter(a => ids.has(Number(a.id)));
+                        this.space10ToUpload = [];
+                        this.space10SkippedPreview = [];
+
+                        selected.forEach(row => {
+                            if (row.already_on_space10) {
+                                this.space10SkippedPreview.push({ ...row, reason: 'ya subido a Space10' });
+                            } else if (!row.can_batch_space10) {
+                                const reason = !row.can_batch_send
+                                    ? 'sin determinaciones validadas'
+                                    : 'sin DNI';
+                                this.space10SkippedPreview.push({ ...row, reason });
+                            } else {
+                                this.space10ToUpload.push(row);
+                            }
+                        });
+
+                        this.space10Result = null;
+                        this.showSpace10Modal = true;
                     },
 
                     get canUseInsuranceShortcut() {
@@ -508,6 +631,28 @@
                             this.batchResult = { sent: [], skipped: [], errors: ['Error de red'] };
                         }
                         this.batchSending = false;
+                    },
+
+                    async sendSpace10Batch() {
+                        if (this.space10ToUpload.length === 0) return;
+                        this.space10Sending = true;
+                        try {
+                            const res = await fetch(@json(route('lab.admissions.batch-space10')), {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                                },
+                                body: JSON.stringify({
+                                    admission_ids: this.space10ToUpload.map(a => a.id),
+                                }),
+                            });
+                            this.space10Result = await res.json();
+                        } catch (e) {
+                            this.space10Result = { uploaded: [], skipped: [], errors: ['Error de red'] };
+                        }
+                        this.space10Sending = false;
                     },
                 };
             }

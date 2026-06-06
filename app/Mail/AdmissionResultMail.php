@@ -55,6 +55,14 @@ class AdmissionResultMail extends Mailable
      */
     public static function makePdfAttachment(Admission $admission): Attachment
     {
+        return Attachment::fromData(
+            fn () => self::generatePdfBinary($admission),
+            self::generatePdfFilename($admission)
+        )->withMime('application/pdf');
+    }
+
+    public static function generatePdfBinary(Admission $admission): string
+    {
         $admission->load([
             'patient',
             'insuranceRelation',
@@ -81,12 +89,7 @@ class AdmissionResultMail extends Mailable
             'margin_right' => 15,
         ]);
 
-        $filename = self::generatePdfFilename($admission);
-
-        return Attachment::fromData(
-            fn () => $pdf->output(),
-            $filename
-        )->withMime('application/pdf');
+        return $pdf->output();
     }
 
     public static function generatePdfFilename(Admission $admission): string
