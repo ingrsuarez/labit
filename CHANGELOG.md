@@ -5,6 +5,19 @@
 
 ---
 
+## [v1.114.1] — 2026-06-06 — Space10: auto-upload solo si el email es del paciente
+
+### Cambiado
+
+- Al enviar informe por email (individual o masivo), la subida automática a Space10 ocurre **solo** cuando el destinatario coincide con el **email del paciente**.
+- Envíos a obra social, empresa laboral u otro correo ya no disparan Space10 (el batch manual sigue disponible).
+
+### Tests
+
+- `Space10ClinicalUploadTest`: casos de destino OS vs email paciente.
+
+---
+
 ## [v1.114.0] — 2026-06-06 — Integración Space10 upload PDF lab clínico
 
 ### Agregado

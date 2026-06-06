@@ -73,7 +73,7 @@ class Space10ClinicalUploadTest extends TestCase
     /**
      * @return array{0: User, 1: LabBranch, 2: Admission, 3: Test}
      */
-    private function makeValidatedAdmission(?string $dni = '30111222'): array
+    private function makeValidatedAdmission(?string $dni = '30111222', ?string $patientEmail = 'paciente@example.com'): array
     {
         $branch = LabBranch::query()->create([
             'name' => 'Sede Space10',
@@ -88,6 +88,7 @@ class Space10ClinicalUploadTest extends TestCase
             'name' => 'Ana',
             'lastName' => 'Space10',
             'patientId' => $dni,
+            'email' => $patientEmail,
             'type' => 'humano',
             'sex' => 'F',
             'status' => 'activo',
@@ -160,6 +161,47 @@ class Space10ClinicalUploadTest extends TestCase
 
         Http::assertNothingSent();
         $this->assertNotNull($admission->fresh()->sent_at);
+    }
+
+    public function test_send_email_no_sube_a_space10_si_destino_no_es_email_del_paciente(): void
+    {
+        Mail::fake();
+        Http::fake();
+
+        [$user, , $admission] = $this->makeValidatedAdmission();
+
+        $response = $this->actingAs($user)->post(route('lab.admissions.sendEmail', $admission), [
+            'email' => 'obrasocial@example.com',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+        $response->assertSessionMissing('warning');
+        $this->assertNotNull($admission->fresh()->sent_at);
+        $this->assertNull($admission->fresh()->space10_uploaded_at);
+        Http::assertNothingSent();
+    }
+
+    public function test_batch_email_no_sube_a_space10_si_destino_no_es_email_del_paciente(): void
+    {
+        Mail::fake();
+        Http::fake([
+            'https://space10.test/*' => Http::response(['path' => 'ok'], 201),
+        ]);
+
+        [$user, , $admission] = $this->makeValidatedAdmission();
+
+        $response = $this->actingAs($user)->postJson(route('lab.admissions.batch-email'), [
+            'admission_ids' => [$admission->id],
+            'email' => 'obrasocial@example.com',
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonFragment(['sent' => [$admission->protocol_number]]);
+        $data = $response->json();
+        $this->assertSame([], $data['space10']['uploaded'] ?? []);
+        $this->assertStringContainsString('destino no es email del paciente', implode(' ', $data['space10']['skipped'] ?? []));
+        Http::assertNothingSent();
     }
 
     public function test_send_email_continua_si_space10_falla(): void
