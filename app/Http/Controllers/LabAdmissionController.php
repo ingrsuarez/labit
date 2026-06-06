@@ -1399,7 +1399,7 @@ class LabAdmissionController extends Controller
                 $results['sent'][] = $adm->protocol_number;
             }
 
-            $results['space10'] = $this->uploadAdmissionsToSpace10($eligible->values());
+            $results['space10'] = $this->uploadAdmissionsToSpace10($eligible->values(), $validated['email']);
         } catch (\Throwable $e) {
             foreach ($eligible as $adm) {
                 $results['errors'][] = $adm->protocol_number.' (error: '.$e->getMessage().')';
@@ -1446,15 +1446,18 @@ class LabAdmissionController extends Controller
 
         $admission->update(['sent_at' => now()]);
 
-        $space10Result = app(Space10UploadService::class)->uploadAdmission($admission->fresh());
+        $space10Result = null;
+        if ($this->shouldUploadToSpace10AfterEmail($admission, $validated['email'])) {
+            $space10Result = app(Space10UploadService::class)->uploadAdmission($admission->fresh());
+        }
 
         $successMessage = 'Informe enviado correctamente a '.$validated['email'];
-        if ($space10Result->isSuccess()) {
+        if ($space10Result?->isSuccess()) {
             $successMessage .= ' Informe subido a Space10.';
         }
 
         $response = $this->backToAdmissionResults()->with('success', $successMessage);
-        if ($space10Result->isError()) {
+        if ($space10Result?->isError()) {
             $response = $response->with(
                 'warning',
                 'Email enviado. No se pudo subir a Space10: '.$space10Result->message
@@ -1541,7 +1544,7 @@ class LabAdmissionController extends Controller
      * @param  \Illuminate\Support\Collection<int, Admission>|\Illuminate\Support\Collection<int, mixed>  $admissions
      * @return array{uploaded: array<int, string>, skipped: array<int, string>, errors: array<int, string>}
      */
-    private function uploadAdmissionsToSpace10($admissions): array
+    private function uploadAdmissionsToSpace10($admissions, ?string $destinationEmail = null): array
     {
         $results = [
             'uploaded' => [],
@@ -1555,11 +1558,42 @@ class LabAdmissionController extends Controller
         }
 
         foreach ($admissions as $admission) {
+            if ($destinationEmail !== null && ! $this->shouldUploadToSpace10AfterEmail($admission, $destinationEmail)) {
+                $this->accumulateSpace10Result(
+                    $results,
+                    $admission,
+                    Space10UploadResult::skipped('destino no es email del paciente')
+                );
+
+                continue;
+            }
+
             $uploadResult = $service->uploadAdmission($admission);
             $this->accumulateSpace10Result($results, $admission, $uploadResult);
         }
 
         return $results;
+    }
+
+    /**
+     * Space10 solo se dispara por email si el destinatario es el email del paciente
+     * (no obra social, empresa laboral u otro correo).
+     */
+    private function shouldUploadToSpace10AfterEmail(Admission $admission, string $destinationEmail): bool
+    {
+        $admission->loadMissing('patient');
+
+        $patientEmail = trim((string) ($admission->patient?->email ?? ''));
+        if ($patientEmail === '') {
+            return false;
+        }
+
+        return $this->normalizeEmail($destinationEmail) === $this->normalizeEmail($patientEmail);
+    }
+
+    private function normalizeEmail(string $email): string
+    {
+        return strtolower(trim($email));
     }
 
     /**
