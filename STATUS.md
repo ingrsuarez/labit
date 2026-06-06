@@ -11,12 +11,12 @@
 |---|---|
 | **Versión actual (línea v1.x)** | **develop** / **master**: **v1.113.8** |
 | **Última completada (cola agente)** | **v1.113.8** — FC badge con proveedor en calendario |
-| **Último hotfix** | **2026-06-05** — unidad de determinación no sobreescrita por LISCOM (`ApiResultIngestionService`) |
+| **Último hotfix** | **2026-06-05** — unidad siempre desde catálogo; 4470 filas BD limpiadas (`getUnitAttribute` accessor) |
 | **En proceso** | — |
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
 | **Pendientes en cola** | 0 prompts `v*` |
 | **Completadas** | 171+ |
-| **Working tree** | Limpio (2026-06-05); hotfix `no-sobrescribir-unidad-desde-liscom` mergeado a develop y master |
+| **Working tree** | Limpio (2026-06-05); hotfix `unidad-siempre-desde-catalogo` mergeado a develop y master |
 
 ---
 
