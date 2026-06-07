@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasEntityEmails;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Insurance extends Model
 {
-    use HasFactory;
+    use HasEntityEmails, HasFactory;
 
     protected $fillable = [
         'name',

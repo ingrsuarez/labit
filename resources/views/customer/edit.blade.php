@@ -295,11 +295,11 @@
                         </p>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input type="email" name="email" value="{{ old('email', $customer->email) }}"
-                               class="w-full rounded-lg border-gray-300 focus:border-zinc-500 focus:ring-zinc-500">
-                    </div>
+                    <x-entity-emails-repeater
+                        :emails="$customer->emails"
+                        :legacy-email="$customer->email"
+                        accent="zinc"
+                    />
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
