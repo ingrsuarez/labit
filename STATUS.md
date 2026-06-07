@@ -16,7 +16,7 @@
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
 | **Pendientes en cola** | 0 prompts `v*` |
 | **Completadas** | 172+ |
-| **Working tree** | v1.117.0 en develop y master (2026-06-07) |
+| **Working tree** | v1.117.1 en develop y master (2026-06-07) |
 
 ---
 
@@ -52,6 +52,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.117.1 | Fix: Excel nomenclador Camioneros en raíz del proyecto | 2026-06-07 | v1.117.1 |
 | v1.117.0 | Seeder nomenclador Camioneros (producción) | 2026-06-07 | v1.117.0 |
 | v1.115.1 | Métricas RRHH en productividad individual (vacaciones, licencias, NC, horas extras) | 2026-06-06 | v1.115.1 |
 | v1.115.0 | Productividad individual por empleado (rango fechas, desglose mensual, métricas por rol) | 2026-06-06 | v1.115.0 |
