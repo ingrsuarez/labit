@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-06-07 (**v1.116.1** envío multi-destinatario protocolos completada)
+> Última actualización: 2026-06-07 (**v1.117.0** seeder nomenclador Camioneros)
 
 ---
 
