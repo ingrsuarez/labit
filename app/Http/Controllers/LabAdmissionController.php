@@ -51,7 +51,7 @@ class LabAdmissionController extends Controller
     public function index(Request $request)
     {
         $this->authorize('lab-admissions.index');
-        $query = Admission::with(['patient', 'insuranceRelation', 'admissionTests', 'labBranch', 'invoiceProtocols'])
+        $query = Admission::with(['patient', 'insuranceRelation.emails', 'admissionTests', 'labBranch', 'invoiceProtocols'])
             ->orderBy('date', 'desc')
             ->orderBy('id', 'desc');
 
