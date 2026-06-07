@@ -14,6 +14,7 @@ use App\Models\Sample;
 use App\Models\SampleDetermination;
 use App\Models\Test;
 use App\Services\BarcodeFormatService;
+use App\Support\ResolvesEmailRecipients;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use PDF; // mPDF facade
@@ -28,7 +29,7 @@ class SampleController extends Controller
     public function index(Request $request)
     {
         $this->authorize('samples.index');
-        $query = Sample::with(['customer', 'determinations', 'labBranch', 'invoiceProtocols'])
+        $query = Sample::with(['customer.emails', 'determinations', 'labBranch', 'invoiceProtocols'])
             ->orderBy('created_at', 'desc');
 
         $this->applySampleIndexFilters($request, $query);
@@ -158,7 +159,7 @@ class SampleController extends Controller
     {
         $this->authorize('samples.show');
         $sample->load([
-            'customer',
+            'customer.emails',
             'determinations.test.parentTest',
             'determinations.test.parentTests',
             'determinations.test.children',
@@ -1053,26 +1054,31 @@ class SampleController extends Controller
         }
 
         $validated = $request->validate([
-            'email' => 'required|email',
+            'email' => 'required_without:emails|string|max:1000',
+            'emails' => 'nullable|array|min:1',
+            'emails.*' => 'email',
             'message' => 'nullable|string',
         ]);
+
+        $recipients = ResolvesEmailRecipients::parse($validated['emails'] ?? $validated['email']);
+        $recipientLabel = ResolvesEmailRecipients::formatForDisplay($recipients);
 
         $fromEmail = LabSetting::get('results_email', config('mail.from.address'));
         $fromName = LabSetting::get('results_from_name', config('mail.from.name'));
 
         Mail::mailer('smtp')
-            ->to($validated['email'])
+            ->to($recipients)
             ->send(
                 (new SampleResultMail($sample, $validated['message'] ?? null))
                     ->from($fromEmail, $fromName)
             );
 
-        $sample->logAudit('email_sent', 'Envió resultados por email a '.$validated['email']);
+        $sample->logAudit('email_sent', 'Envió resultados por email a '.$recipientLabel);
         \App\Support\LogsProtocolDelivery::logResultDeliveredOncePerDay($sample);
 
         $sample->update(['sent_at' => now()]);
 
-        return back()->with('success', 'Protocolo enviado correctamente a '.$validated['email']);
+        return back()->with('success', 'Protocolo enviado correctamente a '.$recipientLabel);
     }
 
     /**
@@ -1086,13 +1092,13 @@ class SampleController extends Controller
             'sample_ids' => 'required|array|min:1',
             'sample_ids.*' => 'integer|exists:samples,id',
             'email_overrides' => 'nullable|array',
-            'email_overrides.*' => 'nullable|email',
+            'email_overrides.*' => 'nullable|string|max:1000',
         ]);
 
         $fromEmail = LabSetting::get('results_email', config('mail.from.address'));
         $fromName = LabSetting::get('results_from_name', config('mail.from.name'));
 
-        $query = Sample::with(['customer', 'determinations'])
+        $query = Sample::with(['customer.emails', 'determinations'])
             ->whereIn('id', $validated['sample_ids']);
 
         if ($activeBranch = active_lab_branch_id()) {
@@ -1133,22 +1139,27 @@ class SampleController extends Controller
         foreach ($grouped as $customerId => $customerSamples) {
             $customer = $customerSamples->first()->customer;
 
-            $toEmail = $emailOverrides[$customerId]
+            $override = $emailOverrides[$customerId]
                 ?? $emailOverrides[(string) $customerId]
-                ?? $customer?->email
                 ?? null;
 
-            if (! $toEmail) {
-                foreach ($customerSamples as $s) {
-                    $results['skipped'][] = $s->protocol_number.' (sin email del cliente)';
+            try {
+                $recipients = $override !== null && $override !== ''
+                    ? ResolvesEmailRecipients::parse($override)
+                    : ($customer?->recipientEmails() ?? []);
+
+                if ($recipients === []) {
+                    foreach ($customerSamples as $s) {
+                        $results['skipped'][] = $s->protocol_number.' (sin email del cliente)';
+                    }
+
+                    continue;
                 }
 
-                continue;
-            }
+                $recipientLabel = ResolvesEmailRecipients::formatForDisplay($recipients);
 
-            try {
                 Mail::mailer('smtp')
-                    ->to($toEmail)
+                    ->to($recipients)
                     ->send(
                         (new SampleBatchMail($customerSamples))
                             ->from($fromEmail, $fromName)
@@ -1156,7 +1167,7 @@ class SampleController extends Controller
 
                 foreach ($customerSamples as $s) {
                     $s->update(['sent_at' => now()]);
-                    $s->logAudit('email_sent', "Enviado en lote a {$toEmail}");
+                    $s->logAudit('email_sent', "Enviado en lote a {$recipientLabel}");
                     $results['sent'][] = $s->protocol_number;
                 }
             } catch (\Exception $e) {

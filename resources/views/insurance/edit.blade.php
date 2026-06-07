@@ -125,14 +125,11 @@
                 </h2>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Email -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input type="email" name="email" 
-                               value="{{ old('email', $insurance->email) }}"
-                               placeholder="contacto@ejemplo.com"
-                               class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                    </div>
+                    <x-entity-emails-repeater
+                        :emails="$insurance->emails"
+                        :legacy-email="$insurance->email"
+                        accent="blue"
+                    />
 
                     <!-- Telefono -->
                     <div>

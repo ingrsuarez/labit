@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-06-06 (**v1.115.1** métricas RRHH en productividad individual)
+> Última actualización: 2026-06-07 (**v1.116.1** envío multi-destinatario protocolos)
 
 ---
 
@@ -9,8 +9,8 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **develop** / **master**: **v1.115.1** |
-| **Última completada (cola agente)** | **v1.115.1** — Métricas RRHH en productividad individual (vacaciones, licencias, NC, horas extras) |
+| **Versión actual (línea v1.x)** | **develop** / **master**: **v1.116.1** |
+| **Última completada (cola agente)** | **v1.116.1** — Envío de protocolos a múltiples emails del cliente |
 | **Último hotfix** | **2026-06-05** — unidad siempre desde catálogo; 4470 filas BD limpiadas (`getUnitAttribute` accessor) |
 | **En proceso** | — |
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |

@@ -355,36 +355,35 @@
                     @csrf
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Email destinatario *</label>
-                            <input type="email" name="email" required
-                                   value="{{ $vetAdmission->owner_email ?? $vetAdmission->customer->email ?? '' }}"
-                                   class="w-full border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
-                                   placeholder="email@ejemplo.com">
-                            @if($vetAdmission->owner_email || $vetAdmission->customer->email || $vetAdmission->veterinarian?->email)
-                                <div class="mt-1 flex flex-wrap gap-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Destinatario(s) *</label>
+                            <x-email-recipient-chips
+                                :entity-emails="$vetAdmission->customer->emails ?? collect()"
+                                input-id="vetEmailInput"
+                                accent="amber"
+                            />
+                            @if($vetAdmission->owner_email || $vetAdmission->veterinarian?->email)
+                                <div class="flex flex-wrap gap-1 mb-2">
                                     @if($vetAdmission->owner_email)
                                         <button type="button"
-                                                onclick="this.closest('form').querySelector('input[name=email]').value='{{ $vetAdmission->owner_email }}'"
+                                                onclick="document.getElementById('vetEmailInput').value='{{ $vetAdmission->owner_email }}'"
                                                 class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded hover:bg-gray-200">
                                             Dueño: {{ $vetAdmission->owner_email }}
                                         </button>
                                     @endif
-                                    @if($vetAdmission->customer->email)
-                                        <button type="button"
-                                                onclick="this.closest('form').querySelector('input[name=email]').value='{{ $vetAdmission->customer->email }}'"
-                                                class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded hover:bg-gray-200">
-                                            {{ $vetAdmission->customer->name }}: {{ $vetAdmission->customer->email }}
-                                        </button>
-                                    @endif
                                     @if($vetAdmission->veterinarian?->email)
                                         <button type="button"
-                                                onclick="this.closest('form').querySelector('input[name=email]').value='{{ $vetAdmission->veterinarian->email }}'"
+                                                onclick="document.getElementById('vetEmailInput').value='{{ $vetAdmission->veterinarian->email }}'"
                                                 class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded hover:bg-gray-200">
                                             {{ $vetAdmission->veterinarian->name }}: {{ $vetAdmission->veterinarian->email }}
                                         </button>
                                     @endif
                                 </div>
                             @endif
+                            <input type="text" name="email" id="vetEmailInput" required
+                                   value="{{ $vetAdmission->owner_email ?? $vetAdmission->customer->primaryEntityEmail() ?? '' }}"
+                                   class="w-full border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                                   placeholder="correo@ejemplo.com o varios separados por coma">
+                            <p class="mt-1 text-xs text-gray-500">Podés elegir un correo, varios separados por coma, o usar «Todos» del cliente.</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Mensaje personalizado</label>

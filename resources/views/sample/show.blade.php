@@ -593,20 +593,17 @@
                     @csrf
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Email destinatario *</label>
-                            <input type="email" name="email" required
-                                   value="{{ $sample->customer?->email ?? '' }}"
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Destinatario(s) *</label>
+                            <x-email-recipient-chips
+                                :entity-emails="$sample->customer?->emails ?? collect()"
+                                input-id="sampleEmailInput"
+                                accent="teal"
+                            />
+                            <input type="text" name="email" id="sampleEmailInput" required
+                                   value="{{ $sample->customer?->primaryEntityEmail() ?? '' }}"
                                    class="w-full border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
-                                   placeholder="email@ejemplo.com">
-                            @if($sample->customer?->email)
-                                <div class="mt-1 flex flex-wrap gap-1">
-                                    <button type="button"
-                                            onclick="this.closest('form').querySelector('input[name=email]').value='{{ $sample->customer->email }}'"
-                                            class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded hover:bg-gray-200">
-                                        Cliente: {{ $sample->customer->email }}
-                                    </button>
-                                </div>
-                            @endif
+                                   placeholder="correo@ejemplo.com o varios separados por coma">
+                            <p class="mt-1 text-xs text-gray-500">Podés elegir un correo, varios separados por coma, o usar «Todos».</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Mensaje personalizado</label>
