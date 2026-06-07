@@ -61,8 +61,8 @@ class NomencladorCamionerosSeederTest extends TestCase
 
     private function skipIfExcelMissing(): void
     {
-        if (! file_exists(base_path('docs/Nomenclador camioneros.xlsx'))) {
-            $this->markTestSkipped('docs/Nomenclador camioneros.xlsx no presente en el entorno de test.');
+        if (! file_exists(base_path('Nomenclador camioneros.xlsx'))) {
+            $this->markTestSkipped('Nomenclador camioneros.xlsx no presente en la raíz del proyecto.');
         }
     }
 }

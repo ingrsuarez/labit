@@ -9,14 +9,14 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **develop**: **v1.117.0** / **master**: **v1.116.2** |
+| **Versión actual (línea v1.x)** | **develop** / **master**: **v1.117.0** |
 | **Última completada (cola agente)** | **v1.117.0** — Seeder nomenclador Camioneros (producción) |
 | **Último hotfix** | **2026-06-05** — unidad siempre desde catálogo; 4470 filas BD limpiadas (`getUnitAttribute` accessor) |
 | **En proceso** | — |
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
 | **Pendientes en cola** | 0 prompts `v*` |
 | **Completadas** | 172+ |
-| **Working tree** | v1.117.0 mergeado en develop (2026-06-07) |
+| **Working tree** | v1.117.0 en develop y master (2026-06-07) |
 
 ---
 
