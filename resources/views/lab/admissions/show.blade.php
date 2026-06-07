@@ -878,34 +878,29 @@
                 <form action="{{ route('lab.admissions.sendEmail', $admission) }}" method="POST">
                     @csrf
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Email destinatario *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Destinatario(s) *</label>
                         @php
                             $emailPaciente = $admission->patient?->email ?? '';
-                            $emailOS = $admission->insuranceRelation?->email ?? '';
                         @endphp
-                        {{-- Accesos rápidos --}}
-                        @if($emailPaciente || $emailOS)
+                        @if($emailPaciente)
                             <div class="flex flex-wrap gap-1 mb-2">
-                                @if($emailPaciente)
-                                    <button type="button"
-                                            onclick="document.getElementById('emailInput').value = '{{ $emailPaciente }}'"
-                                            class="text-xs px-2 py-1 rounded-full border border-teal-400 text-teal-700 bg-teal-50 hover:bg-teal-100 truncate max-w-full">
-                                        👤 {{ $emailPaciente }}
-                                    </button>
-                                @endif
-                                @if($emailOS && $emailOS !== $emailPaciente)
-                                    <button type="button"
-                                            onclick="document.getElementById('emailInput').value = '{{ $emailOS }}'"
-                                            class="text-xs px-2 py-1 rounded-full border border-purple-400 text-purple-700 bg-purple-50 hover:bg-purple-100 truncate max-w-full">
-                                        🏥 {{ $emailOS }}
-                                    </button>
-                                @endif
+                                <button type="button"
+                                        onclick="document.getElementById('emailInput').value = '{{ $emailPaciente }}'"
+                                        class="text-xs px-2 py-1 rounded-full border border-teal-400 text-teal-700 bg-teal-50 hover:bg-teal-100 truncate max-w-full">
+                                    👤 {{ $emailPaciente }}
+                                </button>
                             </div>
                         @endif
-                        <input type="email" name="email" id="emailInput" required
+                        <x-email-recipient-chips
+                            :entity-emails="$admission->insuranceRelation?->emails ?? collect()"
+                            input-id="emailInput"
+                            accent="purple"
+                        />
+                        <input type="text" name="email" id="emailInput" required
                                value="{{ $emailPaciente }}"
-                               placeholder="paciente@email.com"
+                               placeholder="paciente@email.com o varios separados por coma"
                                class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                        <p class="mt-1 text-xs text-gray-500">Podés elegir un correo, varios separados por coma, o usar «Todos» de la obra social.</p>
                         @if($space10Enabled && $canUploadSpace10 && ! $emailPaciente)
                             <p class="mt-2 text-xs text-violet-700 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2">
                                 El paciente no tiene email. Podés subir el informe a Space10 sin enviar correo

@@ -13,6 +13,7 @@ use App\Models\Species;
 use App\Models\Test;
 use App\Models\VetAdmission;
 use App\Models\VetAdmissionTest;
+use App\Support\ResolvesEmailRecipients;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -291,7 +292,7 @@ class VetAdmissionController extends Controller
     public function show(VetAdmission $vetAdmission)
     {
         $vetAdmission->load([
-            'customer', 'veterinarian', 'species',
+            'customer.emails', 'veterinarian', 'species',
             'vetTests.test.parentTests',
             'vetTests.test.materialRelation',
             'creator', 'labBranch',
@@ -674,15 +675,20 @@ class VetAdmissionController extends Controller
         }
 
         $validated = $request->validate([
-            'email' => 'required|email',
+            'email' => 'required_without:emails|string|max:1000',
+            'emails' => 'nullable|array|min:1',
+            'emails.*' => 'email',
             'message' => 'nullable|string',
         ]);
+
+        $recipients = ResolvesEmailRecipients::parse($validated['emails'] ?? $validated['email']);
+        $recipientLabel = ResolvesEmailRecipients::formatForDisplay($recipients);
 
         $fromEmail = LabSetting::get('results_email', config('mail.from.address'));
         $fromName = LabSetting::get('results_from_name', config('mail.from.name'));
 
         Mail::mailer('smtp')
-            ->to($validated['email'])
+            ->to($recipients)
             ->send(
                 (new VetAdmissionResultMail($vetAdmission, $validated['message'] ?? null))
                     ->from($fromEmail, $fromName)
@@ -690,10 +696,10 @@ class VetAdmissionController extends Controller
 
         $vetAdmission->update(['sent_at' => now()]);
 
-        $vetAdmission->logAudit('email_sent', 'Envió resultados por email a '.$validated['email']);
+        $vetAdmission->logAudit('email_sent', 'Envió resultados por email a '.$recipientLabel);
         \App\Support\LogsProtocolDelivery::logResultDeliveredOncePerDay($vetAdmission);
 
-        return back()->with('success', 'Informe enviado correctamente a '.$validated['email']);
+        return back()->with('success', 'Informe enviado correctamente a '.$recipientLabel);
     }
 
     public function labelData(VetAdmission $vetAdmission)

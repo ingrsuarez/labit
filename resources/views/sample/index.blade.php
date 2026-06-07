@@ -353,7 +353,8 @@
                 'protocol_number' => $s->protocol_number,
                 'customer_id'     => $s->customer_id,
                 'customer_name'   => $s->customer?->name ?? 'N/A',
-                'customer_email'  => $s->customer?->email ?? null,
+                'customer_email'  => $s->customer ? implode(', ', $s->customer->recipientEmails()) : null,
+                'customer_has_email' => $s->customer && count($s->customer->recipientEmails()) > 0,
                 'is_validated'    => $s->isValidated(),
             ];
         })->values();
@@ -455,7 +456,7 @@
                                 customer_id: s.customer_id,
                                 customer_name: s.customer_name,
                                 email: s.customer_email || '',
-                                has_email: !!s.customer_email,
+                                has_email: !!s.customer_has_email,
                                 skip: false,
                                 samples: [],
                             };
