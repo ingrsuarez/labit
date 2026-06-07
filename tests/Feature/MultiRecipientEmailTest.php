@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\AdmissionBatchMail;
 use App\Mail\AdmissionResultMail;
 use App\Mail\SampleBatchMail;
 use App\Mail\SampleResultMail;
@@ -308,6 +309,91 @@ class MultiRecipientEmailTest extends TestCase
 
         $response->assertRedirect();
         Mail::assertSent(AdmissionResultMail::class, function (AdmissionResultMail $mail) {
+            return $mail->hasTo('os1@test.com') && $mail->hasTo('os2@test.com');
+        });
+    }
+
+    public function test_lab_batch_email_a_dos_destinatarios_de_obra_social(): void
+    {
+        Mail::fake();
+
+        $branch = LabBranch::query()->create([
+            'name' => 'Sede Batch Multi',
+            'is_central' => true,
+            'is_active' => true,
+        ]);
+
+        $user = User::factory()->create(['default_lab_branch_id' => $branch->id]);
+        $this->grant($user, ['lab.section', 'lab-admissions.index', 'lab-admissions.show']);
+
+        $insurance = Insurance::query()->create([
+            'name' => 'os batch multi',
+            'type' => 'obra_social',
+            'email' => 'os1@test.com',
+        ]);
+
+        foreach (['os1@test.com', 'os2@test.com'] as $i => $email) {
+            EntityEmail::query()->create([
+                'emailable_type' => Insurance::class,
+                'emailable_id' => $insurance->id,
+                'email' => $email,
+                'is_primary' => $i === 0,
+                'sort_order' => $i,
+            ]);
+        }
+
+        $patient = Patient::query()->create([
+            'name' => 'Paciente',
+            'lastName' => 'Batch',
+            'patientId' => '30111223',
+            'type' => 'humano',
+            'sex' => 'F',
+            'status' => 'activo',
+        ]);
+
+        $admission = Admission::query()->create([
+            'date' => now()->toDateString(),
+            'number' => '1',
+            'protocol_number' => Admission::generateProtocolNumber(),
+            'patient_id' => $patient->id,
+            'insurance' => $insurance->id,
+            'room' => 0,
+            'institution' => 0,
+            'invoice_date' => now()->toDateString(),
+            'promise_date' => now()->toDateString(),
+            'authorization_code' => '',
+            'attended_by' => $user->id,
+            'insurance_price' => 0,
+            'patient_price' => 0,
+            'cash' => 0,
+            'created_by' => $user->id,
+            'lab_branch_id' => $branch->id,
+            'status' => Admission::STATUS_COMPLETED,
+        ]);
+
+        $test = Test::query()->create([
+            'code' => 'LBATCH1',
+            'name' => 'Test lab batch',
+            'unit' => 'mg/dL',
+            'price' => 0,
+            'categories' => ['lab'],
+        ]);
+
+        AdmissionTest::query()->create([
+            'admission_id' => $admission->id,
+            'test_id' => $test->id,
+            'price' => 0,
+            'is_validated' => true,
+            'validated_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->postJson(route('lab.admissions.batch-email'), [
+            'admission_ids' => [$admission->id],
+            'email' => 'os1@test.com, os2@test.com',
+        ]);
+
+        $response->assertOk();
+        Mail::assertSent(AdmissionBatchMail::class, function (AdmissionBatchMail $mail) {
             return $mail->hasTo('os1@test.com') && $mail->hasTo('os2@test.com');
         });
     }

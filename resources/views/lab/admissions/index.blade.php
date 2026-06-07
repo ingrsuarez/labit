@@ -382,18 +382,35 @@
                         </template>
 
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Correo del destinatario</label>
-                            <input type="email" x-model="batchEmail"
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Destinatario(s)</label>
+                            <template x-if="batchInsuranceChips.length > 0">
+                                <div class="flex flex-wrap gap-1 mb-2">
+                                    <template x-for="chip in batchInsuranceChips" :key="chip.email">
+                                        <button type="button"
+                                                @click="batchEmail = chip.email"
+                                                class="text-xs px-2 py-1 rounded-full border border-purple-400 text-purple-700 bg-purple-50 hover:bg-purple-100 truncate max-w-full"
+                                                x-text="chip.label"></button>
+                                    </template>
+                                    <button type="button"
+                                            x-show="batchInsuranceChips.length > 1"
+                                            @click="applyAllInsuranceEmails()"
+                                            class="text-xs px-2 py-1 rounded-full border border-gray-400 text-gray-700 bg-gray-100 hover:bg-gray-200 font-medium">
+                                        Todos (<span x-text="batchInsuranceChips.length"></span>)
+                                    </button>
+                                </div>
+                            </template>
+                            <input type="text" x-model="batchEmail" id="labBatchEmailInput"
                                    class="w-full text-sm border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
-                                   placeholder="ejemplo@dominio.com"
+                                   placeholder="correo@dominio.com o varios separados por coma"
                                    autocomplete="email">
+                            <p class="mt-1 text-xs text-gray-500">Podés elegir un correo, varios separados por coma, o usar los atajos de abajo.</p>
                             <div class="flex flex-wrap gap-2 mt-2">
                                 <button type="button"
                                         class="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
                                         :disabled="!canUseInsuranceShortcut"
-                                        :title="canUseInsuranceShortcut ? '' : 'Los protocolos seleccionados no comparten la misma obra social o la OS no tiene email'"
+                                        :title="canUseInsuranceShortcut ? '' : 'Los protocolos seleccionados no comparten la misma obra social o la OS no tiene correos'"
                                         @click="applyInsuranceEmail()">
-                                    Usar email de obra social
+                                    Usar todos los emails de obra social
                                 </button>
                                 <button type="button"
                                         class="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
@@ -535,7 +552,12 @@
                     'protocol_number' => $a->protocol_number ?? $a->number,
                     'insurance_id' => $a->insurance,
                     'patient_id' => $a->patient_id,
-                    'insurance_email' => $a->insuranceRelation?->email,
+                    'insurance_email' => $a->insuranceRelation?->primaryEntityEmail(),
+                    'insurance_emails' => $a->insuranceRelation?->recipientEmails() ?? [],
+                    'insurance_email_entries' => ($a->insuranceRelation?->emails ?? collect())->map(fn ($e) => [
+                        'email' => $e->email,
+                        'label' => $e->label ? $e->label.' · '.$e->email : $e->email,
+                    ])->values()->all(),
                     'patient_email' => $a->patient?->email,
                     'can_batch_send' => $validatedForBatch,
                     'can_batch_space10' => $space10Enabled && $validatedForBatch && $patientDni !== '',
@@ -606,12 +628,17 @@
                         this.showSpace10Modal = true;
                     },
 
+                    get batchInsuranceChips() {
+                        if (!this.canUseInsuranceShortcut) return [];
+                        return this.batchToSend[0].insurance_email_entries || [];
+                    },
+
                     get canUseInsuranceShortcut() {
                         const list = this.batchToSend;
                         if (list.length === 0) return false;
                         const id = list[0].insurance_id;
-                        const email = list[0].insurance_email;
-                        if (!email || !id) return false;
+                        const emails = list[0].insurance_emails;
+                        if (!emails?.length || !id) return false;
                         return list.every(a => a.insurance_id === id);
                     },
 
@@ -630,8 +657,13 @@
                     },
 
                     applyInsuranceEmail() {
-                        if (this.batchToSend.length && this.batchToSend[0].insurance_email) {
-                            this.batchEmail = this.batchToSend[0].insurance_email;
+                        this.applyAllInsuranceEmails();
+                    },
+
+                    applyAllInsuranceEmails() {
+                        const emails = this.batchToSend[0]?.insurance_emails;
+                        if (emails?.length) {
+                            this.batchEmail = emails.join(', ');
                         }
                     },
 
