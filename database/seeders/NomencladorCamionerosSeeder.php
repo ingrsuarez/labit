@@ -16,10 +16,10 @@ class NomencladorCamionerosSeeder extends Seeder
 
     public function run(): void
     {
-        $filePath = base_path('docs'.DIRECTORY_SEPARATOR.self::SOURCE_FILE);
+        $filePath = base_path(self::SOURCE_FILE);
 
         if (! file_exists($filePath)) {
-            $this->command->error('Archivo no encontrado: docs/'.self::SOURCE_FILE);
+            $this->command->error('Archivo no encontrado: '.self::SOURCE_FILE.' (raíz del proyecto)');
 
             return;
         }
@@ -50,7 +50,7 @@ class NomencladorCamionerosSeeder extends Seeder
                 'nbu' => 0,
                 'nbu_value' => 1,
                 'group' => null,
-                'instructions' => 'Nomenclador de prácticas Obra Social Camioneros. Importado desde docs/'.self::SOURCE_FILE,
+                'instructions' => 'Nomenclador de prácticas Obra Social Camioneros. Importado desde '.self::SOURCE_FILE,
             ]
         );
 
