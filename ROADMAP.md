@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-06-06 (**v1.114.0** integración Space10 planificada)
+> Última actualización: 2026-06-07 (**v1.116.1** envío multi-destinatario protocolos completada)
 
 ---
 
@@ -166,10 +166,12 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 ## Backlog activo (labit)
 
 > Cola de ejecución: `agent-bootstrap/prompts/pendientes/` (solo prompts `v*.md`).
-> Sincronizado con STATUS.md el 2026-06-06.
+> Sincronizado con STATUS.md el 2026-06-07.
 
 | Versión | Nombre | Estado | Prompt | Notas |
 |---|---|---|---|---|
+| v1.116.0 | Múltiples emails por cliente (persistencia + ABM) | ✅ Completada (2026-06-07) | `completados/v1.116.0-multiples-emails-cliente-abm.md` | Tabla `entity_emails` polimórfica; etiquetas Resultados/Facturación/Pagos; diseño: `docs/designs/DISEÑO_v1.116.0-multiples-emails-cliente.md` |
+| v1.116.1 | Envío de protocolos a múltiples emails del cliente | ✅ Completada (2026-06-07) | `completados/v1.116.1-envio-multiples-emails-protocolos.md` | Depende v1.116.0; todos en Para:; muestras + vet + OS clínico |
 | v1.114.0 | Integración Space10: upload PDF lab clínico por DNI | ✅ Completada (2026-06-06) | `completados/v1.114.0-integracion-space10-upload-pdf-lab-clinico.md` | Auto al enviar email + batch listado; `space10_uploaded_at`; diseño: `docs/designs/DISEÑO_v1.114.0-integracion-space10-upload-pdf-lab-clinico.md` |
 | v1.113.0 | DDJJ Formulario 931 + plan de cuentas aportes/contribuciones patronales | ✅ Completada (2026-05-30) | `completados/v1.113.0-ddjj-formulario-931-plan-cuentas.md` |
 | v1.113.1 | Calendario de vencimientos / flujo de caja | ✅ Completada (2026-05-30) | `completados/v1.113.1-calendario-vencimientos-flujo-caja.md` |
