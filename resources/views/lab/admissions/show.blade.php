@@ -29,6 +29,12 @@
                 <div class="flex items-center gap-2 flex-wrap" x-data>
                     @php
                         $validatedCount = $admission->admissionTests->where('is_validated', true)->count();
+                        $space10Enabled = app(\App\Services\Space10UploadService::class)->isEnabled();
+                        $patientDni = trim((string) ($admission->patient?->patientId ?? ''));
+                        $canUploadSpace10 = $space10Enabled
+                            && $validatedCount > 0
+                            && $patientDni !== ''
+                            && ! $admission->isUploadedToSpace10();
                     @endphp
                     @if($validatedCount > 0)
                     <a href="{{ route('lab.admissions.pdf.view', $admission) }}" target="_blank"
@@ -52,6 +58,22 @@
                         </svg>
                         Email
                     </button>
+                    @can('lab-admissions.show')
+                    @if($canUploadSpace10)
+                    <form action="{{ route('lab.admissions.space10', $admission) }}" method="POST" class="inline"
+                          onsubmit="return confirm('¿Subir el informe a Space10 para el DNI {{ $patientDni }}?')">
+                        @csrf
+                        <button type="submit"
+                                class="px-3 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors text-sm inline-flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                            Subir a Space10
+                        </button>
+                    </form>
+                    @endif
+                    @endcan
                     @endif
                     @can('lab-labels.print')
                     <button type="button"
@@ -884,6 +906,12 @@
                                value="{{ $emailPaciente }}"
                                placeholder="paciente@email.com"
                                class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500">
+                        @if($space10Enabled && $canUploadSpace10 && ! $emailPaciente)
+                            <p class="mt-2 text-xs text-violet-700 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2">
+                                El paciente no tiene email. Podés subir el informe a Space10 sin enviar correo
+                                con el botón <strong>Subir a Space10</strong> en la barra superior.
+                            </p>
+                        @endif
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Mensaje adicional (opcional)</label>
