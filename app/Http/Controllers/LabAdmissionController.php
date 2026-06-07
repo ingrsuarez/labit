@@ -22,6 +22,7 @@ use App\Services\AdmissionInsuranceTestPricing;
 use App\Services\AdmissionSampleDrawService;
 use App\Services\Space10UploadService;
 use App\Support\ClinicalPendingResultsPresenter;
+use App\Support\ResolvesEmailRecipients;
 use App\Support\Space10UploadResult;
 use App\Support\VeterinaryPendingResultsPresenter;
 use Carbon\Carbon;
@@ -584,7 +585,7 @@ class LabAdmissionController extends Controller
         $this->authorize('lab-admissions.show');
         $admission->load([
             'patient',
-            'insuranceRelation',
+            'insuranceRelation.emails',
             'admissionTests.test.parentTests',
             'admissionTests.test.materialRelation',
             'admissionTests.test.referenceValues.category',
@@ -1337,9 +1338,14 @@ class LabAdmissionController extends Controller
         $validated = $request->validate([
             'admission_ids' => 'required|array|min:1',
             'admission_ids.*' => 'integer|exists:admissions,id',
-            'email' => 'required|email',
+            'email' => 'required_without:emails|string|max:1000',
+            'emails' => 'nullable|array|min:1',
+            'emails.*' => 'email',
             'message' => 'nullable|string',
         ]);
+
+        $batchRecipients = ResolvesEmailRecipients::parse($validated['emails'] ?? $validated['email']);
+        $batchRecipientLabel = ResolvesEmailRecipients::formatForDisplay($batchRecipients);
 
         $fromEmail = LabSetting::get('results_email', config('mail.from.address'));
         $fromName = LabSetting::get('results_from_name', config('mail.from.name'));
@@ -1386,7 +1392,7 @@ class LabAdmissionController extends Controller
 
         try {
             Mail::mailer('smtp')
-                ->to($validated['email'])
+                ->to($batchRecipients)
                 ->send(
                     (new AdmissionBatchMail($eligible->values(), $validated['message'] ?? null))
                         ->from($fromEmail, $fromName)
@@ -1394,12 +1400,12 @@ class LabAdmissionController extends Controller
 
             foreach ($eligible as $adm) {
                 $adm->update(['sent_at' => now()]);
-                $adm->logAudit('email_sent', 'Enviado en lote masivo a '.$validated['email']);
+                $adm->logAudit('email_sent', 'Enviado en lote masivo a '.$batchRecipientLabel);
                 \App\Support\LogsProtocolDelivery::logResultDeliveredOncePerDay($adm);
                 $results['sent'][] = $adm->protocol_number;
             }
 
-            $results['space10'] = $this->uploadAdmissionsToSpace10($eligible->values(), $validated['email']);
+            $results['space10'] = $this->uploadAdmissionsToSpace10($eligible->values(), $batchRecipients);
         } catch (\Throwable $e) {
             foreach ($eligible as $adm) {
                 $results['errors'][] = $adm->protocol_number.' (error: '.$e->getMessage().')';
@@ -1427,31 +1433,36 @@ class LabAdmissionController extends Controller
         }
 
         $validated = $request->validate([
-            'email' => 'required|email',
+            'email' => 'required_without:emails|string|max:1000',
+            'emails' => 'nullable|array|min:1',
+            'emails.*' => 'email',
             'message' => 'nullable|string',
         ]);
+
+        $recipients = ResolvesEmailRecipients::parse($validated['emails'] ?? $validated['email']);
+        $recipientLabel = ResolvesEmailRecipients::formatForDisplay($recipients);
 
         $fromEmail = LabSetting::get('results_email', config('mail.from.address'));
         $fromName = LabSetting::get('results_from_name', config('mail.from.name'));
 
         Mail::mailer('smtp')
-            ->to($validated['email'])
+            ->to($recipients)
             ->send(
                 (new AdmissionResultMail($admission, $validated['message'] ?? null))
                     ->from($fromEmail, $fromName)
             );
 
-        $admission->logAudit('email_sent', 'Envió resultados por email a '.$validated['email']);
+        $admission->logAudit('email_sent', 'Envió resultados por email a '.$recipientLabel);
         \App\Support\LogsProtocolDelivery::logResultDeliveredOncePerDay($admission);
 
         $admission->update(['sent_at' => now()]);
 
         $space10Result = null;
-        if ($this->shouldUploadToSpace10AfterEmail($admission, $validated['email'])) {
+        if ($this->shouldUploadToSpace10AfterEmail($admission, $recipients)) {
             $space10Result = app(Space10UploadService::class)->uploadAdmission($admission->fresh());
         }
 
-        $successMessage = 'Informe enviado correctamente a '.$validated['email'];
+        $successMessage = 'Informe enviado correctamente a '.$recipientLabel;
         if ($space10Result?->isSuccess()) {
             $successMessage .= ' Informe subido a Space10.';
         }
@@ -1579,7 +1590,10 @@ class LabAdmissionController extends Controller
      * @param  \Illuminate\Support\Collection<int, Admission>|\Illuminate\Support\Collection<int, mixed>  $admissions
      * @return array{uploaded: array<int, string>, skipped: array<int, string>, errors: array<int, string>}
      */
-    private function uploadAdmissionsToSpace10($admissions, ?string $destinationEmail = null): array
+    /**
+     * @param  string|array<int, string>|null  $destinationEmail
+     */
+    private function uploadAdmissionsToSpace10($admissions, string|array|null $destinationEmail = null): array
     {
         $results = [
             'uploaded' => [],
@@ -1614,7 +1628,10 @@ class LabAdmissionController extends Controller
      * Space10 solo se dispara por email si el destinatario es el email del paciente
      * (no obra social, empresa laboral u otro correo).
      */
-    private function shouldUploadToSpace10AfterEmail(Admission $admission, string $destinationEmail): bool
+    /**
+     * @param  string|array<int, string>  $destination
+     */
+    private function shouldUploadToSpace10AfterEmail(Admission $admission, string|array $destination): bool
     {
         $admission->loadMissing('patient');
 
@@ -1623,7 +1640,19 @@ class LabAdmissionController extends Controller
             return false;
         }
 
-        return $this->normalizeEmail($destinationEmail) === $this->normalizeEmail($patientEmail);
+        $destinations = is_array($destination)
+            ? $destination
+            : ResolvesEmailRecipients::parse($destination);
+
+        $normalizedPatient = $this->normalizeEmail($patientEmail);
+
+        foreach ($destinations as $email) {
+            if ($this->normalizeEmail($email) === $normalizedPatient) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function normalizeEmail(string $email): string
