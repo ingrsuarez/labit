@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-06-07 (**v1.117.0** seeder nomenclador Camioneros)
+> Última actualización: 2026-06-07 (**v1.117.1** fix path Excel nomenclador Camioneros)
 
 ---
 
@@ -9,8 +9,8 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **develop** / **master**: **v1.117.0** |
-| **Última completada (cola agente)** | **v1.117.0** — Seeder nomenclador Camioneros (producción) |
+| **Versión actual (línea v1.x)** | **develop** / **master**: **v1.117.1** |
+| **Última completada (cola agente)** | **v1.117.1** — Fix: Excel nomenclador Camioneros en raíz del proyecto |
 | **Último hotfix** | **2026-06-05** — unidad siempre desde catálogo; 4470 filas BD limpiadas (`getUnitAttribute` accessor) |
 | **En proceso** | — |
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
