@@ -157,8 +157,13 @@
                                         @if($insurance->short_name)
                                             <div class="text-xs text-gray-400 uppercase">{{ $insurance->name }}</div>
                                         @endif
-                                        @if($insurance->email)
-                                            <div class="text-sm text-gray-500">{{ $insurance->email }}</div>
+                                        @if($insurance->primaryEntityEmail())
+                                            <div class="text-sm text-gray-500" @if($insurance->extraEmailsCount() > 0) title="{{ $insurance->emailsTooltip() }}" @endif>
+                                                {{ $insurance->primaryEntityEmail() }}
+                                                @if($insurance->extraEmailsCount() > 0)
+                                                    <span class="text-xs text-gray-400">+{{ $insurance->extraEmailsCount() }} correos más</span>
+                                                @endif
+                                            </div>
                                         @endif
                                     </div>
                                 </div>
@@ -321,12 +326,7 @@
                                     </select>
                                 </div>
 
-                                <!-- Email -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                    <input type="email" name="email" placeholder="contacto@ejemplo.com"
-                                           class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                                </div>
+                                <x-entity-emails-repeater accent="blue" />
 
                                 <!-- Telefono -->
                                 <div>
