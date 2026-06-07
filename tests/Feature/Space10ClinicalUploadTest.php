@@ -182,6 +182,23 @@ class Space10ClinicalUploadTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_upload_space10_individual_sin_email_setea_space10_uploaded_at(): void
+    {
+        Http::fake([
+            'https://space10.test/*' => Http::response(['path' => 'patients/30111222/lab/file.pdf'], 201),
+        ]);
+
+        [$user, , $admission] = $this->makeValidatedAdmission('30111222', null);
+
+        $response = $this->actingAs($user)->post(route('lab.admissions.space10', $admission));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+        $this->assertNull($admission->fresh()->sent_at);
+        $this->assertNotNull($admission->fresh()->space10_uploaded_at);
+        Http::assertSentCount(1);
+    }
+
     public function test_batch_email_no_sube_a_space10_si_destino_no_es_email_del_paciente(): void
     {
         Mail::fake();

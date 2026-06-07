@@ -1468,6 +1468,41 @@ class LabAdmissionController extends Controller
     }
 
     /**
+     * Subida individual de informe PDF a Space10 (sin envío de email).
+     */
+    public function uploadSpace10(Admission $admission)
+    {
+        $this->authorize('lab-admissions.show');
+
+        if (! $this->admissionCanReceiveResultsEmail($admission)) {
+            return redirect()->back()->with('error', 'Debe validar al menos una determinación para subir el informe a Space10.');
+        }
+
+        $admission->loadMissing('patient');
+
+        $dni = trim((string) ($admission->patient?->patientId ?? ''));
+        if ($dni === '') {
+            return redirect()->back()->with('error', 'El paciente no tiene DNI cargado.');
+        }
+
+        if ($admission->isUploadedToSpace10()) {
+            return redirect()->back()->with('warning', 'Este informe ya fue subido a Space10.');
+        }
+
+        $result = app(Space10UploadService::class)->uploadAdmission($admission);
+
+        if ($result->isSuccess()) {
+            return redirect()->back()->with('success', 'Informe subido a Space10 correctamente.');
+        }
+
+        if ($result->isSkipped()) {
+            return redirect()->back()->with('warning', $result->message);
+        }
+
+        return redirect()->back()->with('error', 'No se pudo subir a Space10: '.$result->message);
+    }
+
+    /**
      * Subida masiva de informes PDF a Space10 (sin envío de email).
      */
     public function batchSpace10(Request $request)

@@ -103,7 +103,7 @@
              class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 shadow-sm">
             <p class="text-sm text-teal-900">
                 <strong><span x-text="selectedIds.length"></span></strong> protocolo(s) seleccionado(s).
-                <span class="text-teal-700">Podés enviar todos los informes en un solo correo.</span>
+                <span class="text-teal-700">Enviar por email o subir a Space10 sin correo.</span>
             </p>
             <div class="flex flex-wrap items-center gap-2 shrink-0">
                 @if($space10Enabled)
@@ -273,6 +273,27 @@
                                             </svg>
                                             Email
                                         </a>
+                                        @php
+                                            $rowDni = trim((string) ($admission->patient?->patientId ?? ''));
+                                            $rowCanSpace10 = $space10Enabled
+                                                && ! $admission->isUploadedToSpace10()
+                                                && $rowDni !== '';
+                                        @endphp
+                                        @if($rowCanSpace10)
+                                        <form action="{{ route('lab.admissions.space10', $admission) }}" method="POST" class="inline ml-2"
+                                              onsubmit="return confirm('¿Subir {{ $admission->protocol_number }} a Space10 (DNI {{ $rowDni }})?')">
+                                            @csrf
+                                            <button type="submit"
+                                                    class="text-violet-600 hover:text-violet-800 text-sm inline-flex items-center gap-0.5"
+                                                    title="Subir informe a Space10 (sin email)">
+                                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                                </svg>
+                                                Space10
+                                            </button>
+                                        </form>
+                                        @endif
                                         @endcan
                                         @endif
                                         @can('lab-labels.print')
@@ -382,6 +403,12 @@
                                     Usar email del paciente
                                 </button>
                             </div>
+                            <p x-show="!canUsePatientShortcut && space10EligibleCount > 0" x-cloak
+                               class="mt-2 text-xs text-violet-700 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2">
+                                ¿Sin email del paciente? Cerrá este modal y usá
+                                <strong>Subir a Space10</strong> en la barra superior, o el enlace
+                                <strong>Space10</strong> en la columna Acciones de cada fila.
+                            </p>
                         </div>
 
                         <div class="mb-4">
@@ -595,6 +622,11 @@
                         const email = list[0].patient_email;
                         if (!pid || !email) return false;
                         return list.every(a => a.patient_id === pid);
+                    },
+
+                    get space10EligibleCount() {
+                        const ids = new Set(this.selectedIds.map(id => Number(id)));
+                        return this.admissionMeta.filter(a => ids.has(Number(a.id)) && a.can_batch_space10 && !a.already_on_space10).length;
                     },
 
                     applyInsuranceEmail() {

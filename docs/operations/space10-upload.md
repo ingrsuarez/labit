@@ -26,6 +26,7 @@ Copiar el token en `SPACE10_API_TOKEN` de Labit (solo se muestra una vez).
 ## Comportamiento
 
 - **Auto-upload al enviar email** (individual o masivo) **solo si** el destinatario del correo es el **email del paciente**. No se sube si el mail va a obra social, empresa laboral u otro destino.
+- **Sin email del paciente:** usar **“Subir a Space10”** en la ficha del protocolo, el enlace **Space10** en la columna Acciones del listado, o el batch **“Subir a Space10”** al seleccionar filas (ninguno requiere correo).
 - **Batch manual** “Subir a Space10” desde listado de admisiones clínicas (sin depender del email).
 - **Fecha en Space10:** se envía la fecha del día (`d-m-Y`, ej. `06-06-2026`) para el nombre `lab-{dni}-{fecha}.pdf`, igual que la carga manual en Space10.
 - Idempotencia: columna `admissions.space10_uploaded_at`.
