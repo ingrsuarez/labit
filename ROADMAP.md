@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-06-07 (**v1.116.1** envío multi-destinatario protocolos completada)
+> Última actualización: 2026-06-07 (**v1.117.0** seeder nomenclador Camioneros)
 
 ---
 
@@ -170,6 +170,7 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 
 | Versión | Nombre | Estado | Prompt | Notas |
 |---|---|---|---|---|
+| v1.117.0 | Seeder nomenclador Camioneros (producción) | ✅ Completada (2026-06-07) | `completados/v1.117.0-seeder-nomenclador-camioneros.md` | `NomencladorCamionerosSeeder`; Excel `docs/Nomenclador camioneros.xlsx`; ~1270 prácticas |
 | v1.116.0 | Múltiples emails por cliente (persistencia + ABM) | ✅ Completada (2026-06-07) | `completados/v1.116.0-multiples-emails-cliente-abm.md` | Tabla `entity_emails` polimórfica; etiquetas Resultados/Facturación/Pagos; diseño: `docs/designs/DISEÑO_v1.116.0-multiples-emails-cliente.md` |
 | v1.116.1 | Envío de protocolos a múltiples emails del cliente | ✅ Completada (2026-06-07) | `completados/v1.116.1-envio-multiples-emails-protocolos.md` | Depende v1.116.0; todos en Para:; muestras + vet + OS clínico |
 | v1.114.0 | Integración Space10: upload PDF lab clínico por DNI | ✅ Completada (2026-06-06) | `completados/v1.114.0-integracion-space10-upload-pdf-lab-clinico.md` | Auto al enviar email + batch listado; `space10_uploaded_at`; diseño: `docs/designs/DISEÑO_v1.114.0-integracion-space10-upload-pdf-lab-clinico.md` |
