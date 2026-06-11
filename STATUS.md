@@ -1,7 +1,7 @@
 ﻿# STATUS — Labit
 
 > Estado actual del proyecto y del sistema de agentes.
-> Última actualización: 2026-06-07 (**v1.117.1** fix path Excel nomenclador Camioneros)
+> Última actualización: 2026-06-10 (**v1.118.0** fix envío email protocolos muestras)
 
 ---
 
@@ -9,8 +9,8 @@
 
 | Campo | Valor |
 |---|---|
-| **Versión actual (línea v1.x)** | **develop** / **master**: **v1.117.1** |
-| **Última completada (cola agente)** | **v1.117.1** — Fix: Excel nomenclador Camioneros en raíz del proyecto |
+| **Versión actual (línea v1.x)** | **develop** / **master**: **v1.118.0** |
+| **Última completada (cola agente)** | **v1.118.0** — Fix envío email protocolos de muestras + paridad clínico |
 | **Último hotfix** | **2026-06-05** — unidad siempre desde catálogo; 4470 filas BD limpiadas (`getUnitAttribute` accessor) |
 | **En proceso** | — |
 | **Próxima recomendada** | Planificar nuevas versiones (cola `v*` vacía) |
@@ -52,6 +52,7 @@ _Sin prompts en ejecución._
 
 | Versión | Nombre | Fecha | Tag |
 |---|---|---|---|
+| v1.118.0 | Fix envío email protocolos muestras + paridad clínico | 2026-06-10 | v1.118.0 |
 | v1.117.1 | Fix: Excel nomenclador Camioneros en raíz del proyecto | 2026-06-07 | v1.117.1 |
 | v1.117.0 | Seeder nomenclador Camioneros (producción) | 2026-06-07 | v1.117.0 |
 | v1.115.1 | Métricas RRHH en productividad individual (vacaciones, licencias, NC, horas extras) | 2026-06-06 | v1.115.1 |

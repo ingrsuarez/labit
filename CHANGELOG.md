@@ -5,6 +5,24 @@
 
 ---
 
+## [v1.118.0] — 2026-06-10 — Fix envío email protocolos de muestras
+
+### Corregido
+
+- Envío masivo desde `/sample`: modal vacío cuando el protocolo mostraba badge **Validado** pero `validation_status` estaba desincronizado. `Sample::isValidated()` ahora usa `calculated_status` (v1.102.0).
+
+### Agregado
+
+- Link **Email** en columna Acciones del listado de muestras (paridad lab clínico).
+- Soporte `?open_email=1` en detalle del protocolo para abrir el modal automáticamente.
+- Modal masivo: chips multi-email por cliente, mensaje opcional, input text para varios destinatarios.
+
+### Operaciones
+
+- Backfill recomendado en producción: `php artisan protocols:recalculate-status --only=sample`
+
+---
+
 ## [v1.114.2] — 2026-06-06 — Space10: fecha de estudio en nombre de archivo (d-m-Y)
 
 ### Corregido

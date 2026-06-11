@@ -1,7 +1,7 @@
 ﻿# ROADMAP — Labit
 
 > Versiones planificadas, en progreso y completadas del proyecto.
-> Última actualización: 2026-06-07 (**v1.117.0** seeder nomenclador Camioneros)
+> Última actualización: 2026-06-10 (**v1.118.0** fix envío email muestras)
 
 ---
 
@@ -166,10 +166,11 @@ nulo (caso defensivo), fallback al formato actual `{protocol_number}` solo.
 ## Backlog activo (labit)
 
 > Cola de ejecución: `agent-bootstrap/prompts/pendientes/` (solo prompts `v*.md`).
-> Sincronizado con STATUS.md el 2026-06-07.
+> Sincronizado con STATUS.md el 2026-06-10.
 
 | Versión | Nombre | Estado | Prompt | Notas |
 |---|---|---|---|---|
+| v1.118.0 | Fix envío email protocolos muestras + paridad clínico (solo empresa) | ✅ Completada (2026-06-10) | `completados/v1.118.0-fix-envio-masivo-email-muestras.md` | Fix modal masivo vacío; link Email en listado; chips batch multi-email; tag `v1.118.0` |
 | v1.117.0 | Seeder nomenclador Camioneros (producción) | ✅ Completada (2026-06-07) | `completados/v1.117.0-seeder-nomenclador-camioneros.md` | `NomencladorCamionerosSeeder`; Excel `docs/Nomenclador camioneros.xlsx`; ~1270 prácticas |
 | v1.116.0 | Múltiples emails por cliente (persistencia + ABM) | ✅ Completada (2026-06-07) | `completados/v1.116.0-multiples-emails-cliente-abm.md` | Tabla `entity_emails` polimórfica; etiquetas Resultados/Facturación/Pagos; diseño: `docs/designs/DISEÑO_v1.116.0-multiples-emails-cliente.md` |
 | v1.116.1 | Envío de protocolos a múltiples emails del cliente | ✅ Completada (2026-06-07) | `completados/v1.116.1-envio-multiples-emails-protocolos.md` | Depende v1.116.0; todos en Para:; muestras + vet + OS clínico |

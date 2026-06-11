@@ -1,8 +1,11 @@
 <x-lab-layout>
     @php
         $validatedCount = $sample->determinations->where('is_validated', true)->count();
+        $openEmailModal = request()->boolean('open_email')
+            && $validatedCount > 0
+            && auth()->user()?->can('samples-reports.send');
     @endphp
-    <div class="mt-14 py-6 px-4 md:mt-0 md:px-6" x-data="{ showEmailModal: false }">
+    <div class="mt-14 py-6 px-4 md:mt-0 md:px-6" x-data="{ showEmailModal: {{ $openEmailModal ? 'true' : 'false' }} }">
         <!-- Header: sticky en viewport; top-14 móvil; md:top-20 alineado al header lab -->
         <div class="sticky top-14 z-20 mb-6 flex flex-col border-b border-gray-200 bg-gray-100 pb-4 pt-2 shadow-sm md:top-20 md:flex-row md:items-start md:justify-between">
             <div>
@@ -600,7 +603,7 @@
                                 accent="teal"
                             />
                             <input type="text" name="email" id="sampleEmailInput" required
-                                   value="{{ $sample->customer?->primaryEntityEmail() ?? '' }}"
+                                   value="{{ $sample->customer ? implode(', ', $sample->customer->recipientEmails()) : '' }}"
                                    class="w-full border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
                                    placeholder="correo@ejemplo.com o varios separados por coma">
                             <p class="mt-1 text-xs text-gray-500">Podés elegir un correo, varios separados por coma, o usar «Todos».</p>
