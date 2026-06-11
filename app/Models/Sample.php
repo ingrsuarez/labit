@@ -178,7 +178,7 @@ class Sample extends Model
      */
     public function isValidated(): bool
     {
-        return $this->validation_status === 'validated';
+        return $this->calculated_status === ProtocolStatusCalculator::STATUS_VALIDATED;
     }
 
     public function isSent(): bool

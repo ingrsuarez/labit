@@ -1093,6 +1093,7 @@ class SampleController extends Controller
             'sample_ids.*' => 'integer|exists:samples,id',
             'email_overrides' => 'nullable|array',
             'email_overrides.*' => 'nullable|string|max:1000',
+            'message' => 'nullable|string',
         ]);
 
         $fromEmail = LabSetting::get('results_email', config('mail.from.address'));
@@ -1161,7 +1162,7 @@ class SampleController extends Controller
                 Mail::mailer('smtp')
                     ->to($recipients)
                     ->send(
-                        (new SampleBatchMail($customerSamples))
+                        (new SampleBatchMail($customerSamples, $validated['message'] ?? null))
                             ->from($fromEmail, $fromName)
                     );
 
