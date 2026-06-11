@@ -228,6 +228,16 @@
                                         </svg>
                                         PDF
                                     </a>
+                                    @can('samples-reports.send')
+                                    <a x-bind:href="sampleEmailUrl({{ $sample->id }})"
+                                       class="text-teal-600 hover:text-teal-800 text-sm inline-flex items-center gap-0.5"
+                                       title="Enviar informe por email">
+                                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                        </svg>
+                                        Email
+                                    </a>
+                                    @endcan
                                 @endif
                             </td>
                         </tr>
@@ -290,14 +300,31 @@
 
                         <div class="mb-2">
                             <label class="block text-xs font-medium text-gray-600 mb-1">
-                                Email destinatario
+                                Destinatario(s)
                                 <template x-if="!group.has_email">
                                     <span class="text-red-500 ml-1">⚠ Cliente sin email registrado</span>
                                 </template>
                             </label>
-                            <input type="email" x-model="group.email" :disabled="group.skip"
+                            <template x-if="group.customer_emails && group.customer_emails.length > 0">
+                                <div class="flex flex-wrap gap-1 mb-2">
+                                    <template x-for="chip in group.customer_emails" :key="chip.email">
+                                        <button type="button"
+                                                @click="group.email = chip.email"
+                                                class="text-xs px-2 py-1 rounded-full border border-teal-400 text-teal-700 bg-teal-50 hover:bg-teal-100 truncate max-w-full"
+                                                x-text="chip.label"></button>
+                                    </template>
+                                    <button type="button"
+                                            x-show="group.customer_emails.length > 1"
+                                            @click="group.email = group.customer_emails.map(c => c.email).join(', ')"
+                                            class="text-xs px-2 py-1 rounded-full border border-gray-400 text-gray-700 bg-gray-100 hover:bg-gray-200 font-medium">
+                                        Todos (<span x-text="group.customer_emails.length"></span>)
+                                    </button>
+                                </div>
+                            </template>
+                            <input type="text" x-model="group.email" :disabled="group.skip"
                                    class="w-full text-sm border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 disabled:bg-gray-50 disabled:text-gray-400"
-                                   placeholder="email@ejemplo.com">
+                                   placeholder="correo@dominio.com o varios separados por coma">
+                            <p class="mt-1 text-xs text-gray-500">Podés elegir un correo, varios separados por coma, o usar «Todos».</p>
                         </div>
 
                         <ul class="text-xs text-gray-500 list-disc list-inside">
@@ -307,6 +334,13 @@
                         </ul>
                     </div>
                 </template>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mensaje para el cuerpo del correo (opcional)</label>
+                    <textarea x-model="batchMessage" rows="3"
+                              class="w-full text-sm border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
+                              placeholder="Texto adicional para el destinatario…"></textarea>
+                </div>
 
                 <div class="flex justify-end gap-3 mt-4">
                     <button type="button" @click="showBatchModal = false"
@@ -348,12 +382,24 @@
 
     @php
         $sampleMetaJson = $samples->map(function ($s) {
+            $entityEmails = $s->customer?->emails ?? collect();
+            $customerEmails = $entityEmails->isNotEmpty()
+                ? $entityEmails->map(fn ($e) => [
+                    'email' => $e->email,
+                    'label' => $e->label ? $e->label.' · '.$e->email : $e->email,
+                ])->values()->all()
+                : collect($s->customer?->recipientEmails() ?? [])->map(fn ($email) => [
+                    'email' => $email,
+                    'label' => $email,
+                ])->values()->all();
+
             return [
                 'id'              => $s->id,
                 'protocol_number' => $s->protocol_number,
                 'customer_id'     => $s->customer_id,
                 'customer_name'   => $s->customer?->name ?? 'N/A',
                 'customer_email'  => $s->customer ? implode(', ', $s->customer->recipientEmails()) : null,
+                'customer_emails' => $customerEmails,
                 'customer_has_email' => $s->customer && count($s->customer->recipientEmails()) > 0,
                 'is_validated'    => $s->isValidated(),
             ];
@@ -373,6 +419,7 @@
                 showBatchModal: false,
                 batchData: { groups: [], skipped: [] },
                 batchSending: false,
+                batchMessage: '',
                 batchResult: null,
 
                 sampleMeta: @json($sampleMetaJson),
@@ -402,6 +449,12 @@
                 sampleShowUrl(id) {
                     const base = @json(route('sample.index', [], false));
                     return base + '/' + id + this.buildSampleListQuery();
+                },
+
+                sampleEmailUrl(id) {
+                    const url = this.sampleShowUrl(id);
+                    const sep = url.includes('?') ? '&' : '?';
+                    return url + sep + 'open_email=1';
                 },
 
                 syncSampleListUrl() {
@@ -456,6 +509,7 @@
                                 customer_id: s.customer_id,
                                 customer_name: s.customer_name,
                                 email: s.customer_email || '',
+                                customer_emails: s.customer_emails || [],
                                 has_email: !!s.customer_has_email,
                                 skip: false,
                                 samples: [],
@@ -503,6 +557,7 @@
                             body: JSON.stringify({
                                 sample_ids: sampleIds,
                                 email_overrides: emailOverrides,
+                                message: this.batchMessage || null,
                             }),
                         });
                         if (res.status === 403) {
